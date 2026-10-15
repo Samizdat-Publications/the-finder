@@ -1,6 +1,6 @@
 # HANDOFF: start here
 
-_Last updated: 2026-10-15 by the planning session (Opus 5.5). Whoever stops next updates this block,
+_Last updated: 2026-10-15 by build session 1 (Opus 5.5), stopped early for a session switch. Whoever stops next updates this block,
 "Where things stand", and anything below that changed._
 
 ## For Stewart: how to start the next session
@@ -49,11 +49,24 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
 
 ## Where things stand
 
-- 2026-10-15: plan approved (`PLAN.md`). Research done and written up (`docs/research/`, start with its
-  README). Project rules, decisions log, helper agents, critic guard and settings in place. Private repo
-  `https://github.com/Samizdat-Publications/the-finder`, branch `main`.
-- **M1 (ground truth) has not started.** No code, no `package.json`, no downloads yet. Checklist:
-  `docs/plans/M1.md`. Nothing is running.
+- 2026-10-15: plan approved (`PLAN.md`). Research in `docs/research/` (start with its README).
+- **Build session 1 (2026-10-15), stopped early at Stewart's request:** M1 step 0 is done and committed
+  (Node and TypeScript skeleton, `npm run check`, `Run Checks.bat`, the source manifest and fetch
+  script). Every M1 source is downloaded and checksum-verified in `sources/`, including the 1.46 GB image
+  tape (MD5 matches). Specs for M1 steps 1 to 4 are saved in `docs/plans/M1_specs/`: relaunch them as
+  the first thing (PROGRESS.md "Next"). Nothing is running.
+- **Command holds:** a "blast-radius" mod was loaded in session 1 (Stewart has since removed it). It held
+  and then refused ONE lead command (no answer within 5 minutes; it misread it as overwriting 1,498
+  files): the final handoff commit and push. **Redo it first in the next session:** run `npm run check`,
+  then `git add` exactly these paths, commit ("Session 1 handoff: M1 step 0 done, sources verified, step
+  1-4 specs saved") and `git push origin main`: `PROGRESS.md`, `HANDOFF.md`, `docs/CREDITS.md`,
+  `docs/plans/M1.md`, `docs/plans/M1_specs/step1-reference-decoder.md`,
+  `docs/plans/M1_specs/steps2-3-data-builders.md`, `docs/plans/M1_specs/step4a-science-units-clocks.md`,
+  `docs/plans/M1_specs/step4b-design-notes.md`, `tests/support/record.ts`, `tools/ref-decoder/tape.py`,
+  `tools/ref-decoder/sync.py`, `tools/ref-decoder/decode.py`. (Commit f66c87f, step 0, was committed
+  locally but also never pushed.) The three stopped helpers never reported back, so whether any of
+  their commands were held is unknown; nothing depends on them (their work restarts from the saved
+  specs).
 
 ## Delegation playbook
 
@@ -160,6 +173,16 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
   text promising a control that does not exist; safeguards that exist only in prose; measurements that
   agree with themselves; boot-order mistakes. Here, add: a test that compares the science core with
   itself instead of with the research numbers.
+
+- **Python packages are in the user site-packages:** run scripts as `python -P script.py` (safe path),
+  not `python -I` (isolated mode hides numpy). Entry scripts add their own folder to `sys.path`.
+- **The image tape downloads at about 3 to 4 MB/s** (about 7 minutes); `node tools/fetch-sources.mjs
+  image-tape` resumes a partial download and refuses a file whose MD5 differs.
+- **The Pioneer plaque SVG lives at** `https://upload.wikimedia.org/wikipedia/commons/0/02/Pioneer_plaque.svg`
+  (M1.md's guessed b/b5 path is wrong); `tools/sources.json` has the right one.
+- **Recovering a stopped helper's spec:** its prompt is the first user message in
+  `~/.claude/projects/C--Users-stewa-Documents-Claude-Golden-Record/<session>/subagents/agent-<id>.jsonl`.
+  Save specs into `docs/plans/` before launching long helpers so a session switch never loses them.
 
 ## End-of-session protocol
 
