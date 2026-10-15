@@ -28,14 +28,17 @@ BASE_RATE = 384_000  # Hz, the header rate the geometry is expressed in (images-
 
 @dataclass
 class DecodeParams:
+    # Geometry defaults below are placeholders only: decode_all.py measures w0, w1, n_rows, tau (per
+    # channel) and delta from the tape and stores the values it used in build/ref/metrics.json
+    # ("decode_params"); make_slices.py and checks.py read them from there.
     rate: int = BASE_RATE  # Hz, sample rate of the signal being decoded
-    w0: float = 300.0  # samples at 384 kHz after the edge: first sample of picture (measured, see README)
-    w1: float = 2860.0  # samples at 384 kHz after the edge: end of picture (measured)
-    n_rows: int = 384  # rows per frame (set from the calibration circle)
+    w0: float = 300.0  # samples at 384 kHz after the edge: first sample of picture (measured: 258)
+    w1: float = 2860.0  # samples at 384 kHz after the edge: end of picture (measured: 2898)
+    n_rows: int = 384  # rows per frame (set from the calibration circle: 355)
     tau: float = 1e12  # samples at 384 kHz: droop time constant (1e12 = no droop correction)
     delta: float = 0.0  # samples at 384 kHz: interlace offset, short-pulse lines relative to long
-    clamp0: float = 60.0  # samples at 384 kHz: shelf span used as the clamp level (measured: the shelf
-    clamp1: float = 240.0  # is flat from about +30 to +290 after the edge, ringing ends by about +25)
+    clamp0: float = 60.0  # samples at 384 kHz: shelf span used as the clamp level (measured on the
+    clamp1: float = 240.0  # averaged sync waveform: ringing after the edge has settled by about +60)
     p_lo: float = 0.5  # percent: black point of the level stretch
     p_hi: float = 99.5  # percent: white point of the level stretch
 
@@ -188,3 +191,93 @@ def measure_interlace(V: np.ndarray, parity_long: np.ndarray, max_lag: int = 30,
     return {"offset": (mls - msl) / 2.0, "slope": (mls + msl) / 2.0, "n_ls": int(len(ls)), "n_sl": int(len(sl)),
             "median_ls": mls, "median_sl": msl,
             "mad_ls": float(np.median(np.abs(ls - mls))), "mad_sl": float(np.median(np.abs(sl - msl)))}
+
+
+# ---- droop (AC-coupling) time constant, estimated from the data ----
+# Spans relative to the line's own falling edge (shelf) and to the NEXT line's falling edge (the
+# blanking plateau that ends every line), samples at 384 kHz. Measured here on the averaged sync
+# waveform (README, "What a line looks like"): the shelf is settled from about +60 to +240; the
+# end-of-line plateau starts with a step at about -330, has settled by -295 and is clean until the
+# long-pulse spike at about -150 (so -295..-170 is plateau on both parities).
+PLATEAU_SPAN = (-295, -170)
+
+
+def droop_stats(x: np.ndarray, edges: np.ndarray, p: DecodeParams):
+    """Per line k (needs edges k and k+1): (dy, I) where dy = plateau level - shelf level of the raw
+    signal and I = sum of the raw signal from the shelf centre to the plateau centre (sample units).
+
+    For a first-order high-pass with time constant tau, s(t) - s(t0) = y(t) - y(t0) + I / tau. The true
+    plateau-minus-shelf difference is the same on every line (both are blanking levels), so across lines
+    dy = C - I / tau: a straight-line fit of dy against I gives 1/tau with no free choice of tau."""
+    r = p.rate / BASE_RATE
+    c0, c1 = int(round(p.clamp0 * r)), int(round(p.clamp1 * r))
+    q0, q1 = int(round(PLATEAU_SPAN[0] * r)), int(round(PLATEAU_SPAN[1] * r))
+    cs = np.concatenate(([0.0], np.cumsum(x)))
+    dy, I = [], []
+    for k in range(len(edges) - 1):
+        s = int(round(edges[k]))
+        n = int(round(edges[k + 1]))
+        shelf = float(np.median(x[s + c0:s + c1 + 1]))
+        plat = float(np.mean(x[n + q0:n + q1]))
+        t0 = s + (c0 + c1) // 2
+        tc = n + (q0 + q1) // 2
+        dy.append(plat - shelf)
+        I.append(cs[tc] - cs[t0])
+    return np.array(dy), np.array(I)
+
+
+def fit_tau(groups):
+    """Pooled within-frame fit of dy = C_f - I / tau over a list of (dy, I) per frame (each frame its own
+    intercept C_f). Returns (tau_samples, standard error of tau, n_lines)."""
+    num = den = 0.0
+    resid = []
+    n = 0
+    for dy, I in groups:
+        dI = I - I.mean()
+        num += float(np.sum(dI * (dy - dy.mean())))
+        den += float(np.sum(dI * dI))
+        n += len(I)
+    beta = num / den
+    for dy, I in groups:
+        dI = I - I.mean()
+        resid.append((dy - dy.mean()) - beta * dI)
+    resid = np.concatenate(resid)
+    sigma2 = float(np.sum(resid ** 2)) / max(n - len(groups) - 1, 1)
+    se_beta = np.sqrt(sigma2 / den)
+    tau = -1.0 / beta
+    return tau, float(se_beta / beta ** 2), n
+
+
+# ---- free-running (wrong) decodes and the slant they cause ----
+
+def free_run_edges(start: float, period_used: float, n_lines: int) -> np.ndarray:
+    """Line k starts at start + k * period_used: no sync lock at all."""
+    return start + period_used * np.arange(n_lines)
+
+
+def measure_slant(x: np.ndarray, starts: np.ndarray, P_true: float, last_edge: float, rate_scale=1.0):
+    """Drift of the real sync edge relative to the line starts actually used, in samples per line.
+
+    For each used line start u_k, the strongest sync (sync_score) within u_k +/- P_true/2 is refined to a
+    sub-sample falling edge; offsets are unwrapped with period P_true and fitted robustly against k
+    (with a parity term for the alternating stagger). Only lines whose search window ends before the
+    frame's last real edge are used, so framing signal after the picture is never measured.
+    Returns dict(slope, n_used, rms)."""
+    from sync import sync_score, refine_edge, robust_line_fit
+    box = sync_score(x, rate_scale)
+    half = P_true / 2.0
+    ks, offs = [], []
+    for k, u in enumerate(starts):
+        if u + half > last_edge + 30 * rate_scale:
+            break
+        lo, hi = int(u - half), int(u + half)
+        if lo < 0 or hi >= len(x):
+            continue
+        c = lo + int(np.argmax(box[lo:hi]))
+        e, _amp = refine_edge(x, c, rate_scale)
+        if np.isfinite(e):
+            ks.append(k)
+            offs.append(e - u)
+    offs = np.unwrap(np.array(offs), period=P_true)
+    fit = robust_line_fit(np.array(ks), offs, use_parity=True)
+    return {"slope": fit["P"], "n_used": int(len(ks)), "rms": fit["rms"]}

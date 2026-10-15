@@ -3,8 +3,7 @@
 The tape is `sources/image-tape/384kHzStereo.wav` (docs/research/images-and-audio.md section 2):
 1,455,685,720 bytes, 32-bit float stereo, header rate 384,000 Hz, 181,960,704 samples per channel.
 It is never loaded whole: every read is a window of at most a few million samples, taken through a
-numpy memmap on the data chunk. Works on the finished file and on the growing `.part` file (whose
-RIFF sizes may be placeholders), in which case the data length is taken from the file size.
+numpy memmap on the data chunk.
 """
 from __future__ import annotations
 
@@ -95,13 +94,11 @@ class Tape:
 
 
 def default_tape_path(root: str) -> str:
-    """The finished tape if present, else the growing .part file."""
+    """The verified tape (tools/sources.json records its size, MD5 and SHA-256)."""
     p = os.path.join(root, "sources", "image-tape", "384kHzStereo.wav")
-    if os.path.exists(p):
-        return p
-    if os.path.exists(p + ".part"):
-        return p + ".part"
-    raise FileNotFoundError(p)
+    if not os.path.exists(p):
+        raise FileNotFoundError(p)
+    return p
 
 
 def project_root() -> str:

@@ -2,27 +2,28 @@
 
 What a trace looks like (measured here on the tape, consistent with images-and-audio.md section 1,
 "Line sync"): every vertical line ends in a blanking plateau about 330 samples long, raised about
-0.1 above the picture; inside it a sharp spike and a step up, then a sharp FALLING EDGE that opens the
-next line, followed by a flat shelf about 290 samples long before the picture. Alternate traces put the
-spike about 150 or about 45 samples before the edge (the "long" and "short" pulses of the staggered
-interlace; gourneau's 155 vs 45). We lock to the falling edge, never to the spike.
+0.1 above the picture; inside it a sharp spike, then a sharp FALLING EDGE that opens the next line,
+followed by a flat shelf before the picture. Alternate traces put the spike about 150 or about 45
+samples before the edge (the "long" and "short" pulses of the staggered interlace; gourneau's 155 vs
+45). We lock to the falling edge, never to the spike.
 
-Detection is in three stages:
-1. `line_candidates`: a box matched filter (raised plateau before, shelf after) scored over the whole
-   channel in chunks; local maxima are candidate syncs.
-2. `chain_lines`: candidates are linked into runs whose spacing is one line period; isolated
-   candidates are dropped. This gives the line sync train of the whole channel.
+Frame detection, from the signal alone:
+1. `comb_windows` / `find_bursts`: every picture is preceded by a burst of about 20 lines filled with
+   regular pulses 197 samples apart (the start-of-picture comb). Bursts are found over the whole
+   channel from the high-passed rms in half-line windows (chunked reads).
+2. `locate_frame2`: the last comb pulse is found (`comb_mask`, `last_comb_pulse`); the comb is not
+   locked to the line syncs, so line 1 is defined as the first sync edge after that last pulse. A
+   seed sync three lines later is locked with a three-line matched sum of `sync_score`, and the train
+   is tracked back to line 1 and forward (`track_lines`, which predicts each edge from the last edge of
+   the same parity, so the alternating stagger is predicted exactly).
 3. `refine_edge`: each edge is located to a fraction of a sample by the crossing of the mid level
-   between the plateau just before it and the shelf just after it (linear interpolation).
-
-Frames are found from the line train alone (`find_frames`): every picture is preceded by a burst of
-"comb" lines (each filled with about 20 regular pulses, about 146 samples apart: the start-of-picture
-marker), and the picture is the 512 regular lines that follow the burst.
+   between the level just before it and the shelf just after it (linear interpolation).
+4. `lock_edges`: line fit (offset, period, parity stagger) and replacement of isolated outliers.
 """
 from __future__ import annotations
 
 import numpy as np
-from scipy.ndimage import maximum_filter1d, uniform_filter1d
+from scipy.ndimage import uniform_filter1d
 
 # ---- constants (384 kHz header-rate units unless stated) ----
 # Nominal line period, samples at 384 kHz. Source: images-and-audio.md section 1 (measured on the master
@@ -36,16 +37,13 @@ LINES_PER_FRAME = 512
 # frame L000: the blanking plateau spans about -330..0 before the edge, the shelf about 0..+290 after.
 PLATEAU = (-300, -8)
 SHELF = (12, 250)
-# Spacing tolerance when chaining syncs, samples. Measured here: edge spacings alternate about 3192 and
-# 3205 (parity stagger), plus wow and flutter of a few samples; 80 leaves a wide margin and is still far
-# below the 146-sample comb pulse spacing that could fool a looser tracker.
-CHAIN_TOL = 80
 # Refinement windows for the sub-sample edge, samples: levels taken from these spans relative to the
 # coarse edge. Measured here (the edge falls in about 6 samples, then rings for about 25).
 PRE_LEVEL = (-14, -5)
 POST_LEVEL = (25, 60)
-# Comb (start-of-picture marker) pulse period, samples. Measured here (about 19 pulses in 2780 samples).
-COMB_PERIOD = 146
+# Comb (start-of-picture marker) pulse period, samples at 384 kHz. Measured here: the spectral peak of
+# the burst before frames L000, L001, L002, L022 and L039 lies at 196.6 to 197.0 samples (1951 Hz).
+COMB_PERIOD = 197
 
 
 def _box_score(x: np.ndarray, rate_scale: float = 1.0) -> np.ndarray:
@@ -74,49 +72,6 @@ def sync_score(x: np.ndarray, rate_scale: float = 1.0) -> np.ndarray:
     d = np.zeros(len(x))
     d[h:-h] = x[:-2 * h] - x[2 * h:]
     return _box_score(x, rate_scale) + d
-
-
-def line_candidates(read, n_total: int, rate_scale: float = 1.0, chunk: int = 4_000_000):
-    """Candidate sync edges over a whole channel.
-
-    `read(start, length)` returns samples. Returns (positions, scores) of local maxima of the box score
-    that are the largest within +/- 1500 samples (less than half a line), with positive score.
-    `rate_scale` = sample rate / 384000 (the geometry scales with it).
-    """
-    pos, sc = [], []
-    ov = int(4000 * rate_scale)
-    half = int(1500 * rate_scale)
-    for s0 in range(0, n_total, chunk):
-        a = max(s0 - ov, 0)
-        b = min(s0 + chunk + ov, n_total)
-        x = read(a, b - a)
-        s = _box_score(x, rate_scale)
-        m = maximum_filter1d(s, size=2 * half + 1, mode="constant", cval=-np.inf)
-        cand = np.nonzero((s == m) & (s > 0.02))[0]
-        keep = (cand + a >= s0) & (cand + a < s0 + chunk)
-        cand = cand[keep]
-        pos.append(cand + a)
-        sc.append(s[cand])
-    if not pos:
-        return np.zeros(0, int), np.zeros(0)
-    return np.concatenate(pos), np.concatenate(sc)
-
-
-def chain_lines(pos: np.ndarray, period: float, tol: float):
-    """Keep candidates that have a neighbour one period away (either side). Returns sorted positions."""
-    pos = np.sort(pos)
-    if len(pos) < 2:
-        return pos
-    keep = np.zeros(len(pos), bool)
-    j = 0
-    for i in range(len(pos)):
-        # look forward for a candidate one period ahead
-        target = pos[i] + period
-        k = np.searchsorted(pos, target - tol)
-        if k < len(pos) and abs(pos[k] - target) <= tol:
-            keep[i] = True
-            keep[k] = True
-    return pos[keep]
 
 
 def refine_edge(x: np.ndarray, c: int, rate_scale: float = 1.0, search: int = 12):
@@ -170,21 +125,6 @@ def _comb_parts(x: np.ndarray, rate_scale: float = 1.0):
     yh = np.zeros(n)
     yh[:n - h] = y[:n - h] * y[h:]
     return yy, yl, yh
-
-
-def comb_feature(x: np.ndarray, a: int, b: int, parts=None, rate_scale: float = 1.0):
-    """Comb feature of x[a:b]: (r(L) - r(L/2)) and the rms of the high-passed body.
-
-    For the start-of-picture comb (regular pulses L apart) r(L) is near +1 and r(L/2) negative, so the
-    feature approaches 1.5 to 2; for picture lines and blank lines it is near 0. Returns (feature, rms).
-    """
-    if parts is None:
-        parts = _comb_parts(x, rate_scale)
-    yy, yl, yh = parts
-    v = float(np.sum(yy[a:b]))
-    if v <= 1e-12:
-        return 0.0, 0.0
-    return (float(np.sum(yl[a:b])) - float(np.sum(yh[a:b]))) / v, float(np.sqrt(v / (b - a)))
 
 
 def comb_windows(read, n_total: int, rate_scale: float = 1.0, chunk: int = 4_000_000):
@@ -334,48 +274,182 @@ def track_lines(x, box, e0, n_lines, P0, rate_scale=1.0, direction=1):
     return edges
 
 
-def line_rms(x, e_a, e_b, rate_scale=1.0):
-    """HF rms of the body of the line between edges e_a and e_b (comb lines are about 0.06)."""
+# ---- whole-channel frame detection (independent of Barry's table) ----
+# Lines tracked per frame beyond the 512 of the picture, to see what follows the last line.
+EXTRA_LINES = 40
+# Comb presence test, measured here: the start-of-picture comb is a train of pulses COMB_PERIOD apart
+# that is NOT locked to the line syncs (it ends at any phase of a line, even inside a line). A sample is
+# "comb" when, over a window of COMB_WIN samples, the high-passed signal has rms above COMB_RMS_FINE
+# and normalized autocorrelation at lag COMB_PERIOD above COMB_AC. A single sync spike has a low lag-197
+# autocorrelation; picture content has rms about 0.01 or less (both measured on frames L000-L010).
+COMB_WIN = 4 * COMB_PERIOD
+COMB_RMS_FINE = 0.03
+COMB_AC = 0.5
+
+
+def comb_mask(x: np.ndarray, rate_scale: float = 1.0) -> np.ndarray:
+    """Boolean per-sample mask of the start-of-picture comb (window ending at each sample)."""
+    L = int(round(COMB_PERIOD * rate_scale))
+    W = int(round(COMB_WIN * rate_scale))
+    y = x - uniform_filter1d(x, size=L, mode="nearest")
+    n = len(y)
+    yy = y * y
+    yl = np.zeros(n)
+    yl[:n - L] = y[:n - L] * y[L:]
+    cy = np.concatenate(([0.0], np.cumsum(yy)))
+    cl = np.concatenate(([0.0], np.cumsum(yl)))
+    m = np.zeros(n, bool)
+    if n <= W + L:
+        return m
+    a = np.arange(0, n - W - L)
+    e = cy[a + W] - cy[a]
+    ac = (cl[a + W] - cl[a]) / np.maximum(e, 1e-12)
+    rms = np.sqrt(e / W)
+    m[a + W + L] = (rms > COMB_RMS_FINE) & (ac > COMB_AC)
+    return m
+
+
+# A comb pulse is a high-passed peak above PULSE_MIN (measured here: comb pulses swing about +/- 0.1,
+# picture detail after the clamp stays under 0.03) that has another such peak one COMB_PERIOD earlier,
+# within PULSE_TOL samples (the measured period spread is 196.6 to 197.0; 10 is generous).
+PULSE_MIN = 0.04
+PULSE_TOL = 10
+
+
+def last_comb_pulse(x: np.ndarray, rough_end: int, rate_scale: float = 1.0) -> int:
+    """Index of the last pulse of the comb train, searched back from rough_end over one comb window and
+    a period. Isolated peaks (a sync spike alone) do not count: a pulse needs a predecessor one period
+    earlier."""
+    from scipy.signal import find_peaks
     r = rate_scale
-    a = int(e_a + 320 * r)
-    b = int(e_b - 360 * r)
-    if a < 0 or b > len(x) or b - a < 500 * r:
-        return np.nan
-    L = int(round(COMB_PERIOD * r))
-    seg = x[max(a - L, 0):min(b + L, len(x))]
-    y = seg - uniform_filter1d(seg, size=L, mode="nearest")
-    y = y[a - max(a - L, 0):a - max(a - L, 0) + (b - a)]
-    return float(np.sqrt(np.mean(y * y)))
+    L = COMB_PERIOD * r
+    a = max(int(rough_end - COMB_WIN * r - 3 * L), 0)
+    b = min(int(rough_end + 2), len(x))
+    seg = x[a:b]
+    y = seg - uniform_filter1d(seg, size=max(3, int(round(L))), mode="nearest")
+    pk, _ = find_peaks(y, height=PULSE_MIN, distance=max(1, int(L / 2)))
+    good = [p for p in pk if np.any(np.abs((p - pk) - L) <= PULSE_TOL * r)]
+    if not good:
+        return int(rough_end)
+    return a + int(good[-1])
 
 
-def locate_frame(x, burst_end_local, rate_scale=1.0, P0=None, n_back=30, n_lines=LINES_PER_FRAME):
-    """Find line 1 of the picture that follows a comb burst ending near index burst_end_local of x.
+def locate_frame2(x: np.ndarray, burst_end_local: float, rate_scale: float = 1.0, P0: float | None = None,
+                  n_lines: int = LINES_PER_FRAME + EXTRA_LINES):
+    """Line 1 of the picture after a comb burst, and its sync train.
 
-    Lock on three consecutive syncs a few lines into the picture, track back through the burst, take
-    line 1 as the first non-comb line after the last comb line, then track 512 lines forward.
-    Returns dict(edges, first_index_in_track, comb_lines_before, box) or raises ValueError.
+    The comb's last pulse (comb_mask) is found near the burst end; a seed sync is locked three lines
+    after it (the three-line matched sum of sync_score), the train is tracked back a few lines, and line
+    1 is the first sync edge after the last comb pulse. Then n_lines edges are tracked forward.
     """
     r = rate_scale
     P = (P0 or NOMINAL_PERIOD) * r
+    lo = int(max(burst_end_local - 3 * P, 0))
+    hi = int(min(burst_end_local + 3 * P, len(x)))
+    m = comb_mask(x[lo:hi], r)
+    idx = np.nonzero(m)[0]
+    if len(idx) == 0:
+        raise ValueError("no comb pulses near the burst end")
+    rough = lo + int(idx[-1])  # end of the last comb window: up to COMB_WIN + COMB_PERIOD late
+    # The comb end is the peak of its last pulse. A pulse that falls inside the blanking before an
+    # edge does not reach that line's picture, so line 1 is the first edge after this peak.
+    comb_end = last_comb_pulse(x, rough, r)
     box = sync_score(x, r)
-    a = int(burst_end_local + 2 * P)
-    b = int(burst_end_local + 3 * P)
-    i2 = int(round(2 * P))
-    trip = box[a:b] + box[a + int(round(P)):b + int(round(P))] + box[a + i2:b + i2]
+    a = int(comb_end + 2 * P)
+    b = int(comb_end + 3 * P)
+    i1, i2 = int(round(P)), int(round(2 * P))
+    trip = box[a:b] + box[a + i1:b + i1] + box[a + i2:b + i2]
     n0 = a + int(np.argmax(trip))
     e_seed, _ = refine_edge(x, n0, r)
     if not np.isfinite(e_seed):
         raise ValueError("no sync at the seed")
-    back = track_lines(x, box, e_seed, n_back, P, r, direction=-1)[::-1]  # ascending time, seed last
-    rms = [line_rms(x, back[i], back[i + 1], r) if np.isfinite(back[i]) and np.isfinite(back[i + 1]) else np.nan
-           for i in range(len(back) - 1)]
-    rms = np.array(rms)
-    combs = np.nonzero(rms > COMB_RMS * 0.75)[0]  # 0.03: well above pictures (0.012), below combs
-    if len(combs) == 0:
-        raise ValueError("no comb lines found behind the seed")
-    last = combs[-1]
-    first_line_edge = back[last + 1]
-    n_comb = int(np.sum(rms[:last + 1] > COMB_RMS * 0.75))
-    edges = track_lines(x, box, first_line_edge, n_lines + 3, P, r, direction=1)
-    return {"edges": edges, "comb_lines_before": n_comb, "box": box,
-            "back_rms": rms, "line1_after_seed": len(back) - 2 - last}
+    back = track_lines(x, box, e_seed, 5, P, r, direction=-1)[::-1]
+    after = back[np.isfinite(back) & (back > comb_end)]
+    if len(after) == 0:
+        raise ValueError("no sync edge after the comb")
+    first = float(after[0])
+    if first - comb_end > 1.2 * P:
+        raise ValueError("gap between comb end and first tracked sync exceeds a line")
+    edges = track_lines(x, box, first, n_lines, P, r, direction=1)
+    return {"edges": edges, "comb_end": comb_end, "box": box}
+
+
+def detect_channel(tape, channel: int):
+    """All frames on one channel, from the signal alone.
+
+    1. Comb feature over the whole channel in half-line windows (chunked reads), giving the
+       start-of-picture bursts (BURST_LINES long; the long lead-in tone is rejected by length).
+    2. For each burst, a window around it is read, line 1 is the first sync edge after the burst's last
+       comb pulse (`locate_frame2`), and 512 + EXTRA_LINES syncs are tracked.
+    Returns (frames, bursts, rejected_bursts); each frame has absolute edges and the comb end sample.
+    """
+    read = lambda a, n: tape.read(channel, a, n)
+    c, _f, rms = comb_windows(read, tape.n)
+    bursts_all = find_bursts(c, rms)
+    bursts = [b for b in bursts_all if BURST_LINES[0] <= b[2] <= BURST_LINES[1]]
+    rejected = [b for b in bursts_all if not (BURST_LINES[0] <= b[2] <= BURST_LINES[1])]
+    frames = []
+    P = NOMINAL_PERIOD
+    for (ba, bb, nl) in bursts:
+        w0 = int(bb - 4 * P)
+        n = int((LINES_PER_FRAME + EXTRA_LINES + 12) * P)
+        x = tape.read(channel, w0, n)
+        try:
+            fr = locate_frame2(x, bb - w0, 1.0, P)
+        except ValueError as err:
+            frames.append({"burst": [ba, bb, nl], "error": str(err)})
+            continue
+        frames.append({"burst": [ba, bb, nl], "edges": fr["edges"] + w0, "comb_end": fr["comb_end"] + w0})
+    return frames, bursts, rejected
+
+
+def track_from_seed(x: np.ndarray, seed: float, n_lines: int, rate_scale: float = 1.0, P0: float | None = None):
+    """Refine the sync edge nearest `seed` (index into x) and track n_lines lines forward. Used by the
+    96 kHz slice decoder, which is given the first-line offset by the slice index."""
+    r = rate_scale
+    P = (P0 or NOMINAL_PERIOD) * r
+    box = sync_score(x, r)
+    lo = int(seed - TRACK_SEARCH * r)
+    hi = int(seed + TRACK_SEARCH * r) + 1
+    c = lo + int(np.argmax(box[lo:hi]))
+    e0, _ = refine_edge(x, c, r)
+    if not np.isfinite(e0):
+        raise ValueError("no sync edge at the seed")
+    return track_lines(x, box, e0, n_lines, P, r, direction=1)
+
+
+# Edge outlier test: residuals from the line fit are compared with their running median over
+# LOCK_WIN lines (which follows real wow and flutter); an edge is an outlier when it departs from that
+# by more than LOCK_CLIP robust sigmas, and never for less than LOCK_MIN samples (a few times the
+# measured same-parity jitter of about 1.8 samples). Chosen here.
+LOCK_WIN = 15
+LOCK_CLIP = 5.0
+LOCK_MIN = 4.0
+
+
+def lock_edges(edges: np.ndarray):
+    """Line fit (offset, period, parity stagger) of the detected edges, then outlier replacement
+    relative to the fit plus a running median of its residuals (so slow wow and flutter is kept, and
+    only isolated misdetections are replaced). Returns (used_edges, fit, n_replaced)."""
+    from scipy.ndimage import median_filter
+    k = np.arange(len(edges))
+    fit = robust_line_fit(k, edges, use_parity=True)
+    res = fit["residuals"]
+    filled = np.where(np.isfinite(res), res, 0.0)
+    smooth = median_filter(filled, size=LOCK_WIN, mode="nearest")
+    dev = res - smooth
+    ok = np.isfinite(dev)
+    sig = 1.4826 * np.median(np.abs(dev[ok])) if np.any(ok) else 0.0
+    bad = ~ok | (np.abs(np.where(ok, dev, 0.0)) > max(LOCK_CLIP * sig, LOCK_MIN))
+    used = np.where(bad, fit["model"] + smooth, edges)
+    return used, fit, int(np.sum(bad))
+
+
+def same_parity_jitter(edges: np.ndarray) -> float:
+    """Short-term edge jitter (samples rms) from same-parity second differences: for white timing noise
+    of rms s, e[k+2] - 2 e[k] + e[k-2] has rms s * sqrt(6). Slow wow and flutter cancels."""
+    d2 = edges[4:] - 2 * edges[2:-2] + edges[:-4]
+    d2 = d2[np.isfinite(d2)]
+    med = np.median(d2)
+    mad = 1.4826 * np.median(np.abs(d2 - med))
+    return float(mad / np.sqrt(6.0))
