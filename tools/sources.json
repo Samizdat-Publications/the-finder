@@ -102,6 +102,83 @@
       "credit": "Ron Barry, foodini/voyager (2017): the published index of the 156 frame starts, colour triples and orientations. Read as reference data only; no code copied (the repository states no licence)",
       "usedFor": "Validating the reference decoder's detected frame starts; orientation reference",
       "research": "docs/research/images-and-audio.md section 3"
+    },
+    {
+      "id": "gaia-gl445",
+      "file": "gl445_gaia_dr3.csv",
+      "url": "https://gea.esac.esa.int/tap-server/tap/sync?REQUEST=doQuery&LANG=ADQL&FORMAT=csv&QUERY=SELECT+source_id%2C+ref_epoch%2C+ra%2C+ra_error%2C+dec%2C+dec_error%2C+parallax%2C+parallax_error%2C+pmra%2C+pmra_error%2C+pmdec%2C+pmdec_error%2C+radial_velocity%2C+radial_velocity_error%2C+phot_g_mean_mag%2C+ruwe+FROM+gaiadr3.gaia_source+WHERE+1%3DCONTAINS%28POINT%28%27ICRS%27%2C+ra%2C+dec%29%2C+CIRCLE%28%27ICRS%27%2C+176.914995%2C+78.69116%2C+0.02%29%29+AND+parallax+%3E+100",
+      "bytes": 383,
+      "md5": null,
+      "sha256": "c066c21212d5e98554edc5ac88c94b3d0a31b203353ef204c5c78bdae354418a",
+      "credit": "ESA/Gaia/DPAC, Gaia Data Release 3 (Gaia Collaboration, Vallenari et al. 2023, A&A 674, A1), via the ESA Gaia archive TAP service",
+      "usedFor": "stars.json: Gliese 445 astrometry and radial velocity (overrides HYG)",
+      "research": "docs/research/voyager.md section 5 (Gaia DR3 recheck: parallax 190.33 mas, RV -111.50 km/s)"
+    },
+    {
+      "id": "horizons-v1-30d",
+      "file": "horizons-v1-30d.json",
+      "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTORS%27&REF_PLANE=%27FRAME%27&VEC_TABLE=%272%27&OUT_UNITS=%27KM-S%27&CSV_FORMAT=%27YES%27&VEC_LABELS=%27NO%27&COMMAND=%27-31%27&CENTER=%27500%4010%27&START_TIME=%272000-01-01%27&STOP_TIME=%272100-01-01%27&STEP_SIZE=%2730+d%27",
+      "bytes": 243603,
+      "md5": null,
+      "sha256": "e57d4236992970ae3113b72ca3ff9e8e2b99009d5af195405cd5fe81d64c3fda",
+      "credit": "JPL Horizons On-Line Ephemeris System (NASA/JPL Solar System Dynamics), https://ssd.jpl.nasa.gov/horizons/",
+      "usedFor": "ephemeris.json: Voyager 1 heliocentric state, 30-day nodes 2000-2100",
+      "research": "docs/research/voyager.md section 3"
+    },
+    {
+      "id": "horizons-v2-30d",
+      "file": "horizons-v2-30d.json",
+      "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTORS%27&REF_PLANE=%27FRAME%27&VEC_TABLE=%272%27&OUT_UNITS=%27KM-S%27&CSV_FORMAT=%27YES%27&VEC_LABELS=%27NO%27&COMMAND=%27-32%27&CENTER=%27500%4010%27&START_TIME=%272000-01-01%27&STOP_TIME=%272100-01-01%27&STEP_SIZE=%2730+d%27",
+      "bytes": 243603,
+      "md5": null,
+      "sha256": "7013166f8b3652082d8ae4b9cd95c9e1aaab0deb932c6ac0aad56335f62988ec",
+      "credit": "JPL Horizons On-Line Ephemeris System (NASA/JPL Solar System Dynamics), https://ssd.jpl.nasa.gov/horizons/",
+      "usedFor": "ephemeris.json: Voyager 2 heliocentric state, 30-day nodes 2000-2100",
+      "research": "docs/research/voyager.md section 3"
+    },
+    {
+      "id": "horizons-earth-10d",
+      "file": "horizons-earth-10d.json",
+      "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTORS%27&REF_PLANE=%27FRAME%27&VEC_TABLE=%272%27&OUT_UNITS=%27KM-S%27&CSV_FORMAT=%27YES%27&VEC_LABELS=%27NO%27&COMMAND=%27399%27&CENTER=%27500%4010%27&START_TIME=%272020-01-01%27&STOP_TIME=%272040-01-01%27&STEP_SIZE=%2710+d%27",
+      "bytes": 148113,
+      "md5": null,
+      "sha256": "f1f38d0594bf9292e28a3804151dd2eb944ec281a76444403369c63eefb7e158",
+      "credit": "JPL Horizons On-Line Ephemeris System (NASA/JPL Solar System Dynamics), https://ssd.jpl.nasa.gov/horizons/",
+      "usedFor": "ephemeris.json: Earth heliocentric state, 10-day nodes 2020-2040",
+      "research": "docs/research/voyager.md section 3"
+    },
+    {
+      "id": "horizons-v1-spot",
+      "file": "horizons-v1-spot.json",
+      "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTORS%27&REF_PLANE=%27FRAME%27&VEC_TABLE=%272%27&OUT_UNITS=%27KM-S%27&CSV_FORMAT=%27YES%27&VEC_LABELS=%27NO%27&COMMAND=%27-31%27&CENTER=%27500%4010%27&TLIST=%272452019.541666667%27+%272453542.625000000%27+%272455065.708333333%27+%272456588.791666667%27+%272458111.875000000%27+%272459634.958333333%27+%272461158.041666667%27+%272462681.125000000%27+%272464205.208333333%27+%272465728.291666667%27+%272467251.375000000%27+%272468774.458333333%27+%272470296.541666667%27+%272471819.625000000%27+%272473342.708333333%27+%272474865.791666667%27+%272476388.875000000%27+%272477911.958333333%27+%272479435.041666667%27+%272480959.125000000%27+%272482482.208333333%27+%272484005.291666667%27+%272485528.375000000%27+%272487051.458333333%27&TLIST_TYPE=%27JD%27&TIME_TYPE=%27TDB%27",
+      "bytes": 9584,
+      "md5": null,
+      "sha256": "4ed7b1066d75bebf041aea91fd3f01fb55c7fd6f128b6fb6476a50deee26b9fe",
+      "credit": "JPL Horizons On-Line Ephemeris System (NASA/JPL Solar System Dynamics), https://ssd.jpl.nasa.gov/horizons/",
+      "usedFor": "ephemeris_spotchecks.json: Voyager 1 at 24 off-node epochs, to test the Hermite interpolation",
+      "research": "docs/research/voyager.md section 3"
+    },
+    {
+      "id": "horizons-v2-spot",
+      "file": "horizons-v2-spot.json",
+      "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTORS%27&REF_PLANE=%27FRAME%27&VEC_TABLE=%272%27&OUT_UNITS=%27KM-S%27&CSV_FORMAT=%27YES%27&VEC_LABELS=%27NO%27&COMMAND=%27-32%27&CENTER=%27500%4010%27&TLIST=%272452019.541666667%27+%272453542.625000000%27+%272455065.708333333%27+%272456588.791666667%27+%272458111.875000000%27+%272459634.958333333%27+%272461158.041666667%27+%272462681.125000000%27+%272464205.208333333%27+%272465728.291666667%27+%272467251.375000000%27+%272468774.458333333%27+%272470296.541666667%27+%272471819.625000000%27+%272473342.708333333%27+%272474865.791666667%27+%272476388.875000000%27+%272477911.958333333%27+%272479435.041666667%27+%272480959.125000000%27+%272482482.208333333%27+%272484005.291666667%27+%272485528.375000000%27+%272487051.458333333%27&TLIST_TYPE=%27JD%27&TIME_TYPE=%27TDB%27",
+      "bytes": 9584,
+      "md5": null,
+      "sha256": "280dd8ac61f29d218b4cf1ade916d238a64456fe7465852e547647973eead838",
+      "credit": "JPL Horizons On-Line Ephemeris System (NASA/JPL Solar System Dynamics), https://ssd.jpl.nasa.gov/horizons/",
+      "usedFor": "ephemeris_spotchecks.json: Voyager 2 at 24 off-node epochs, to test the Hermite interpolation",
+      "research": "docs/research/voyager.md section 3"
+    },
+    {
+      "id": "horizons-v1-ssb-ref",
+      "file": "horizons-v1-ssb-ref.json",
+      "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTORS%27&REF_PLANE=%27FRAME%27&VEC_TABLE=%272%27&OUT_UNITS=%27KM-S%27&CSV_FORMAT=%27YES%27&VEC_LABELS=%27NO%27&COMMAND=%27-31%27&CENTER=%27500%400%27&TLIST=%272461329.291666667%27&TLIST_TYPE=%27JD%27&TIME_TYPE=%27TDB%27",
+      "bytes": 5014,
+      "md5": null,
+      "sha256": "692b7ede08bb6f75cce5f52e530b7b85521083eb7de20984be102014ad1a2fe9",
+      "credit": "JPL Horizons On-Line Ephemeris System (NASA/JPL Solar System Dynamics), https://ssd.jpl.nasa.gov/horizons/",
+      "usedFor": "scenario.json: Voyager 1 barycentric state at 2026-10-15 19:00 TDB",
+      "research": "docs/research/voyager.md section 3"
     }
   ]
 }

@@ -1,0 +1,409 @@
+{
+ "meta": {
+  "built": "2026-10-15",
+  "description": "Every etched number on the Voyager record cover. valueTH is the exact integer; numbers are in hydrogen time units t_H = 1/1420405751.768 Hz except rasterLines and lineLabels (counts).",
+  "research": "docs/research/cover.md sections 1 and 2",
+  "sources": [
+   {
+    "id": "cover-photo",
+    "sha256": "89f8666e15f201cf4d428bc3e4d9bd11e064cedcac212a13f2124bc556055cff",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/56/The_Sounds_of_Earth_Record_Cover_-_GPN-2000-001978.jpg"
+   },
+   {
+    "id": "pioneer-svg",
+    "sha256": "ac1a16f8ee3ca0b7d9a8ce1dbab02c3aba1f41cfdf22601d11d4478373fd7e78",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/02/Pioneer_plaque.svg"
+   }
+  ],
+  "svgUnits": {
+   "angleZero": "mapAngleDeg is counter-clockwise from the drawn galactic-centre line (gcLine.svgAzimuthDeg); svgAzimuthDeg is the raw azimuth from the SVG +x axis, counter-clockwise with SVG y flipped",
+   "origin": [
+    868.7205,
+    1211.8281
+   ],
+   "originNote": "origin: our least-squares intersection of the long radial strokes (svgmap.find_origin), used for every value here; originResearch: the undocumented origin of the research digitization, 0.55 units away (0.0003 R0), kept for reference only",
+   "originResearch": [
+    868.216,
+    1211.581
+   ]
+  }
+ },
+ "picture": {
+  "lineLabels": [
+   {
+    "binary": "1",
+    "bits": 1,
+    "location": "Top right: above each of the three picture lines in the start-of-picture diagram",
+    "meaning": "Picture line 1",
+    "provenance": "NASA/JPL photo GPN-2000-001978 (1977), pixel scan in docs/research/cover.md section 1c; matches NASA cover page and Ron Barry",
+    "valueTH": 1
+   },
+   {
+    "binary": "10",
+    "bits": 2,
+    "location": "Top right: above each of the three picture lines in the start-of-picture diagram",
+    "meaning": "Picture line 2",
+    "provenance": "NASA/JPL photo GPN-2000-001978 (1977), pixel scan in docs/research/cover.md section 1c; matches NASA cover page and Ron Barry",
+    "valueTH": 2
+   },
+   {
+    "binary": "11",
+    "bits": 2,
+    "location": "Top right: above each of the three picture lines in the start-of-picture diagram",
+    "meaning": "Picture line 3",
+    "provenance": "NASA/JPL photo GPN-2000-001978 (1977), pixel scan in docs/research/cover.md section 1c; matches NASA cover page and Ron Barry",
+    "valueTH": 3
+   }
+  ],
+  "lineTime": {
+   "binary": "101101001100000000000000",
+   "bits": 24,
+   "location": "Top right: under picture line 1, between two tall bars, in 3 rows (12/8/4 digits)",
+   "meaning": "Duration of one picture line (8.34 ms), in hydrogen time units",
+   "provenance": "NASA/JPL photo GPN-2000-001978 (1977), pixel scan in docs/research/cover.md section 1c; matches Carter Dack, CED Magic and Ron Barry transcriptions",
+   "valueTH": 11845632
+  },
+  "notes": [
+   "Disputed, not a value: a small two-row label above the first raster lines. The research read it as 1, 10, 11 (lines 1 to 3); CED Magic reads 10000 = 16 (\"16 grey levels\"). No official source explains it (cover.md 1c, Could not confirm 4)."
+  ],
+  "rasterLines": {
+   "binary": "1000000000",
+   "bits": 10,
+   "location": "Top right: above the last line of the raster rectangle, in vertical notation (a horizontal bar plus 9 dashes in columns of 5 and 4)",
+   "meaning": "Number of vertical lines in one picture (512)",
+   "provenance": "NASA/JPL photo GPN-2000-001978 (1977), pixel scan in docs/research/cover.md section 1c; matches CED Magic and Carter Dack; NASA: \"512 vertical lines\"",
+   "valueTH": 512
+  }
+ },
+ "pulsarMap": {
+  "conventions": {
+   "absZOverR0": "|z| = distance from the outer end of the solid line back to its tick, over R0; the sign of z is not encoded (SSD72)",
+   "binary": "period in hydrogen time units; most significant bit nearest the origin",
+   "breakR0": "gap in the solid line, [start, end] over R0; a broken line means the distance was not accurately known (SSD72)",
+   "mapAngleDeg": "counter-clockwise from the drawn galactic-centre line; equals galactic longitude (cover.md 1d); the median azimuth of the stroke midpoints of the line beyond 60 SVG units, minus gcLine.svgAzimuthDeg",
+   "rOverR0": "solid-line length = in-plane distance d cos b, over R0",
+   "svgAzimuthDeg": "raw azimuth from the SVG +x axis, counter-clockwise with SVG y flipped (lines and the centre line)"
+  },
+  "gcLine": {
+   "angleDeg": 0,
+   "endTickLengthSvg": 24.02,
+   "lengthSvg": 2031.7405,
+   "meaning": "Sun to galactic-centre distance R0; its tick is precisely at its end (z = 0); the unit of every map distance (SSD72, cover.md 1d)",
+   "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f)",
+   "svgAzimuthDeg": 0.0987
+  },
+  "lines": [
+   {
+    "absZOverR0": 0.03742,
+    "binary": "100000110100101010001110101100",
+    "bits": 30,
+    "bname": "B1642-03",
+    "breakR0": [
+     0.023655,
+     0.031638
+    ],
+    "broken": true,
+    "digitsAlongOwnLine": false,
+    "jname": "J1645-0317",
+    "label1972": "1642",
+    "mapAngleDeg": 14.0194,
+    "notes": [],
+    "order": 1,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 550675372 to Sagan, Salzman Sagan and Drake (1972) Table 1 (1642)",
+    "rOverR0": 0.078317,
+    "svgAzimuthDeg": 14.1182,
+    "valueTH": 550675372
+   },
+   {
+    "absZOverR0": null,
+    "binary": "10011001011010111010010111000",
+    "bits": 29,
+    "bname": "B1929+10",
+    "breakR0": null,
+    "broken": false,
+    "digitsAlongOwnLine": false,
+    "jname": "J1932+1059",
+    "label1972": "1929",
+    "mapAngleDeg": 47.9857,
+    "notes": [
+     "No tick: the line is too short to resolve one (cover.md section 2, \"n.r.\")"
+    ],
+    "order": 2,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 321746104 to Sagan, Salzman Sagan and Drake (1972) Table 1 (1929)",
+    "rOverR0": 0.009968,
+    "svgAzimuthDeg": 48.0844,
+    "valueTH": 321746104
+   },
+   {
+    "absZOverR0": 0.014284,
+    "binary": "11110010111110001110100011110",
+    "bits": 29,
+    "bname": "B1933+16",
+    "breakR0": [
+     0.024016,
+     0.034401
+    ],
+    "broken": true,
+    "digitsAlongOwnLine": false,
+    "jname": "J1935+1616",
+    "label1972": "1933",
+    "mapAngleDeg": 52.796,
+    "notes": [],
+    "order": 3,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 509549854 to Sagan, Salzman Sagan and Drake (1972) Table 1 (1933)",
+    "rOverR0": 0.406042,
+    "svgAzimuthDeg": 52.8947,
+    "valueTH": 509549854
+   },
+   {
+    "absZOverR0": 0.005284,
+    "binary": "101111001111001110011000001101",
+    "bits": 30,
+    "bname": "B2016+28",
+    "breakR0": [
+     0.024521,
+     0.032295
+    ],
+    "broken": true,
+    "digitsAlongOwnLine": false,
+    "jname": "J2018+2839",
+    "label1972": "2016",
+    "mapAngleDeg": 68.8156,
+    "notes": [
+     "Tick-derived latitude 7.9 deg vs true 4.0: the tick looks like a trace artifact (cover.md section 2 and Could not confirm 6)"
+    ],
+    "order": 4,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 792520205 to Sagan, Salzman Sagan and Drake (1972) Table 1 (2016)",
+    "rOverR0": 0.03771,
+    "svgAzimuthDeg": 68.9143,
+    "valueTH": 792520205
+   },
+   {
+    "absZOverR0": 0.013015,
+    "binary": "101101100101101001000010110001",
+    "bits": 30,
+    "bname": "B2217+47",
+    "breakR0": [
+     0.024268,
+     0.032649
+    ],
+    "broken": true,
+    "digitsAlongOwnLine": false,
+    "jname": "J2219+4754",
+    "label1972": "2217",
+    "mapAngleDeg": 98.0388,
+    "notes": [],
+    "order": 5,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 764842161 to Sagan, Salzman Sagan and Drake (1972) Table 1 (2217)",
+    "rOverR0": 0.110979,
+    "svgAzimuthDeg": 98.1376,
+    "valueTH": 764842161
+   },
+   {
+    "absZOverR0": 0.0021,
+    "binary": "111100011111100011111000010110",
+    "bits": 30,
+    "bname": "B0329+54",
+    "breakR0": [
+     0.02494,
+     0.03317
+    ],
+    "broken": true,
+    "digitsAlongOwnLine": false,
+    "jname": "J0332+5434",
+    "label1972": "0328",
+    "mapAngleDeg": 144.6747,
+    "notes": [],
+    "order": 6,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 1014906390 to Sagan, Salzman Sagan and Drake (1972) Table 1 (0328)",
+    "rOverR0": 0.068447,
+    "svgAzimuthDeg": 144.7734,
+    "valueTH": 1014906390
+   },
+   {
+    "absZOverR0": 0.015008,
+    "binary": "100111101000110101000100111000100",
+    "bits": 33,
+    "bname": "B0525+21",
+    "breakR0": [
+     0.024356,
+     0.031359
+    ],
+    "broken": true,
+    "digitsAlongOwnLine": false,
+    "jname": "J0528+2200",
+    "label1972": "0525",
+    "mapAngleDeg": 182.3559,
+    "notes": [],
+    "order": 7,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 5320116676 to Sagan, Salzman Sagan and Drake (1972) Table 1 (0525)",
+    "rOverR0": 0.124326,
+    "svgAzimuthDeg": 182.4546,
+    "valueTH": 5320116676
+   },
+   {
+    "absZOverR0": 0.01919,
+    "binary": "10110011100000101010000010",
+    "bits": 26,
+    "bname": "B0531+21",
+    "breakR0": null,
+    "broken": false,
+    "digitsAlongOwnLine": false,
+    "jname": "J0534+2200",
+    "label1972": "0531",
+    "mapAngleDeg": 185.3758,
+    "notes": [],
+    "order": 8,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 47057538 to Sagan, Salzman Sagan and Drake (1972) Table 1 (0531)",
+    "rOverR0": 0.195064,
+    "svgAzimuthDeg": 185.4746,
+    "valueTH": 47057538
+   },
+   {
+    "absZOverR0": 0.025037,
+    "binary": "101100111011010101011110001011",
+    "bits": 30,
+    "bname": "B0823+26",
+    "breakR0": [
+     0.02371,
+     0.033235
+    ],
+    "broken": true,
+    "digitsAlongOwnLine": false,
+    "jname": "J0826+2637",
+    "label1972": "0823",
+    "mapAngleDeg": 198.0897,
+    "notes": [],
+    "order": 9,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 753751947 to Sagan, Salzman Sagan and Drake (1972) Table 1 (0823)",
+    "rOverR0": 0.041182,
+    "svgAzimuthDeg": 198.1884,
+    "valueTH": 753751947
+   },
+   {
+    "absZOverR0": null,
+    "binary": "10101011011001101100101000011",
+    "bits": 29,
+    "bname": "B0950+08",
+    "breakR0": null,
+    "broken": false,
+    "digitsAlongOwnLine": false,
+    "jname": "J0953+0755",
+    "label1972": "0950",
+    "mapAngleDeg": 230.584,
+    "notes": [
+     "No tick: the line is too short to resolve one (cover.md section 2, \"n.r.\")"
+    ],
+    "order": 10,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 359455043 to Sagan, Salzman Sagan and Drake (1972) Table 1 (0950)",
+    "rOverR0": 0.007799,
+    "svgAzimuthDeg": 230.6827,
+    "valueTH": 359455043
+   },
+   {
+    "absZOverR0": 0.010318,
+    "binary": "111100011011011001010100111",
+    "bits": 27,
+    "bname": "B0833-45",
+    "breakR0": [
+     0.024763,
+     0.033498
+    ],
+    "broken": true,
+    "digitsAlongOwnLine": false,
+    "jname": "J0835-4510",
+    "label1972": "0833",
+    "mapAngleDeg": 264.6303,
+    "notes": [],
+    "order": 11,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 126726823 to Sagan, Salzman Sagan and Drake (1972) Table 1 (0833)",
+    "rOverR0": 0.162827,
+    "svgAzimuthDeg": 264.7291,
+    "valueTH": 126726823
+   },
+   {
+    "absZOverR0": 0.009226,
+    "binary": "100000110110010110001001111000",
+    "bits": 30,
+    "bname": "B1240-64",
+    "breakR0": [
+     0.025714,
+     0.035094
+    ],
+    "broken": true,
+    "digitsAlongOwnLine": true,
+    "jname": "J1243-6423",
+    "label1972": "1240",
+    "mapAngleDeg": 301.4834,
+    "notes": [
+     "Period known in 1972 to only 3 significant figures (0.388 s) but written to 30 bits: 1233 ppm off the true value (cover.md section 2)"
+    ],
+    "order": 12,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 551117432 to Sagan, Salzman Sagan and Drake (1972) Table 1 (1240)",
+    "rOverR0": 0.562105,
+    "svgAzimuthDeg": 301.5821,
+    "valueTH": 551117432
+   },
+   {
+    "absZOverR0": 0.002707,
+    "binary": "10110010011000101011101101111",
+    "bits": 29,
+    "bname": "B1451-68",
+    "breakR0": [
+     0.010226,
+     0.014969
+    ],
+    "broken": true,
+    "digitsAlongOwnLine": false,
+    "jname": "J1456-6843",
+    "label1972": "1451",
+    "mapAngleDeg": 311.0979,
+    "notes": [],
+    "order": 13,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 374101871 to Sagan, Salzman Sagan and Drake (1972) Table 1 (1451)",
+    "rOverR0": 0.020382,
+    "svgAzimuthDeg": 311.1966,
+    "valueTH": 374101871
+   },
+   {
+    "absZOverR0": 0.034368,
+    "binary": "1000110001111100100011011101010",
+    "bits": 31,
+    "bname": "B1727-47",
+    "breakR0": [
+     0.022166,
+     0.031073
+    ],
+    "broken": true,
+    "digitsAlongOwnLine": false,
+    "jname": "J1731-4744",
+    "label1972": "1727",
+    "mapAngleDeg": 342.733,
+    "notes": [],
+    "order": 14,
+    "provenance": "Pioneer plaque vector trace (Mysid 2006, Wikimedia Commons Pioneer_plaque.svg), extracted by tools/data/svgmap.py; the Voyager map is the Pioneer map (docs/research/cover.md 1f); identified by matching N = 1178486506 to Sagan, Salzman Sagan and Drake (1972) Table 1 (1727)",
+    "rOverR0": 0.300864,
+    "svgAzimuthDeg": 342.8317,
+    "valueTH": 1178486506
+   }
+  ]
+ },
+ "record": {
+  "playTime": {
+   "binary": "1000010110000000000000000000000000000000000",
+   "bits": 43,
+   "location": "Top left: side view of the record, written in 5 rows (9/10/10/10/4 digits) between two tall bars",
+   "meaning": "Playing time of one side (53.8 min), in hydrogen time units",
+   "provenance": "NASA/JPL photo GPN-2000-001978 (1977), pixel scan in docs/research/cover.md section 1b; matches Carter Dack and CED Magic transcriptions",
+   "valueTH": 4587025072128
+  },
+  "rotationPeriod": {
+   "binary": "100110000110010000000000000000000",
+   "bits": 33,
+   "location": "Top left: around the plan view of the record, read counter-clockwise from the mark next to the cartridge",
+   "meaning": "Time for one rotation of the record (3.6 s, 16 2/3 rpm), in hydrogen time units",
+   "provenance": "NASA/JPL photo GPN-2000-001978 (1977), pixel scan in docs/research/cover.md section 1b; matches Carter Dack (carterdack.com/Voyager) and CED Magic (cedmagic.com) transcriptions",
+   "valueTH": 5113380864
+  }
+ }
+}

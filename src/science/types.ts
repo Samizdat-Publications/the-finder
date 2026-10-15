@@ -107,7 +107,8 @@ export interface StarRecord {
   hd: number | null;
   raDeg: number;
   decDeg: number;
-  distPc: number;
+  /** null when HYG gives no distance (stored 100000 = unknown); only `sky` rows can be null (data/README.md). */
+  distPc: number | null;
   /** Includes cos(dec) (see data/README.md). */
   pmraMasYr: number;
   pmdecMasYr: number;

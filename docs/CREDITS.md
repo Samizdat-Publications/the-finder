@@ -17,11 +17,13 @@ sources below are planned; each gets its final line (with checksum and date) whe
   1993; https://www.atnf.csiro.au/research/pulsar/psrcat/ (psrcat_pkg.v2.9.0.tar.gz). Fetched 2026-10-15.
 - Jodrell Bank Centre for Astrophysics pulsar glitch catalogue (https://www.jb.man.ac.uk/pulsar/glitches/gTable.html) and Crab Pulsar Monthly Ephemeris (https://www.jb.man.ac.uk/~pulsar/crab/crab2.txt). Fetched 2026-10-15.
 - HYG Stellar Database v4.2 by David Nash (astronexus), CC BY-SA 4.0, https://codeberg.org/astronexus/hyg (hyg_v42.csv.gz). Fetched 2026-10-15.
-- Gaia DR3 (ESA/Gaia/DPAC). Planned.
-- JPL Horizons (NASA/JPL Solar System Dynamics). Planned.
+- Gaia DR3: ESA/Gaia/DPAC, Gaia Collaboration, Vallenari et al. (2023), A&A 674, A1; free use with acknowledgement (ESA Gaia archive terms); one ADQL query for Gliese 445 via https://gea.esac.esa.int/tap-server/ (source gaia-gl445 in tools/sources.json). Fetched 2026-10-15.
+- JPL Horizons On-Line Ephemeris System (NASA/JPL Solar System Dynamics), public US government data, https://ssd.jpl.nasa.gov/horizons/ ; six vector queries for Voyager 1, Voyager 2 and Earth (sources horizons-* in tools/sources.json). Fetched 2026-10-15.
 - Bailer-Jones, C. A. L. and Farnocchia, D. (2019), "Future stellar flybys of the Voyager and Pioneer
-  spacecraft", RNAAS 3, 59. Planned.
-- Sagan, C., Salzman Sagan, L. and Drake, F. (1972), "A Message from Earth", Science 175, 881.
+  spacecraft", RNAAS 3, 59: the Voyager asymptotes in data/scenario.json.
+- Sagan, C., Salzman Sagan, L. and Drake, F. (1972), "A Message from Earth", Science 175, 881: Table 1 identifies the 14 map pulsars in data/cover.json.
+- Basu, A. et al. (2022), MNRAS 510, 4049 (the Jodrell Bank glitch catalogue paper, cited as the table asks) and Lyne, A. G., Pritchard, R. S. and Graham-Smith, F. (1993), MNRAS 265, 1003 (Crab monthly ephemeris): data/glitches.json and data/crab.json.
+- ESA (1997), The Hipparcos and Tycho Catalogues, ESA SP-1200, vol. 1, section 1.5.3: the ICRS-to-galactic matrix used for pulsar l, b.
 - LNHB nuclear data (half-lives). Planned.
 
 ## Images and models

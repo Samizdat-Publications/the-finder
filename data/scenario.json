@@ -1,0 +1,73 @@
+{
+ "alternative": {
+  "asymptote": {
+   "decDeg": -67.5491,
+   "frame": "ICRS, barycentric, asymptotic",
+   "raDeg": 316.2717,
+   "source": "Bailer-Jones and Farnocchia 2019, RNAAS 3, 59",
+   "speedKmS": 14.855
+  },
+  "craft": "Voyager 2",
+  "homeStar": "Ross 248",
+  "homeStarHygId": 119585,
+  "horizonsId": "-32"
+ },
+ "built": "2026-10-15",
+ "craft": {
+  "asymptote": {
+   "decDeg": 12.3199,
+   "frame": "ICRS, barycentric, asymptotic",
+   "raDeg": 262.876,
+   "source": "Bailer-Jones and Farnocchia 2019, RNAAS 3, 59",
+   "speedKmS": 16.6048
+  },
+  "horizonsId": "-31",
+  "launchSource": "date: docs/research/voyager.md section 4; time of day: NASA launch time as given in the M1 spec, not yet cited in docs/research",
+  "launchUtc": "1977-09-05T12:56:00Z",
+  "name": "Voyager 1",
+  "stateRef": {
+   "center": "solar-system barycentre",
+   "frame": "ICRF",
+   "jdTdb": 2461329.291666667,
+   "posKm": [
+    -4814337921.856771,
+    -24692171276.28011,
+    5449777767.685873
+   ],
+   "query": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTORS%27&REF_PLANE=%27FRAME%27&VEC_TABLE=%272%27&OUT_UNITS=%27KM-S%27&CSV_FORMAT=%27YES%27&VEC_LABELS=%27NO%27&COMMAND=%27-31%27&CENTER=%27500%400%27&TLIST=%272461329.291666667%27&TLIST_TYPE=%27JD%27&TIME_TYPE=%27TDB%27",
+   "source": "JPL Horizons",
+   "velKmS": [
+    -2.059373548985258,
+    -16.39473196289673,
+    3.607851270146947
+   ]
+  }
+ },
+ "discoveryRule": "closest approach of the craft to the home star, linear motion",
+ "homeStar": {
+  "gaiaDr3SourceId": "1129149723913123456",
+  "hip": 57544,
+  "hygId": 57371,
+  "name": "Gliese 445",
+  "otherNames": [
+   "AC+79 3888",
+   "Gl 445",
+   "HIP 57544",
+   "Gaia DR3 1129149723913123456"
+  ]
+ },
+ "id": "v1-gl445",
+ "sources": [
+  "docs/research/voyager.md sections 3 and 5",
+  {
+   "id": "horizons-v1-ssb-ref",
+   "sha256": "692b7ede08bb6f75cce5f52e530b7b85521083eb7de20984be102014ad1a2fe9",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&OBJ_DATA=%27NO%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTORS%27&REF_PLANE=%27FRAME%27&VEC_TABLE=%272%27&OUT_UNITS=%27KM-S%27&CSV_FORMAT=%27YES%27&VEC_LABELS=%27NO%27&COMMAND=%27-31%27&CENTER=%27500%400%27&TLIST=%272461329.291666667%27&TLIST_TYPE=%27JD%27&TIME_TYPE=%27TDB%27"
+  },
+  {
+   "id": "gaia-gl445",
+   "sha256": "c066c21212d5e98554edc5ac88c94b3d0a31b203353ef204c5c78bdae354418a",
+   "url": "https://gea.esac.esa.int/tap-server/tap/sync?REQUEST=doQuery&LANG=ADQL&FORMAT=csv&QUERY=SELECT+source_id%2C+ref_epoch%2C+ra%2C+ra_error%2C+dec%2C+dec_error%2C+parallax%2C+parallax_error%2C+pmra%2C+pmra_error%2C+pmdec%2C+pmdec_error%2C+radial_velocity%2C+radial_velocity_error%2C+phot_g_mean_mag%2C+ruwe+FROM+gaiadr3.gaia_source+WHERE+1%3DCONTAINS%28POINT%28%27ICRS%27%2C+ra%2C+dec%29%2C+CIRCLE%28%27ICRS%27%2C+176.914995%2C+78.69116%2C+0.02%29%29+AND+parallax+%3E+100"
+  }
+ ]
+}

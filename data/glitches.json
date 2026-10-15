@@ -1,0 +1,725 @@
+{
+ "meta": {
+  "built": "2026-10-15",
+  "catalogueGlitches": 728,
+  "citation": "Basu, A. et al. (2022), MNRAS 510, 4049; Jodrell Bank Centre for Astrophysics glitch catalogue, https://www.jb.man.ac.uk/pulsar/glitches/gTable.html",
+  "scope": "the 14 pulsars on the record cover's map, keyed by J name (an empty list means no glitch in the table)",
+  "source": {
+   "id": "jbo-glitches",
+   "sha256": "338333f9f01fc59c56b472ac22cf699e9015d099e5becfa1c91adaa1cffa2e72",
+   "url": "https://www.jb.man.ac.uk/pulsar/glitches/gTable.html"
+  },
+  "units": "mjd days (MJD); dfOverF, df1OverF1 dimensionless (converted from the table's 1e-9 and 1e-3 units); null where the table has X"
+ },
+ "pulsars": {
+  "J0332+5434": [],
+  "J0528+2200": [
+   {
+    "df1OverF1": 0.013000000000000001,
+    "df1OverF1Err": 0.005,
+    "dfOverF": 1.9e-09,
+    "dfOverFErr": 2.0000000000000003e-10,
+    "mjd": 42051.5,
+    "mjdErr": 0.3,
+    "n": 1,
+    "ref": "Espinoza+2011 [elsk11], also in Downs (1982) [dow82]"
+   },
+   {
+    "df1OverF1": 0.007,
+    "df1OverF1Err": 0.002,
+    "dfOverF": 2.3e-09,
+    "dfOverFErr": 2.0000000000000003e-10,
+    "mjd": 52296.0,
+    "mjdErr": 1.0,
+    "n": 2,
+    "ref": "Janssen+2006 [js06], also in Yuan+2010 [ywml10]"
+   },
+   {
+    "df1OverF1": null,
+    "df1OverF1Err": null,
+    "dfOverF": 2.0000000000000003e-10,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 53379.0,
+    "mjdErr": null,
+    "n": 3,
+    "ref": "Janssen+2006 [js06]"
+   },
+   {
+    "df1OverF1": 0.0001,
+    "df1OverF1Err": 0.0001,
+    "dfOverF": 5e-10,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 53980.0,
+    "mjdErr": 12.0,
+    "n": 4,
+    "ref": "Yuan+2010 [ywml10]"
+   }
+  ],
+  "J0534+2200": [
+   {
+    "df1OverF1": 0.00044,
+    "df1OverF1Err": 4e-05,
+    "dfOverF": 7.200000000000001e-09,
+    "dfOverFErr": 4.0000000000000007e-10,
+    "mjd": 40491.8,
+    "mjdErr": 0.03,
+    "n": 1,
+    "ref": "Espinoza+2011 [elsk11], also in Lohsen (1981) [loh81]"
+   },
+   {
+    "df1OverF1": 0.00017,
+    "df1OverF1Err": 1e-05,
+    "dfOverF": 1.9e-09,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 41161.98,
+    "mjdErr": 0.04,
+    "n": 2,
+    "ref": "Espinoza+2011 [elsk11], also in Lohsen (1981) [loh81]"
+   },
+   {
+    "df1OverF1": 0.00011,
+    "df1OverF1Err": 1e-05,
+    "dfOverF": 2.1e-09,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 41250.32,
+    "mjdErr": 0.01,
+    "n": 3,
+    "ref": "Espinoza+2011 [elsk11], also in Lohsen (1981) [loh81]"
+   },
+   {
+    "df1OverF1": 0.0016,
+    "df1OverF1Err": 0.0001,
+    "dfOverF": 3.57e-08,
+    "dfOverFErr": 3e-10,
+    "mjd": 42447.26,
+    "mjdErr": 0.04,
+    "n": 4,
+    "ref": "Espinoza+2011 [elsk11], also in Lohsen (1981) [loh81]"
+   },
+   {
+    "df1OverF1": 0.0005,
+    "df1OverF1Err": 0.0001,
+    "dfOverF": 6.000000000000001e-09,
+    "dfOverFErr": 1e-09,
+    "mjd": 46663.69,
+    "mjdErr": 0.03,
+    "n": 5,
+    "ref": "Espinoza+2011 [elsk11], also in Lyne+1987 [lp87]"
+   },
+   {
+    "df1OverF1": 0.0034,
+    "df1OverF1Err": 0.0001,
+    "dfOverF": 8.100000000000001e-08,
+    "dfOverFErr": 4.0000000000000007e-10,
+    "mjd": 47767.504,
+    "mjdErr": 0.003,
+    "n": 6,
+    "ref": "Espinoza+2011 [elsk11], also in Lyne+1992 [lsp92]"
+   },
+   {
+    "df1OverF1": 0.00032,
+    "df1OverF1Err": 3e-05,
+    "dfOverF": 4.2e-09,
+    "dfOverFErr": 2.0000000000000003e-10,
+    "mjd": 48945.6,
+    "mjdErr": 0.1,
+    "n": 7,
+    "ref": "Espinoza+2011 [elsk11], also in Lyne+1993 [lps93] Wong+2001 [wbl01]"
+   },
+   {
+    "df1OverF1": 0.0002,
+    "df1OverF1Err": 1e-05,
+    "dfOverF": 2.1e-09,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 50020.04,
+    "mjdErr": 0.02,
+    "n": 8,
+    "ref": "Espinoza+2011 [elsk11], also in Wong+2001 [wbl01]"
+   },
+   {
+    "df1OverF1": 0.00173,
+    "df1OverF1Err": 3e-05,
+    "dfOverF": 3.19e-08,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 50260.031,
+    "mjdErr": 0.004,
+    "n": 9,
+    "ref": "Espinoza+2011 [elsk11], also in Wong+2001 [wbl01]"
+   },
+   {
+    "df1OverF1": 0.0011,
+    "df1OverF1Err": 0.0001,
+    "dfOverF": 6.1e-09,
+    "dfOverFErr": 4.0000000000000007e-10,
+    "mjd": 50458.94,
+    "mjdErr": 0.03,
+    "n": 10,
+    "ref": "Espinoza+2011 [elsk11], also in Wong+2001 [wbl01]"
+   },
+   {
+    "df1OverF1": -0.0002,
+    "df1OverF1Err": 0.0001,
+    "dfOverF": 8.000000000000001e-10,
+    "dfOverFErr": 3e-10,
+    "mjd": 50489.7,
+    "mjdErr": 0.2,
+    "n": 11,
+    "ref": "Espinoza+2011 [elsk11], also in Wong+2001 [wbl01]"
+   },
+   {
+    "df1OverF1": 0.00062,
+    "df1OverF1Err": 4e-05,
+    "dfOverF": 6.200000000000001e-09,
+    "dfOverFErr": 2.0000000000000003e-10,
+    "mjd": 50812.59,
+    "mjdErr": 0.01,
+    "n": 12,
+    "ref": "Espinoza+2011 [elsk11], also in Wong+2001 [wbl01]"
+   },
+   {
+    "df1OverF1": 0.0007,
+    "df1OverF1Err": 0.0001,
+    "dfOverF": 6.8000000000000005e-09,
+    "dfOverFErr": 2.0000000000000003e-10,
+    "mjd": 51452.02,
+    "mjdErr": 0.01,
+    "n": 13,
+    "ref": "Espinoza+2011 [elsk11], also in Wong+2001 [wbl01]"
+   },
+   {
+    "df1OverF1": 0.0029,
+    "df1OverF1Err": 0.0001,
+    "dfOverF": 2.5100000000000003e-08,
+    "dfOverFErr": 3e-10,
+    "mjd": 51740.656,
+    "mjdErr": 0.002,
+    "n": 14,
+    "ref": "Espinoza+2011 [elsk11]"
+   },
+   {
+    "df1OverF1": 0.0005300000000000001,
+    "df1OverF1Err": 3e-05,
+    "dfOverF": 3.5000000000000003e-09,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 51804.75,
+    "mjdErr": 0.02,
+    "n": 15,
+    "ref": "Espinoza+2011 [elsk11]"
+   },
+   {
+    "df1OverF1": 0.00207,
+    "df1OverF1Err": 3e-05,
+    "dfOverF": 2.2600000000000004e-08,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 52084.072,
+    "mjdErr": 0.001,
+    "n": 16,
+    "ref": "Espinoza+2011 [elsk11]"
+   },
+   {
+    "df1OverF1": 0.00057,
+    "df1OverF1Err": 1e-05,
+    "dfOverF": 8.9e-09,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 52146.758,
+    "mjdErr": 0.0003,
+    "n": 17,
+    "ref": "Espinoza+2011 [elsk11]"
+   },
+   {
+    "df1OverF1": 0.0007,
+    "df1OverF1Err": 2e-05,
+    "dfOverF": 3.4000000000000003e-09,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 52498.257,
+    "mjdErr": 0.002,
+    "n": 18,
+    "ref": "Espinoza+2011 [elsk11]"
+   },
+   {
+    "df1OverF1": 0.0005,
+    "df1OverF1Err": 0.0001,
+    "dfOverF": 1.7000000000000001e-09,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 52587.2,
+    "mjdErr": 0.01,
+    "n": 19,
+    "ref": "Espinoza+2011 [elsk11]"
+   },
+   {
+    "df1OverF1": 0.006200000000000001,
+    "df1OverF1Err": 0.0002,
+    "dfOverF": 2.14e-07,
+    "dfOverFErr": 1e-09,
+    "mjd": 53067.078,
+    "mjdErr": 0.0002,
+    "n": 20,
+    "ref": "Espinoza+2011 [elsk11]"
+   },
+   {
+    "df1OverF1": 0.0002,
+    "df1OverF1Err": 0.0001,
+    "dfOverF": 4.900000000000001e-09,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 53254.109,
+    "mjdErr": 0.002,
+    "n": 21,
+    "ref": "Espinoza+2011 [elsk11]"
+   },
+   {
+    "df1OverF1": 0.0007,
+    "df1OverF1Err": 0.0001,
+    "dfOverF": 2.8e-09,
+    "dfOverFErr": 2.0000000000000003e-10,
+    "mjd": 53331.17,
+    "mjdErr": 0.01,
+    "n": 22,
+    "ref": "Espinoza+2011 [elsk11]"
+   },
+   {
+    "df1OverF1": 0.0031000000000000003,
+    "df1OverF1Err": 0.0001,
+    "dfOverF": 2.1800000000000003e-08,
+    "dfOverFErr": 2.0000000000000003e-10,
+    "mjd": 53970.19,
+    "mjdErr": 0.0003,
+    "n": 23,
+    "ref": "Espinoza+2011 [elsk11]"
+   },
+   {
+    "df1OverF1": 0.0002,
+    "df1OverF1Err": 0.0001,
+    "dfOverF": 4.700000000000001e-09,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 54580.38,
+    "mjdErr": 0.01,
+    "n": 24,
+    "ref": "Espinoza+2011 [elsk11]"
+   },
+   {
+    "df1OverF1": 0.00023,
+    "df1OverF1Err": 2e-05,
+    "dfOverF": 3.9000000000000005e-08,
+    "dfOverFErr": 4e-09,
+    "mjd": 55875.49,
+    "mjdErr": 0.03,
+    "n": 25,
+    "ref": "Basu+2021 [bsa+21]"
+   },
+   {
+    "df1OverF1": null,
+    "df1OverF1Err": null,
+    "dfOverF": 2.2000000000000003e-09,
+    "dfOverFErr": 4.0000000000000007e-10,
+    "mjd": 57839.8,
+    "mjdErr": 0.1,
+    "n": 26,
+    "ref": "Basu+2021 [bsa+21]"
+   },
+   {
+    "df1OverF1": 0.006969,
+    "df1OverF1Err": 2.1000000000000002e-05,
+    "dfOverF": 5.163700000000001e-07,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 58064.555,
+    "mjdErr": 0.003,
+    "n": 27,
+    "ref": "Shaw+2018; also Basu+2019 [bkj+19]"
+   },
+   {
+    "df1OverF1": 0.00046,
+    "df1OverF1Err": 0.00011,
+    "dfOverF": 4.08e-09,
+    "dfOverFErr": 2.2000000000000002e-10,
+    "mjd": 58237.357,
+    "mjdErr": 0.005,
+    "n": 28,
+    "ref": "Shaw+2018 (ATel #11625); also Basu+2019 [bkj+19]"
+   },
+   {
+    "df1OverF1": null,
+    "df1OverF1Err": null,
+    "dfOverF": 2.3e-09,
+    "dfOverFErr": 6e-10,
+    "mjd": 58470.7,
+    "mjdErr": 0.2,
+    "n": 29,
+    "ref": "Basu+2021 [bsa+21]"
+   },
+   {
+    "df1OverF1": 0.00034100000000000005,
+    "df1OverF1Err": 3.3e-05,
+    "dfOverF": 3.17e-08,
+    "dfOverFErr": 1.2e-09,
+    "mjd": 58687.565,
+    "mjdErr": 0.004,
+    "n": 30,
+    "ref": "Shaw+2021 [skl+21] Also in Shaw+2019 [smk+19] and Grover+2024 [gjs+24]"
+   },
+   {
+    "df1OverF1": 0.00043,
+    "df1OverF1Err": 4e-05,
+    "dfOverF": 2.33e-09,
+    "dfOverFErr": 9e-11,
+    "mjd": 60872.9,
+    "mjdErr": 0.2,
+    "n": 31,
+    "ref": "Shaw+2025 [bak+25]"
+   },
+   {
+    "df1OverF1": 0.00044,
+    "df1OverF1Err": 7.000000000000001e-05,
+    "dfOverF": 4.530000000000001e-09,
+    "dfOverFErr": 1.7000000000000003e-10,
+    "mjd": 60893.9,
+    "mjdErr": 0.7,
+    "n": 32,
+    "ref": "Shaw+2025b [bak+25b]"
+   }
+  ],
+  "J0826+2637": [],
+  "J0835-4510": [
+   {
+    "df1OverF1": 0.01,
+    "df1OverF1Err": 0.001,
+    "dfOverF": 2.34e-06,
+    "dfOverFErr": 1e-08,
+    "mjd": 40280.0,
+    "mjdErr": 4.0,
+    "n": 1,
+    "ref": "Downs (1981) [dow81]"
+   },
+   {
+    "df1OverF1": 0.015,
+    "df1OverF1Err": 0.006,
+    "dfOverF": 2.0500000000000003e-06,
+    "dfOverFErr": 3.0000000000000004e-08,
+    "mjd": 41192.0,
+    "mjdErr": 8.0,
+    "n": 2,
+    "ref": "Downs (1981) [dow81]"
+   },
+   {
+    "df1OverF1": 0.003,
+    "df1OverF1Err": 0.006,
+    "dfOverF": 1.2000000000000002e-08,
+    "dfOverFErr": 2e-09,
+    "mjd": 41312.0,
+    "mjdErr": 4.0,
+    "n": 3,
+    "ref": "Cordes+1988 [cdk88]"
+   },
+   {
+    "df1OverF1": 0.011,
+    "df1OverF1Err": 0.007,
+    "dfOverF": 1.99e-06,
+    "dfOverFErr": 1e-08,
+    "mjd": 42683.0,
+    "mjdErr": 3.0,
+    "n": 4,
+    "ref": "Downs (1981) [dow81]"
+   },
+   {
+    "df1OverF1": 0.018000000000000002,
+    "df1OverF1Err": 0.009000000000000001,
+    "dfOverF": 3.0600000000000003e-06,
+    "dfOverFErr": 6.000000000000001e-08,
+    "mjd": 43693.0,
+    "mjdErr": 12.0,
+    "n": 5,
+    "ref": "Downs (1981) [dow81]"
+   },
+   {
+    "df1OverF1": 0.049,
+    "df1OverF1Err": 0.004,
+    "dfOverF": 1.145e-06,
+    "dfOverFErr": 3.0000000000000004e-09,
+    "mjd": 44888.4,
+    "mjdErr": 0.4,
+    "n": 6,
+    "ref": "Cordes+1988 [cdk88]"
+   },
+   {
+    "df1OverF1": 0.023,
+    "df1OverF1Err": 0.001,
+    "dfOverF": 2.0500000000000003e-06,
+    "dfOverFErr": 1e-08,
+    "mjd": 45192.0,
+    "mjdErr": 1.0,
+    "n": 7,
+    "ref": "Cordes+1988 [cdk88]"
+   },
+   {
+    "df1OverF1": 0.017,
+    "df1OverF1Err": 0.001,
+    "dfOverF": 1.601e-06,
+    "dfOverFErr": 1e-09,
+    "mjd": 46257.228,
+    "mjdErr": 0.001,
+    "n": 8,
+    "ref": "McCulloch+1987 [mkhr87]"
+   },
+   {
+    "df1OverF1": 0.077,
+    "df1OverF1Err": 0.006,
+    "dfOverF": 1.805e-06,
+    "dfOverFErr": 1e-09,
+    "mjd": 47519.8036,
+    "mjdErr": 0.0001,
+    "n": 9,
+    "ref": "McCulloch+1987 [mkhr87]"
+   },
+   {
+    "df1OverF1": 0.6,
+    "df1OverF1Err": 0.06,
+    "dfOverF": 2.7150000000000003e-06,
+    "dfOverFErr": 2e-09,
+    "mjd": 48457.382,
+    "mjdErr": 0.001,
+    "n": 10,
+    "ref": "Flanagan (1991) [fla91]"
+   },
+   {
+    "df1OverF1": 0.001053,
+    "df1OverF1Err": 1.3e-05,
+    "dfOverF": 5.55e-09,
+    "dfOverFErr": 3e-10,
+    "mjd": 48550.0,
+    "mjdErr": 19.0,
+    "n": 11,
+    "ref": "Espinoza+2021 [ead+21]"
+   },
+   {
+    "df1OverF1": 0.0,
+    "df1OverF1Err": 0.005,
+    "dfOverF": 8.35e-07,
+    "dfOverFErr": 2e-09,
+    "mjd": 49559.0,
+    "mjdErr": 0.2,
+    "n": 12,
+    "ref": "Flanagan+1994 [fm94]"
+   },
+   {
+    "df1OverF1": 0.12,
+    "df1OverF1Err": 0.02,
+    "dfOverF": 1.9900000000000002e-07,
+    "dfOverFErr": 2e-09,
+    "mjd": 49591.2,
+    "mjdErr": null,
+    "n": 13,
+    "ref": "Flanagan (1994) [fla94]"
+   },
+   {
+    "df1OverF1": 0.00595,
+    "df1OverF1Err": 3e-05,
+    "dfOverF": 2.11e-06,
+    "dfOverFErr": 1.7e-08,
+    "mjd": 50369.345,
+    "mjdErr": 0.002,
+    "n": 14,
+    "ref": "Wang+2000 [wmp+00], also in Yu+2012 [ymh+12]"
+   },
+   {
+    "df1OverF1": 0.00366,
+    "df1OverF1Err": 0.00019,
+    "dfOverF": 3.8e-08,
+    "dfOverFErr": 4e-09,
+    "mjd": 51457.0,
+    "mjdErr": 99.0,
+    "n": 15,
+    "ref": "Espinoza+2021 [ead+21]"
+   },
+   {
+    "df1OverF1": 0.006736,
+    "df1OverF1Err": 1e-06,
+    "dfOverF": 3.08572e-06,
+    "dfOverFErr": 4.0000000000000004e-11,
+    "mjd": 51559.319,
+    "mjdErr": 0.001,
+    "n": 16,
+    "ref": "Dodson+2002 [dml02], also in Yu+2012 [ymh+12]"
+   },
+   {
+    "df1OverF1": null,
+    "df1OverF1Err": null,
+    "dfOverF": 2.1000000000000002e-06,
+    "dfOverFErr": null,
+    "mjd": 53193.0,
+    "mjdErr": null,
+    "n": 17,
+    "ref": "Dodson+2004 [dbr+04], also in Yu+2012 [ymh+12]"
+   },
+   {
+    "df1OverF1": 0.23,
+    "df1OverF1Err": 0.04,
+    "dfOverF": 2.6200000000000003e-06,
+    "dfOverFErr": null,
+    "mjd": 53960.0,
+    "mjdErr": null,
+    "n": 18,
+    "ref": "Flanagan+2006 [fb06], also in Yu+2012 [ymh+12]"
+   },
+   {
+    "df1OverF1": 0.075,
+    "df1OverF1Err": 0.001,
+    "dfOverF": 1.94e-06,
+    "dfOverFErr": null,
+    "mjd": 55408.8,
+    "mjdErr": null,
+    "n": 19,
+    "ref": "Buchner (2010) [buc10]; also in G\u00fcgercino\u011flu+22 [ggyz22]"
+   },
+   {
+    "df1OverF1": 0.148,
+    "df1OverF1Err": 0.001,
+    "dfOverF": 3.1000000000000004e-06,
+    "dfOverFErr": null,
+    "mjd": 56556.0,
+    "mjdErr": null,
+    "n": 20,
+    "ref": "Buchner(2013) [buc13]; also in G\u00fcgercino\u011flu+22 [ggyz22]"
+   },
+   {
+    "df1OverF1": 0.0001,
+    "df1OverF1Err": null,
+    "dfOverF": 4.0000000000000007e-10,
+    "dfOverFErr": null,
+    "mjd": 56922.0,
+    "mjdErr": 3.0,
+    "n": 21,
+    "ref": "Jankowski+2015 [jbb+15]"
+   },
+   {
+    "df1OverF1": null,
+    "df1OverF1Err": null,
+    "dfOverF": 1.4310000000000001e-06,
+    "dfOverFErr": null,
+    "mjd": 57734.4849906,
+    "mjdErr": 0.0,
+    "n": 22,
+    "ref": "Palfreyman+2018; also Basu+2019 [bkj+19]; also in G\u00fcgercino\u011flu+22 [ggyz22]"
+   },
+   {
+    "df1OverF1": 0.00869,
+    "df1OverF1Err": 0.00028000000000000003,
+    "dfOverF": 2.5012e-06,
+    "dfOverFErr": 3.2000000000000003e-10,
+    "mjd": 58515.5929,
+    "mjdErr": 0.005,
+    "n": 23,
+    "ref": "Kerr (2019) [kerr19]; also in Lower+2020 [lbs+20]; also in G\u00fcgercino\u011flu+22 [ggyz22] and Grover+2024 [gjs+24]"
+   },
+   {
+    "df1OverF1": null,
+    "df1OverF1Err": null,
+    "dfOverF": 1.26e-06,
+    "dfOverFErr": null,
+    "mjd": 59417.2108,
+    "mjdErr": null,
+    "n": 24,
+    "ref": "Sosa-Fiscella+2021 [szp+21]; also in Zubieta+2024 [zgp+24] and Grover+2024 [gjs+24]"
+   },
+   {
+    "df1OverF1": 0.00013000000000000002,
+    "df1OverF1Err": 1e-05,
+    "dfOverF": 2.0000000000000003e-10,
+    "dfOverFErr": 2.0000000000000002e-11,
+    "mjd": 59479.0,
+    "mjdErr": 2.5,
+    "n": 25,
+    "ref": "Zubieta+2024 [zgp+24]"
+   },
+   {
+    "df1OverF1": 0.023,
+    "df1OverF1Err": 0.001,
+    "dfOverF": 2.396e-06,
+    "dfOverFErr": 2e-09,
+    "mjd": 60429.9,
+    "mjdErr": 0.1,
+    "n": 26,
+    "ref": "Grover+2025 [ggj+25]"
+   }
+  ],
+  "J0953+0755": [],
+  "J1243-6423": [],
+  "J1456-6843": [],
+  "J1645-0317": [],
+  "J1731-4744": [
+   {
+    "df1OverF1": 0.0015,
+    "df1OverF1Err": 0.0004,
+    "dfOverF": 1.37e-07,
+    "dfOverFErr": 1e-09,
+    "mjd": 49387.2,
+    "mjdErr": 0.1,
+    "n": 1,
+    "ref": "Espinoza+2011 [elsk11], also in D\u2019Alessandro+1997 [dm97],Yu+2012 [ymh+12]"
+   },
+   {
+    "df1OverF1": 0.004,
+    "df1OverF1Err": 0.001,
+    "dfOverF": 4.4000000000000005e-09,
+    "dfOverFErr": 2.0000000000000003e-10,
+    "mjd": 50718.1,
+    "mjdErr": 0.1,
+    "n": 2,
+    "ref": "Espinoza+2011 [elsk11], also in Wang+2000 [wmp+00],Yu+2012 [ymh+12]"
+   },
+   {
+    "df1OverF1": 0.0034,
+    "df1OverF1Err": 0.0002,
+    "dfOverF": 1.2640000000000002e-07,
+    "dfOverFErr": 3e-10,
+    "mjd": 52472.7,
+    "mjdErr": 0.02,
+    "n": 3,
+    "ref": "Espinoza+2011 [elsk11], also in Yu+2012 [ymh+12]"
+   },
+   {
+    "df1OverF1": 0.0002,
+    "df1OverF1Err": 0.0002,
+    "dfOverF": 2.7e-09,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 53582.0,
+    "mjdErr": 6.0,
+    "n": 4,
+    "ref": "Yu+2012 [ymh+12]"
+   },
+   {
+    "df1OverF1": null,
+    "df1OverF1Err": null,
+    "dfOverF": 6.400000000000001e-09,
+    "dfOverFErr": 3e-10,
+    "mjd": 56975.0,
+    "mjdErr": 8.0,
+    "n": 5,
+    "ref": "Lower+2021 [ljd+21]"
+   },
+   {
+    "df1OverF1": null,
+    "df1OverF1Err": null,
+    "dfOverF": 3.1477e-06,
+    "dfOverFErr": 1.0000000000000002e-10,
+    "mjd": 57984.0,
+    "mjdErr": 20.0,
+    "n": 6,
+    "ref": "Jankowski+17 (ATEL #10770); also in Basu+2019 [bkj+19]"
+   }
+  ],
+  "J1932+1059": [],
+  "J1935+1616": [],
+  "J2018+2839": [],
+  "J2219+4754": [
+   {
+    "df1OverF1": 0.0004,
+    "df1OverF1Err": 0.0003,
+    "dfOverF": 1.16e-09,
+    "dfOverFErr": 2.0000000000000002e-11,
+    "mjd": 55857.4,
+    "mjdErr": 0.4,
+    "n": 1,
+    "ref": "Basu+2021 [bsa+21]"
+   }
+  ]
+ }
+}
