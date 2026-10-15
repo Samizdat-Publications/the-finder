@@ -7,8 +7,12 @@ sources below are planned; each gets its final line (with checksum and date) whe
 - Image signal: the 1977 Colorado Video image master tape for the Voyager Golden Record, transferred by
   Ozma Records (2016); file `384kHzStereo.wav` via the Internet Archive (`voyager.decode`), shared by
   David Pescovitz and Ron Barry. Fetched 2026-10-15 (MD5 f543349efdcc258e56c9af3baa9d33c8 verified; SHA-256 in tools/sources.json).
-- Record audio: "Voyager Golden Record" 40th anniversary edition, Ozma Records (2017), remastered from the
-  original analog tapes. Planned.
+- Record audio: "The Voyager Golden Record: 40th Anniversary Edition", Ozma Records (2017), remastered from
+  the original analog master tapes (produced by David Pescovitz, Timothy Daly and Lawrence Azerrad;
+  mastered by Ozma from the tapes in the Sony vault). Unofficial lossless CD rip on the Internet Archive,
+  item `voyager-golden-record-cd-ozma` (31 FLAC tracks, sources `ozma-cd-01` to `ozma-cd-31` in
+  tools/sources.json, each MD5 verified against the archive's published value). Fetched 2026-10-15.
+  Per-track performer credits are added with the media pipeline (M2).
 - The Voyager Golden Record was produced for NASA by a committee chaired by Carl Sagan, with Frank Drake,
   Ann Druyan, Timothy Ferris, Jon Lomberg and Linda Salzman Sagan.
 
