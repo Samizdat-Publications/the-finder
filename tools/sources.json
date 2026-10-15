@@ -179,6 +179,17 @@
       "credit": "JPL Horizons On-Line Ephemeris System (NASA/JPL Solar System Dynamics), https://ssd.jpl.nasa.gov/horizons/",
       "usedFor": "scenario.json: Voyager 1 barycentric state at 2026-10-15 19:00 TDB",
       "research": "docs/research/voyager.md section 3"
+    },
+    {
+      "id": "cassini-rtg-fuel",
+      "file": "lecture6.pdf",
+      "url": "https://fti.neep.wisc.edu/fti.neep.wisc.edu/neep602/SPRING00/lecture6.pdf",
+      "bytes": 1378068,
+      "md5": null,
+      "sha256": "286dbf40fdcdd1943d649b8cb6fdadad50760c2f6af6ca0920ca6c34c87536cd",
+      "credit": "University of Wisconsin NEEP 602 (Spring 2000), lecture 6, slide \"Isotopic Concentration of RTG Fuel\" (Cassini RTG plutonium isotopic mix)",
+      "usedFor": "src/science/clocks.ts CASSINI_PU_WT_PERCENT: the 20 at.% of Voyager RTG plutonium that is not Pu-238 (a documented assumption)",
+      "research": "docs/research/clocks.md section 4b"
     }
   ]
 }

@@ -24,7 +24,8 @@ sources below are planned; each gets its final line (with checksum and date) whe
 - Sagan, C., Salzman Sagan, L. and Drake, F. (1972), "A Message from Earth", Science 175, 881: Table 1 identifies the 14 map pulsars in data/cover.json.
 - Basu, A. et al. (2022), MNRAS 510, 4049 (the Jodrell Bank glitch catalogue paper, cited as the table asks) and Lyne, A. G., Pritchard, R. S. and Graham-Smith, F. (1993), MNRAS 265, 1003 (Crab monthly ephemeris): data/glitches.json and data/crab.json.
 - ESA (1997), The Hipparcos and Tycho Catalogues, ESA SP-1200, vol. 1, section 1.5.3: the ICRS-to-galactic matrix used for pulsar l, b.
-- LNHB nuclear data (half-lives). Planned.
+- Cassini RTG plutonium isotopic mix (the non-Pu-238 20 at.% of the Voyager fuel, a documented assumption): University of Wisconsin NEEP 602, Spring 2000, lecture 6, slide "Isotopic Concentration of RTG Fuel", https://fti.neep.wisc.edu/fti.neep.wisc.edu/neep602/SPRING00/lecture6.pdf. Fetched 2026-10-15.
+- Half-lives and decay energies: LNHB recommended data (as quoted in docs/research/clocks.md) and NNDC NuDat 3 (cited per entry in src/science/nuclides.ts).
 
 ## Images and models
 - Voyager 3D model: NASA Visualization Technology Applications and Development (VTAD), science.nasa.gov
