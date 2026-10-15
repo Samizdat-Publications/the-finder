@@ -69,6 +69,10 @@ export interface PulsarRecord {
   binary: boolean;
   f0Err: number | null;
   f1Err: number | null;
+  /** 1-sigma errors; absent or null when the catalogue has none. */
+  pxErr?: number | null;
+  pmraErr?: number | null;
+  pmdecErr?: number | null;
 }
 
 export interface PulsarCatalogue {
@@ -81,6 +85,12 @@ export interface GlitchRecord {
   /** Dimensionless fractional frequency jump. */
   dfOverF: number;
   df1OverF1: number | null;
+  dfOverFErr?: number | null;
+  df1OverF1Err?: number | null;
+  mjdErr?: number | null;
+  /** Glitch number in the source table. */
+  n?: number;
+  ref?: string;
 }
 
 export interface GlitchData {
@@ -114,14 +124,34 @@ export interface StarRecord {
   pmraErrMasYr?: number | null;
   pmdecErrMasYr?: number | null;
   rvErrKmS?: number | null;
+  gaiaDr3SourceId?: string;
 }
 
+/** In memory: data/stars.json (near) plus data/sky.json (stored columnar, expanded by the loader). */
 export interface StarCatalogue {
   meta: Record<string, unknown>;
   /** Stars within 30 pc, plus the Sun (id 0, at the origin with zero velocity). */
   near: StarRecord[];
-  /** Naked-eye stars (mag <= 6.5) beyond 30 pc. */
+  /** Naked-eye stars (mag <= 6.5) beyond 30 pc or with unknown distance. */
   sky: StarRecord[];
+}
+
+/** data/sky.json as stored: one row per star, fields named by `columns` (the StarRecord fields). */
+export interface ColumnarStars {
+  meta: Record<string, unknown>;
+  columns: string[];
+  rows: unknown[][];
+}
+
+/** Expands a columnar star table into StarRecords. */
+export function expandColumnar(table: ColumnarStars): StarRecord[] {
+  return table.rows.map((row) => {
+    const rec: Record<string, unknown> = {};
+    table.columns.forEach((col, i) => {
+      rec[col] = row[i];
+    });
+    return rec as unknown as StarRecord;
+  });
 }
 
 export interface EphemerisBody {
@@ -147,15 +177,17 @@ export interface ScenarioData {
     name: string;
     horizonsId: string;
     launchUtc: string;
+    launchSource?: string;
     asymptote: { raDeg: number; decDeg: number; speedKmS: number; frame: string; source: string };
-    stateRef: { jdTdb: number; posKm: Vec3; velKmS: Vec3; center: string; frame: string; source: string };
+    stateRef: { jdTdb: number; posKm: Vec3; velKmS: Vec3; center: string; frame: string; source: string; query?: string };
   };
-  homeStar: { name: string; otherNames: string[]; gaiaDr3SourceId: string; hygId: number | null };
+  homeStar: { name: string; otherNames: string[]; gaiaDr3SourceId: string; hygId: number | null; hip?: number | null };
   discoveryRule: string;
   alternative: {
     craft: string;
     horizonsId: string;
     asymptote: { raDeg: number; decDeg: number; speedKmS: number };
     homeStar: string;
+    homeStarHygId?: number | null;
   };
 }

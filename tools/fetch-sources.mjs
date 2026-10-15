@@ -56,7 +56,9 @@ if (manifestChanged) {
   await writeFile(MANIFEST, JSON.stringify(fresh, null, 2) + '\n');
   console.log('recorded new sizes and SHA-256 values in tools/sources.json');
 }
-process.exit(failures ? 1 : 0);
+// Set the exit code and let the event loop drain: calling process.exit() while fetch's keep-alive
+// sockets are still closing trips a libuv assertion on Windows (exit code 127 after a good run).
+process.exitCode = failures ? 1 : 0;
 
 async function handle(src) {
   const dir = join(ROOT, 'sources', src.id);
