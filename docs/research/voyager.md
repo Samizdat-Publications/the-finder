@@ -178,7 +178,9 @@ https://pds-rings.seti.org/voyager/uvs/vg1host.html
   comes within 0.934 pc of the Sun in about 36 kyr (Gaia DR3 encounter paper, Bailer-Jones 2022,
   https://arxiv.org/abs/2207.06258) and is the Sun's nearest star for about 9,000 years; Gliese 445 is
   about 1.06 pc (3.45 ly) from the Sun when Voyager 1 passes it, roughly tied with Ross 248 as the
-  Sun's nearest star (https://en.wikipedia.org/wiki/Gliese_445).
+  Sun's nearest star (https://en.wikipedia.org/wiki/Gliese_445). **Superseded in M1:** Gaia DR3 gives
+  1.024 +/- 0.002 pc (3.34 ly), and at that epoch the Sun is Gliese 445's nearest catalogued star and
+  fifth-brightest in its sky (`src/science/epoch.ts`, D-A15).
 
 ## 6. Cloudflare hosting
 

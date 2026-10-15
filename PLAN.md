@@ -136,9 +136,10 @@ you match its speed and bring it aboard.
   and its daughters tell the age, the uranium spot has grown a measurable crop of daughters, and the
   senders' star is not obvious. Found today at 172 AU, "where did it come from?" would be trivial and
   the clocks would barely move.
-- **A twist the data hands us:** at that time the Sun is one of your nearest neighbours, about 3.5
-  light-years away and one of the brightest stars in your sky. The senders were next door. (M1
-  confirms this with the star model before the story leans on it.)
+- **A twist the data hands us:** at that time the Sun is your nearest neighbour, about 3.3
+  light-years (1.02 pc) away, and the fifth-brightest star in your sky (magnitude -0.1, after Sirius,
+  Canopus, Vega and Altair). The senders were next door. (Confirmed in M1 with Gaia DR3 and the HYG
+  star model, checks `epoch.neighbours`, `epoch.neighbourDistance`, `epoch.sunBrightness`; D-A15.)
 - **The epilogue snaps back to today:** where the real Voyagers are this month, Voyager 1 crossing one
   light-day on 18 November 2026, and "in about 44,000 years it will pass Gliese 445", which is where
   you just were.
