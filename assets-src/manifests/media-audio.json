@@ -1,0 +1,8 @@
+{
+ "script": "tools/media/build_audio.py",
+ "tool": "ffmpeg version 9.0.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+ "codec": "libopus 160k VBR, 48 kHz stereo, WebM",
+ "picturesFilter": "aresample=resampler=soxr from 384 kHz header rate",
+ "generated": false,
+ "inputs": "sources/ozma-cd-NN/NN.flac, sources/image-tape/384kHzStereo.wav"
+}

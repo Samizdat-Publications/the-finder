@@ -1,0 +1,11 @@
+{
+ "scripts": [
+  "tools/media/build_frames.py",
+  "tools/media/build_record.py",
+  "tools/media/checks.py"
+ ],
+ "frames": "FLAC via ffmpeg 9 -compression_level 12 -map_metadata -1 -bitexact; rebuild verified byte-identical",
+ "record": "titles from tools/sources.json; performers/origins from https://science.nasa.gov/mission/voyager/golden-record-contents/sounds/ (fetched 2026-10-15)",
+ "generated": false,
+ "cost": 0
+}

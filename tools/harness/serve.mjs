@@ -65,3 +65,35 @@ export async function startServer() {
     });
   return { url, close };
 }
+
+/**
+ * Start the Vite DEV server (source modules served as-is), for browser tests that import `/src/...`
+ * modules by URL inside `page.evaluate`. Same port rules and process.execPath launch as startServer.
+ * @returns {Promise<{ url: string, close: () => Promise<void> }>}
+ */
+export async function startDevServer() {
+  const port = await freePort();
+  const vite = join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js');
+  const child = spawn(process.execPath, [vite, '--host', '127.0.0.1', '--port', String(port), '--strictPort'], {
+    cwd: ROOT,
+    stdio: ['ignore', 'ignore', 'pipe'],
+  });
+  let stderr = '';
+  child.stderr.on('data', (d) => {
+    stderr += d;
+  });
+  const url = `http://127.0.0.1:${port}`;
+  try {
+    await waitUp(`${url}/`, child);
+  } catch (e) {
+    child.kill();
+    throw new Error(`${e instanceof Error ? e.message : e}\n${stderr}`);
+  }
+  const close = () =>
+    new Promise((res) => {
+      if (child.exitCode !== null) return res();
+      child.once('close', () => res());
+      child.kill();
+    });
+  return { url, close };
+}

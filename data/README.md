@@ -132,3 +132,21 @@ The story config: craft Voyager 1 with its asymptote (Bailer-Jones and Farnocchi
 Horizons reference state relative to the solar-system barycentre at 2026-10-15 19:00 TDB
 (`craft.stateRef`), home star Gliese 445 (Gaia DR3 source_id, HYG id), the discovery rule, and the
 Voyager 2 / Ross 248 alternative. The discovery epoch is not stored: the science core computes it.
+
+
+## frames.json (`tools/media/build_frames.py`)
+
+The 156 picture slices (78 per channel, `L000`..`R077`) as lossless FLAC (96 kHz, 16-bit, mono) in
+`public/media/frames/`, made from `build/slices/*.wav`; each FLAC is decoded back and compared sample for
+sample with its WAV. `frames[]`: `{ frame, channel, index, image (1..116), title, colourRole
+("mono"|"R"|"G"|"B"), file, bytes, sha256, sampleRate, samples, firstLineOffset (96 kHz samples from the
+slice start), tapeStartSample384k, gain (int16 = round(tape float x gain)), orientationBarry (0|1|2, Ron
+Barry's table, reference only) }`. Titles from `docs/research/data/images/image_list_116.txt`.
+
+## record.json (`tools/media/build_record.py`)
+
+The record's timeline: `sideBreak` (after music 11, an inference, D-A17) and `sides[]` of `items[]`
+`{ id, kind, musicNumber, title (Ozma), performer, origin, nasaTitle, nasaLengthS, durationS (exact, from
+the shipped WebM), file, bytes, sha256, source }`. Side 1 = pictures, Ozma 01 to 04, music 1 to 11
+(Ozma 05 to 15); side 2 = music 12 to 27 (Ozma 16 to 31). Performers and origins are NASA's music table
+(URL in `meta.sources`). Run `python -P tools/media/checks.py` to verify files against both data files.
