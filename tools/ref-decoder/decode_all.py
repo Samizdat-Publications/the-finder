@@ -72,6 +72,14 @@ ACTIVE_RMS = 0.003
 # Droop cross-check grid on the calibration card, samples at 384 kHz. Chosen here to bracket the
 # estimate by a factor of 2 to 5 each way.
 TAU_SCAN = [200, 250, 300, 350, 400, 450, 500, 600, 800, 1200, 2000]
+# Parity level profile: smoothed along the line over this many output rows (about 70 samples, a few
+# sample-and-hold dots) so that frame-to-frame noise does not enter it. Chosen here.
+PARITY_SMOOTH = 9
+# Frames shown before and after the droop and streak changes (bright objects with smears below them,
+# and the calibration card). Chosen by the lead.
+COMPARE_FRAMES = ["R007", "R027", "R063", "L000"]
+# Clamp smoothing tested for the streak report (same-parity running median, lines).
+CLAMP_SMOOTH_TEST = 5
 
 
 def log(*a):
@@ -241,7 +249,7 @@ def main():
     log(f"pass 2 done, {time.time() - t_start:.0f} s")
 
     # ---------- 3. droop time constant per channel ----------
-    tau = {}
+    tau = {}  # line-integral estimate first; replaced by the chosen estimate in pass 4b
     tau_info = {}
     for ch in (0, 1):
         tv, se, n = decode.fit_tau(droop_groups[ch])
@@ -267,6 +275,64 @@ def main():
     w0, w1 = float(above[0]), float(above[-1] + 1)
     log(f"active window {w0:.0f}..{w1:.0f} samples after the edge ({w1 - w0:.0f} samples)")
 
+    # ---------- 4b. droop from picture content (edge tails), card check, choice ----------
+    tails = {0: ([], []), 1: ([], [])}
+    for f in frames:
+        x, a = frame_window(t, f["ch"], f["edges_raw"])
+        sl, mn = decode.edge_tail_stats(x, f["used"] - a, decode.DecodeParams(w0=w0, w1=w1))
+        tails[f["ch"]][0].append(sl)
+        tails[f["ch"]][1].append(mn)
+    tau_line = dict(tau)
+    tau_tail = {}
+    for ch in (0, 1):
+        sl = np.concatenate(tails[ch][0])
+        mn = np.concatenate(tails[ch][1])
+        tv, icpt, n = decode.fit_tau_tails(sl, mn)
+        # spread: the same fit on each half of the frames (even and odd frame index)
+        halves = []
+        for h in (0, 1):
+            hs = np.concatenate(tails[ch][0][h::2])
+            hm = np.concatenate(tails[ch][1][h::2])
+            halves.append(decode.fit_tau_tails(hs, hm)[0])
+        tau_tail[ch] = tv
+        tau_info["LR"[ch]]["line_integral_tau_samples_384k"] = tau_line[ch]
+        tau_info["LR"[ch]]["edge_tail_tau_samples_384k"] = tv
+        tau_info["LR"[ch]]["edge_tail_intercept"] = icpt
+        tau_info["LR"[ch]]["edge_tail_n"] = n
+        tau_info["LR"[ch]]["edge_tail_split_half"] = halves
+        log(f"edge-tail tau {'LR'[ch]}: {tv:.1f} samples from {n} tails (halves {halves[0]:.0f}, {halves[1]:.0f}); "
+            f"line-integral {tau_line[ch]:.1f}")
+    # card check on L000 at provisional geometry (the card spread does not depend on it)
+    circ = next(f for f in frames if f["id"] == "L000")
+    xc, ac = frame_window(t, 0, circ["edges_raw"])
+    ec = circ["used"] - ac
+    n_prov = int(round((w1 - w0) / 7.5))
+    _i, Vc0, _l = decode.decode_frame(xc, ec, circ["parity_long"],
+                                      decode.DecodeParams(w0=w0, w1=w1, n_rows=n_prov, tau=tau_tail[0]))
+    gimg = _i.astype(float)
+    bgm = ndimage.median_filter(gimg, size=aspect.BG_SIZE, mode="nearest")
+    card = ndimage.binary_erosion((bgm - gimg) < 20, iterations=4)  # 20 grey levels: off the ring
+    card[:, :STAT_LINES[0]] = False
+    card[:, STAT_LINES[1]:] = False
+
+    def card_std(tv):
+        V_ = decode.decode_values(xc, ec, circ["parity_long"], decode.DecodeParams(w0=w0, w1=w1, n_rows=n_prov, tau=tv))
+        return float(np.std(V_[card]))
+
+    scan = [{"tau": tv, "card_std": card_std(tv)} for tv in TAU_SCAN]
+    best = min(scan, key=lambda q: q["card_std"])
+    # Choice rule (from the lead): prefer the edge-tail estimator when, on the left channel, it is
+    # at least as close to the card optimum as the line-integral estimator.
+    use_tail = abs(tau_tail[0] - best["tau"]) <= abs(tau_line[0] - best["tau"])
+    tau = dict(tau_tail if use_tail else tau_line)
+    droop_flat = {"card_flatness_scan_L000": scan, "card_flatness_best_tau": best["tau"],
+                  "card_std_at_line_integral": card_std(tau_line[0]),
+                  "card_std_at_edge_tail": card_std(tau_tail[0]),
+                  "card_std_without_droop_correction": card_std(1e12),
+                  "chosen": "edge_tail" if use_tail else "line_integral",
+                  "tau_used": {"L": tau[0], "R": tau[1]}}
+    log(f"card best tau {best['tau']}; using the {droop_flat['chosen']} estimates: L {tau[0]:.1f}, R {tau[1]:.1f}")
+
     # ---------- 5. interlace offset ----------
     il = []
     for f in frames:
@@ -283,10 +349,6 @@ def main():
         f"{np.percentile(il, 25):.2f}..{np.percentile(il, 75):.2f})")
 
     # ---------- 6. aspect from the calibration circle ----------
-    circ = next(f for f in frames if f["id"] == "L000")
-    xc, ac = frame_window(t, 0, circ["edges_raw"])
-    ec = circ["used"] - ac
-
     def circle_decode(n_rows, **kw):
         p = decode.DecodeParams(w0=w0, w1=w1, n_rows=int(n_rows), tau=tau[0], delta=delta)
         for k, v in kw.items():
@@ -318,34 +380,36 @@ def main():
         d.text((6, 6), text, fill=(255, 220, 0), font=label_font())
         im.save(path)
 
-    draw_fit(img, cfit, os.path.join(OUT, "circle_fit.png"),
-             f"L000 fitted ellipse: axis ratio {cfit['axis_ratio']:.3f} (horizontal/vertical), "
-             f"{LINES} x {n_rows}")
     img_nd, V_nd, _ = circle_decode(n_rows, tau=1e12)
     save_gray(os.path.join(OUT, "circle_before_droop.png"), img_nd)
 
-    droop_flat = {}
-    # Cross-check of the left-channel tau: the card of L000 is uniform apart from the ring, so the
-    # background spread of the restored signal should be smallest near the right tau.
-    ringimg = img.astype(float)
-    bgm = ndimage.median_filter(ringimg, size=aspect.BG_SIZE, mode="nearest")
-    card = ndimage.binary_erosion((bgm - ringimg) < 20, iterations=4)  # 20 grey levels: off the ring
-    card[:, :STAT_LINES[0]] = False
-    card[:, STAT_LINES[1]:] = False
-    scan = []
-    for tv in TAU_SCAN:
-        _i, Vt, _p = circle_decode(n_rows, tau=tv)
-        scan.append({"tau": tv, "card_std": float(np.std(Vt[card]))})
-    best = min(scan, key=lambda s: s["card_std"])
-    at_est = float(np.std(V[card]))
-    droop_flat["card_flatness_scan_L000"] = scan
-    droop_flat["card_flatness_best_tau"] = best["tau"]
-    droop_flat["card_std_at_estimate"] = at_est
-    droop_flat["card_std_without_droop_correction"] = float(np.std(V_nd[card]))
-    log(f"card flatness: best tau {best['tau']} (std {best['card_std']:.5f}); at estimate {tau[0]:.0f}: {at_est:.5f}")
+    # ---------- 6b. parity level profile and streak measurements ----------
+    base_params = {ch: decode.DecodeParams(w0=w0, w1=w1, n_rows=n_rows, tau=tau[ch], delta=delta) for ch in (0, 1)}
+    par_profs = {0: [], 1: []}
+    streak_new_tau = []
+    for f in frames:
+        x, a = frame_window(t, f["ch"], f["edges_raw"])
+        V = decode.decode_values(x, f["used"] - a, f["parity_long"], base_params[f["ch"]])
+        par_profs[f["ch"]].append(decode.parity_offsets(V, f["parity_long"]))
+        _g, lv = decode.to_gray(V, base_params[f["ch"]])
+        streak_new_tau.append(decode.streak_index(V, lv))
+    parity_profile = {}
+    parity_info = {}
+    for ch in (0, 1):
+        arr = np.array(par_profs[ch])
+        prof = ndimage.uniform_filter1d(np.median(arr, axis=0), PARITY_SMOOTH, mode="nearest")
+        h0 = np.median(arr[0::2], axis=0)
+        h1 = np.median(arr[1::2], axis=0)
+        parity_profile[ch] = prof
+        parity_info["LR"[ch]] = {"rms_tape_units": float(np.sqrt(np.mean(prof ** 2))),
+                                 "max_abs_tape_units": float(np.max(np.abs(prof))),
+                                 "split_half_correlation": float(np.corrcoef(h0, h1)[0, 1])}
+        log(f"parity profile {'LR'[ch]}: rms {parity_info['LR'[ch]]['rms_tape_units'] * 1e3:.2f}e-3, "
+            f"split-half r {parity_info['LR'[ch]]['split_half_correlation']:.3f}")
 
     # ---------- 7. final decode of every frame ----------
-    params = {ch: decode.DecodeParams(w0=w0, w1=w1, n_rows=n_rows, tau=tau[ch], delta=delta) for ch in (0, 1)}
+    params = {ch: decode.DecodeParams(w0=w0, w1=w1, n_rows=n_rows, tau=tau[ch], delta=delta,
+                                      parity_profile=[float(v) for v in parity_profile[ch]]) for ch in (0, 1)}
     images = {}
     per_frame = []
     Bst = B["start_points"]
@@ -354,6 +418,7 @@ def main():
         el = f["used"] - a
         img, V, lv = decode.decode_frame(x, el, f["parity_long"], params[f["ch"]])
         images[f["id"]] = img
+        f["streak_final"] = decode.streak_index(V, lv)
         save_gray(os.path.join(OUT, "frames", f["id"] + ".png"), img)
         last = float(f["edges_raw"][LINES - 1]) - a
         sl = decode.measure_slant(x, el, f["P"], last)
@@ -372,11 +437,47 @@ def main():
             "parity_alternation": float(np.mean(par[1:] != par[:-1])),
             "interlace_offset_samples": f["interlace"]["offset"],
             "tau_frame_samples": f["tau_frame"],
+            "streak_index_final": f["streak_final"],
             "active_lines_after_512": f["active_lines_after_512"],
             "levels": {"p_lo": params[f["ch"]].p_lo, "p_hi": params[f["ch"]].p_hi, "lo": lv[0], "hi": lv[1]},
             "barry_start": bs,
             "barry_diff_samples": (float(f["used"][0]) - bs) if bs is not None else None,
         })
+    # final circle fit (all final parameters, including the parity profile)
+    xfin = decode.decode_values(xc, ec, circ["parity_long"], params[0])
+    cfit_final = aspect.fit_ellipse(aspect.ring_points(-xfin))
+    draw_fit(images["L000"], cfit_final, os.path.join(OUT, "circle_fit.png"),
+             f"L000 fitted ellipse: axis ratio {cfit_final['axis_ratio']:.3f} (horizontal/vertical), "
+             f"{LINES} x {n_rows}")
+    log(f"final circle axis ratio {cfit_final['axis_ratio']:.4f}")
+
+    # streak index under alternative settings, and before/after pictures
+    old_params = {ch: decode.DecodeParams(w0=w0, w1=w1, n_rows=n_rows, tau=tau_line[ch], delta=delta) for ch in (0, 1)}
+    cs_params = {ch: decode.DecodeParams(**{**params[ch].to_dict(), "clamp_smooth": CLAMP_SMOOTH_TEST}) for ch in (0, 1)}
+    streak_old, streak_cs = [], []
+    os.makedirs(os.path.join(OUT, "droop_compare"), exist_ok=True)
+    for f in frames:
+        x, a = frame_window(t, f["ch"], f["edges_raw"])
+        el = f["used"] - a
+        img_o, V_o, lv_o = decode.decode_frame(x, el, f["parity_long"], old_params[f["ch"]])
+        streak_old.append(decode.streak_index(V_o, lv_o))
+        _ic, V_c, lv_c = decode.decode_frame(x, el, f["parity_long"], cs_params[f["ch"]])
+        streak_cs.append(decode.streak_index(V_c, lv_c))
+        if f["id"] in COMPARE_FRAMES:
+            new = images[f["id"]]
+            gap = np.full((new.shape[0], 6), 255, np.uint8)
+            Image.fromarray(np.hstack([img_o, gap, new])).save(os.path.join(OUT, "droop_compare", f["id"] + ".png"))
+    streaks = {"definition": "per frame: rms over lines of each line's offset from a 7-line running median "
+                             "(median down the line), in grey levels of the frame's own stretch; mean over 156 frames",
+               "before_line_integral_tau_no_parity": float(np.mean(streak_old)),
+               "edge_tail_tau_no_parity": float(np.mean(streak_new_tau)),
+               "final_edge_tail_tau_with_parity_profile": float(np.mean([f["streak_final"] for f in frames])),
+               f"final_plus_clamp_median_{CLAMP_SMOOTH_TEST}": float(np.mean(streak_cs)),
+               "parity_profile": parity_info,
+               "compare_images": ["droop_compare/" + i + ".png" for i in COMPARE_FRAMES],
+               "compare_layout": "left: previous decode (line-integral tau, no parity profile); right: final"}
+    log("streak index mean: " + ", ".join(f"{k} {v:.2f}" for k, v in streaks.items() if isinstance(v, float)))
+
     # Barry agreement after the median offset
     diffs = np.array([p["barry_diff_samples"] for p in per_frame], float)
     P_med = float(np.median([p["period_samples"] for p in per_frame]))
@@ -412,7 +513,7 @@ def main():
                       "ratio": (sl["slope"] / pred) if e else None, "lines_measured": sl["n_used"]})
         log(f"free run e={e:+.2f}: slant {sl['slope']:.2f} (predicted {pred:.2f}) samples/line")
     # no interlace offset
-    p_noil = decode.DecodeParams(w0=w0, w1=w1, n_rows=n_rows, tau=tau[0], delta=0.0)
+    p_noil = decode.DecodeParams(**{**params[0].to_dict(), "delta": 0.0})
     img_noil, _, _ = decode.decode_frame(xc, ec, circ["parity_long"], p_noil)
     save_gray(os.path.join(OUT, "wrong", "no_interlace.png"), img_noil)
     fine = dict(w0=w0, w1=w1, n_rows=int(w1 - w0), tau=tau[0])
@@ -492,10 +593,13 @@ def main():
                    "median_parity_stagger_samples": float(np.median([p["parity_stagger_samples"] for p in per_frame])),
                    "max_abs_residual_slant": float(np.max(np.abs([p["residual_slant_samples_per_line"] for p in per_frame])))},
         "droop": {"model": "first-order high-pass inverse, s = y - y(t0) + (1/tau) * integral of y from the shelf centre",
-                  "method": "per channel, pooled within-frame least squares of (end-of-line plateau - shelf) "
-                            "against the line integral: slope = -1/tau",
+                  "method": "two estimators per channel: (1) line integral: pooled within-frame least squares of "
+                            "(end-of-line plateau - shelf) against the line integral, slope = -1/tau; (2) edge tail: "
+                            "least squares of the raw slope against the raw mean over tails after large steps in the "
+                            "picture, slope = a - mean/tau. The L000 card flatness scan picks which one is used.",
                   "per_channel": tau_info,
                   "circle_background_flatness": droop_flat},
+        "streaks": streaks,
         "active_window": {"w0_samples": w0, "w1_samples": w1, "rule": f"median across frames of across-line std >= "
                           f"{WINDOW_FRAC} x its level over {WINDOW_REF}", "picture_level": ref,
                           "threshold": thr},
@@ -505,7 +609,8 @@ def main():
                                  "after their own falling edges; decode shifts long lines by -offset/2 and short by +offset/2",
                       "barry_hard_coded": 12},
         "aspect": {"columns": LINES, "rows": n_rows, "samples_per_row": spr, "frame_aspect": LINES / n_rows,
-                   "circle_axis_ratio": cfit["axis_ratio"], "circle_fit": cfit, "iterations": history,
+                   "circle_axis_ratio": cfit_final["axis_ratio"], "circle_fit": cfit_final,
+                   "circle_axis_ratio_at_aspect_choice": cfit["axis_ratio"], "iterations": history,
                    "circle_centre_column": cfit["xc"], "circle_centre_row": cfit["yc"]},
         "decode_params": {"L": params[0].to_dict(), "R": params[1].to_dict()},
         "wrong_results": {"free_run": wrong, "no_interlace": no_interlace},

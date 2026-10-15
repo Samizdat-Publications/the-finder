@@ -13,7 +13,7 @@ From the project root (`C:\Users\stewa\Documents\Claude\Golden Record`):
 cd "C:\Users\stewa\Documents\Claude\Golden Record"; python -P tools/ref-decoder/decode_all.py; python -P tools/ref-decoder/make_slices.py; python -P tools/ref-decoder/checks.py
 ```
 
-`decode_all.py` takes about 6 minutes, `make_slices.py` about 40 s, `checks.py` about 5 s. Outputs:
+`decode_all.py` takes about 8 minutes, `make_slices.py` about 40 s, `checks.py` about 5 s. Outputs:
 `build/ref/` (frames, colour composites, contact sheets, circle fit, wrong-result proofs,
 `frame_starts.json`, `metrics.json`, `edges.npz`), `build/slices/` (96 kHz WAV slices and
 `index.json`) and `build/ref96/` (pictures decoded from the slices). All are gitignored.
@@ -81,22 +81,63 @@ end, so the disagreements are his table's hand-picked spread, not missed frames.
 **4. DC restore and droop.** The tape chain is AC-coupled: an untreated decode has bright tops, dark
 bottoms and trailing shadows (`build/ref/circle_before_droop.png`). Each line is clamped to the median
 of its shelf (60 to 240 samples after the edge), and the first-order high-pass is inverted:
-`s(t) = y(t) - y(t0) + (1/tau) * (integral of y from t0 to t)`, t0 the shelf centre.
-The time constant tau is estimated, not chosen: the end-of-line blanking plateau (295 to 170 samples
-before the next edge) and the shelf are both blanking levels, so their true difference is the same on
-every line, and across lines `plateau - shelf = C - I/tau`, where I is the integral of the signal
-between them. A straight-line fit over all lines of a channel (each frame its own C) gives:
+`s(t) = y(t) - y(t0) + (1/tau) * (integral of (y - baseline) from t0 to t)`, t0 the shelf centre,
+baseline 0. The time constant tau is estimated twice per channel, never chosen:
 
-- Left channel: **tau = 401 samples = 1.04 ms** at the header rate (per-frame median 410, IQR 375 to
-  440).
-- Right channel: **tau = 229 samples = 0.60 ms** (per-frame median 219, IQR 188 to 250).
+- **Line integral.** The end-of-line blanking plateau (295 to 170 samples before the next edge) and
+  the shelf are both blanking levels, so across lines `plateau - shelf = C - I/tau`, I the integral
+  of the signal between them (a straight-line fit, each frame its own C).
+- **Edge tails (from picture content, no card needed).** After a large step along a line (the
+  smoothed signal changes by more than 0.04 over 12 samples, one sample-and-hold dot), wherever the
+  true picture is flat the raw signal decays as `y' = (b - y)/tau`. For each tail (250 samples,
+  starting 30 after the step, no other step of a third that size inside it) the slope and mean are
+  measured, and over all tails of a channel `slope = a - mean/tau` is fitted by least squares.
 
-Cross-check on the left channel: the calibration card of L000 is uniform apart from the ring, so its
-background spread should be smallest at the true tau. Scanning tau gives a broad minimum at 450, and
-the estimate 401 is within 0.3% of that minimum (card std 0.0244 against 0.0379 with no droop
-correction). See `circle_fit.png` against `circle_before_droop.png`.
+| Channel | Line integral | Edge tails (split halves) | Tails |
+|---|---|---|---|
+| Left | 401 samples (1.04 ms) | **448** (455, 442) | 20,017 |
+| Right | 229 samples (0.60 ms) | **246** (238, 259) | 12,166 |
 
-**5. Polarity and levels.** More signal is darker, so the value is negated. Each frame is stretched
+Validation on the left channel: the L000 card is uniform apart from the ring, so its background spread
+should be smallest at the true tau. The scan has its minimum at **450** (card std 0.02406 at 450,
+0.02409 at 400, 0.0365 with no droop correction). The edge-tail value lands on it, so by the rule
+"prefer the edge-tail estimator when it agrees with the card on the left" the decoder uses the
+edge-tail values on both channels: **L 448, R 246**. On the right the two estimators agree within 7%,
+so the right channel's short time constant is real, not an estimator artefact. Sensitivity of the
+edge-tail fit (prototype on half the frames): tail 150 to 400 samples and skip 15 to 100 give
+L 451 to 507 and R 227 to 270. The fitted intercept would put the decay level at -0.007 to -0.02, but
+the L000 card is clearly flattest with baseline 0 (card std 0.024 at 0 against 0.031 at -0.005), so
+the decoder keeps baseline 0. Before and after (left: previous decode with the line-integral tau and no
+parity correction; right: final): `build/ref/droop_compare/R007.png`, `R027.png`, `R063.png`,
+`L000.png`. The change is visible but modest: the smears below the aircraft in R063 are fainter; the
+light shafts in R027 are probably real (an underwater photograph).
+
+**Streaks.** Measured first, with a streak index per frame: each line's offset from a 7-line running
+median, taken as the median down the line (so content edges do not count), rms over the 512 lines,
+in grey levels of the frame's own stretch. Mean over all 156 frames:
+
+| Decode | Streak index |
+|---|---|
+| Previous (line-integral tau, no parity correction) | 4.97 |
+| Edge-tail tau | 3.71 |
+| **Edge-tail tau plus parity level profile (final)** | **3.14** |
+| Final plus clamp levels smoothed (median of 5 same-parity lines) | 3.19 |
+
+Two findings. (1) Part of the streaking is a systematic difference between long-pulse and short-pulse
+lines that depends on the position down the line. Measured per frame (median of long-line offsets minus
+short-line offsets, per row), its median over all frames of a channel is extremely reproducible (split
+halves of the frames correlate 0.998 left and 0.999 right). It is smoothed over 9 rows and half is
+removed from each parity (`DecodeParams.parity_profile`, 355 values per channel, stored in
+`metrics.json`). Size: rms 0.0042 (left) and 0.0069 (right) tape units, up to 0.020 at the bottom of
+right-channel lines. (2) The rest is independent line to line (lag-1 correlation about 0). It is not
+clamp noise: longer, shorter, mean or median shelf windows and smoothing the clamp levels across 5 or 9
+same-parity lines change it by under 0.1 grey level on average (kept as `DecodeParams.clamp_smooth`,
+off). It is not a per-line gain change either: the sync-step amplitude does not correlate with it.
+Its source is still open.
+The worst frames by the final index are L036 (7.4), R075 (7.3), L009 (7.2), L072 (6.0) and R051 (5.7).
+The circle axis ratio with all final settings is **1.0002**.
+
+**5. Polarity and levels.** After the parity level profile (see "Streaks"), more signal is darker, so the value is negated. Each frame is stretched
 independently from its 0.5th to its 99.5th percentile to 0..255 (both recorded per frame). Colour
 separations are stretched independently too, so **absolute colour balance is not recoverable** from
 these files.
@@ -111,10 +152,11 @@ staggered while the picture runs on an even clock.
 
 **7. Geometry and aspect.** One image column per line (512 columns, line 1 at the left), rows sampled
 down the active part of each line. The active window is **258 to 2898 samples after the edge (2640
-samples)**: where the across-line spread of the signal, median over all frames, is at least a quarter
+samples)**: where the across-line spread of the droop-corrected signal (line-integral tau), median over all frames, is at least a quarter
 of its level inside the picture. The number of rows was chosen so that an ellipse fitted to the
 calibration circle's ring is round: **355 rows (7.44 samples per row)**, fitted axis ratio
-**1.0005** (horizontal over vertical; target 1.00 +/- 0.01), rms point residual 1.1 px. Frame:
+**1.0002** with all final settings (horizontal over vertical; target 1.00 +/- 0.01), rms point
+residual 1.1 px. Frame:
 **512 x 355, aspect 1.44**. The same geometry is used for all 156 frames. (The 1992 CD-ROM images
 were 512 x 384; Barry used 540 x 364, about 7.4 samples per row, close to ours.)
 
@@ -148,7 +190,7 @@ against the line number.
 
 Images: `build/ref/wrong/free_run_e+0.00.png` and so on. Dropping the interlace offset leaves an
 even/odd content shift of 8.8 samples on L000 (7.3 predicted from the global offset), against 1.3 with
-it applied, and roughens the ring edge (ellipse rms residual 1.35 px against 1.09 px).
+it applied, and roughens the ring edge (ellipse rms residual 1.39 px against 1.08 px).
 `build/ref/wrong/no_interlace.png`.
 
 ## Browser slices
@@ -159,20 +201,21 @@ gain (52,494.7 per unit; tape peak 0.5618 at 90% of full scale; largest slice sa
 clipped). Each slice is 0.84 MB, 131 MB in all. `build/slices/index.json` gives frame id, channel,
 image, colour role, slice start (384 kHz samples), first-line offset (96 kHz samples), length, gain
 and rate. Every frame was then decoded from its WAV file at 96 kHz with the same code, seeded only by
-the index's first-line offset: SSIM against the 384 kHz decode **0.989 mean, 0.978 worst (L061)**;
+the index's first-line offset: SSIM against the 384 kHz decode **0.986 mean, 0.970 worst (L009, a
+dark spectrum separation)**;
 edge times agree to 0.6 samples (384 kHz) rms in the median frame, 1.0 at worst.
 
 ## Known limits
 
-- **Right-channel droop.** The right channel's tau (229) is estimated the same way as the left's, but
-  right-channel pictures show bright vertical smears below bright objects (for example R063, R027,
-  R007), a sign of over-correction; decodes at about 300 look cleaner by eye. The late-line picture
-  spans give longer estimates (about 300 to 400, with a wide spread) than the blanking plateau, so the
-  chain is probably not exactly first order. There is no calibration card on the right channel to
-  settle it. Unresolved; the method is applied as measured.
+- **Right-channel smears.** Both droop estimators put the right channel's tau near 230 to 250, and
+  the final decode uses 246, yet faint bright smears remain below bright objects (R063, R007). The chain
+  is probably not exactly first order. A per-line two-point restore (forcing the next shelf to the same
+  level) removed more of the smear but made line-to-line streaking worse by about 40% on R063, R007
+  and L000 (measured with an earlier, unnormalised form of the index), so it was not adopted.
 - **512 is the cover's number, not the end of the picture.** In 41 frames picture activity continues
   for up to 24 lines after line 512, and the circle's centre sits at column 267.4 rather than 256, so
   the slide raster is probably about 530 lines with the circle centred in it. We decode 512 lines as
   the cover states; `sync.EXTRA_LINES` tracks 40 more, so a wider decode is a one-line change.
-- Vertical streaks remain from per-line clamp noise integrated by the droop inverse.
+- Random line-to-line streaks remain (final index 3.1 grey levels on average); their source is not the
+  clamp (see "Streaks").
 - Line 1 is a definition (first sync after the comb). Barry's table differs by up to two lines.

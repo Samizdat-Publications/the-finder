@@ -39,6 +39,11 @@ class DecodeParams:
     delta: float = 0.0  # samples at 384 kHz: interlace offset, short-pulse lines relative to long
     clamp0: float = 60.0  # samples at 384 kHz: shelf span used as the clamp level (measured on the
     clamp1: float = 240.0  # averaged sync waveform: ringing after the edge has settled by about +60)
+    baseline: float = 0.0  # tape units: the level the droop decays to (0: the L000 card test prefers it)
+    clamp_smooth: int = 1  # lines: running median of the clamp levels over this many same-parity lines
+    #                        (1 = off; tested at 5 and 9, no streak reduction, README "Streaks")
+    parity_profile: list | None = None  # per output row, tape units: measured mean level of long-pulse
+    #                        lines minus short-pulse lines (decode_all.py); half is removed from each
     p_lo: float = 0.5  # percent: black point of the level stretch
     p_hi: float = 99.5  # percent: white point of the level stretch
 
@@ -58,7 +63,7 @@ def line_matrix(x: np.ndarray, edges: np.ndarray, length: int, pad: int):
     return x[idx], base
 
 
-def restore_lines(x: np.ndarray, edges: np.ndarray, p: DecodeParams):
+def restore_lines(x: np.ndarray, edges: np.ndarray, p: DecodeParams, parity_long=None):
     """Clamp and droop-correct every line. Returns (Z, base, pad) with Z[k, i] the restored signal at
     sample base[k] + i."""
     pad = int(np.ceil(p.scaled("clamp0"))) + 8
@@ -69,10 +74,18 @@ def restore_lines(x: np.ndarray, edges: np.ndarray, p: DecodeParams):
     frac = edges - np.floor(edges)
     # clamp reference: median shelf level of each line
     ref = np.median(M[:, pad + c0:pad + c1 + 1], axis=1)
+    if p.clamp_smooth > 1 and parity_long is not None:
+        from scipy.ndimage import median_filter
+        pl = np.asarray(parity_long, bool)
+        r = ref.copy()
+        for q in (pl, ~pl):
+            if np.any(q):
+                r[q] = median_filter(ref[q], size=int(p.clamp_smooth), mode="nearest")
+        ref = r
     tau = p.scaled("tau")
     # integral of y from t0 (centre of the clamp span) to each sample, rectangle rule (1 sample = 1 unit)
     t0 = pad + (c0 + c1) // 2
-    cum = np.cumsum(M, axis=1)
+    cum = np.cumsum(M - p.baseline, axis=1)
     integ = cum - cum[:, t0:t0 + 1]
     Z = M - ref[:, None] + integ / tau
     return Z, base, frac
@@ -104,9 +117,34 @@ def parity_shifts(parity_long: np.ndarray, p: DecodeParams) -> np.ndarray:
 
 def decode_values(x: np.ndarray, edges: np.ndarray, parity_long: np.ndarray, p: DecodeParams) -> np.ndarray:
     """Float image (rows = time down, columns = lines), before polarity and stretch."""
-    Z, base, _ = restore_lines(x, edges, p)
+    Z, base, _ = restore_lines(x, edges, p, parity_long)
     V = sample_rows(Z, base, edges, parity_shifts(parity_long, p), p)
+    if p.parity_profile is not None:
+        prof = np.asarray(p.parity_profile, float)
+        if len(prof) != V.shape[1]:
+            raise ValueError("parity_profile length must equal n_rows")
+        sign = np.where(np.asarray(parity_long, bool), 0.5, -0.5)
+        V = V - sign[:, None] * prof[None, :]
     return V.T  # (n_rows, n_lines)
+
+
+def streak_index(V: np.ndarray, levels) -> float:
+    """Vertical-streak index of a float image V (rows x lines, before polarity), in grey levels of the
+    frame's own 0..255 stretch: each line's offset from its neighbours (V minus a 7-line running median,
+    then the median down the line, which ignores content edges), rms over lines."""
+    from scipy.ndimage import median_filter
+    D = V - median_filter(V, size=(1, 7), mode="nearest")
+    c = np.median(D, axis=0)
+    return float(np.sqrt(np.mean(c ** 2)) * 255.0 / max(levels[1] - levels[0], 1e-12))
+
+
+def parity_offsets(V: np.ndarray, parity_long) -> np.ndarray:
+    """Per row: median offset (from neighbours) of long-pulse lines minus that of short-pulse lines.
+    V is rows x lines, before polarity."""
+    from scipy.ndimage import median_filter
+    pl = np.asarray(parity_long, bool)
+    D = V - median_filter(V, size=(1, 7), mode="nearest")
+    return np.median(D[:, pl], axis=1) - np.median(D[:, ~pl], axis=1)
 
 
 def to_gray(V: np.ndarray, p: DecodeParams):
@@ -246,6 +284,65 @@ def fit_tau(groups):
     se_beta = np.sqrt(sigma2 / den)
     tau = -1.0 / beta
     return tau, float(se_beta / beta ** 2), n
+
+
+# ---- droop time constant from picture content (edge tails) ----
+# Steps along a line: the raw signal smoothed over TAIL_SMOOTH samples changes by more than TAIL_STEP
+# (tape units) over TAIL_GAP samples (one sample-and-hold dot). The tail is the TAIL_LEN samples
+# starting TAIL_SKIP after the step, used only if no other step of a third that size falls in it.
+# All at 384 kHz; chosen here, with the sensitivity reported in README ("Droop").
+TAIL_SMOOTH = 9
+TAIL_GAP = 12
+TAIL_STEP = 0.04
+TAIL_SKIP = 30
+TAIL_LEN = 250
+
+
+def edge_tail_stats(x: np.ndarray, edges: np.ndarray, p: DecodeParams, every: int = 1):
+    """Tails after large steps inside the active window: (slope, mean) of the raw signal over each tail.
+
+    For a first-order high-pass, wherever the true picture is flat the raw signal decays as
+    y' = (b - y) / tau. Across many tails, slope = a - mean / tau (a absorbs b and any average content
+    slope), so a straight-line fit gives tau from picture content alone, with no calibration card."""
+    from scipy.ndimage import uniform_filter1d
+    r = p.rate / BASE_RATE
+    G = max(1, int(round(TAIL_GAP * r)))
+    skip = int(round(TAIL_SKIP * r))
+    L = int(round(TAIL_LEN * r))
+    w0, w1 = int(round(p.w0 * r)), int(round(p.w1 * r))
+    xs = uniform_filter1d(x, max(1, int(round(TAIL_SMOOTH * r))))
+    tt = np.arange(L) - (L - 1) / 2.0
+    den = float(np.dot(tt, tt))
+    slopes, means = [], []
+    for k in range(0, len(edges), every):
+        s0 = int(round(edges[k]))
+        seg = xs[s0 + w0:s0 + w1]
+        d = np.zeros(len(seg))
+        d[G:] = seg[G:] - seg[:-G]
+        cand = np.nonzero(np.abs(d) > TAIL_STEP)[0]
+        last = -10 ** 9
+        for c in cand:
+            if c - last < G:
+                last = c
+                continue
+            last = c
+            a0 = c + skip
+            a1 = a0 + L
+            if a1 > len(seg):
+                break
+            if np.max(np.abs(d[a0:a1])) > TAIL_STEP / 3:
+                continue
+            tl = seg[a0:a1]
+            slopes.append(float(np.dot(tt, tl - tl.mean())) / den)
+            means.append(float(tl.mean()))
+    return np.array(slopes), np.array(means)
+
+
+def fit_tau_tails(slopes: np.ndarray, means: np.ndarray, rate_scale: float = 1.0):
+    """slope = a - mean / tau by least squares. Returns (tau in samples at 384 kHz, intercept a, n)."""
+    A = np.stack([np.ones_like(means), means], axis=1)
+    coef, *_ = np.linalg.lstsq(A, slopes, rcond=None)
+    return float(-1.0 / coef[1] / rate_scale), float(coef[0]), int(len(slopes))
 
 
 # ---- free-running (wrong) decodes and the slant they cause ----
