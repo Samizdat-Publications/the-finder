@@ -1,0 +1,10 @@
+.checked { max-width: 70rem; overflow-wrap: anywhere; }
+.checked h1, .checked h2, .checked h3 { line-height: 1.25; }
+.checked h2 { margin-top: 2.5rem; border-bottom: 1px solid var(--line); padding-bottom: 0.3rem; }
+.checked code { background: var(--bg-sunk); padding: 0.1em 0.35em; border-radius: 4px; font-size: 0.9em; }
+.checked pre { background: var(--bg-sunk); padding: 1rem; overflow-x: auto; border-radius: 6px; }
+.table-scroll { overflow-x: auto; margin: 1rem 0; border: 1px solid var(--line); border-radius: 6px; }
+.checked table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+.checked th, .checked td { padding: 0.45rem 0.7rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.checked th { background: var(--bg-raised); color: var(--cyan); white-space: nowrap; }
+.checked td { min-width: 6rem; overflow-wrap: normal; }

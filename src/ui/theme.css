@@ -1,0 +1,62 @@
+/* Design tokens for the alien interface. Cool and luminous; gold is reserved for the human artifact. */
+:root {
+  color-scheme: dark;
+  --bg: #0b0a1f;
+  --bg-raised: #14122e;
+  --bg-sunk: #08071a;
+  --line: #2a2750;
+  --text: #dcdcf2;
+  --text-dim: #9391b8;
+  --cyan: #4ff0c4;
+  --violet: #9b7bff;
+  --gold: #e8b64a;
+  --danger: #ff7a8a;
+  --font-sans: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+
+body {
+  font: 16px/1.6 var(--font-sans);
+  min-height: 100vh;
+}
+
+a { color: var(--cyan); text-underline-offset: 3px; }
+a:hover { color: var(--violet); }
+
+code, pre { font-family: var(--font-mono); }
+
+.page { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+
+.panel {
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+}
+
+.note { color: var(--text-dim); font-size: 0.9rem; }
+
+.links { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0; }
+
+.button {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid var(--cyan);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--cyan);
+}
+.button:hover { background: rgba(79, 240, 196, 0.12); color: var(--cyan); }
+.button.quiet { border-color: var(--violet); color: var(--violet); }
+.button.quiet:hover { background: rgba(155, 123, 255, 0.12); color: var(--violet); }
+
+#boot-error {
+  position: fixed; inset: 0; z-index: 100; display: none;
+  background: #1c0b14; color: #ffd7dd;
+  font: 14px/1.5 var(--font-mono);
+  padding: 2rem; white-space: pre-wrap; overflow: auto;
+}

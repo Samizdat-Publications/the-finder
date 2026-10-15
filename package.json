@@ -6,13 +6,30 @@
     "node": ">=24"
   },
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "node tools/deploy.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "check": "node tools/check.mjs"
+    "check": "node tools/check.mjs",
+    "capture": "node tools/harness/capture.mjs",
+    "probe:audio": "node tools/harness/probe-audio.mjs"
   },
   "devDependencies": {
+    "@preact/preset-vite": "2.10.6",
     "@types/node": "26.6.5",
+    "@types/three": "0.186.0",
+    "playwright": "1.64.0",
     "typescript": "7.0.2",
-    "vitest": "5.0.5"
+    "vite": "8.2.4",
+    "vitest": "5.0.5",
+    "wrangler": "4.147.0"
+  },
+  "dependencies": {
+    "@preact/signals": "2.11.3",
+    "marked": "18.1.1",
+    "preact": "10.29.8",
+    "three": "0.186.1"
   }
 }

@@ -6,6 +6,8 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable", "WebWorker"],
     "types": ["node"],
     "strict": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": false,
@@ -14,6 +16,6 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["src", "tests", "tools/**/*.ts", "vitest.config.ts"],
+  "include": ["src", "tests", "tools/**/*.ts", "vitest.config.ts", "vite.config.ts"],
   "exclude": ["node_modules", "dist", "build", "sources", ".claude"]
 }

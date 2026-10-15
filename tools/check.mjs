@@ -1,4 +1,4 @@
-// npm run check: typecheck, unit tests, then the Python checks when they exist.
+// npm run check: typecheck, unit tests, the site build, then the Python checks when they exist.
 // Writes harness/LAST_RUN.md in plain words. Exits 1 if any step FAILED (SKIP is not a failure).
 // Tools are spawned through this same node (process.execPath) because npx.cmd is ENOENT for a bare
 // spawn on Windows and shell:true breaks on paths with spaces. TypeScript 7's bin/tsc is a node
@@ -50,7 +50,7 @@ rmSync(join(OUT_DIR, 'out', 'checks'), { recursive: true, force: true });
 
 const steps = [];
 
-console.log('\n[check] 1/5 typecheck');
+console.log('\n[check] 1/6 typecheck');
 steps.push(
   await run('Typecheck', process.execPath, [
     join(ROOT, 'node_modules', 'typescript', 'bin', 'tsc'),
@@ -60,24 +60,29 @@ steps.push(
   ]),
 );
 
-console.log('\n[check] 2/5 unit and science tests');
+console.log('\n[check] 2/6 unit and science tests');
 steps.push(
   await run('Unit and science tests', process.execPath, [join(ROOT, 'node_modules', 'vitest', 'vitest.mjs'), 'run']),
 );
 
-console.log('\n[check] 3/5 Python reference checks');
+console.log('\n[check] 3/6 site build');
+steps.push(
+  await run('Site build', process.execPath, [join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js'), 'build']),
+);
+
+console.log('\n[check] 4/6 Python reference checks');
 const tape = join(ROOT, 'sources', 'image-tape', '384kHzStereo.wav');
 const refChecks = join(ROOT, 'tools', 'ref-decoder', 'checks.py');
 if (!existsSync(tape)) steps.push(skip('Python reference checks', 'image tape not downloaded'));
 else if (!existsSync(refChecks)) steps.push(skip('Python reference checks', 'reference checks not written yet'));
 else steps.push(await run('Python reference checks', 'python', ['-P', 'tools/ref-decoder/checks.py']));
 
-console.log('\n[check] 4/5 data checks');
+console.log('\n[check] 5/6 data checks');
 const dataChecks = join(ROOT, 'tools', 'data', 'checks.py');
 if (!existsSync(dataChecks)) steps.push(skip('Data checks', 'data checks not written yet'));
 else steps.push(await run('Data checks', 'python', ['-P', 'tools/data/checks.py']));
 
-console.log("\n[check] 5/5 How it's checked page");
+console.log("\n[check] 6/6 How it's checked page");
 steps.push(await run("How it's checked page", process.execPath, [join(ROOT, 'tools', 'how-checked.mjs')]));
 
 const failed = steps.filter((s) => s.status === 'FAIL');

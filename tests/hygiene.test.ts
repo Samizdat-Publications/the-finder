@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -39,6 +39,19 @@ describe('repository hygiene', () => {
 
   it('has no file larger than 20 MB', () => {
     const big = files
+      .map((f) => ({ f, size: statSync(join(ROOT, f)).size }))
+      .filter((x) => x.size > MAX_BYTES)
+      .map((x) => `${x.f} (${x.size} bytes)`);
+    expect(big).toEqual([]);
+  });
+
+  it('has no shipped file (public/ or dist/) larger than 20 MB', () => {
+    const walk = (dir: string): string[] =>
+      readdirSync(join(ROOT, dir), { withFileTypes: true }).flatMap((e) =>
+        e.isDirectory() ? walk(`${dir}/${e.name}`) : [`${dir}/${e.name}`],
+      );
+    const shipped = ['public', 'dist'].filter((d) => existsSync(join(ROOT, d))).flatMap(walk);
+    const big = shipped
       .map((f) => ({ f, size: statSync(join(ROOT, f)).size }))
       .filter((x) => x.size > MAX_BYTES)
       .map((x) => `${x.f} (${x.size} bytes)`);
