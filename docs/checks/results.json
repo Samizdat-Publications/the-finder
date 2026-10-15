@@ -1,5 +1,392 @@
 {
   "generated": "2026-10-15",
-  "count": 0,
-  "checks": []
+  "count": 45,
+  "checks": [
+    {
+      "id": "clocks.bateman",
+      "claim": "The decay-chain solver gives the same amounts as a brute-force step-by-step integration.",
+      "measured": "largest relative difference 6.81e-12 (RTG Pu-241, Np237 at 1000000 y)",
+      "expected": "order-30 Taylor integration with small equal steps, for the uranium and plutonium chains at 49, 1,000, 44,000 and 1,000,000 years",
+      "tolerance": "1e-9 relative",
+      "pass": true
+    },
+    {
+      "id": "clocks.rtg.coverage",
+      "claim": "The thorium clock in the heat source, measured to 1%, gives an age range that contains the true age 95% of the time.",
+      "measured": "coverage 95.6% over 1000 seeded trials; typical 95% half-width 968 years",
+      "expected": "95%",
+      "tolerance": "93% to 97% (3 binomial standard errors for 1,000 trials)",
+      "pass": true,
+      "notes": "Half-life systematic (LNHB to Cheng et al. 2013 set) on the atom ratio: 0.3 years. The research's 103 years is for the activity ratio; on the atom ratio the U-234 and Th-230 shifts nearly cancel."
+    },
+    {
+      "id": "clocks.rtg.heat",
+      "claim": "Forty-four thousand years on, the three heat sources together still give off a few watts.",
+      "measured": "8.72 W per spacecraft (launch: 7249 W)",
+      "expected": "clocks.md 4b estimates about 8 W per spacecraft, radon retained",
+      "tolerance": "between 3 and 20 W (order-of-magnitude check of an estimate)",
+      "pass": true,
+      "notes": "Energy model: alpha decays deposit their full Q value; Pu-241 its mean beta energy; each Ra-226 decay adds its progeny chain to Pb-206 in secular equilibrium with radon retained (28.01 MeV, NNDC; gammas counted, an upper bound by about 1.7 MeV per chain). Activities at 44,000 y: U-234 2.55 TBq, Th-230 0.90 TBq, Ra-226 0.86 TBq, Pu-239 1.76 TBq, others 0.037 TBq."
+    },
+    {
+      "id": "clocks.rtg.inventory",
+      "claim": "Each Voyager carried about 12.8 kg of plutonium-238; 40,000 years later it has become about 11 kg of uranium-234, 1.1 kg of thorium-230 and 22 g of radium-226.",
+      "measured": "Pu-238 at launch (kg) 12.76; U-234 at 40,000 y (kg) 11.21; Th-230 at 40,000 y (kg) 1.095; Ra-226 at 40,000 y (kg) 0.02180; Pu-238 left at 44,000 y: 1.1e-151 of the start",
+      "expected": "clocks.md 4b: 12.8 kg Pu-238 (from 3 x 24 spheres of 251.5 g PuO2, 80 at.% Pu-238, LA-5202); 11.2 kg, 1.1 kg, 22 g at 40,000 y",
+      "tolerance": "2% for the launch inventory, 3% for the 40,000-year inventory (research rounding)",
+      "pass": true,
+      "notes": "PuO2 molar mass 270.29 g/mol. Non-238 plutonium (20 at.%) split as Cassini fuel: atom fractions Pu-239 0.1699, Pu-240 0.0238, Pu-241 0.00473, Pu-242 0.00154 (an assumption). At 44,000 y per spacecraft: Pu-239 0.768 kg, Pu-240 3.67 g, Pu-242 23.0 g, Pu-241 none, U-235 1.92 kg, U-236 0.373 kg, Np-237 74 g."
+    },
+    {
+      "id": "clocks.rtg.parent",
+      "claim": "The heat source holds uranium-234 with almost no uranium-238, so it was not natural uranium: it came from something heavier, made on purpose.",
+      "measured": "U-238/U-234 atom ratio 1.71e-4 at 44,000 y (the little U-238 comes from Pu-242)",
+      "expected": "natural uranium has U-234/U-238 = 5.49e-5, i.e. U-238/U-234 about 18200",
+      "tolerance": "U-238/U-234 below 1e-3, seven orders of magnitude under natural uranium",
+      "pass": true
+    },
+    {
+      "id": "clocks.rtg.ratio",
+      "claim": "The thorium-230 to uranium-234 ratio in the heat source grows steadily with age: 0.32 at 40,000 years, 0.35 at 44,000.",
+      "measured": "U-234/Pu-238 atoms at 49.1 y 0.4738; Th-230/U-234 activity at 40,000 y 0.3238; Th-230/U-234 atoms at 40,000 y 0.09942; Th-230/U-234 activity at 44,000 y 0.3519",
+      "expected": "clocks.md 4b: 0.474 at 49.1 y; 0.324 (atoms 0.099) at 40,000 y; about 0.35 at 44,000 y",
+      "tolerance": "0.5% at 49 y, 1% at 40,000 y, 3% at 44,000 y (research rounding)",
+      "pass": true
+    },
+    {
+      "id": "clocks.rtg.wrongChain",
+      "claim": "Assume the uranium-234 came from natural uranium and no age fits the measurements; assume it came from plutonium-238 and one age fits them all.",
+      "measured": "plutonium-238 parent: best age 43497 y, chi2 0.16 (1 dof), p 0.69; natural uranium: chi2 1.00e+4 (2 dof), p 0.0e+0",
+      "expected": "true chain consistent (p >= 0.01); natural-uranium hypothesis rejected (p < 1e-6)",
+      "tolerance": "chi-square test of the measured atom ratios at 1% precision",
+      "pass": true,
+      "notes": "Th-230/U-234 and Ra-226/Th-230 alone barely separate the two chains (both ages land near 44,000 to 48,000 years); the decisive evidence is the missing U-238, which natural uranium would carry at 18,200 times the U-234."
+    },
+    {
+      "id": "clocks.uranium.coverage44k",
+      "claim": "Counting the spot's alpha particles (44,000 years, 1-hour count, 30% efficient detector) gives an age range that contains the true age 95% of the time.",
+      "measured": "coverage 96.2% over 1000 seeded trials; median 95% interval width 5.57e+3 years",
+      "expected": "95% (Wilson score interval on the U-234 fraction, mapped through the Bateman ratio)",
+      "tolerance": "93% to 97% (3 binomial standard errors for 1,000 trials)",
+      "pass": true,
+      "notes": "Pure U-238 start assumed; uranium and thorium separated before counting; same efficiency for every line."
+    },
+    {
+      "id": "clocks.uranium.coverage49",
+      "claim": "Counting the spot's alpha particles (49 years, 30-day count, 30% efficient detector) gives an age range that contains the true age 95% of the time.",
+      "measured": "coverage 94.8% over 1000 seeded trials; median 95% interval width 5.97 years",
+      "expected": "95% (Wilson score interval on the U-234 fraction, mapped through the Bateman ratio)",
+      "tolerance": "93% to 97% (3 binomial standard errors for 1,000 trials)",
+      "pass": true,
+      "notes": "Pure U-238 start assumed; uranium and thorium separated before counting; same efficiency for every line."
+    },
+    {
+      "id": "clocks.uranium.purity",
+      "claim": "Thorium-230 checks the starting assumption: \"began as pure uranium-238\" passes, \"began as purified natural uranium\" fails decisively.",
+      "measured": "pure start accepted (p > 0.01) in 200/200 trials; natural-uranium start: largest p 0.0e+0; free fit of age and starting U-234 (one trial): 28499 y (21313 to 44863), starting A234/A238 0.044; at 49 y: not determinable: 0 Th-230 counts cannot separate the age from the starting U-234",
+      "expected": "pure start accepted at least 98% of the time; natural uranium (initial A234/A238 = 1) rejected with p < 1e-6 every time",
+      "tolerance": "likelihood-ratio test, chi-square 1 dof (conservative at the boundary)",
+      "pass": true
+    },
+    {
+      "id": "clocks.uranium.ratios",
+      "claim": "The uranium spot holds 0.77 mg of uranium-238, and its daughters grow in at the rates the research computed.",
+      "measured": "U-238 mass (mg) 0.7735; U-238 atoms 1.957e+18; A234/A238 at 49 y 0.0001383; A230/A238 at 49 y 3.116e-8; A234/A238 at 40,000 y 0.1068; A230/A238 at 40,000 y 0.01775; A226/A238 at 40,000 y 0.01594; A234/A238 at 44,000 y 0.1168",
+      "expected": "clocks.md 4a: 0.774 mg, 1.96e18 atoms; 1.383e-4 and 3.12e-8 at 49 y; 0.1068, 0.0177, 0.0159 at 40,000 y; about 0.117 at 44,000 y",
+      "tolerance": "0.5% for mass and atoms, 1% for ratios (the research rounding)",
+      "pass": true,
+      "notes": "Assumes isotopically pure U-238 at plating (NASA: \"ultra-pure\"); 9.62 Bq from NASA's 0.00026 microcurie."
+    },
+    {
+      "id": "cover.map.angles",
+      "claim": "Each map line points within 3 degrees of its pulsar's galactic longitude, measured counter-clockwise from the galactic-centre line.",
+      "measured": "largest difference 2.77 deg (B1451-68)",
+      "expected": "ATNF v2.9.0 galactic longitudes (data/pulsars.json)",
+      "tolerance": "3 deg (research measurement: 0.2 to 2.7 deg, B1451-68 the largest; cover.md section 2)",
+      "pass": true
+    },
+    {
+      "id": "cover.map.periods",
+      "claim": "The 14 binary numbers on the map, read in units of hydrogen's 21 cm period, are the pulsar periods published in 1972.",
+      "measured": "14 of 14 decoded; largest difference 0.35 ns",
+      "expected": "Sagan, Salzman Sagan and Drake 1972, Table 1 (1970/71 periods)",
+      "tolerance": "1 ns (the rounding of the published decimal to whole hydrogen periods, 0.70 ns)",
+      "pass": true
+    },
+    {
+      "id": "cover.picture.lines",
+      "claim": "Each picture has 512 vertical lines.",
+      "measured": "binary 1000000000 = 512",
+      "expected": "512 (cover.md 1c; NASA: \"512 vertical lines\")",
+      "tolerance": "exact",
+      "pass": true
+    },
+    {
+      "id": "cover.picture.lineTime",
+      "claim": "Each picture line lasts about 8.34 milliseconds.",
+      "measured": "11,845,632 units = 8.33961 ms",
+      "expected": "11,845,632 units = 8.3396 ms (cover.md 1c)",
+      "tolerance": "0.0001 ms, the last digit quoted by the research",
+      "pass": true
+    },
+    {
+      "id": "cover.record.playTime",
+      "claim": "The side-view number is the playing time of one side: about 53.8 minutes.",
+      "measured": "4,587,025,072,128 units = 3229.38 s = 53.82 min",
+      "expected": "4,587,025,072,128 units = 3229.4 s = 53.82 min (cover.md 1b)",
+      "tolerance": "0.05 s, half the last digit quoted by the research",
+      "pass": true
+    },
+    {
+      "id": "cover.record.rotation",
+      "claim": "The number around the record, read in hydrogen time units, is one turn every 3.6 seconds (16 2/3 rpm).",
+      "measured": "5,113,380,864 units = 3.599944 s",
+      "expected": "5,113,380,864 units = 3.59994 s (cover.md 1b; NASA states 3.6 s)",
+      "tolerance": "1e-5 s, the last digit quoted by the research",
+      "pass": true
+    },
+    {
+      "id": "cover.timeNotLength",
+      "claim": "Read as lengths the cover numbers are absurd (a 30 cm record a million kilometres around); read as times they make sense.",
+      "measured": "rotation number as a length: 1.079 million km; as a time: 3.5999 s",
+      "expected": "a length near 0.3 m would be plausible; 3.6 s per turn matches 16 2/3 rpm (cover.md 1a, 1b)",
+      "tolerance": "length reading must exceed 1e8 m (absurd); time within 1 ms of 3.6 s",
+      "pass": true
+    },
+    {
+      "id": "dating.epoch.coverage",
+      "claim": "The combined pulsar age range is honest: its 95% range contains the true age about 95% of the time.",
+      "measured": "coverage 95.3% over 300 seeded realizations",
+      "expected": "95%",
+      "tolerance": "92% to 98% (about 2.4 binomial standard errors of 1.26% for 300 trials)",
+      "pass": true
+    },
+    {
+      "id": "dating.epoch.noReframe",
+      "claim": "Without moving into the Sun's rest frame, the old pulsars disagree about the map's age by thousands of years, exactly as the home star's own motion predicts.",
+      "measured": "controlled run, error vs prediction: B1642-03 -337 vs -339 yr; B1929+10 -208 vs -209 yr; B1933+16 -7 vs -7 yr; B2016+28 8054 vs 8066 yr; B2217+47 1102 vs 1111 yr; B0329+54 3160 vs 3174 yr; B0525+21 549 vs 557 yr; B0823+26 2587 vs 2599 yr; B0950+08 6228 vs 6239 yr; B1240-64 -788 vs -795 yr; B1451-68 -27069 vs -27073 yr (worst 1.49%). Full realization errors: B1642-03 -696, B1929+10 +135, B1933+16 -51, B2016+28 +7052, B2217+47 +225, B0329+54 +3364, B0525+21 +866, B0823+26 +2659, B0950+08 +4976, B1451-68 -27005 yr; s.d. 9523 yr",
+      "expected": "clocks.md 3b point 4: error = -2 tau_c (V . n) / c (400 yr per km/s for B2016+28)",
+      "tolerance": "2% per pulsar in the controlled run (no timing noise, light time, parallax or Shklovskii; n known)",
+      "pass": true,
+      "notes": "Gliese 445 moves at 113.7 km/s relative to the Sun. B1240-64 excluded from the scatter (wrong map period)."
+    },
+    {
+      "id": "dating.epoch.outlier",
+      "claim": "The one map period that was written with false precision (B1240-64) stands out and is rejected automatically.",
+      "measured": "dropped in 99.7% of 300 realizations; offset 3439 +/- 535 yr; another pulsar dropped in 0 realizations",
+      "expected": "offset about +3,400 yr (clocks.md 3b point 6)",
+      "tolerance": "dropped in at least 99%; mean offset within 300 yr of 3,400 (spec)",
+      "pass": true
+    },
+    {
+      "id": "dating.epoch.reframe",
+      "claim": "Moved into the Sun's rest frame, the old pulsars agree: combined, they date the map to within a few hundred years.",
+      "measured": "realization 0: 43905 yr [43613, 44181], truth 44109 yr, 10 pulsars kept; median 95% half-width over 300 realizations 282 yr; median error -4 yr",
+      "expected": "the time since each pulsar's implied epoch today (clocks.md 3a), combined with the same weights",
+      "tolerance": "computed: Monte Carlo over braking index, timing noise, map precision, observer state and distances",
+      "pass": true
+    },
+    {
+      "id": "dating.epoch.velocityFit",
+      "claim": "Even without a star catalogue, the pulsars alone give both the map's age and the home star's velocity relative to the senders' frame.",
+      "measured": "coverage 92.5%; velocity error rms (galactic x, y, z) 2.9, 1.1, 7.6 km/s; median 1-sigma (ICRS x, y, z) 6.4, 3.8, 2.7 km/s; median age 44104 +/- 175 yr; dropped: J1243-6423 198x",
+      "expected": "true Gliese 445 velocity relative to the Sun (32.6, -20.4, -107.0) km/s ICRS",
+      "tolerance": "the 95% region (chi-square, 3 degrees of freedom) contains it in at least 90% of 200 realizations (spec)",
+      "pass": true,
+      "notes": "Old pulsars only, n = 3 in the model; light time and the parallax term are left out (they need the observer position)."
+    },
+    {
+      "id": "dating.epoch.young",
+      "claim": "The young pulsars (Crab, Vela, B1727-47) agree with the old ones, but their ages are uncertain by tens of percent because their braking is not known.",
+      "measured": "B0531+21: coverage 100.0%, median 95% width 287% of the age (realization 0: [28714, 154342] yr, truth 44106); B0833-45: coverage 100.0%, median 95% width 100% of the age (realization 0: [23245, 67755] yr, truth 44106); B1727-47: coverage 93.3%, median 95% width 26% of the age (realization 0: [34481, 45773] yr, truth 44108)",
+      "expected": "each interval contains its truth",
+      "tolerance": "at least 90% of 300 realizations (spec)",
+      "pass": true,
+      "notes": "Braking-index prior U[0.9, 3.2]; the true long-term values are Crab 2.342 and Vela 1.7."
+    },
+    {
+      "id": "dating.today",
+      "claim": "Today the map dates itself to about 1971: the Crab and the glitch-corrected Vela pulsar agree on late 1971, and 13 pulsars average 1969.7.",
+      "measured": "Crab 1971.76, Vela glitch-corrected 1971.82; mean of 13 usable 1969.75 (s.d. 1.41), glitch-corrected 1969.67 (s.d. 1.33). B1642-03 1969.77 (research 1969.77); B1929+10 1969.78 (research 1969.78); B1933+16 1970.19 (research 1970.19); B2016+28 1966.60 (research 1966.6); B2217+47 1969.91 (research 1969.91); B0329+54 1969.76 (research 1969.76); B0525+21 1968.94 (research 1968.94); B0531+21 1971.76 (research 1971.76); B0823+26 1969.14 (research 1969.14); B0950+08 1968.47 (research 1968.47); B0833-45 1972.21 (research 1972.21), glitch-corrected 1971.82 (research 1971.77; 13 glitches, sum 1.7566e-5); B1451-68 1969.52 (research 1969.52); B1727-47 1970.64 (research 1970.64), glitch-corrected 1970.09 (research 1970.09; 6 glitches, sum 3.4246e-6)",
+      "expected": "docs/research/clocks.md section 3a (ATNF v2.9.0 ephemerides; Jodrell Bank glitch table)",
+      "tolerance": "each epoch within 0.05 yr; mean within 0.3 yr of 1969.7",
+      "pass": true,
+      "notes": "F0 and F1 only, except where F2 implies a physical braking index (only the Crab); glitches added back strictly between the solved epoch and PEPOCH, iterated until stable. Vela: 13 glitches give 1971.82; the research value 1971.77 also added back glitch #2 (MJD 41192), which precedes the date it solved for (MJD 41234), so it is not self-consistent (D-A16)."
+    },
+    {
+      "id": "epilogue.ephemeris",
+      "claim": "The shipped tables give the Voyagers' positions to within 100 km at any moment from 2000 to 2099.",
+      "measured": "worst of 48 spot checks 1.75 km (-32 at JD 2467251.375)",
+      "expected": "Positions fetched directly from JPL Horizons at off-node times (data/ephemeris_spotchecks.json)",
+      "tolerance": "100 km (spec); research found 1.9 km for 30-day nodes",
+      "pass": true
+    },
+    {
+      "id": "epilogue.lightDay",
+      "claim": "Voyager 1 becomes one light-day from Earth on 18 November 2026.",
+      "measured": "2026-11-18T10:16:18Z (geometric distance from Earth's centre; 0.2 min from NASA's time)",
+      "expected": "2026-11-18 10:16:07 UTC (NASA, voyager.md section 4); research's geometric Horizons crossing about 10:15:51 UTC",
+      "tolerance": "1 hour (spec)",
+      "pass": true
+    },
+    {
+      "id": "epilogue.today",
+      "claim": "On 15 October 2026 Voyager 1 is 172 AU from the Sun (almost 24 light-hours from Earth) and Voyager 2 is 144 AU (20 light-hours).",
+      "measured": "V1 172.054 AU, 23.913 h; V2 144.207 AU, 19.990 h (2026-10-15 00:00 UTC)",
+      "expected": "V1 172.06 AU, 23.9 h; V2 144.2 AU, 20.0 h (JPL Horizons, voyager.md sections 3 and 4)",
+      "tolerance": "0.05 AU (V1), 0.1 AU (V2), 0.05 h (the research's rounding)",
+      "pass": true
+    },
+    {
+      "id": "epoch.craft",
+      "claim": "Voyager 1 is 172 AU from the Sun today and, coasting at 16.6 km/s, is about 2.4 light-years from the Sun when it reaches Gliese 445.",
+      "measured": "today 172.066 AU; at the epoch 0.7489 pc (2.443 ly), 16.6048 km/s from the Sun, 115.90 km/s relative to Gliese 445; the 2026 position is 3.82 deg off the asymptote",
+      "expected": "172.06 AU on 2026-10-15 (JPL Horizons, voyager.md section 4); \"2.4 light-years behind\" (PLAN.md chapter 4); asymptotic speed 16.6048 km/s (Bailer-Jones and Farnocchia 2019)",
+      "tolerance": "0.05 AU (spec; covers the 0.01 AU Sun-barycentre offset); 0.05 ly (the story rounds to 0.1 ly)",
+      "pass": true,
+      "notes": "Linear coast along the asymptote from the 2026 Horizons state; the Sun's remaining pull shifts the craft by about 20 AU over 150,000 AU (epoch.ts)."
+    },
+    {
+      "id": "epoch.discovery",
+      "claim": "Voyager 1 passes closest to Gliese 445 about 44,100 years after launch, 0.57 parsecs (1.87 light-years) away, at 116 km/s.",
+      "measured": "44.10 kyr after launch (year 46078 AD), 0.5734 pc (1.87 ly), 115.90 km/s",
+      "expected": "Gaia DR3 recheck 44.1 kyr, 0.573 pc, 115.9 km/s (voyager.md section 5); Bailer-Jones and Farnocchia 2019 (Gaia DR2) 44.0 kyr, 0.575 pc, 116.0 km/s",
+      "tolerance": "0.3 kyr, 0.01 pc, 0.5 km/s (published rounding plus the DR2-to-DR3 shift)",
+      "pass": true,
+      "notes": "Straight-line motion of both bodies from the Gaia DR3 astrometry of Gliese 445 and the Bailer-Jones and Farnocchia asymptote; no Galactic potential, as in the published calculation."
+    },
+    {
+      "id": "epoch.neighbourDistance",
+      "claim": "When Voyager 1 reaches Gliese 445, the Sun is about 1.02 parsecs (3.3 light-years) from that star, its nearest neighbour.",
+      "measured": "1.0245 +/- 0.0016 pc (3.34 ly)",
+      "expected": "1.0240 pc: Gliese 445's closest approach to the Sun in closed form from its Gaia DR3 parallax, proper motion and radial velocity",
+      "tolerance": "0.0041 pc (2 sigma propagated from Gaia DR3, plus 0.001 pc for the few centuries between the two moments)",
+      "pass": true,
+      "notes": "Older pre-Gaia figures (Wikipedia, about 1.06 pc or 3.45 ly) differ by about 22 sigma; the story uses the Gaia DR3 value (D-A15)."
+    },
+    {
+      "id": "epoch.neighbours",
+      "claim": "When Voyager 1 reaches Gliese 445, the Sun is one of that star's three nearest catalogued neighbours.",
+      "measured": "Sun rank 1, 1.024 +/- 0.002 pc (3.34 ly). Ten nearest: 1. Sol 1.024 pc; 2. Ross 248 1.609 pc; 3. Kruger 60 1.828 pc; 4. Ross 154 1.887 pc; 5. Gl 860B 1.909 pc; 6. Rigil Kentaurus 2.024 pc; 7. Toliman 2.024 pc; 8. Proxima Centauri 2.150 pc; 9. EZ Aqr 2.623 pc; 10. GJ 2005 2.722 pc",
+      "expected": "Rank 1 to 3 (PLAN.md \"The story frame\"); the story figure about 1.06 pc (3.45 ly) is from Wikipedia's Gliese 445 article (voyager.md section 5)",
+      "tolerance": "rank <= 3; distance error propagated from the Gaia DR3 errors of Gliese 445 (1 sigma)",
+      "pass": true,
+      "notes": "HYG v4.2 within 30 pc is incomplete for faint M dwarfs. 2155 of 3933 stars within 30 pc have no radial velocity and are moved with v_r = 0, so each is uncertain by |v_r| x 44 kyr (about 1.4 pc at 30 km/s); 19 of them could come closer to Gliese 445 than the Sun for some |v_r| <= 150 km/s (with the |v_r| each would need: GJ 1245A 64 km/s, GJ 1245B 64 km/s, Gl 244B 64 km/s, HYG 82472 66 km/s, HYG 82473 76 km/s, HYG 102708 90 km/s, GJ 3522 103 km/s, HYG 83352 108 km/s, HYG 85345 115 km/s, GJ 1230A 122 km/s, GJ 1230B 122 km/s, HYG 58735 123 km/s, GJ 3379 125 km/s, GJ 4053 126 km/s, GJ 3991 126 km/s, GJ 4063 136 km/s, Gl 300 140 km/s, GJ 3323 145 km/s, GJ 3454 146 km/s). The DR3 distance is -22.8 sigma from the 1.06 pc figure; see epoch.neighbourDistance."
+    },
+    {
+      "id": "epoch.pulsars.geometry",
+      "claim": "Seen from Gliese 445 44,000 years from now, the map pulsars have moved by under 2 degrees, their signals arrive up to a few years early or late, and the change in viewpoint alters their slow-down rates by under 1%.",
+      "measured": "largest longitude shift 1.69 deg (B0823+26), of which parallax at most -0.13 deg (B1451-68); largest map-to-sky difference 2.13 deg (B1451-68); largest light-time offset 3.34 yr (bound |X|/c = 3.34 yr); Shklovskii change of Pdot: B0950+08 0.80%, B2016+28 0.27%, B1451-68 0.50%, B1929+10 0.14%",
+      "expected": "clocks.md 3b point 5 (light time) and point 7 (proper motion, 1.6 deg in 40 kyr); spec: Shklovskii about 1% for B0950+08 and B2016+28",
+      "tolerance": "longitude shift under the 2 deg allowed for motion in the identification",
+      "pass": true,
+      "notes": "Nominal projection (n = 3 for unmeasured pulsars, catalogue distances and proper motions as truth). A projection, not an observation."
+    },
+    {
+      "id": "epoch.pulsars.glitches",
+      "claim": "The tiny glitches of the old pulsars change the dating less than their timing noise does, so the projection leaves them out.",
+      "measured": "B1642-03: at most 138 yr from glitches over 44100 yr, against 441 yr (1 sigma) from timing noise",
+      "expected": "glitch rate and sizes from clocks.md Table 2A (Shabanova 2009); timing noise 1% (Lyne et al. 2010)",
+      "tolerance": "glitch effect below the timing-noise term",
+      "pass": true,
+      "notes": "Glitches always spin a pulsar up, so this is a one-sided bias (the pulsar looks younger), bounded here by the largest observed size."
+    },
+    {
+      "id": "epoch.sunBrightness",
+      "claim": "From Gliese 445 at the epoch, the Sun is one of the ten brightest stars in the sky.",
+      "measured": "Sun magnitude -0.10 from Gliese 445 (rank 5), -0.78 from the craft. Brightest: 1. Sirius -0.96 (3.3 pc); 2. Canopus -0.58 (96.6 pc); 3. Vega -0.41 (6.3 pc); 4. Altair -0.39 (3.0 pc); 5. Sol -0.10 (1.0 pc); 6. Arcturus 0.17 (12.5 pc); 7. Rigel 0.19 (266.3 pc); 8. Capella 0.31 (14.6 pc); 9. Betelgeuse 0.47 (154.4 pc); 10. Achernar 0.50 (43.8 pc)",
+      "expected": "Rank 1 to 10 (PLAN.md \"The story frame\")",
+      "tolerance": "rank <= 10; magnitudes from HYG absolute V magnitudes (Sun 4.85) and distances at the epoch, no extinction",
+      "pass": true,
+      "notes": "Includes the naked-eye sky list (mag <= 6.5 from Earth) moved to the epoch; 206 sky stars without a distance are skipped (all fainter than mag 3.3 from Earth). Double stars are listed per component. HYG v4.2 within 30 pc is incomplete for faint M dwarfs. 2155 of 3933 stars within 30 pc have no radial velocity and are moved with v_r = 0, so each is uncertain by |v_r| x 44 kyr (about 1.4 pc at 30 km/s); 19 of them could come closer to Gliese 445 than the Sun for some |v_r| <= 150 km/s (with the |v_r| each would need: GJ 1245A 64 km/s, GJ 1245B 64 km/s, Gl 244B 64 km/s, HYG 82472 66 km/s, HYG 82473 76 km/s, HYG 102708 90 km/s, GJ 3522 103 km/s, HYG 83352 108 km/s, HYG 85345 115 km/s, GJ 1230A 122 km/s, GJ 1230B 122 km/s, HYG 58735 123 km/s, GJ 3379 125 km/s, GJ 4053 126 km/s, GJ 3991 126 km/s, GJ 4063 136 km/s, Gl 300 140 km/s, GJ 3323 145 km/s, GJ 3454 146 km/s)."
+    },
+    {
+      "id": "identify.epoch",
+      "claim": "In the alien's catalogue, 44,000 years from now, the most likely pulsar for every map line is the right one, by a strong margin over the next best.",
+      "measured": "pass 2 (final): sigma_theta 1.31 deg, sigma_b 1.23 deg; anchors 13 (B1642-03, B1933+16, B2016+28, B2217+47, B0329+54, B0525+21, B0531+21, B0823+26, B0950+08, B0833-45, B1240-64, B1451-68, B1727-47); fitted age 44268 yr (dropped J1243-6423); origin 8.2 pc from the Sun; length scale 10430 pc per R0, sigma_ln 0.97. Pass 1: sigma_theta 1.24 deg. B1642-03: 8 pre-selected, runner-up J1819-1717, margin > 10^6 (min over 20 seeds > 10^6; pass 1 > 10^6); B1929+10: 8 pre-selected, runner-up J1916+1225, margin 10^2.1 (min over 20 seeds 10^1.8; pass 1 10^0.6); B1933+16: 3 pre-selected, runner-up J1935+2154, margin > 10^6 (min over 20 seeds 10^2.5; pass 1 > 10^6); B2016+28: 2 pre-selected, runner-up J2002+3217, margin > 10^6 (min over 20 seeds > 10^6; pass 1 > 10^6); B2217+47: 1 pre-selected, runner-up none, margin no competitor (min over 20 seeds no competitor; pass 1 no competitor); B0329+54: 1 pre-selected, runner-up none, margin no competitor (min over 20 seeds no competitor; pass 1 no competitor); B0525+21: 1 pre-selected, runner-up none, margin no competitor (min over 20 seeds no competitor; pass 1 no competitor); B0531+21: 2 pre-selected, runner-up J0614+2229, margin > 10^6 (min over 20 seeds 10^3.8; pass 1 > 10^6); B0823+26: 1 pre-selected, runner-up none, margin no competitor (min over 20 seeds no competitor; pass 1 no competitor); B0950+08: 2 pre-selected, runner-up J0729-1448, margin 10^3.4 (min over 20 seeds 10^3.5; pass 1 10^2.3); B0833-45: 2 pre-selected, runner-up J0901-4624, margin > 10^6 (min over 20 seeds 10^2.0; pass 1 > 10^6); B1240-64: 4 pre-selected, runner-up J1305-6203, margin 10^1.9 (min over 20 seeds 10^1.7; pass 1 10^2.2); B1451-68: 7 pre-selected, runner-up J1357-6429, margin > 10^6 (min over 20 seeds 10^3.7; pass 1 10^5.2); B1727-47: 4 pre-selected, runner-up J1705-3936, margin 10^4.9 (min over 20 seeds 10^4.1; pass 1 10^5.7)",
+      "expected": "the 14 identities (Sagan et al. 1972)",
+      "tolerance": "right pulsar on all 14 lines in the nominal and 20 seeded realizations; nominal margin at least 20 (Kass and Raftery 1995, strong evidence)",
+      "pass": true,
+      "notes": "Pass 1: period (how sharply the candidate predicts the map number; Monte Carlo over age in the RTG range, braking index and Doppler) x direction from the observer x latitude where the tick resolves. Pass 2: from the anchors (pass-1 margin at least 20), the shared age (pulsars only) and the map origin (leave-one-out for anchor lines); direction from that origin, plus a heavy-tailed distance factor from the map lengths (Student-t, 2 dof); candidates without a distance get the anchors' mean distance density. Pre-selection: direction within 5 deg and age range overlapping the RTG age range."
+    },
+    {
+      "id": "identify.today",
+      "claim": "Using direction and period together, each map line matches exactly one pulsar in the modern catalogue of 4,503, and it is the right one.",
+      "measured": "B1642-03: 189 by direction, 1 consistent (J1645-0317 [54.3, 59.8] yr); B1929+10: 313 by direction, 1 consistent (J1932+1059 [54.5, 59.5] yr); B1933+16: 286 by direction, 1 consistent (J1935+1616 [55.8, 57.4] yr); B2016+28: 164 by direction, 1 consistent (J2018+2839 [12.4, 107.9] yr); B2217+47: 52 by direction, 1 consistent (J2219+4754 [54.4, 59.3] yr); B0329+54: 33 by direction, 1 consistent (J0332+5434 [52.6, 61.4] yr); B0525+21: 24 by direction, 1 consistent (J0528+2200 [56.7, 59.0] yr); B0531+21: 22 by direction, 1 consistent (J0534+2200 [53.9, 55.7] yr); B0823+26: 28 by direction, 1 consistent (J0826+2637 [53.7, 61.6] yr); B0950+08: 23 by direction, 1 consistent (J0953+0755 [44.4, 72.3] yr); B0833-45: 39 by direction, 1 consistent (J0835-4510 [54.4, 54.6] yr); B1240-64: 164 by direction, 1 consistent (J1243-6423 [-94.6, 6964.7] yr); B1451-68: 165 by direction, 1 consistent (J1456-6843 [23.5, 91.0] yr); B1727-47: 196 by direction, 1 consistent (J1731-4744 [56.0, 56.2] yr)",
+      "expected": "the identities in Sagan et al. 1972 and Johnston (docs/research/clocks.md section 2)",
+      "tolerance": "longitude within 5 deg; map age between 0 and 59 years for some braking index 0.9 to 4, with each period trusted to max(its stated digits, 0.4 ppm)",
+      "pass": true,
+      "notes": "Finding: B2016+28 implies a date of 1966.6, before its 1968 discovery, so its 1970/71 period was good to about 8 significant figures, not the 9 Sagan et al. state; 0.4 ppm is the accuracy Johnston measured against Taylor and Manchester 1975 (cover.md section 2)."
+    },
+    {
+      "id": "trail.age",
+      "claim": "Distance divided by speed from the Sun gives the time since the craft left: a third clock.",
+      "measured": "44100.3 years exactly; measured 95% interval 43436 to 44778 years (sigma 336)",
+      "expected": "44100.4 years since launch (1977-09-05T12:56:00Z) at the epoch",
+      "tolerance": "1 year for the exact value (spec); the interval comes from the simulated measurements",
+      "pass": true,
+      "notes": "The interval is set almost entirely by the 0.15 km/s radial-velocity error on the relative speed."
+    },
+    {
+      "id": "trail.unique",
+      "claim": "Of all catalogued stars within 10 parsecs of the craft, exactly one, the Sun, has the craft flying straight away from it.",
+      "measured": "Sun 0.0043 deg; next smallest Ran 8.58 deg; 313 stars within 10 pc, 105 without a radial velocity excluded",
+      "expected": "One star under 0.1 deg, the Sun (PLAN.md chapter 4)",
+      "tolerance": "0.1 deg (M1.md step 4)",
+      "pass": true,
+      "notes": "Catalogue values (HYG v4.2, Gaia DR3 for Gliese 445), straight-line motion. The Sun's small residual angle comes from the craft's early, planet-bent path (its 2026 position lies 3.8 deg off the asymptote)."
+    },
+    {
+      "id": "trail.uniqueWithErrors",
+      "claim": "Even with realistic measurement errors, only the Sun fits: its angle is consistent with zero and every other star is ruled out.",
+      "measured": "Sun 0.0043 +/- 0.2034 deg (0.02 sigma); smallest other margin Gl 216A 65.05 +/- 1.074 deg (61 sigma)",
+      "expected": "Sun within 2 sigma of zero; every other star more than 5 sigma from zero",
+      "tolerance": "sigma from 2000 seeded simulated measurements per star (seed \"trail.discovery\")",
+      "pass": true,
+      "notes": "Measurement model (kinematics.ts): every star measured with Gaia DR3's precision for Gliese 445 (radial velocity 0.15 km/s; parallax distance error growing with distance squared), aimed along the alien's line of sight; the craft's own state is exact. A model, labelled as one."
+    },
+    {
+      "id": "triangulation.epoch",
+      "claim": "Forty-four thousand years on, the alien's own fit of the map still points to a region that contains the Sun.",
+      "measured": "elapsed 44176 yr; centre (3.6, 3.1) pc, 95% semi-axes 14.5 x 6.5 pc (major axis toward l = 49 deg), sigma_theta 1.00 deg, rms 0.98 deg (alien frame, origin = Gliese 445 at the map epoch); Sun at (2.5, -3.3) pc, at the 72% contour; Gliese 445's own map-epoch position inside the region (at the 29% contour); 919 catalogued stars within 30 pc of the Sun inside. Without lengths: centre (3.5, 3.0) pc, 95% semi-axes 14.9 x 6.4 pc (major axis toward l = 49 deg), sigma_theta 1.00 deg, rms 0.99 deg",
+      "expected": "the Sun; Sagan's design claim about 20 pc (cover.md section 3)",
+      "tolerance": "Sun inside the 95% region",
+      "pass": true,
+      "notes": "Gliese 445 was 5.27 pc from the Sun at the map epoch, so the region cannot tell the two apart if it is larger than that."
+    },
+    {
+      "id": "triangulation.mirror",
+      "claim": "Reading the map as if seen from the other side of the galaxy (mirrored) makes the lines refuse to meet.",
+      "measured": "rms 94.97 deg mirrored vs 0.98 deg correct (ratio 96.6)",
+      "expected": "mirror ambiguity resolved by the fit (SSD72: it resolves once one pulsar is identified)",
+      "tolerance": "mirrored rms at least 5 times the correct one (spec)",
+      "pass": true
+    },
+    {
+      "id": "triangulation.today",
+      "claim": "The map's 14 directions, fitted onto today's pulsar positions, point back to a small region of the galactic plane that contains the Sun.",
+      "measured": "with lengths: centre (0.8, 6.3) pc, 95% semi-axes 15.0 x 6.7 pc (major axis toward l = 49 deg), sigma_theta 1.00 deg, rms 0.98 deg; Sun at the 69% contour; 982 catalogued stars within 30 pc fall inside it. Without lengths: centre (0.7, 6.2) pc, 95% semi-axes 14.7 x 6.7 pc (major axis toward l = 50 deg), sigma_theta 1.00 deg, rms 0.98 deg",
+      "expected": "the Sun (origin of the SSB frame); Sagan's design claim about 20 pc, '1 in 10^3 stars' (cover.md section 3)",
+      "tolerance": "Sun inside the 95% region (Monte Carlo over angle noise and distances, 2,000 draws)",
+      "pass": true,
+      "notes": "Star count is a lower bound: HYG within 30 pc is incomplete for faint stars, and the region may extend beyond 30 pc."
+    },
+    {
+      "id": "triangulation.wrongId",
+      "claim": "Swapping the two nearest pulsars makes the map fit visibly poor, so a wrong match shows.",
+      "measured": "rms 49.13 deg swapped vs 0.98 deg correct (ratio 50.0); largest residual 172.1 deg",
+      "expected": "residuals far above the map's 3 deg accuracy",
+      "tolerance": "rms at least 3 times the correct fit (spec)",
+      "pass": true
+    },
+    {
+      "id": "units.hydrogen",
+      "claim": "The hydrogen key gives a time unit of 0.704 billionths of a second and a length of 21.1 cm.",
+      "measured": "period 0.70402418376 ns, wavelength 21.106114054 cm",
+      "expected": "0.70402418376 ns and 21.106114054 cm from the maser frequency 1,420,405,751.768 Hz (clocks.md section 5)",
+      "tolerance": "last quoted digit of the research values",
+      "pass": true,
+      "notes": "Sagan et al. 1972 used 1.420405752e9 Hz; the difference is 1.6e-10 fractional and irrelevant here."
+    }
+  ]
 }
