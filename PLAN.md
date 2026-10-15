@@ -159,12 +159,16 @@ The real basis of every step lives in `docs/HOW_ITS_CHECKED.md`.
   the Sun a bright yellow star behind it, the Milky Way from Gaia's all-sky map. Scan it for
   structure, heat and isotopes.
 - **Work out:** it was built to talk across great distances (the dish) and to sense (the booms). Three
-  cylinders are faintly warm, about 8 W in all: uranium-234 and thorium-230, no plutonium, no
-  uranium-238. Uranium-234 with no uranium-238 means it was born from something heavier that someone
-  made: they can make elements. On the decay-clock instrument, the thorium ratio says the heat source
-  was made about 44,000 years ago. First codex entry.
-- **A wrong answer shows:** pick the wrong decay chain and no age fits; the predicted curves never
-  pass through the measurement.
+  cylinders are faintly warm, about 9 W in all (computed: 8.7 W): mostly uranium-234 (about 11 kg) and
+  thorium-230 (about 1 kg), no plutonium-238, some plutonium-239 and uranium-235, and almost no
+  uranium-238 (U-238/U-234 about 2e-4 by atoms, where natural uranium has about 18,000). Uranium-234
+  with almost no uranium-238 means it was born from something heavier that someone made: they can make
+  elements. On the decay-clock instrument, the thorium ratio says the heat source was made about
+  44,000 years ago. First codex entry. (Corrected in build session 2 from the clocks module: the
+  earlier "no plutonium" was wrong, see D-A13.)
+- **A wrong answer shows:** suppose the uranium-234 came from natural uranium: then it must sit with
+  about 18,000 times as much uranium-238, which is not there, so no age fits (the thorium ratios alone
+  cannot tell the chains apart; the missing uranium-238 does, D-A14).
 
 ### 1. The Key (about 10 minutes)
 - **See and do:** the cover under raking light you control; your atlas of atoms.
