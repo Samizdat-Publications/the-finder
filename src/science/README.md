@@ -93,3 +93,81 @@ Tests (`ephemeris.test.ts`): every off-table Horizons spot check within 100 km (
 October 2026 Voyager 1 is 172.05 AU from the Sun and 23.91 light-hours from Earth, Voyager 2 144.21 AU
 and 19.99 light-hours; one light-day is reached on 2026-11-18 at 10:16:18 UTC, 11 seconds after NASA's
 10:16:07 (our distance is geometric, from Earth's centre); times outside the tables are refused.
+
+## `pulsars.ts`: the map's periods, dating the map today, identification
+
+Reads each map line's binary number as a period (N hydrogen periods), runs pulsar spin-down forward
+and backward with a braking index, and works out the date each period belongs to from the modern
+catalogue. The rule for which catalogue terms to trust: the first two always; the third only when it
+implies a braking index a real pulsar can have (0.9 to 4), which only the Crab's does (the others'
+third terms are timing noise). Glitches (sudden spin-ups) can be added back for the years between the
+map and the catalogue epoch. A pulsar whose date is more than 10 standard deviations of the others from
+their mean is set aside by rule (only B1240-64, whose period Sagan knew to 3 figures). Identification
+searches all 4,503 pulsars: direction within 5 degrees of the map angle, then an elapsed time that fits
+a stated window for some braking index, Doppler shift and map precision.
+
+Tests (`coverMap.test.ts`, `pulsars.test.ts`): the 14 numbers decode to the 1972 table within 1 ns;
+every map angle within 2.7 deg of the pulsar's longitude; the spin-down formula matches a step-by-step
+integration to 1e-9; every implied date in `clocks.md` Table 3a within 0.05 yr (Crab 1971.76; Vela
+1972.21, glitch-corrected 1971.82; mean of 13 1969.75, s.d. 1.41); the hydrogen constant changes no date
+by more than 0.02 yr.
+
+## `pulsarEpoch.ts`: the pulsar sky 44,000 years from now (a projection)
+
+Every catalogued pulsar as the observatory at Gliese 445 would measure it at the discovery epoch: spun
+forward with a braking index (Crab 2.342 and Vela 1.7 as measured; others drawn from a stated range,
+or 3 in the "nominal" version); the signal's light-travel offset; the Doppler shift from Gliese 445's
+114 km/s; the small change from seeing the pulsar from a slightly different place (parallax) and its
+sideways motion (Shklovskii); timing noise of 1% on the slow-down rate; positions moved by proper
+motion and seen from Gliese 445. Each pulsar draws its own seeded randomness by name, so the order of
+the catalogue never matters. The true values are kept in a separate block that only tests read.
+
+## `pulsarAge.ts`: dating the map from the alien's measurements
+
+For each pulsar, the time since the map was made, with a 95% range from 2,000 simulated "what ifs":
+the unknown braking index, timing noise, the map's last binary digit, and (after The Trail has found
+the Sun) the uncertainty of the home star's own position and velocity and of each pulsar's distance.
+The old pulsars are combined by a robust rule (drop the most inconsistent pulsar while it is more than
+4 sigma from the rest), the young ones serve as checks. The alternative, `fitAgeAndVelocity`, needs no
+star catalogue: it fits one age and the home star's velocity to the old pulsars together.
+
+Tests (`pulsarEpoch.test.ts`, `pulsarAge.test.ts`): the Doppler sign and size; the light-time bound;
+glitches of the old pulsars below their timing noise; determinism; without the reframe each old
+pulsar is off by exactly the predicted -2 tau_c (V . n) / c (within 1.5%), thousands of years; with
+it, the combined 95% range contains the truth in 95.3% of 300 realizations (median half-width about
+280 yr); B1240-64 is dropped in 99.7%; the young pulsars' ranges hold their truth in 93% to 100%; the
+velocity fit's 95% region holds the true velocity in 92.5% of 200 realizations (vertical component weakest, about 8 km/s rms).
+
+## `triangulation.ts`: where the map was made
+
+Fits the map's origin and a common rotation to the 14 bearings in the galactic plane, with a robust
+(Huber) loss and the angle scatter estimated from the fit itself; the line lengths are weak,
+heavy-tailed hints with a free scale. The 95% region comes from 2,000 refits with simulated angle
+noise and redrawn pulsar distances.
+
+Tests (`triangulation.test.ts`): today and 44,000 years on the region contains the Sun (about 15 by
+7 pc, roughly 1,000 catalogued stars, against Sagan's "about 20 pc, 1 in 10^3 stars"); the mirrored
+reading and a swapped identification fit far worse.
+
+## `pulsarIdentify.ts`: which pulsar is which, 44,000 years on (match quality)
+
+After the same direction and age pre-selection, every surviving candidate gets a likelihood from three
+computed factors: how sharply it predicts the map's own number (spinning its measured state back over
+ages drawn from the RTG clock's range, with an unknown braking index and Doppler shift: an old pulsar
+predicts the number sharply, a young one smears it), its direction (moved back by its own proper
+motion), and its latitude where the map's tick shows one. Map distances are not used (scale unknown,
+off by up to 6 times). The angle scatters are the alien's own estimates from its best matches. Each
+line's answer is its most likely candidate; the margin is the likelihood ratio to the runner-up.
+
+Identification today trusts each 1970/71 period to max(its stated digits, 0.4 ppm), the accuracy
+Johnston measured against the 1975 catalogue; with that every line has exactly one candidate.
+B2016+28's implied date, 1966.6, precedes its 1968 discovery: its period was good to about 8 figures.
+
+Pass 2 (the alien's real order of work): the lines matched with a margin of at least 20 become
+anchors; they give the shared age (the pulsar-only fit, which drops B1240-64) and the map's origin
+(leaving a line out when scoring that line). Every line is re-scored with its direction seen from that
+origin and a weak, heavy-tailed distance factor from the map's lengths (scale and spread measured on
+the anchors: about 10.4 kpc per centre-line length, which is the old 10 kpc galactic-centre distance,
+and a spread of a factor e). This settles B1929+10, the one line pass 1 left ambiguous (J1916+1225 has
+almost the same period 1.2 deg away; from Gliese 445's own position B1929+10, 310 pc away, looks 1 deg
+off by parallax): margin 10^2.1 nominal, at least 10^1.8 over 20 seeded realizations.
