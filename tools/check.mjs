@@ -45,10 +45,12 @@ const skip = (name, reason) => ({ name, status: 'SKIP', ms: 0, output: '', reaso
 mkdirSync(join(OUT_DIR, 'out'), { recursive: true });
 const jsonOut = join(OUT_DIR, 'out', 'vitest.json');
 if (existsSync(jsonOut)) rmSync(jsonOut);
+// Check records for How it's checked are rebuilt by every run, so removed tests leave no stale rows.
+rmSync(join(OUT_DIR, 'out', 'checks'), { recursive: true, force: true });
 
 const steps = [];
 
-console.log('\n[check] 1/4 typecheck');
+console.log('\n[check] 1/5 typecheck');
 steps.push(
   await run('Typecheck', process.execPath, [
     join(ROOT, 'node_modules', 'typescript', 'bin', 'tsc'),
@@ -58,22 +60,25 @@ steps.push(
   ]),
 );
 
-console.log('\n[check] 2/4 unit and science tests');
+console.log('\n[check] 2/5 unit and science tests');
 steps.push(
   await run('Unit and science tests', process.execPath, [join(ROOT, 'node_modules', 'vitest', 'vitest.mjs'), 'run']),
 );
 
-console.log('\n[check] 3/4 Python reference checks');
+console.log('\n[check] 3/5 Python reference checks');
 const tape = join(ROOT, 'sources', 'image-tape', '384kHzStereo.wav');
 const refChecks = join(ROOT, 'tools', 'ref-decoder', 'checks.py');
 if (!existsSync(tape)) steps.push(skip('Python reference checks', 'image tape not downloaded'));
 else if (!existsSync(refChecks)) steps.push(skip('Python reference checks', 'reference checks not written yet'));
-else steps.push(await run('Python reference checks', 'python', ['tools/ref-decoder/checks.py']));
+else steps.push(await run('Python reference checks', 'python', ['-P', 'tools/ref-decoder/checks.py']));
 
-console.log('\n[check] 4/4 data checks');
+console.log('\n[check] 4/5 data checks');
 const dataChecks = join(ROOT, 'tools', 'data', 'checks.py');
 if (!existsSync(dataChecks)) steps.push(skip('Data checks', 'data checks not written yet'));
-else steps.push(await run('Data checks', 'python', ['tools/data/checks.py']));
+else steps.push(await run('Data checks', 'python', ['-P', 'tools/data/checks.py']));
+
+console.log("\n[check] 5/5 How it's checked page");
+steps.push(await run("How it's checked page", process.execPath, [join(ROOT, 'tools', 'how-checked.mjs')]));
 
 const failed = steps.filter((s) => s.status === 'FAIL');
 const ok = failed.length === 0;

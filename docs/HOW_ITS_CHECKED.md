@@ -49,5 +49,8 @@ table is generated from the test output (`docs/checks/results.json`) so it canno
 ## Test results
 
 <!-- generated:results:start -->
-(Generated from `docs/checks/results.json` once M1 tests exist.)
+_Generated 2026-10-15 from `docs/checks/results.json` by `tools/how-checked.mjs`: 0 of 0 checks pass._
+
+| Test | Claim | Measured | Compared with | Tolerance | Result |
+|---|---|---|---|---|---|
 <!-- generated:results:end -->
