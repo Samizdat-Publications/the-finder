@@ -1,0 +1,116 @@
+1	Calibration circle	L	L000	mono
+2	Solar location map	L	L001	mono
+3	Mathematical definitions	L	L002	mono
+4	Physical unit definitions	L	L003	mono
+5	Solar System parameters	L	L004	mono
+6	Solar System parameters	L	L005	mono
+7	The Sun	L	L006	mono
+8	Solar spectrum	L	L007,L008,L009	RGB
+9	Mercury	L	L010	mono
+10	Mars	L	L011	mono
+11	Jupiter	L	L012	mono
+12	Earth	L	L013,L014,L015	RGB
+13	Egypt, Red Sea, Sinai Peninsula, and the Nile	L	L016,L017,L018	RGB
+14	Chemical definitions	L	L019	mono
+15	DNA Structure	L	L020	mono
+16	DNA Structure magnified, light hit	L	L021	mono
+17	Cells and cell division	L	L022	mono
+18	Anatomy 1 (Skeleton front)	L	L023	mono
+19	Anatomy 2 (Skeleton and muscles back)	L	L024	mono
+20	Anatomy 3 (Heart, lungs, kidneys and main blood vessels back)	L	L025	mono
+21	Anatomy 4 (Heart, lungs, kidneys and main blood vessels front)	L	L026	mono
+22	Anatomy 5 (Internal organs back)	L	L027	mono
+23	Anatomy 6 (Internal organs front)	L	L028,L029,L030	RGB
+24	Anatomy 7 (Ribcage)	L	L031	mono
+25	Anatomy 8 (Muscles front)	L	L032	mono
+26	Human sex organs	L	L033	mono
+27	Diagram of conception	L	L034	mono
+28	Conception	L	L035	mono
+29	Fertilized ovum	L	L036	mono
+30	Fetus diagram	L	L037	mono
+31	Fetus	L	L038	mono
+32	Diagram of male and female	L	L039	mono
+33	Birth	L	L040	mono
+34	Nursing mother (Philippines)	L	L041,L042,L043	RGB
+35	Father and daughter (Malaysia)	L	L044,L045,L046	RGB
+36	Group of children	L	L047,L048,L049	RGB
+37	Diagram of family ages	L	L050	mono
+38	Family portrait	L	L051	mono
+39	Diagram of continental drift (derived from LAGEOS plaque)	L	L052	mono
+40	Structure of the Earth	L	L053	mono
+41	Heron Island (Great Barrier Reef of Australia)	L	L054	mono
+42	Seashore (Cape Neddick, Maine)	L	L055	mono
+43	Snake River and Grand Tetons	L	L056	mono
+44	Sand dunes	L	L057	mono
+45	Monument Valley	L	L058,L059,L060	RGB
+46	Forest scene with mushrooms	L	L061,L062,L063	RGB
+47	Leaf (Fragaria)	L	L064	mono
+48	Autumn Fallen leaves	L	L065,L066,L067	RGB
+49	Snowflakes over Sequoia	L	L068,L069,L070	RGB
+50	Tree with daffodils	L	L071,L072,L073	RGB
+51	Flying insect with flowers (Ichneumonidae)	L	L074	mono
+52	Diagram of vertebrate evolution	L	L075	mono
+53	Seashell (Xancidae)	L	L076	mono
+54	Dolphins	L	L077	mono
+55	School of fish	R	R000,R001,R002	RGB
+56	Tree toad	R	R003	mono
+57	Crocodile	R	R004	mono
+58	Eagle	R	R005	mono
+59	Waterhole	R	R006	mono
+60	Jane Goodall and chimps	R	R007,R008,R009	RGB
+61	Sketch of bushmen	R	R010	mono
+62	Bushmen hunters	R	R011	mono
+63	Man from Guatemala	R	R012	mono
+64	Dancer from Bali	R	R013	mono
+65	Andean girls	R	R014	mono
+66	Thailand master craftsman	R	R015	mono
+67	Elephant	R	R016	mono
+68	Old man with beard and glasses (Turkey)	R	R017	mono
+69	Old man with dog and flowers	R	R018	mono
+70	Mountain climber	R	R019	mono
+71	Gymnast (Cathy Rigby)	R	R020	mono
+72	Sprinters "Valeriy Borzov of the U.S.S.R. in lead"	R	R021	mono
+73	Schoolroom (Japan)	R	R022	mono
+74	Children with globe (United Nations International School)	R	R023	mono
+75	Cotton harvest	R	R024	mono
+76	Grape picker	R	R025	mono
+77	Supermarket	R	R026	mono
+78	Underwater scene with diver and fish	R	R027,R028,R029	RGB
+79	Fishing boat with nets (Greece)	R	R030	mono
+80	Cooking fish	R	R031	mono
+81	Chinese dinner party	R	R032	mono
+82	Demonstration of licking, eating and drinking	R	R033	mono
+83	Great Wall of China	R	R034	mono
+84	House construction (Cameroon)	R	R035	mono
+85	Construction scene (Amish country)	R	R036	mono
+86	House (Ethiopia)	R	R037	mono
+87	House (New England)	R	R038	mono
+88	Modern house (Cloudcroft, New Mexico)	R	R039	mono
+89	House interior with artist and fire	R	R040,R041,R042	RGB
+90	Taj Mahal	R	R043	mono
+91	English city (Oxford)	R	R044	mono
+92	Boston	R	R045	mono
+93	UN Building Day	R	R046	mono
+94	UN Building Night	R	R047,R048,R049	RGB
+95	Sydney Opera House	R	R050	mono
+96	Artisan with drill	R	R051	mono
+97	Factory interior	R	R052,R053,R054	RGB
+98	Museum	R	R055	mono
+99	X-ray of hand	R	R056	mono
+100	Woman with microscope (Somalia)	R	R057	mono
+101	Street scene (Pakistan)	R	R058	mono
+102	Rush hour traffic (Thailand)	R	R059	mono
+103	Modern highway (Ithaca, New York)	R	R060	mono
+104	Golden Gate Bridge	R	R061	mono
+105	Train (United Aircraft Corporation Turbotrain)	R	R062	mono
+106	Airplane in flight	R	R063	mono
+107	Airport (Toronto)	R	R064	mono
+108	Antarctic expedition (Commonwealth Trans-Antarctic Expedition)	R	R065	mono
+109	Radio telescope (Westerbork)	R	R066	mono
+110	Radio telescope (Arecibo)	R	R067	mono
+111	Page of book (Newton, On the System of the World)	R	R068	mono
+112	Astronaut in space (Ed White)	R	R069,R070,R071	RGB
+113	Titan Centaur launch	R	R072	mono
+114	Sunset with birds	R	R073,R074,R075	RGB
+115	String Quartet (Quartetto Italiano)	R	R076	mono
+116	Violin with music score (Cavatina)	R	R077	mono

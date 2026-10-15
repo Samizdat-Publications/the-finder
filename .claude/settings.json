@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(gh *)",
+      "Bash(node *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(python *)",
+      "Bash(py *)",
+      "Bash(uv *)",
+      "Bash(ffmpeg *)",
+      "Bash(ffprobe *)",
+      "WebSearch",
+      "WebFetch"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(~/ClaudeProjects/Noclip/.env)",
+      "Bash(cat .env*)",
+      "Bash(type .env*)",
+      "Bash(git add -A*)",
+      "Bash(git add .)",
+      "Bash(git add --all*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Edit(./.claude/agents/player-critic.md)",
+      "Write(./.claude/agents/player-critic.md)",
+      "Edit(./.claude/hooks/critic_guard.mjs)",
+      "Write(./.claude/hooks/critic_guard.mjs)"
+    ]
+  }
+}
