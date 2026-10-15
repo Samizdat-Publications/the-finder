@@ -1,0 +1,107 @@
+{
+  "_about": "Every raw download The Finder uses. Fetched by tools/fetch-sources.mjs into sources/<id>/ (gitignored), verified by size and checksum. sha256 and bytes are recorded on first download; md5 is the publisher's where one exists. Only sources named in docs/research/ belong here (CLAUDE.md rule 9).",
+  "sources": [
+    {
+      "id": "image-tape",
+      "file": "384kHzStereo.wav",
+      "url": "https://archive.org/download/voyager.decode/Voyager%20Video%20Audio%20%26%20Decode/384kHzStereo.wav",
+      "mirrors": [
+        "https://archive.org/download/voyager_images_384khz/384kHzStereo.wav"
+      ],
+      "bytes": 1455685720,
+      "md5": "f543349efdcc258e56c9af3baa9d33c8",
+      "sha256": "05f8b49202133d399da3d84c19fee1df77e15056098ace452564a05a9a986b37",
+      "credit": "Ozma Records' 2016 transfer of the 1977 Colorado Video image master reel (Sony Music vault); shared by David Pescovitz and Ron Barry; Internet Archive item voyager.decode",
+      "usedFor": "The picture signal: the reference decoder (M1) and the 96 kHz per-frame slices decoded live in the browser (M2 on)",
+      "research": "docs/research/images-and-audio.md section 2"
+    },
+    {
+      "id": "atnf",
+      "file": "psrcat_pkg.v2.9.0.tar.gz",
+      "url": "https://www.atnf.csiro.au/research/pulsar/psrcat/downloads/psrcat_pkg.v2.9.0.tar.gz",
+      "bytes": 1233779,
+      "md5": null,
+      "sha256": "00310698cf681413273e92232d97cdb8f8a8b1cd2edcdcbafcc433cb89d45ccc",
+      "credit": "ATNF Pulsar Catalogue v2.9.0 (Manchester, Hobbs, Teoh and Hobbs 2005, AJ 129, 1993), https://www.atnf.csiro.au/research/pulsar/psrcat/",
+      "usedFor": "pulsars.json: identification, spin-down dating, the alien's pulsar catalogue",
+      "research": "docs/research/clocks.md section 1"
+    },
+    {
+      "id": "jbo-glitches",
+      "file": "gTable.html",
+      "url": "https://www.jb.man.ac.uk/pulsar/glitches/gTable.html",
+      "bytes": 1803068,
+      "md5": null,
+      "sha256": "338333f9f01fc59c56b472ac22cf699e9015d099e5becfa1c91adaa1cffa2e72",
+      "credit": "Jodrell Bank Centre for Astrophysics pulsar glitch catalogue (Basu et al. 2022, MNRAS 510, 4049)",
+      "usedFor": "Glitch corrections for map dating (Vela, B1727-47, Crab)",
+      "research": "docs/research/clocks.md section 3a"
+    },
+    {
+      "id": "jbo-crab",
+      "file": "crab2.txt",
+      "url": "https://www.jb.man.ac.uk/~pulsar/crab/crab2.txt",
+      "bytes": 43072,
+      "md5": null,
+      "sha256": "d87680e14408d8e1aadabc80d2b82ff3f806d4b5126e7734d1d640627e9d61d4",
+      "credit": "Jodrell Bank Crab Pulsar Monthly Ephemeris (Lyne, Pritchard and Graham-Smith 1993, MNRAS 265, 1003)",
+      "usedFor": "Crab spin history for map dating",
+      "research": "docs/research/clocks.md section 3a"
+    },
+    {
+      "id": "cover-photo",
+      "file": "GPN-2000-001978.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/56/The_Sounds_of_Earth_Record_Cover_-_GPN-2000-001978.jpg",
+      "bytes": 4073030,
+      "md5": null,
+      "sha256": "89f8666e15f201cf4d428bc3e4d9bd11e064cedcac212a13f2124bc556055cff",
+      "credit": "NASA/JPL, The Sounds of Earth record cover, GPN-2000-001978 (1977), public domain; via Wikimedia Commons",
+      "usedFor": "Transcribing and verifying the cover's binary numbers; rebuilding the cover SVG",
+      "research": "docs/research/cover.md section 4"
+    },
+    {
+      "id": "cover-diagram",
+      "file": "cover-diagram-large.jpg",
+      "url": "https://science.nasa.gov/wp-content/uploads/2024/04/cover-diagram-large.jpg",
+      "bytes": 427151,
+      "md5": null,
+      "sha256": "2227d66695e4a2d1255a8102146f8aaa7bc3a1f3c68ce9bccdff4aae28172466",
+      "credit": "NASA/JPL, Explanation of Recording Cover Diagram",
+      "usedFor": "Cross-checking the cover transcription",
+      "research": "docs/research/cover.md section 4"
+    },
+    {
+      "id": "pioneer-svg",
+      "file": "Pioneer_plaque.svg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/02/Pioneer_plaque.svg",
+      "bytes": 54053,
+      "md5": null,
+      "sha256": "ac1a16f8ee3ca0b7d9a8ce1dbab02c3aba1f41cfdf22601d11d4478373fd7e78",
+      "credit": "Pioneer plaque vector drawing by Mysid (2006), after the NASA Pioneer 10/11 plaque by Carl Sagan, Frank Drake and Linda Salzman Sagan; public domain; via Wikimedia Commons",
+      "usedFor": "Pulsar map geometry (line angles, lengths, ticks, breaks) and the 14 binary strings",
+      "research": "docs/research/cover.md sections 1d and 2"
+    },
+    {
+      "id": "hyg",
+      "file": "hyg_v42.csv.gz",
+      "url": "https://codeberg.org/astronexus/hyg/media/branch/main/data/hyg/OLDER/hyg_v42.csv.gz",
+      "bytes": 13636976,
+      "md5": null,
+      "sha256": "5ca9431ff364c8002a4a3efa91b2b9296746aea1543374db4cb6b4fab049d601",
+      "credit": "HYG Stellar Database v4.2 by David Nash (astronexus), CC BY-SA 4.0, https://codeberg.org/astronexus/hyg",
+      "usedFor": "stars.json: nearby stars with astrometry and radial velocity (the trail), naked-eye stars (the sky)",
+      "research": "PLAN.md Sources table"
+    },
+    {
+      "id": "barry-frames",
+      "file": "voyager.cpp",
+      "url": "https://raw.githubusercontent.com/foodini/voyager/master/voyager.cpp",
+      "bytes": 22544,
+      "md5": null,
+      "sha256": "8bd9363ef248f2ae8875879b7d38bb5a238de69b980c85908185cedd8ac8ff38",
+      "credit": "Ron Barry, foodini/voyager (2017): the published index of the 156 frame starts, colour triples and orientations. Read as reference data only; no code copied (the repository states no licence)",
+      "usedFor": "Validating the reference decoder's detected frame starts; orientation reference",
+      "research": "docs/research/images-and-audio.md section 3"
+    }
+  ]
+}
