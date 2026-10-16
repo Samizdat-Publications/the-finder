@@ -3,6 +3,14 @@
 Raw notes, newest at the top. These outrank the AI critics. Claude reads this at the start of every
 session and records what it did about each note.
 
+## 2026-10-16 (after playing the tour with Do it for me)
+
+"HOLY SHIT ... I didn't realize how absolutely stunning and in depth this is, including the audio. This is
+a work of art." Bugs: Sound off did not turn the sound off; after the tour the Sound button covered the
+button behind it (both fixed the same evening). Wants Portrait and Our Frame next (Thursday, on high).
+Idea for after the main version: a younger kids' version, fewer steps, simpler, mostly on rails with fun
+interactive moments, first targeted at an 8th-grade level: recorded in docs/IDEAS.md.
+
 ## 2026-10-16 (after playing the start)
 
 "Really cool, but it's not clear how to proceed. I was clicking around and stopped at the gold disc with the

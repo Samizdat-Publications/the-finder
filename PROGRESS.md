@@ -227,4 +227,5 @@ and live-checked.
 3. `npm run check`, deploy, live check.
 4. The blind critic on a fresh whole-game capture (archive older inbox folders first); the QA audit; the
    M5 gate (PROGRESS and HANDOFF); then M6 (`docs/plans/M6.md`; research done in
-   `docs/research/epilogue.md`).
+   `docs/research/epilogue.md`), with tour stops for every new deduction.
+5. After the main version: `docs/IDEAS.md` (the younger version, 8th-grade level).
