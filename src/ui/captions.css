@@ -1,4 +1,4 @@
-/* Sound captions: a quiet strip at the bottom centre; the mute switch sits at the bottom left. */
+/* Sound captions: a quiet strip at the bottom centre. */
 .captions {
   position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 40;
   max-width: min(32rem, 90vw); text-align: center; pointer-events: none;
@@ -8,22 +8,14 @@
   font: var(--fs-label)/1.4 var(--font-mono); color: var(--text);
   background: rgba(8, 7, 26, 0.88); border: 1px solid var(--line); border-radius: 6px;
 }
-.soundtoggle {
-  position: fixed; left: 1rem; bottom: 1rem; z-index: 40;
-  min-height: 2rem; padding: 0.15rem 0.7rem;
-  font: var(--fs-label)/1.4 var(--font-mono); color: var(--text-dim);
-  background: rgba(8, 7, 26, 0.88); border: 1px solid var(--line); border-radius: 6px; cursor: pointer;
-}
-.soundtoggle:hover { border-color: var(--cyan); color: var(--cyan); }
+.soundtoggle { font-family: var(--font-mono); }
 .soundtoggle[aria-pressed='true'] { color: var(--danger); border-color: var(--danger); }
 
-/* On a screen with room the instrument fills the page down to its bottom edge, so the mute switch moves up into
-   the top bar's empty middle, where it covers nothing. */
+/* The mute switch is the first button in the top bar (Shell.tsx). On a screen with room: */
 @media (min-width: 1000px) and (min-height: 620px) {
-  .soundtoggle { top: calc((var(--topbar-h) - 2rem) / 2); bottom: auto; left: auto; right: 23.5rem; font-size: var(--fs-label); }
-  /* Captions sit in the top bar too, left of the mute switch, so they never cover an instrument's readouts. */
+  /* Captions sit in the top bar too, left of its buttons, so they never cover an instrument's readouts. */
   .captions {
-    top: calc((var(--topbar-h) - 1.9rem) / 2); bottom: auto; left: auto; right: 30rem; transform: none;
-    max-width: calc(100vw - 30rem - 36rem); text-align: right;
+    top: calc((var(--topbar-h) - 1.9rem) / 2); bottom: auto; left: auto; right: 46rem; transform: none;
+    max-width: calc(100vw - 46rem - 30rem); text-align: right;
   }
 }

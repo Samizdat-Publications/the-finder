@@ -5,12 +5,13 @@
 // Sharing with the turntable (M3 step 8): the record engine (src/game/turntableService.ts) runs on this same
 // context through sharedContext(), and its own level node feeds `output` beside the master. So there is one
 // clock and one output: interface sounds -> master -> output -> speakers, and record -> turntable level ->
-// output -> speakers. The master volume and mute act on the interface sounds only, as before; `output` is a
-// unity gain that the harness audio tap (src/harness/audioTap.ts) listens to, so a filmed run hears both.
+// output -> speakers. The master volume acts on the interface sounds only; mute (Stewart, 2026-10-16: "Sound
+// off" must silence everything) zeroes `master` and `output` both, so the record goes quiet too. `output` is
+// otherwise a unity gain that the harness audio tap (src/harness/audioTap.ts) listens to.
 
 import { signal } from '@preact/signals';
 
-/** True while the player has the interface sounds muted. The record's own audio is not affected. */
+/** True while the player has all sound muted: the interface's sounds and the record's own audio. */
 export const soundMuted = signal(false);
 
 export type ContextFactory = () => AudioContext;
@@ -37,6 +38,7 @@ export class Mixer {
     if (!this.ctx) {
       const ctx = this.factory();
       const output = ctx.createGain();
+      output.gain.value = this.muted ? 0 : 1;
       output.connect(ctx.destination);
       const master = ctx.createGain();
       master.gain.value = this.level();
@@ -70,6 +72,7 @@ export class Mixer {
 
   private apply(): void {
     if (this.ctx && this.master) this.master.gain.setTargetAtTime(this.level(), this.ctx.currentTime, 0.03);
+    if (this.ctx && this.output) this.output.gain.setTargetAtTime(this.muted ? 0 : 1, this.ctx.currentTime, 0.03);
   }
 
   /** Master volume, 0 to 1 (the settings panel's slider). */
@@ -90,6 +93,20 @@ export class Mixer {
 }
 
 export const mixer = new Mixer();
+
+/** Where the mute switch is remembered between visits. */
+export const MUTE_KEY = 'finder.sound.muted';
+
+/** The mute switch (the top bar's Sound button): flip, and remember it if storage allows. */
+export function toggleMuted(): void {
+  const next = !mixer.isMuted;
+  mixer.setMuted(next);
+  try {
+    window.localStorage.setItem(MUTE_KEY, next ? '1' : '0');
+  } catch {
+    // blocked storage: the switch still works for this visit
+  }
+}
 
 /** The shared context (creates it if needed; call only after a user gesture). */
 export function sharedContext(): AudioContext {

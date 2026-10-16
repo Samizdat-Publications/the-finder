@@ -8,10 +8,9 @@ import { render } from 'preact';
 import { game } from '../game/state';
 import { Captions } from '../ui/Captions';
 import { startCues } from './cues';
-import { mixer } from './mixer';
+import { MUTE_KEY, mixer } from './mixer';
 import { LiveSink } from './sink';
 
-const MUTE_KEY = 'finder.sound.muted';
 const TICKABLE = 'button:not(:disabled), [role="switch"], input[type="range"], summary';
 
 function storage(): Storage | null {
@@ -51,20 +50,7 @@ export function startSound(): void {
   const host = document.createElement('div');
   host.id = 'sound-layer';
   document.body.appendChild(host);
-  render(
-    <Captions
-      onToggleMute={() => {
-        const next = !mixer.isMuted;
-        mixer.setMuted(next);
-        try {
-          store?.setItem(MUTE_KEY, next ? '1' : '0');
-        } catch {
-          // blocked storage
-        }
-      }}
-    />,
-    host,
-  );
+  render(<Captions />, host);
 }
 
 // After the save is loaded and the shell is drawn (main.tsx runs to its end first).

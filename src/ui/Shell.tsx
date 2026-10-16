@@ -3,6 +3,7 @@
 // line for a refused command. Escape closes the drawers. Everything it does is a command on the bus.
 
 import { useEffect } from 'preact/hooks';
+import { soundMuted, toggleMuted } from '../audio/mixer';
 import { chapterStatus, openNodes } from '../game/deductions';
 import { CHAPTERS, NODES, chapterDef } from '../game/graph';
 import { confirmedSet, game, hintsUsed } from '../game/state';
@@ -59,6 +60,16 @@ function TopBar() {
         </span>
       </div>
       <nav class="tools" aria-label="Instruments">
+        <button
+          type="button"
+          class="tool soundtoggle"
+          data-sound-toggle
+          aria-pressed={soundMuted.value}
+          title={soundMuted.value ? 'All sound is off: click to turn it back on' : 'Click to turn all sound off'}
+          onClick={toggleMuted}
+        >
+          <span>{soundMuted.value ? 'Sound off' : 'Sound on'}</span>
+        </button>
         {touring ? (
           <button type="button" class="tool" data-tool="leave-tour" onClick={() => send({ type: 'tour.exit' })}>
             <span>Leave tour</span>
