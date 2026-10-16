@@ -1,6 +1,6 @@
 {
   "generated": "2026-10-16",
-  "count": 149,
+  "count": 183,
   "checks": [
     {
       "id": "arrival.fuelAge",
@@ -40,7 +40,7 @@
     {
       "id": "bot.game",
       "claim": "A bot plays the whole game built so far from a fresh save (no seeded save) through the command bus and the instruments: the slice, then The Map, The Spot and The Trail. Every deduction confirms, the codex holds every entry, the ring finishes, nothing errors, and the new sound moments play once each at their moments.",
-      "measured": "31 of 31 confirmed, each result with its headline; the five staged moments once each, skipped with their button, game state unchanged by each; codex 31 entries; done: arrival, key, map, spot, trail, player, pictures; cues warm, twist, snap once each in play order; 122 s (slice 59 s, map 19 s, spot 22 s, trail 20 s, end 3 s); 27 frames",
+      "measured": "43 of 31 confirmed, each result with its headline; the five staged moments once each, skipped with their button, game state unchanged by each; codex 43 entries; done: arrival, key, map, spot, trail, player, pictures, voices; cues warm, twist, snap once each in play order; 164 s (slice 58 s, pictures 27 s, voices 21 s, map 14 s, spot 23 s, trail 20 s, end 3 s); 27 frames",
       "expected": "31 of 31 (src/game/graph.ts: 18 slice, 5 Map, 3 Spot, 5 Trail), 31 codex entries, every built chapter done, no console errors (PLAN.md How it's checked item 11)",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -64,7 +64,7 @@
     {
       "id": "bot.wrongAnswers",
       "claim": "From a fresh save, every wrong choice each slice checker offers is played once through the command bus, rejected, and its computed result shown in the notebook (and on the instrument where it has a result line); then the right answer confirms.",
-      "measured": "43 wrong answers over 18 deductions, all rejected and shown (arrival.purpose 3, arrival.heat 3, arrival.madeNotMined 1, arrival.fuelAge 3, key.binary 4, key.unit 4, key.timesNotLengths 1, player.speed 2, player.start 5, player.direction 1, player.firstSound 9, pictures.lineTime 1, pictures.sync 1, pictures.interlace 1, pictures.polarity 1, pictures.aspect 1, pictures.circle 1, pictures.firstFrames 1); all 18 then confirmed; 48 s",
+      "measured": "43 wrong answers over 18 deductions, all rejected and shown (arrival.purpose 3, arrival.heat 3, arrival.madeNotMined 1, arrival.fuelAge 3, key.binary 4, key.unit 4, key.timesNotLengths 1, player.speed 2, player.start 5, player.direction 1, player.firstSound 9, pictures.lineTime 1, pictures.sync 1, pictures.interlace 1, pictures.polarity 1, pictures.aspect 1, pictures.circle 1, pictures.firstFrames 1); all 18 then confirmed; 47 s",
       "expected": "each wrong answer rejected with its result shown; the arrival choices and hydrogen transitions read from the source; the player and picture wrong states one per distinct result",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -88,7 +88,7 @@
     {
       "id": "chapter.map",
       "claim": "The Map plays in the browser through its instrument: the dial aligns the map, lines are assigned by clicking pulsars on the chart, the clock dates the map, the axis is dragged on the sky and the origin slid on the plane; every wrong proposal is refused with what it computed.",
-      "measured": "periods: young line refused, line 1 accepted (match quality log10 92.5); old: future refused, 42268 years ago accepted; identify: one wrong line refused, all 14 accepted; motion: pole refused, l 141.7 b 39.2 accepted (scatter 516 yr); region: (20, -20) pc refused, (3.6, 3.4) accepted; frames 1440x900 4.2 ms mean, 1366x768 4.2 ms mean; longest main-thread task 79 ms; identification 0 ms, region 0 ms on the main thread",
+      "measured": "periods: young line refused, line 1 accepted (match quality log10 92.5); old: future refused, 42268 years ago accepted; identify: one wrong line refused, all 14 accepted; motion: pole refused, l 141.7 b 39.2 accepted (scatter 516 yr); region: (20, -20) pc refused, (3.6, 3.4) accepted; frames 1440x900 4.2 ms mean, 1366x768 4.3 ms mean; longest main-thread task 88 ms; identification 0 ms, region 0 ms on the main thread",
       "expected": "The same results as the Node checkers for the default seed (map.periods, map.old, map.identify, map.motion, map.region); no console errors",
       "tolerance": "As each checker; the spec allows a single blocking computation up to 1 s",
       "pass": true
@@ -102,9 +102,17 @@
       "pass": true
     },
     {
+      "id": "chapter.picturesComplete",
+      "claim": "The Pictures, complete, plays in the browser on the real tape: the album fills with all 156 frames decoded from the tape, and each of the eight deductions (album, colour, down, numerals, units, home, slip, height) is refused once with its computed result and then confirmed on its work view; the three moments show once each.",
+      "measured": "8 wrong answers refused, 8 confirmed; album of 156 developed in 14.4 s; 20 captures",
+      "expected": "The same results as the Node checkers (pictures.album, pictures.colour, pictures.down, pictures.units, pictures.home, pictures.height); no console errors",
+      "tolerance": "As each checker",
+      "pass": true
+    },
+    {
       "id": "chapter.player",
       "claim": "The Player plays in the browser: a wrong speed is heard shifted by exactly k, the run-out clicks once per turn, the label is silent, the wrong direction carries the groove outward and plays backward, and with all three right the first sound off side 1 is the picture signal, a pattern repeating every line.",
-      "measured": "3.47 s per turn: k 1.03745 on the engine and in the result, 0.636 semitones; run-out clicks every 2.4 s at 2.4 s per turn; ccw side time 1119.26 to 1117.80 s in 1.5 s; first sound every 8.3266 ms, confirmed 21.9 s after a drop at 147.5 mm; bench readout \"120.00 mm: the music\"",
+      "measured": "3.47 s per turn: k 1.03745 on the engine and in the result, 0.636 semitones; run-out clicks every 2.4 s at 2.4 s per turn; ccw side time 1119.26 to 1117.81 s in 1.5 s; first sound every 8.3266 ms, confirmed 22.0 s after a drop at 147.5 mm; bench readout \"120.00 mm: the music\"",
       "expected": "k = 3.59994 / 3.47 from the cover (cover.md 1b); one click per turn; the tape's 8.326 ms line period (images-and-audio.md section 1); the Node checkers' results",
       "tolerance": "k and semitones to 1e-9 (same arithmetic); line period within 0.001 ms (the research quotes it to that place)",
       "pass": true
@@ -120,9 +128,17 @@
     {
       "id": "chapter.trail",
       "claim": "The Trail plays in the browser through its instrument: a wrong star, a short run-back and a wrong distance are each rejected with their computed results; the warm-white star, the meeting and the ruler's distance confirm; with The Map built, the region view and the reframe confirm WHERE and WHEN.",
-      "measured": "wrong star rejected (Ran 8.68 deg); Sun measured 0.162 deg (95% cut 0.575) accepted; meeting 44293 years accepted (95% 43609 to 44975); ruler 1.024 +/- 0.002 pc accepted; where and when: played; 1.18 ms per chart frame; longest measurement 36 ms",
+      "measured": "wrong star rejected (Ran 8.68 deg); Sun measured 0.162 deg (95% cut 0.575) accepted; meeting 44293 years accepted (95% 43609 to 44975); ruler 1.024 +/- 0.002 pc accepted; where and when: played; 1.09 ms per chart frame; longest measurement 37 ms",
       "expected": "the same results as the Node checkers (trail.check.*); no console errors; no measurement over 1 s on the main thread (spec)",
       "tolerance": "exact (interface behaviour); 1 s for a blocking call",
+      "pass": true
+    },
+    {
+      "id": "chapter.voices",
+      "claim": "The Voices plays in the browser: the rest of the record on the turntable through the shared audio context, the spectrogram and the four tools; each deduction rejected once with its computed result, then confirmed through the instrument, at two window sizes; the octave moment shows once and is skipped.",
+      "measured": "audio rms 0.0476 on the shared output; 4 deductions at 1440x900 and 1366x768; counted 111 voices at -30 and 0.25 s; 14 captures in C:\\Users\\stewa\\Documents\\Claude\\Golden Record\\review\\inbox\\2026-10-16T13-22-27-voices",
+      "expected": "audio above silence on the shared output; every wrong answer rejected and every right one confirmed; no console errors",
+      "tolerance": "exact (interface behaviour)",
       "pass": true
     },
     {
@@ -137,7 +153,7 @@
     {
       "id": "chart.galaxy.view",
       "claim": "On the galaxy chart, pointing at a pulsar picks that pulsar, and the chart draws at 60 frames per second at 1440 x 900.",
-      "measured": "14 of 14 map pulsars picked at their projected points; 4366 pulsars drawn; 0.75 ms per frame (120 frames, each waited for)",
+      "measured": "14 of 14 map pulsars picked at their projected points; 4366 pulsars drawn; 0.68 ms per frame (120 frames, each waited for)",
       "expected": "every map pulsar picked; under 16.7 ms per frame",
       "tolerance": "pick radius 12 CSS px; frame budget 16.7 ms on this PC (headless Chrome)",
       "pass": true
@@ -153,7 +169,7 @@
     {
       "id": "chart.neighbourhood.view",
       "claim": "On the neighbourhood chart, pointing at a star picks that star, and the trail drawn for it shows the kinematics' own angle.",
-      "measured": "Sun and Ross 248 picked at their projected points (2 of 2); Sun 0.0043 deg, Ross 248 51.78 deg drawn; 315 stars; 0.59 ms per frame",
+      "measured": "Sun and Ross 248 picked at their projected points (2 of 2); Sun 0.0043 deg, Ross 248 51.78 deg drawn; 315 stars; 0.72 ms per frame",
       "expected": "kinematics.trail recomputed in the page from the science modules (seed 'charts.dev'); under 16.7 ms per frame",
       "tolerance": "1e-9 deg (same computation); pick radius 12 CSS px; frame budget 16.7 ms",
       "pass": true
@@ -411,11 +427,11 @@
     {
       "id": "decoder.browser",
       "claim": "In the browser, the real path (FLAC fetched whole, decoded at 96 kHz, decoded in a Worker) gives the same pictures as the tested Node decode, fast enough to keep up with playback.",
-      "measured": "3 frames (L000, L019, R072): largest pixel difference 0 grey levels; Worker decode 53, 44, 42 ms",
+      "measured": "3 frames (L000, L019, R072): largest pixel difference 0 grey levels; Worker decode 78, 70, 34 ms",
       "expected": "The Node decode of the same slices by the same code (itself pixel-equal to the Python reference, decoder.frames)",
       "tolerance": "At most 1 grey level per pixel (spec; both run V8); under 250 ms per frame (spec target for this PC; a frame lasts 4.3 s of tape)",
       "pass": true,
-      "notes": "Installed Chrome via Playwright. Chrome's decodeAudioData returns positive 16-bit samples as w / 32767 (negatives as w / 32768); src/media/frames.ts restores the exact integers before decoding, without which up to 407 pixels per frame differed by 1 grey level. Fetch plus decodeAudioData took 16, 2147, 320 ms per frame on the dev server."
+      "notes": "Installed Chrome via Playwright. Chrome's decodeAudioData returns positive 16-bit samples as w / 32767 (negatives as w / 32768); src/media/frames.ts restores the exact integers before decoding, without which up to 407 pixels per frame differed by 1 grey level. Fetch plus decodeAudioData took 24, 25, 14 ms per frame on the dev server."
     },
     {
       "id": "decoder.circle",
@@ -433,7 +449,7 @@
       "expected": "The Python reference decoder's 96 kHz decodes of the same slices (build/ref96, tools/ref-decoder)",
       "tolerance": "SSIM at least 0.98 per frame (scikit-image defaults); for scale, the reference's own 96 vs 384 kHz decodes differ by SSIM 0.970 at worst",
       "pass": true,
-      "notes": "Node decode time 127 ms per frame including WAV and PNG reading."
+      "notes": "Node decode time 149 ms per frame including WAV and PNG reading."
     },
     {
       "id": "decoder.ref.aspectIndependent",
@@ -597,7 +613,7 @@
     {
       "id": "game.glyphs",
       "claim": "The alien interface turns an English key into the same short glyph word every time, and shows the cover's times in hydrogen periods that convert back to seconds exactly.",
-      "measured": "49 keys give 49 different glyph words; the same key twice is identical; 3.6 s is 4.133 beats",
+      "measured": "61 keys give 61 different glyph words; the same key twice is identical; 3.6 s is 4.133 beats",
       "expected": "determinism and distinctness (logic); the D-A22 base units (0.871 s, 1.37 m, 2.29 kg, exact by convention) and their dimensional products, recomputed by hand",
       "tolerance": "exact for the glyphs; 1e-12 relative for the unit round trip",
       "pass": true
@@ -605,7 +621,7 @@
     {
       "id": "game.graph",
       "claim": "The deduction graph gates the chapters as designed: The Key opens after the first Arrival deduction, the player and the pictures after the key is read, and a wrong answer is remembered with what it showed.",
-      "measured": "31 deductions in 7 chapters, every prerequisite exists and every node is reachable; key locked at start: true; key open after arrival.purpose: true; hints reveal nudge, method, answer in order and are counted",
+      "measured": "43 deductions in 8 chapters, every prerequisite exists and every node is reachable; key locked at start: true; key open after arrival.purpose: true; hints reveal nudge, method, answer in order and are counted",
       "expected": "D-A06 hub structure and the design in docs/plans/M3_specs/step1-shell-graph-codex.md",
       "tolerance": "exact (logic, with test checkers: the real checkers arrive in steps 3 to 6)",
       "pass": true
@@ -658,7 +674,7 @@
       "expected": "the 14 identities (Sagan et al. 1972)",
       "tolerance": "right pulsar on all 14 lines in the nominal and 500 seeded realizations; nominal odds against all other candidates combined at least 20 (Kass and Raftery 1995, strong evidence)",
       "pass": true,
-      "notes": "Pass 1: period (how sharply the candidate predicts the map number; Monte Carlo over the map's age drawn from the Arrival clock's own error model (identify.ageModel), braking index, Doppler and the candidate's timing noise on Pdot, the dating's own model) x direction from the observer x latitude where the tick resolves. Pass 2: from the anchors (pass-1 odds against all others at least 20), the shared age (pulsars only) and the map origin (leave-one-out for anchor lines); direction from that origin, plus a heavy-tailed distance factor from the map lengths (Student-t, 2 dof); candidates without a distance get the anchors' mean distance density. Pre-selection: direction within 5 deg and age range, widened by the candidate's timing-noise bound, overlapping the clock's range (each with two-sided tails of 1e-6). 500 seeds took 183 s."
+      "notes": "Pass 1: period (how sharply the candidate predicts the map number; Monte Carlo over the map's age drawn from the Arrival clock's own error model (identify.ageModel), braking index, Doppler and the candidate's timing noise on Pdot, the dating's own model) x direction from the observer x latitude where the tick resolves. Pass 2: from the anchors (pass-1 odds against all others at least 20), the shared age (pulsars only) and the map origin (leave-one-out for anchor lines); direction from that origin, plus a heavy-tailed distance factor from the map lengths (Student-t, 2 dof); candidates without a distance get the anchors' mean distance density. Pre-selection: direction within 5 deg and age range, widened by the candidate's timing-noise bound, overlapping the clock's range (each with two-sided tails of 1e-6). 500 seeds took 177 s."
     },
     {
       "id": "identify.today",
@@ -792,9 +808,17 @@
     {
       "id": "perf.enter",
       "claim": "Entering The Map, The Spot or The Trail never freezes the page: the epoch model's heavy parts (the identification, the trail, the spot's sweep table) are computed in a Worker behind the instrument's \"measuring\" state, so no main-thread task is longer than 100 ms from entering until the instrument is ready",
-      "measured": "map: longest task 86 ms, ready in 1354 ms; spot: longest task 0 ms, ready in 356 ms; trail: longest task 81 ms, ready in 2135 ms. GPU ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti Laptop GPU (0x00002F58) Direct3D11 vs_5_0 ps_5_0, D3D11); CPU Intel(R) Core(TM) Ultra 9 285H (16 threads)",
+      "measured": "map: longest task 70 ms, ready in 1144 ms; spot: longest task 0 ms, ready in 349 ms; trail: longest task 69 ms, ready in 1712 ms. GPU ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti Laptop GPU (0x00002F58) Direct3D11 vs_5_0 ps_5_0, D3D11); CPU Intel(R) Core(TM) Ultra 9 285H (16 threads)",
       "expected": "no long task over 100 ms at 1440 x 900 (spec M4 step 7e section 4; the RAIL model's 100 ms response budget)",
       "tolerance": "100 ms per task",
+      "pass": true
+    },
+    {
+      "id": "pictures.album",
+      "claim": "The settings that make the calibration circle round develop every picture on the side: all 156 frames, 78 on each track of the tape.",
+      "measured": "156 of 156 developed and accepted; one short (155) refused; 512 rows refused (These settings do not make the calibration circle round, so ...)",
+      "expected": "156 frames: 78 per channel (data/frames.json, from the tape's frame starts checked against Barry's table, decoder.ref.frameStarts)",
+      "tolerance": "exact count; settings as pictures.circle",
       "pass": true
     },
     {
@@ -805,6 +829,39 @@
       "tolerance": "1.00 +/- 0.01 (tools/ref-decoder/README.md section 7); wrong ratios within 1% of the geometric prediction",
       "pass": true,
       "notes": "A procedure self-test, like decoder.ref.circle: the record gives the circle exactly so its reader can set the aspect. The independent geometry check is decoder.ref.aspectIndependent."
+    },
+    {
+      "id": "pictures.colour",
+      "claim": "Every one of the record's 20 colour pictures is three consecutive frames of one scene: the three line up edge for edge far better than with the frames round them, and stacked as three primaries they make one colour picture. Picks that are not a triple are refused.",
+      "measured": "20 of 20 accepted; edge likeness of the three over that with their neighbours, worst 1.67 (the solar spectrum, nearly featureless); L007 0.14/0.09; L013 0.92/0.14; L016 0.84/0.14; L028 0.78/0.18; L041 0.82/0.07; L044 0.90/0.12; L047 0.88/0.12; L058 0.90/0.18; L061 0.82/0.06; L065 0.75/0.03; L068 0.86/0.00; L071 0.84/0.02; R000 0.78/0.09; R007 0.89/0.04; R027 0.85/0.10; R040 0.79/0.03; R047 0.84/0.12; R052 0.88/0.02; R069 0.92/0.24; R073 0.59/0.08",
+      "expected": "The 20 triples of data/frames.json (colourRole R, G, B; Ozma book and the tape); neighbours that are not part of the triple",
+      "tolerance": "Accepted when the triple's smaller inner likeness exceeds the larger likeness with its outside neighbours (a ratio above 1); the likeness is the colour registration's own correlation peak (src/dsp/colour.ts)",
+      "pass": true,
+      "notes": "The order of the three is shown as probable (D-A08): red, green, blue, as every other reader of the tape uses; the record does not state it."
+    },
+    {
+      "id": "pictures.down",
+      "claim": "Turned a quarter turn clockwise, the diagram of the two figures stands upright, as Barry's table says; every other turn is refused with what it would show, and pictures that came upright are not counted.",
+      "measured": "L039: 1 quarter turn accepted, 3 (Turned a quarter turn anticlockwise, peo...) and 2 refused; L012 anticlockwise accepted; 66 turned frames each accept exactly one turn",
+      "expected": "Barry's orientation table, read from his code (tools/ref-decoder/barry.py: 1 is the native frame turned 90 degrees clockwise, 2 anticlockwise); teaching-frames.md: for L039 the clockwise turn puts \"20 y\" upright",
+      "tolerance": "exact",
+      "pass": true
+    },
+    {
+      "id": "pictures.height",
+      "claim": "The taller figure is 160 of their centimetres, 1.174 of the alien's reaches (the shorter 155, 1.137); a reading within half a centimetre is accepted, a misread unit or the other bar is refused.",
+      "measured": "taller 1.1738 reaches, shorter 1.1371; 1.17 and 1.14 reaches; 160 read as metres refused; the shorter bar alone refused",
+      "expected": "teaching-frames.md L039: 155 cm and 160 cm; their cm = 1/21 of the hydrogen wavelength (units.ts); 1.37 m per reach (D-A22)",
+      "tolerance": "half a centimetre in 160 (0.31%)",
+      "pass": true
+    },
+    {
+      "id": "pictures.home",
+      "claim": "Of the ten columns, the one whose mass and day are both one is the third world out from the star: home. One cell, the outermost distance, breaks the rising order of distances, and the order alone says it must be more than Neptune's.",
+      "measured": "home: column 3, place 3; Venus and the Sun refused; slip: column 9 distance accepted (This distance breaks the table's own order. The circles go outward from the star and every...); Neptune's distance and Pluto's day refused",
+      "expected": "teaching-frames.md: \"Earth's column is the column of ones: the third world is home\"; \"Pluto's column breaks the table's own pattern\"",
+      "tolerance": "exact",
+      "pass": true
     },
     {
       "id": "pictures.interlace",
@@ -838,6 +895,14 @@
       "measured": "free-running at the cover's line time: 8.92 samples rms (384 kHz) about the drift; at the tape's period 4.59; locked: 0.0000",
       "expected": "Wow and flutter 4.6 samples rms (README section 3); a lock leaves no wobble above the edges' own jitter",
       "tolerance": "Locked wobble at most the 1.8-sample rms short-term edge jitter (README section 3, = 0.45 samples at 96 kHz); free-running wobble at the tape period within 25% of 4.6",
+      "pass": true
+    },
+    {
+      "id": "pictures.units",
+      "claim": "Their second, read off the unit picture as 1 42/100 x 10^9 spin flips, is 1.148 of the alien's beats; a reading within the precision of those three figures is accepted, a power of ten off is refused with what it would mean.",
+      "measured": "their second 1.14778 beats; accepted within 0.35%; 10^8 refused (Read that way their second would be {{q|time|0.099...)",
+      "expected": "1.42e9 / 1,420,405,751.768 Hz = 0.99971 s (units.ts, clocks.md section 5) over 0.871 s per beat (D-A22) = 1.14778 beats",
+      "tolerance": "half a unit in the last written figure of 1 42/100 (0.35%)",
       "pass": true
     },
     {
@@ -895,7 +960,7 @@
     {
       "id": "scene.encounter",
       "claim": "The encounter scene renders Voyager 1 under the computed sky at 60 frames per second at 1440 x 900, with every hotspot on the craft.",
-      "measured": "0.90 ms per frame (120 frames back to back, each waited for with a one-pixel read-back), live loop 4.2 ms; 8828 stars drawn; hotspots within 0.297 m of a model vertex",
+      "measured": "1.39 ms per frame (120 frames back to back, each waited for with a one-pixel read-back), live loop 4.2 ms; 8828 stars drawn; hotspots within 0.297 m of a model vertex",
       "expected": "under 16.7 ms (60 fps); each hotspot within its part radius of the model (tools/world/measure-hotspots.mjs)",
       "tolerance": "frame budget 16.7 ms on this PC (RTX 5070 Ti Laptop, headless Chrome); hotspot radius per part (hotspots.ts)",
       "pass": true
@@ -1082,6 +1147,48 @@
       "tolerance": "exact counts (one uniform per sample)",
       "pass": true,
       "notes": "The M4 science audit asked whether 5.3 against 2.9 was noise or a bug (finding 11): a high run of the seed's stream, not a bug."
+    },
+    {
+      "id": "teaching.height",
+      "claim": "The two figures are 155 and 160 of their centimetres tall: 1.55 and 1.60 m, a little more through their hydrogen centimetre.",
+      "measured": "155 cm = 1.5578 m, 160 cm = 1.6081 m",
+      "expected": "teaching-frames.md L039: 155 cm and 160 cm (1.55 and 1.60 m), read by the lead on the decoded frame",
+      "tolerance": "half a centimetre plus the rounding of the picture's \"1/21 L = 1 cm\" (2.4%)",
+      "pass": true
+    },
+    {
+      "id": "teaching.numerals",
+      "claim": "The counting picture sets one of the senders' digits beside each count of dots (and the cover's binary); ten is written with two of them, so they count by place in tens, and the picture's sums hold when read that way.",
+      "measured": "digits for 0, 1, 2, 3, 4, 5, 6, 7, 8, 9; dots measured on the decode 1, 2, 3, 4, 5, 6; base 10; 2 + 3 = 5, 8 + 17 = 25, 13 x 28 = 364 hold",
+      "expected": "docs/research/teaching-frames.md L002: dots one to six with binary and \"= decimal\"; digits 0 to 9; 2 + 3 = 5, 8 + 17 = 25, 13 x 28 = 364",
+      "tolerance": "exact",
+      "pass": true
+    },
+    {
+      "id": "teaching.planets",
+      "claim": "The table of circles, read in their units, agrees with today's Sun and planets except where 1977 had only estimates; the column of ones is the third world out; and one cell, the last distance, breaks the table's own rising order, which a reader can find from the table alone.",
+      "measured": "every well-measured cell within 4.8% (worst Mercury mass); 1977 estimates and the slip: Uranus diameter -7%, Uranus day -37%, Neptune diameter -10%, Pluto diameter 489%, Pluto distance -90%, Pluto mass 40809%, Pluto day -89%; home = column 3, 3rd from the star; slip: column 9's 591 x 10^6 km, which the order says must exceed 4498 x 10^6 km (today 5,906)",
+      "expected": "NASA Planetary and Sun Fact Sheets (values in the test, recalled, not fetched); teaching-frames.md: Uranus, Neptune and Pluto from 1977 estimates; Pluto's 591 breaks the order",
+      "tolerance": "5%: the senders' widest rounding (Mercury's mass written 1/19); marked cells are listed with their disagreement, not tested",
+      "pass": true,
+      "notes": "The table's values were read from our decode (research); a test cannot read today's values from the frame, so the comparison checks the reading, not the decoder."
+    },
+    {
+      "id": "teaching.regions",
+      "claim": "Every symbol, number and table cell the player reads is a region measured by ink on our decode of the tape, and it holds that ink on the browser's own decode of the same frame; the planet table parses as the research reads it, Pluto's 591 included.",
+      "measured": "86 regions; on the 96 kHz browser decode each holds at least 98% of the ink measured on the 384 kHz reference and is at least 5.6% dark; the reference passes the same test; blank card 1.0% dark; distances -, 58 x 10^6, 108, 150, 228, 778 x 10^6, 1428, 2872, 4498, 591",
+      "expected": "docs/research/teaching-frames.md (the readings of L002, L003, L004, L005, L039); data/teaching.json built by tools/data/build_teaching.py",
+      "tolerance": "at least half the builder ink count and 3% of the region dark, on both decodes (they agree to SSIM 0.97 to 0.99); blank card under 2%",
+      "pass": true
+    },
+    {
+      "id": "teaching.units",
+      "claim": "Their units, built from hydrogen as the unit picture defines them (1 42/100 x 10^9 spin flips = 1 s; 1/21 of the 21 cm wave = 1 cm; 6 x 10^23 hydrogen atoms = 1 g; 6 x 10^27 g = 1 e), are our second, centimetre, gram and Earth's mass, each within the precision of the number the senders wrote.",
+      "measured": "s -0.029% (allowed 0.35%); cm 0.505% (allowed 2.38%); A 0.505% (allowed 2.38%); g 0.412% (allowed 8.33%); e 0.879% (allowed 8.33%); d -0.029% (allowed 0.35%)",
+      "expected": "SI: 1 s, 0.01 m, 1e-3 kg, 1 Angstrom = 1e-10 m, 1 day = 86,400 s; Earth 5.9722e24 kg (NASA Planetary Fact Sheet); hydrogen period and wavelength from units.ts (clocks.md section 5); H-1 mass 1.007825 u (AME2020)",
+      "tolerance": "Half a unit in the last figure of the defining number: 1 42/100 to 0.35%, 21 to 2.4%, 6 to 8.3%",
+      "pass": true,
+      "notes": "Their centimetre read through hydrogen is 21.106/21 = 1.005 of ours: the picture rounds the 21.1 cm wave to 21. The game reads their numbers through their own definitions."
     },
     {
       "id": "trail.acceptCoverage",
@@ -1343,6 +1450,182 @@
       "tolerance": "last quoted digit of the research values",
       "pass": true,
       "notes": "Sagan et al. 1972 used 1.420405752e9 Hz; the difference is 1.6e-10 fractional and irrelevant here."
+    },
+    {
+      "id": "voices.browser.agree",
+      "claim": "In the browser, The Voices' analyses run in a Worker on the record's runtime audio (Opus) and reach the same verdicts as the reference on the lossless transfers.",
+      "measured": "frame levels within 0.101 dB on average; silent runs [[65,34,7],[107,74,32],[118,94,49],[130,100,66]]; 63 to 226 voices over the reasonable settings (reference 63 to 226); voicing agrees on 99.72% of frames, pitch median 0.151 cents apart (95% 0.66); crossing 17.11 kHz; the codec moves the greetings' long spectrum by 5.0 kHz +0.09 dB, 10.0 kHz +0.04 dB, 15.0 kHz +0.07 dB, 17.0 kHz +0.08 dB, 19.0 kHz +0.09 dB, 20.5 kHz -46.69 dB; octave 1199.30 cents from 409 notes; best comb 12; 9 calls 190.64 to 236.09 s; Worker ms {\"ozma-01/display\":124,\"ozma-02/display\":545,\"ozma-02/greetings\":5915,\"ozma-02/hearing\":1838,\"ozma-14/violin\":4221,\"ozma-03/calls\":5771,\"ozma-21/piano\":1891}",
+      "expected": "the reference (data/voices.json): [[66,34,7],[105,72,31],[115,93,51],[130,100,66]]; 63 to 226; crossing 17.13 kHz; octave 1199.861 cents; comb 12; whale 190.64 to 236.09 s",
+      "tolerance": "each verdict's own error bar: crossing inside the reference's 95% band 16.57 to 17.51 kHz; octave within 4.02 cents of 1200; the same comb; every call inside the whale stretch (1 s slack for the codec's onsets); at least two dozen voices. The frame levels, silent runs, voicing and pitch are reported, not judged: they show what the codec changes",
+      "pass": true
+    },
+    {
+      "id": "voices.checkers",
+      "claim": "The Voices' four checkers accept the readings the real record supports and reject each meaningful wrong one with what the analysis computes for it, in the alien's units.",
+      "measured": "24 answers, 16 wrong ones rejected, each with its own result; unit problems: none",
+      "expected": "voices.md 1's table (counts within one of its silent runs at all 12 settings); the measured crossing band; 2:1 and 2^(1/12) (voices.md 4); the reference's whale stretch",
+      "tolerance": "exact verdicts; segment count within one of the silent-run count (a leading or trailing silence is a run but bounds no segment)",
+      "pass": true
+    },
+    {
+      "id": "voices.dsp.music",
+      "claim": "The octave, the comb and the call finder recover known structure: a doubling, twelve and seven equal steps, a sliding call of known length and glide.",
+      "measured": "octave 1201.36 cents; combs 12 and 7; 1 call(s), 0.80 s, glide 295.3 cents",
+      "expected": "1200 cents; 12 and 7; one call of 0.8 s gliding 300 cents",
+      "tolerance": "octave within 5 cents (8-cent intonation over 400 notes in 10-cent bins); combs exact; call length within 5 frames (YIN windows overlap the onsets), glide within 15 cents",
+      "pass": true
+    },
+    {
+      "id": "voices.dsp.segment",
+      "claim": "The segmenter counts sounds by the player's threshold and gap exactly as built, and the pitch rule tells one voice from several.",
+      "measured": "full-scale sine 0.0000 dBFS; ten bursts: 10 segments with a 0.05 s gap, 5 with 0.3 s (5 silent runs), 1 with the threshold under the noise; voices by pitch: 1 for one speaker, 4 for five",
+      "expected": "0 dBFS; 10, 5 (5 runs), 1; 1 and at least 3 (five speakers at 100 to 290 Hz overlap)",
+      "tolerance": "exact counts; level within 0.01 dB",
+      "pass": true
+    },
+    {
+      "id": "voices.dsp.spectrum",
+      "claim": "The FFT and the Welch long-term spectrum measure known signals correctly: a sine at its frequency and power, white noise at its level.",
+      "measured": "FFT vs direct DFT within 1.9e-13, inverse within 4.4e-16; sine power 0.12500 at 1001.3 Hz; white noise at 0.9986 of its level; crossing 6907.225 Hz",
+      "expected": "the DFT's definition; A^2/2 = 0.125 at 1000 Hz (Parseval); 2 sigma^2 / fs; 6907.225 Hz",
+      "tolerance": "FFT 1e-10; sine power 1% (Hann leakage stays in the band); peak within one bin (10.8 Hz); noise 3% (about 400 averaged segments over 3,600 bins: a few tenths of a per cent of noise)",
+      "pass": true
+    },
+    {
+      "id": "voices.dsp.yin",
+      "claim": "The pitch tracker reads synthetic tones of known pitch to within a few cents in every setting the game uses.",
+      "measured": "speech 95% within 0.387 cents (920 frames); music 95% within 1.524 cents (940 frames); calls 95% within 0.688 cents (920 frames)",
+      "expected": "the tones' own pitches (20 per setting, five harmonics, noise 30 dB down, 16-bit)",
+      "tolerance": "95% of frames within 5 cents, a twentieth of a tempered step (the reference measures the same: voices.ref.tracker)",
+      "pass": true
+    },
+    {
+      "id": "voices.ref.count",
+      "claim": "Over every reasonable setting the greetings fall into a few dozen separate voices at least; silence alone cannot give the published 55.",
+      "measured": "63 to 226 segments over thresholds [-36.0, -24.5] dBFS (0.5 dB steps) and gaps [0.15, 0.4] s (0.01 s steps)",
+      "expected": "'a few dozen at least' (voices.md 1), at least two dozen; NASA's 55 languages for comparison",
+      "tolerance": "thresholds from a two-component mixture of the frame levels (noise -45.2561 +/- 9.7337 dB, voices -21.3849 +/- 5.1357 dB): where a frame is the noise with probability 0.95 down to 0.05; gaps from voices.md 1",
+      "pass": true,
+      "notes": "The whole range lies above 55: several greetings hold pauses as long as the gaps between them (voices.md 1), so they split; an exact count would need a hand-made onset list."
+    },
+    {
+      "id": "voices.ref.hearing",
+      "claim": "The greetings stay above the record's own noise to well over 10 kHz: a lower bound on what the senders make and hear, capped by the record itself.",
+      "measured": "the greetings' long-term spectrum falls to the noise of their own silences at 17.13 kHz (95% 16.57 to 17.51 kHz, block bootstrap); 95% of the greetings' power below 1.75 kHz, of all the music and speech below 2.75 kHz",
+      "expected": "voices.md 3: no cutoff, a slow decay into vinyl and tape noise, detectable to well over 10 kHz; most energy below about 8 kHz",
+      "tolerance": "crossing interval above 10 kHz and below 20 kHz (the top the runtime Opus audio carries; the transfer itself reaches 22.05 kHz)",
+      "pass": true,
+      "notes": "Measured on the greetings against their own silences (same transfer): other tracks carry their own hiss, which no silence on them measures."
+    },
+    {
+      "id": "voices.ref.octave",
+      "claim": "On the solo violin, the notes' pattern repeats itself at a doubled frequency: the repetition curve peaks at 2:1.",
+      "measured": "peak at 1199.86 cents (1.99984:1) from 411 notes",
+      "expected": "2:1 = 1200 cents (voices.md 4)",
+      "tolerance": "+/- 4.02 cents: the bootstrap's 95% half-width over the notes (3.601) and the tracker's 95% error (1.782) in quadrature",
+      "pass": true,
+      "notes": "The aria was tried first: the orchestra under the soprano defeats a single-voice tracker (its notes sit on a 100-cent grid with resultant 0.1946, the violin's 0.6251)."
+    },
+    {
+      "id": "voices.ref.octaveCoverage",
+      "claim": "The octave's interval is honest: on synthetic melodies with an exact doubling it holds 1200 cents about 95% of the time.",
+      "measured": "197 of 200 synthetic melodies (98.5%); 300 bootstrap draws each",
+      "expected": "about 95% (a 95% interval)",
+      "tolerance": "90% to 100% (binomial: 200 trials at 95% give 91% to 98% at 2 sigma; the tracker term only widens it)",
+      "pass": true,
+      "notes": "melodies: the violin's 411 notes snapped to a 100-cent grid and redrawn with its intonation scatter (sd 16.1 cents)"
+    },
+    {
+      "id": "voices.ref.pitchSpread",
+      "claim": "The greetings' pitches spread far wider than one speaker's: several voices, high and low, by pitch alone.",
+      "measured": "segment pitches spread 5.7768 semitones (sd, 96 segments) against Waldheim's 1.2284 (18 segments), F-test p = 3.12e-09; about 4 single voices' worth of pitch; a two-group mixture is NOT preferred over one (BIC minus one: [0.0, 8.27, 8.867])",
+      "expected": "One man (Ozma 01, the same transfer) as the single-voice spread; two or more voices",
+      "tolerance": "at least two voices' worth of pitch (one speaker's own gives about one) and p below 0.001",
+      "pass": true,
+      "notes": "The voices' pitches form a wide continuum, not two clean groups: the deduction is the spread, not a two-group split."
+    },
+    {
+      "id": "voices.ref.step",
+      "claim": "On Gould's piano, the pitch classes sit on a comb of 12 equal steps per doubling: the step is a twelfth of the octave, 100 cents.",
+      "measured": "best comb 12 steps (score 0.999; runner-up 24, 0.539 lower); the same comb in 100% of 200 block-bootstrap draws; spread about each tooth 5.997 cents; step 99.99 cents",
+      "expected": "12-tone equal temperament, a step of 2^(1/12) = 100 cents (voices.md 4)",
+      "tolerance": "the 12-step comb best in at least 95% of the draws",
+      "pass": true,
+      "notes": "Only for the Western pieces: the Javanese, Indian and Chinese pieces on the record use other tunings (voices.md 4)."
+    },
+    {
+      "id": "voices.ref.table",
+      "claim": "Cutting the greetings at their pauses gives a count that depends on the settings: the reference reproduces the research's table of silent runs exactly.",
+      "measured": "silent runs by threshold [-50, -45, -40, -35] dBFS and minimum gap [0.15, 0.25, 0.4] s: [[66, 34, 7], [105, 72, 31], [115, 93, 51], [130, 100, 66]]",
+      "expected": "docs/research/voices.md section 1: [[66, 34, 7], [105, 72, 31], [115, 93, 51], [130, 100, 66]]",
+      "tolerance": "exact (same frames: 10 ms RMS of the mono mix, dBFS with a full-scale sine at 0)",
+      "pass": true
+    },
+    {
+      "id": "voices.ref.tracker",
+      "claim": "The pitch tracker (YIN, threshold 0.1) reads synthetic tones of known pitch to within a few cents; its measured error is the tracker term in the octave's tolerance.",
+      "measured": "speech: 95% of frames within 0.355 cents, worst 0.83 (1840 frames), music: 95% of frames within 1.782 cents, worst 2.36 (1880 frames), calls: 95% of frames within 1.245 cents, worst 1.83 (1840 frames)",
+      "expected": "The tones' own pitches (40 per setting, log-uniform over each range; five harmonics; noise 30 dB down; 16-bit)",
+      "tolerance": "95% of frames within 5 cents (a twentieth of a tempered step; voices.md 4 quotes no published figure, so the game measures its own)",
+      "pass": true,
+      "notes": "all settings together: 95% within 1.286 cents"
+    },
+    {
+      "id": "voices.ref.whale",
+      "claim": "On the UN greetings track, long tonal calls higher than any speaking voice gather in one stretch near the end: the whale song.",
+      "measured": "9 calls from 190.64 to 236.09 s (each held at least 0.2 s, median pitch above 378.33 Hz, glides 28 to 360 cents); with calls of at least 0.15 s: [190.64000000000001, 236.09], 0.3 s: [190.64000000000001, 233.0]",
+      "expected": "the whale song with the UN greetings on the Ozma transfer (voices.md 1); no call among the greetings themselves",
+      "tolerance": "every call after 150 s, at least three, and the start stable within 1 s for calls of 0.15 to 0.3 s",
+      "pass": true,
+      "notes": "378.33 Hz is the highest median pitch of any run held 0.2 s in the 55 greetings (Ozma 02), with the same tracker"
+    },
+    {
+      "id": "voices.ts.levels",
+      "claim": "The browser's segmenter reads the greetings exactly as the reference does: the same frame levels, the research's table of pauses, and the same range of voice counts.",
+      "measured": "22601 frames, 0 differ after rounding to 0.1 dB; silent runs [[66,34,7],[105,72,31],[115,93,51],[130,100,66]]; 63 to 226 segments over the reasonable settings",
+      "expected": "voices.md section 1 table [[66,34,7],[105,72,31],[115,93,51],[130,100,66]]; the reference's 63 to 226",
+      "tolerance": "exact (one frame in a thousand may round the other way at 0.05 dB)",
+      "pass": true
+    },
+    {
+      "id": "voices.ts.octave",
+      "claim": "The browser finds the violin's notes and their repetition at a doubling exactly as the reference does.",
+      "measured": "411 notes (the same starts and lengths); octave peak 1199.861 cents",
+      "expected": "the reference's 411 notes and 1199.861 cents",
+      "tolerance": "notes identical; octave within 0.01 cents",
+      "pass": true
+    },
+    {
+      "id": "voices.ts.pitch",
+      "claim": "The browser's pitch tracker (YIN) follows the greetings and a single speaker exactly as the reference does.",
+      "measured": "greetings: voicing agrees on 100.000% of frames, pitch within 0.0e+0 cents, 0 frames on another dip; Waldheim: 100.000%, 0.0e+0 cents, 0 on another dip; speakers' ceiling 378.327 Hz; three passes in 20.0 s",
+      "expected": "the reference's tracks (data/voices.json) and ceiling 378.33 Hz",
+      "tolerance": "voicing on 99.9% of frames (a CMND within rounding of 0.1 may fall either side); pitch within 0.01 cents after the same 0.01 Hz rounding, except at most 5 frames that take another CMND dip (a value within rounding of a neighbour; about 1 in 5,000 voiced frames)",
+      "pass": true
+    },
+    {
+      "id": "voices.ts.spectrum",
+      "claim": "The browser's Welch spectra of the greetings and of their silences, and where the one falls into the other, match the reference.",
+      "measured": "bands within 5.0e-4 dB; 1050 noise segments; crossing 17.1273 kHz",
+      "expected": "the reference's spectra, 1050 noise segments and 17.1273 kHz (scipy.signal.welch and spectrogram)",
+      "tolerance": "bands within 0.001 dB (stored to 3 places); crossing within 0.1 Hz (stored to 0.1)",
+      "pass": true
+    },
+    {
+      "id": "voices.ts.step",
+      "claim": "The browser's spectral peaks and comb read the piano exactly as the reference does: twelve equal steps per doubling.",
+      "measured": "80200 peaks; histogram within 5.0e-8; best comb 12 steps; comb scores within 1.6e-5",
+      "expected": "the reference's 80200 peaks, histogram, scores and 12 steps",
+      "tolerance": "peak count identical; histogram within 1e-6 (stored to 7 places); scores within 1e-4 (stored to 5)",
+      "pass": true
+    },
+    {
+      "id": "voices.ts.whale",
+      "claim": "The browser finds the same long, high calls on the UN greetings track as the reference: the whale song's stretch.",
+      "measured": "9 calls, 190.64 to 236.09 s",
+      "expected": "the reference's 9 calls, 190.64 to 236.09 s",
+      "tolerance": "identical calls (start, length), pitch within 0.01 Hz",
+      "pass": true
     }
   ]
 }

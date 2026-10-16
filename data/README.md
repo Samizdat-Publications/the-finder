@@ -176,3 +176,57 @@ contour reached), and how often a pure start is refused on a one-day count (the 
 proposed, and confirms). `src/chapters/seedCheck.test.ts` replays the default seed, five listed seeds and one
 excluded seed per reason on every `npm run check`. Rebuild after any change to a checker, the epoch model or
 the data they read.
+
+## teaching.json (`tools/data/build_teaching.py`)
+
+The teaching pictures' readable cells for The Pictures (M5 step 3): for each of L002 (numerals), L003 (units),
+L004 and L005 (the planets) and L039 (the two heights), the regions of the decoded frame (536 x 355, the
+reference decode in `build/ref/frames/`) that hold each symbol, number or table cell, and the value each
+holds. Regions are measured, not guessed: the tight box (padded 2 px) round the dark connected components
+inside a coarse layout window, ink being darker than 0.72 of the window's median grey. Values are the
+readings in `docs/research/teaching-frames.md`, cited per entry. The builder checks two readings itself (the
+dot rows of L002 count 1 to 6 as ink blobs; each digit cell holds one character and the ten row two), and
+`src/science/teaching.test.ts` (`teaching.regions`) checks that every region holds ink on the browser's own
+decode (pixel-identical to the reference, D-A30).
+
+```powershell
+cd "C:\Users\stewa\Documents\Claude\Golden Record"; python -P tools/data/build_teaching.py
+```
+
+## voices.json (`tools/voices/analyse.py`)
+
+The Voices' reference analysis (M5 step 4) of the lossless Ozma transfers (`sources/ozma-cd-NN/NN.flac`), each
+track as its mono mix (L + R) / 2 rounded to 16 bits; the same samples go to `build/voices/NN.wav` (gitignored)
+so the Node tests can run the TypeScript on them (`src/dsp/voices.ref.test.ts`). The four Voices checkers judge
+against these numbers; `tools/voices/checks.py` checks them against `docs/research/voices.md`, synthetic tones
+and synthetic melodies. Methods and settings: `tools/voices/vdsp.py` and `vmusic.py` (twins of
+`src/dsp/segment.ts`, `pitch.ts`, `spectrum.ts`). About 1.5 minutes; the bootstraps use fixed seeds.
+
+```powershell
+cd "C:\Users\stewa\Documents\Claude\Golden Record"; python -P tools/voices/analyse.py; python -P tools/voices/checks.py
+```
+
+- `meta.yin`: the YIN threshold (0.1), 10 ms frames, the quiet-frame cut (-60 dBFS) and the tracker settings
+  (Hz, window in s) for speech, calls, the violin and the aria. `meta.notes`, `snrEdgeDb`, `crossingTopHz`.
+- `greetings` (Ozma 02): `levelsDb10` (each 10 ms frame's level in tenths of a dBFS, a full-scale sine at 0;
+  -2000 for digital silence), `f0Hz100` (pitch per frame in hundredths of a Hz, 0 unvoiced); `researchTable`
+  (silent runs on voices.md section 1's grid, and the research's own numbers); `levelMixture` (two Gaussians fitted
+  to the frame levels: the noise between voices and the voices); `reasonable` (thresholds where a frame is the
+  noise with probability 0.95 down to 0.05, and gaps 0.15 to 0.4 s from voices.md); `accepted` (the fewest and
+  most segments over those settings); `speechCeilingHz` (the highest median pitch of any pitch run held 0.2 s);
+  `oneSpeaker` (Ozma 01, Waldheim: frames, pitch, and the sd of his segment pitches in semitones at the
+  centre of the reasonable settings); `reference` (at that setting: segments, their pitch sd, voices' worth of
+  pitch, the F-test against one speaker, and BIC for 1, 2 and 3 Gaussian groups minus that for 1).
+- `spectrum`: 250 Hz bands to 22.05 kHz (`bandEdgesHz`), Welch settings, `perTrackDb` and `aggregateDb` (every
+  speech and music track, 01, 02 and 05 to 31, for display), `greetingsDb` and `noiseDb` (the greetings and their
+  own silences: stretches below the reasonable threshold's low end, long enough for one Welch segment),
+  `crossingHz` (where the greetings fall to twice the noise's power, judged up to 20 kHz) with its 95%
+  `crossingBandHz` (block bootstrap over Welch segments), and the 95%-of-power frequencies.
+- `music.violin` (Ozma 14, the Gavotte): `notes` `[start frame, frames, cents re 440 Hz x 100]`, `octaveCents`
+  (the repetition curve's peak nearest a doubling), its bootstrap half-width, the tracker's 95% error on
+  synthetic tones, and the 100-cent grid resultant. `music.aria` (Ozma 15): the same grid resultant, showing why
+  the aria was not used. `music.piano` (Ozma 21, Gould): `hist` (spectral-peak magnitude per 5-cent bin over
+  +/- 3600 cents, sum 1), `combScores` (k = 2 to 36 equal steps per octave), `combK`, the fit, and the block
+  bootstrap's share of draws picking the same comb.
+- `whale` (Ozma 03): `calls` `[start frame, frames, median Hz, glide cents]` (pitch runs held 0.2 s with a
+  median above `speechCeilingHz`) and `segmentS`, the stretch from the first call to the end of the last.

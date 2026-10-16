@@ -19,13 +19,15 @@ import { m4WrongPass } from './m4wrong.mjs';
 import { SLICE_IDS, freshStart, playSlice, reviewFolder, stamp } from './slice.browser.mjs';
 import { playSpot } from './spot.browser.mjs';
 import { playTrail } from './trail.browser.mjs';
+import { M5_PICTURE_IDS, playPicturesM5 } from './album.browser.mjs';
+import { VOICES_IDS, playVoices } from './voices.browser.mjs';
 
 const M4_IDS = [
   'map.periods', 'map.old', 'map.identify', 'map.motion', 'map.region',
   'spot.find', 'spot.age', 'spot.purity',
   'trail.origin', 'trail.age', 'trail.neighbour', 'trail.where', 'trail.when',
 ];
-const ALL_IDS = [...SLICE_IDS, ...M4_IDS];
+const ALL_IDS = [...SLICE_IDS, ...M5_PICTURE_IDS, ...VOICES_IDS, ...M4_IDS];
 
 /** The frames kept for the critic: what each shows and what the player did just before, in plain words. */
 const FRAMES = {
@@ -81,6 +83,19 @@ async function playGame(page, baseUrl, { assert, log }) {
   const after = await page.evaluate(() => window.__finder.state().game.chapterStatus);
   for (const c of ['map', 'spot', 'trail']) assert(after[c] === 'open', `${c} is open after the slice (${after[c]})`);
   log(`slice: ${slice.confirmed.length} confirmed (${Object.entries(slice.timing).map(([k, v]) => `${k} ${(v / 1000).toFixed(1)} s`).join(', ')})`);
+
+  // The Pictures, complete (M5 step 3): the album and the teaching pictures, through the instrument's views.
+  await page.evaluate(() => window.__finder.dispatch({ type: 'chapter.enter', chapter: 'pictures' }));
+  await page.waitForSelector('.picinst[data-pictures-ready="true"]', { timeout: 90_000 });
+  await playPicturesM5(page, { assert, log, shot: (n, s, d) => take(n, s, d) });
+  mark('pictures');
+  await page.evaluate(() => window.__finder.dispatch({ type: 'chapter.enter', chapter: 'hub' }));
+
+  // The Voices (M5 step 4): opens after the first sound; the four deductions through its instrument.
+  await playVoices(page, { assert, log, label: 'game' });
+  mark('voices');
+  await page.evaluate(() => window.__finder.dispatch({ type: 'turntable.lift' }));
+  await page.evaluate(() => window.__finder.dispatch({ type: 'chapter.enter', chapter: 'hub' }));
 
   await playMap(page, { assert, log, label: 'game', shot: (n, s, d) => take(n, s, d), game: true });
   mark('map');
@@ -213,13 +228,13 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   // ---------------- bot.game ----------------
   const res = await playGame(page, baseUrl, { assert, log });
   const missing = ALL_IDS.filter((id) => !res.g.confirmed.includes(id));
-  assert(missing.length === 0, `all 31 deductions confirmed (missing: ${missing.join(', ')})`);
-  assert(res.g.confirmed.length === 31, `exactly 31 confirmed (${res.g.confirmed.length})`);
-  assert(res.entries === 31, `the codex holds 31 entries (${res.entries})`);
+  assert(missing.length === 0, `all ${ALL_IDS.length} deductions confirmed (missing: ${missing.join(', ')})`);
+  assert(res.g.confirmed.length === ALL_IDS.length, `exactly ${ALL_IDS.length} confirmed (${res.g.confirmed.length})`);
+  assert(res.entries === ALL_IDS.length, `the codex holds ${ALL_IDS.length} entries (${res.entries})`);
   for (const c of res.g.built) assert(res.g.chapterStatus[c] === 'done', `${c} is done`);
   checkCues(res.cues, assert);
   const noHead = res.heads.filter(([, h]) => !h).map(([id]) => id);
-  assert(res.heads.length === 31 && noHead.length === 0, `every confirmed result has a headline (${res.heads.length} confirmed; without: ${noHead.join(', ') || 'none'})`);
+  assert(res.heads.length === ALL_IDS.length && noHead.length === 0, `every confirmed result has a headline (${res.heads.length} confirmed; without: ${noHead.join(', ') || 'none'})`);
   for (const id of MOMENT_IDS) {
     const seen = res.moments.filter((m) => m.id === id);
     assert(seen.length === 1 && seen[0].ended === 'button', `the ${id} moment showed once and was skipped with its button (${JSON.stringify(seen)})`);

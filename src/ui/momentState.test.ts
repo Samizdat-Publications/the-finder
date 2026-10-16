@@ -61,7 +61,9 @@ describe('staged moments', () => {
 
     const log = momentLog().map((e) => `${e.id}:${e.ended}`);
     expect(log).toEqual(['spot.age:key', 'trail.origin:button', 'trail.neighbour:click', 'trail.when:timeout', 'map.region:key']);
-    expect(new Set(MOMENT_IDS)).toEqual(new Set(momentLog().map((e) => e.id)));
+    // The script plays the five M4 moments; every one it played must be a registered moment (MOMENT_IDS also
+    // holds the moments later milestones add, each tested in its own chapter).
+    for (const id of momentLog().map((e) => e.id)) expect(MOMENT_IDS).toContain(id);
     recordCheck({
       id: 'ui.moments.logic',
       claim: 'The five staged moments appear once each, when their deduction is confirmed (not when a save loads with it confirmed, not for other deductions), queue in play order when confirmed together, end by a key, a click, the button or their time, and leave the game state unchanged',

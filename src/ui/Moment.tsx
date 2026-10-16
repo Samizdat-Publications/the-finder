@@ -50,8 +50,9 @@ function Body(p: { id: MomentId; n: number }) {
   const q = a ? def.quantity(a, m) : null;
   const compare = a && def.compare ? def.compare(a) : [];
   const cue = captionFor(confirmationCue([p.id]).kind);
-  const key = q ? unitKeyOf(q.dim) : null;
-  const num = q ? alienNumber(q.si / unitSize(q.dim), q.digits) : null;
+  const key = q?.dim ? unitKeyOf(q.dim) : null;
+  // A plain count (no dimension) shows as the number alone under its label.
+  const num = q ? (q.dim ? alienNumber(q.si / unitSize(q.dim), q.digits) : alienNumber(q.si, q.digits)) : null;
   return (
     <>
       <div class="moment-backdrop">
@@ -68,11 +69,13 @@ function Body(p: { id: MomentId; n: number }) {
                 <span class="gloss">{num === '1' ? key : pluralKey(key)}</span>
               </span>
             </>
+          ) : num ? (
+            <span class="mn">{num}</span>
           ) : (
             <span class="mn measuring">measuring</span>
           )}
         </p>
-        {gloss && q && (
+        {gloss && q?.dim && (
           <p class="moment-si" data-moment-si="">
             {humanText(q.dim, q.si, q.digits)}
           </p>

@@ -7,4 +7,5 @@ import './player/index';
 import './map/index';
 import './spot/index';
 import './trail/index';
+import './voices/index';
 export {};

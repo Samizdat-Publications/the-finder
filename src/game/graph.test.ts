@@ -23,8 +23,8 @@ describe('the graph data', () => {
   it('has the slice nodes with stable ids, real prerequisites and a row of the deduction table each', () => {
     const ids = new Set(NODES.map((n) => n.id));
     expect(ids.size).toBe(NODES.length);
-    expect(NODES.length).toBe(31); // 18 slice nodes and 13 for M4 (map, spot, trail) in play
-    expect(ALL_NODES.length).toBe(43); // and 12 for M5 (pictures, voices), kept `later` until built
+    expect(ALL_NODES.length).toBe(43); // 18 slice nodes, 13 for M4 (map, spot, trail), 12 for M5 (pictures, voices)
+    expect(NODES.length).toBe(ALL_NODES.filter((n) => !n.later).length); // in play: every node not still `later`
     const allIds = new Set(ALL_NODES.map((n) => n.id));
     for (const n of ALL_NODES) {
       expect(n.id.startsWith(`${n.chapter}.`)).toBe(true);
@@ -171,7 +171,7 @@ describe('gating (D-A06)', () => {
       expect(chapterStatus(c, confirmedSet.value)).toBe('later');
       await expect(dispatch({ type: 'chapter.enter', chapter: c })).rejects.toThrow(/later/);
     }
-    for (const c of ['voices', 'portrait', 'epilogue'] as const) expect(NODES.some((n) => n.chapter === c)).toBe(false);
+    for (const c of ['portrait', 'epilogue'] as const) expect(NODES.some((n) => n.chapter === c)).toBe(false);
     expect(ALL_NODES.filter((n) => n.later).every((n) => !NODES.includes(n))).toBe(true);
   });
 

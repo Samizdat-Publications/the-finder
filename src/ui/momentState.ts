@@ -9,7 +9,7 @@ import { effect, signal } from '@preact/signals';
 import { confirmedSet } from '../game/state';
 
 /** The deductions with a staged moment, in the order they would queue. */
-export const MOMENT_IDS = ['map.region', 'spot.age', 'trail.origin', 'trail.neighbour', 'trail.when'] as const;
+export const MOMENT_IDS = ['map.region', 'spot.age', 'trail.origin', 'trail.neighbour', 'trail.when', 'pictures.colour', 'pictures.home', 'pictures.height', 'voices.octave'] as const;
 export type MomentId = (typeof MOMENT_IDS)[number];
 
 /** How long a moment holds before returning on its own, ms (a player can skip it at once). */

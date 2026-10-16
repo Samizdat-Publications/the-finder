@@ -68,7 +68,7 @@ export const CHAPTERS: readonly ChapterDef[] = [
   { id: 'trail', title: 'The Trail', gloss: 'Where it came from, and how long ago.', requires: ['key.timesNotLengths'], built: true },
   { id: 'player', title: 'The Player', gloss: 'How the disc is meant to be played.', requires: ['key.timesNotLengths'], built: true },
   { id: 'pictures', title: 'The Pictures', gloss: 'Turning the signal into images.', requires: ['key.timesNotLengths'], built: true },
-  { id: 'voices', title: 'The Voices', gloss: 'What the disc says.', requires: ['player.firstSound'], built: false },
+  { id: 'voices', title: 'The Voices', gloss: 'What the disc says.', requires: ['player.firstSound'], built: true },
   { id: 'portrait', title: 'Portrait', gloss: 'Who sent it.', requires: ['pictures.firstFrames'], built: false },
   { id: 'epilogue', title: 'Our Frame', gloss: 'Where the machines are now.', requires: ['pictures.firstFrames'], built: false },
 ];

@@ -10,13 +10,16 @@ import { PARSEC_KM } from '../science/units';
 import { alienText, messageTokens, type MsgDim } from '../ui/message';
 import type { MomentId } from '../ui/momentState';
 import { RegionBackdrop } from './map/RegionMoment';
+import { PICTURE_MOMENTS } from './pictures/momentsM5';
+import { VOICES_MOMENTS } from './voices/moments';
 import type { EpochModel, HeavyPart } from './shared/epochModel';
 import { SpotBackdrop } from './spot/AgeMoment';
 import { OriginBackdrop, SkyBackdrop, WhenBackdrop } from './trail/moments';
 import { originRow, starName } from './trail/physics';
 
 export interface MomentQuantity {
-  dim: MsgDim;
+  /** The quantity's dimension; absent for a plain count (shown as a number under its label, no unit). */
+  dim?: MsgDim;
   si: number;
   digits?: number;
 }
@@ -111,4 +114,8 @@ export const MOMENTS: Readonly<Record<MomentId, MomentDef>> = {
     parts: ['trail', 'region'],
     Backdrop: WhenBackdrop,
   },
+  // M5: the pictures complete (src/chapters/pictures/momentsM5.tsx)
+  ...PICTURE_MOMENTS,
+  // M5: The Voices (src/chapters/voices/moments.tsx)
+  ...VOICES_MOMENTS,
 };
