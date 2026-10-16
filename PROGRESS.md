@@ -133,12 +133,14 @@ and live-checked.
 - **A stray folder from the QA script** (`C:\Users\stewa\Documents\Claude\Golden%20Record\`, five PNGs,
   outside the repo): left for Stewart to delete or keep (`docs/NEEDS_STEWART.md`).
 
-- **Identification at the epoch fails for about 1% of seeds** (19 of 2,000 candidate seeds): when the
-  Arrival clock's 95% interval sits above the true age, its hard age window `U[t_lo, 2 t_hi]` leaves a
-  documented pulsar (B1727-47, B1933+16 or B0525+21) out of the pre-selection and another wins. Seeds
-  are excluded for now (D-A28); the science fix is to use the clock's posterior with its tails instead
-  of a hard window (`src/science/pulsarIdentify.ts`), then re-run `identify.epoch` over many seeds and
-  rebuild `data/seeds.json` (M5).
+- **Fixed (M5 step 0a): identification at the epoch failed for about 1% of seeds** (19 of 2,000 candidate
+  seeds, from the hard age window `U[t_lo, 2 t_hi]`). The map's age now comes from the Arrival clock's own
+  error model and each candidate's spin-down from its timing noise, cut only beyond 1e-6 tails
+  (`src/science/identifyPrior.ts`, D-A16 amended). `identify.epoch` over 500 seeds: 7,014 of 7,014 lines
+  right (17 seeds had the clock's 95% interval above the true age); `identify.ageModel` checks the tails.
+  `data/seeds.json` rebuilt: 1,993 of 2,000 listed, 7 excluded (map.motion 3, trail.origin 4; map.identify
+  0). Side effect: on old lines every competitor the pre-selection keeps is now young, so map.periods'
+  "less well than another pulsar" refusal is not reached on the test seeds (the young refusal comes first).
 - **The Trail's chart** draws its velocity arrows and the tint-by-angle overlay from catalogue
   directions; only the labels are measured values.
 - **Readings (not messages)** still hold a few human units: one Trail reading key says "radial velocity
