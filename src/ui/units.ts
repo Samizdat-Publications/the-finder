@@ -1,26 +1,68 @@
-// Display helpers for the alien's units (D-A07). The alien measures time in hydrogen periods and length in
-// hydrogen wavelengths (src/science/units.ts); numbers are written with Arabic digits (the translation
-// layer). With the human gloss setting on, SI units follow in parentheses. Pure: no DOM.
+// Display helpers for the alien's own units (D-A07, D-A22). The alien does NOT count in hydrogen: its base
+// units are a game convention, exact in SI and arbitrary, chosen only so that everyday quantities read as
+// small numbers. So recognising hydrogen's clock on the cover is a real discovery, not something the
+// interface already knows. Derived units follow from the base units by dimension. Numbers are written with
+// Arabic digits (the translation layer); with the human gloss on, SI follows in parentheses. Pure: no DOM.
 
-import { JULIAN_YEAR_S, LAMBDA_H_METRES, T_H_SECONDS } from '../science/units';
+import { JULIAN_YEAR_S } from '../science/units';
 
-export type Dim = 'time' | 'length';
+/** One beat, s (game convention, D-A22): the alien's base unit of time. Exact. */
+export const BEAT_S = 0.871;
+/** One reach, m (game convention, D-A22): the alien's base unit of length. Exact. */
+export const REACH_M = 1.37;
+/** One heft, kg (game convention, D-A22): the alien's base unit of mass. Exact. */
+export const HEFT_KG = 2.29;
 
-/** The English key (and so the glyph label) of each unit. */
-export const UNIT_KEY: Record<Dim, string> = { time: 'hydrogen period', length: 'hydrogen wavelength' };
-export const UNIT_GLOSS: Record<Dim, string> = {
-  time: 'the period of hydrogen\'s spin-flip',
-  length: 'the wavelength of hydrogen\'s spin-flip',
+export type Dim = 'time' | 'length' | 'mass' | 'speed' | 'frequency' | 'energy' | 'power' | 'temperature';
+
+/** Dimension exponents [length, time, mass] of each quantity (temperature is handled on its own). */
+const EXPONENTS: Record<Exclude<Dim, 'temperature'>, [number, number, number]> = {
+  time: [0, 1, 0],
+  length: [1, 0, 0],
+  mass: [0, 0, 1],
+  speed: [1, -1, 0],
+  frequency: [0, -1, 0],
+  energy: [2, -2, 1],
+  power: [2, -3, 1],
 };
 
-/** SI value (seconds or metres) in the alien's unit. */
+/** The size of one alien unit of this quantity, in SI. Temperature: an absolute scale in steps the size of the kelvin. */
+export function unitInSI(dim: Dim): number {
+  if (dim === 'temperature') return 1;
+  const [l, t, m] = EXPONENTS[dim];
+  return REACH_M ** l * BEAT_S ** t * HEFT_KG ** m;
+}
+
+/** The English key (and so the glyph label) of each unit. */
+export const UNIT_KEY: Record<Dim, string> = {
+  time: 'beat',
+  length: 'reach',
+  mass: 'heft',
+  speed: 'reach per beat',
+  frequency: 'per beat',
+  energy: 'labour',
+  power: 'labour per beat',
+  temperature: 'notch',
+};
+export const UNIT_GLOSS: Record<Dim, string> = {
+  time: 'the alien\'s beat of time',
+  length: 'the alien\'s reach of length',
+  mass: 'the alien\'s heft of mass',
+  speed: 'reaches per beat',
+  frequency: 'times per beat',
+  energy: 'a heft moved a reach in a beat squared: the alien\'s unit of energy',
+  power: 'labour each beat: the alien\'s unit of power',
+  temperature: 'notches above absolute cold (the zero is physical: no heat at all)',
+};
+
+/** SI value in the alien's unit. */
 export function toAlien(dim: Dim, si: number): number {
-  return dim === 'time' ? si / T_H_SECONDS : si / LAMBDA_H_METRES;
+  return si / unitInSI(dim);
 }
 
 /** The alien's unit count back in SI. */
 export function fromAlien(dim: Dim, n: number): number {
-  return dim === 'time' ? n * T_H_SECONDS : n * LAMBDA_H_METRES;
+  return n * unitInSI(dim);
 }
 
 const grouped = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
@@ -37,11 +79,19 @@ export function formatNumber(x: number): string {
 
 const sig = (x: number): string => String(Number(x.toPrecision(3)));
 
-/** A human reading of an SI value: seconds in ns, us, ms, s, min, h, d or years; metres in nm to Mm. */
+/** Engineering prefixes for the plain SI units. */
+function prefixed(si: number, unit: string): string {
+  const a = Math.abs(si);
+  const steps: [number, string][] = [[1e12, 'T'], [1e9, 'G'], [1e6, 'M'], [1e3, 'k'], [1, ''], [1e-3, 'm'], [1e-6, 'µ'], [1e-9, 'n']];
+  for (const [f, p] of steps) if (a >= f) return `${sig(si / f)} ${p}${unit}`;
+  return `${sig(si)} ${unit}`;
+}
+
+/** A human reading of an SI value: seconds in ns to years; metres in nm to km; the rest with SI prefixes. */
 export function formatSI(dim: Dim, si: number): string {
   const a = Math.abs(si);
-  if (a === 0) return dim === 'time' ? '0 s' : '0 m';
   if (dim === 'time') {
+    if (a === 0) return '0 s';
     if (a < 1e-6) return `${sig(si * 1e9)} ns`;
     if (a < 1e-3) return `${sig(si * 1e6)} µs`;
     if (a < 1) return `${sig(si * 1e3)} ms`;
@@ -51,11 +101,19 @@ export function formatSI(dim: Dim, si: number): string {
     if (a < 100 * 86_400) return `${sig(si / 86_400)} days`;
     return `${grouped.format(Number((si / JULIAN_YEAR_S).toPrecision(3)))} years`;
   }
-  if (a < 1e-6) return `${sig(si * 1e9)} nm`;
-  if (a < 1e-3) return `${sig(si * 1e6)} µm`;
-  if (a < 1) return `${sig(si * 1e3)} mm`;
-  if (a < 1000) return `${sig(si)} m`;
-  return `${sig(si / 1000)} km`;
+  if (dim === 'length') {
+    if (a === 0) return '0 m';
+    if (a < 1e-6) return `${sig(si * 1e9)} nm`;
+    if (a < 1e-3) return `${sig(si * 1e6)} µm`;
+    if (a < 1) return `${sig(si * 1e3)} mm`;
+    if (a < 1000) return `${sig(si)} m`;
+    return `${sig(si / 1000)} km`;
+  }
+  if (dim === 'mass') return a >= 1 || a === 0 ? `${sig(si)} kg` : `${sig(si * 1000)} g`;
+  if (dim === 'speed') return a >= 1000 ? `${sig(si / 1000)} km/s` : `${sig(si)} m/s`;
+  if (dim === 'temperature') return `${sig(si)} K`;
+  if (a === 0) return dim === 'frequency' ? '0 Hz' : dim === 'energy' ? '0 J' : '0 W';
+  return prefixed(si, dim === 'frequency' ? 'Hz' : dim === 'energy' ? 'J' : 'W');
 }
 
 export interface QuantityText {

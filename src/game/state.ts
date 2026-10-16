@@ -4,7 +4,7 @@
 import { computed, signal } from '@preact/signals';
 import type { Direction } from '../record/groove';
 import type { NeedleState } from '../record/engine';
-import { chapterStatus, type Attempt, type ChapterStatus } from './deductions';
+import { DEFAULT_SEED, chapterStatus, type Attempt, type ChapterStatus } from './deductions';
 import { CHAPTERS, NODES, type ChapterView } from './graph';
 import { COVER_PERIOD_S, referenceBench, type BenchParams } from './model';
 import { defaultSettings, type Settings } from './settings';
@@ -85,6 +85,8 @@ export const game = {
   records: signal<Record<string, NodeRecord>>({}),
   chapter: signal<ChapterView>('hub'),
   settings: signal<Settings>(defaultSettings()),
+  /** The playthrough's seed: every simulated measurement draws from it (rule 6). Saved; a new one on Start over. */
+  seed: signal<string>(DEFAULT_SEED),
   codexOpen: signal(false),
   /** The codex entry to show first (a deduction id), when it was opened for one. */
   codexFocus: signal<string | null>(null),
@@ -105,6 +107,7 @@ function gameSnapshot() {
   return {
     chapter: game.chapter.value,
     settings: { ...game.settings.value },
+    seed: game.seed.value,
     codexOpen: game.codexOpen.value,
     codexFocus: game.codexFocus.value,
     settingsOpen: game.settingsOpen.value,

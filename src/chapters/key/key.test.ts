@@ -92,9 +92,11 @@ describe('key.binary', () => {
 
 describe('key.unit', () => {
   it('the atlas matches NIST wavelengths', () => {
-    // NIST Atomic Spectra Database, hydrogen, vacuum wavelengths (nm): Lyman-alpha 121.567 (fine-structure
-    // weighted), H-alpha 656.461, Paschen-alpha 1875.61, ionization limit 91.1753 (13.598434 eV).
-    const nist: Record<string, number> = { lymanAlpha: 121.567, balmerAlpha: 656.461, paschenAlpha: 1875.61, ionization: 91.1753 };
+    // NIST Atomic Spectra Database (fetched 2026-10-16, docs/research/key-physics.md 2): H I vacuum Ritz
+    // wavelengths of the unresolved n-to-n' lines, nm: Lyman-alpha 121.56701, H-alpha 656.4632, Paschen-alpha
+    // 1875.6096; ionization energy 13.598434599702 eV, as a wavelength hc / E with exact SI h, c and e.
+    const hcEvNm = ((6.626_070_15e-34 * 299_792_458) / 1.602_176_634e-19) * 1e9;
+    const nist: Record<string, number> = { lymanAlpha: 121.56701, balmerAlpha: 656.4632, paschenAlpha: 1875.6096, ionization: hcEvNm / 13.598434599702 };
     for (const [id, nm] of Object.entries(nist)) {
       const t = transition(id);
       expect(t).toBeDefined();
@@ -109,8 +111,8 @@ describe('key.unit', () => {
     const rows = TRANSITIONS.map((t) => readWithUnit(t, inputs, range));
     const hyper = rows.find((r) => r.transition.id === 'hyperfine')!;
     const others = rows.filter((r) => r.transition.id !== 'hyperfine');
-    // Hand calculation of the burst speed: sqrt(8 x 220e6 / (3.34 x 8960)) = 242.5 m/s
-    expect(burstRimSpeed()).toBeCloseTo(242.5, 0);
+    // Hand calculation of the burst speed: sqrt(8 x 220.6e6 / (3.328 x 8910)) = 244.0 m/s (key-physics.md 3)
+    expect(burstRimSpeed()).toBeCloseTo(244.0, 0);
     const ok = hyper.mapInRange === 14 && hyper.physical && others.every((r) => r.mapInRange === 0 && !r.physical);
     const verdicts = TRANSITIONS.map((t) => [t.id, checkUnit(inputs, t.id).ok] as const);
     recordCheck({
@@ -118,9 +120,9 @@ describe('key.unit', () => {
       claim: 'Only hydrogen\'s spin flip makes the cover\'s numbers physical: with it all 14 map numbers are periods real pulsars have and the disc turns once in 3.6 s; with any other hydrogen line none of the 14 is, and the disc would spin fast enough to tear itself apart.',
       measured: rows.map((r) => `${r.transition.id}: ${r.mapInRange}/14 in range, turn ${r.turnS.toPrecision(3)} s, rim ${r.rimMS.toPrecision(3)} m/s`).join('; '),
       expected: `catalogue periods ${range.minS.toPrecision(3)} s to ${range.maxS.toPrecision(3)} s (${range.count} ATNF v2.9.0 pulsars, data/pulsars.json); turn 3.59994 s (cover.md 1b); copper disc bursts above ${burstRimSpeed().toPrecision(3)} m/s rim speed`,
-      tolerance: 'counts exact; burst speed from handbook copper (220 MPa, 8960 kg/m3, Poisson 0.34) and the uniform rotating-disc stress',
+      tolerance: 'counts exact; burst speed from annealed copper C11000 (CDA: 32 ksi, specific gravity 8.91, Poisson 0.328 from its moduli) and the uniform rotating-disc stress (Timoshenko and Goodier)',
       pass: ok && verdicts.every(([id, v]) => v === (id === 'hyperfine')),
-      notes: 'The optical and ionization lines are computed from the Rydberg formula (CODATA 2018) and agree with NIST to parts in 1e5.',
+      notes: 'The optical and ionization lines are computed from the Rydberg formula (CODATA 2022) and agree with the NIST ASD to parts in 1e5 (docs/research/key-physics.md).',
     });
     expect(hyper.mapInRange).toBe(14);
     expect(hyper.turnS).toBeCloseTo(3.59994, 5); // cover.md 1b

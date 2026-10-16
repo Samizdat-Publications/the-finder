@@ -1,6 +1,6 @@
 // The game shell on /play/, driven through the command bus (window.__finder, installed by the dev server)
 // and the real interface (clicks). Checked: the page loads with no console errors; the ring shows only
-// Arrival open; confirming arrival.purpose with the test checker opens The Key; the codex shows the entry
+// Arrival open; confirming arrival.purpose (its real checker since M3 step 3c) opens The Key; the codex shows the entry
 // with a working "How it's checked" link to the matching row; the state survives a reload; Escape closes the
 // drawers; the human gloss setting persists; save.reset (Start over, asked first) clears the progress; a
 // locked chapter in the URL is refused; no sideways scrolling at phone width. Id: game.shell.
@@ -21,11 +21,11 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   assert((await page.locator('.chap.later').count()) === 6, 'six chapters are marked later');
   assert(g.confirmed.length === 0 && g.hintsUsed === 0, 'nothing is confirmed at the start');
 
-  // ---- 2. enter Arrival; the placeholder workbench lists its deductions ----
+  // ---- 2. enter Arrival; its instrument shows, and the notebook lists its deductions ----
   await page.getByRole('button', { name: /^Arrival, open/ }).click();
   await page.waitForFunction(() => window.__finder.state().game.chapter === 'arrival');
   assert((await page.evaluate(() => window.location.hash)) === '#arrival', 'the hash follows the chapter');
-  assert(await page.getByText('This instrument is being built.').isVisible(), 'the placeholder workbench is shown');
+  assert(await page.locator('[data-instrument="arrival"]').isVisible(), 'the Arrival instrument is shown');
   assert((await page.locator('[data-node]').count()) === 4, 'Arrival lists its four deductions');
   assert((await page.locator('[data-node="arrival.purpose"]').getAttribute('data-status')) === 'open', 'arrival.purpose is open');
   assert((await page.locator('[data-node="arrival.heat"]').getAttribute('data-status')) === 'locked', 'arrival.heat is locked');
@@ -41,7 +41,7 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   });
   assert(wrong.attempts.length === 1 && wrong.attempts[0].ok === false && !wrong.confirmed, 'a wrong answer is an attempt, not a confirmation');
   assert(await page.locator('[data-node="arrival.purpose"] details.wrong').isVisible(), 'the wrong answer is shown on the workbench');
-  await page.evaluate(() => window.__finder.dispatch({ type: 'deduction.propose', id: 'arrival.purpose', answer: 'correct' }));
+  await page.evaluate(() => window.__finder.dispatch({ type: 'deduction.propose', id: 'arrival.purpose', answer: 'radio' }));
   g = await game();
   assert(g.nodes['arrival.purpose'].confirmed, 'arrival.purpose is confirmed');
   assert(g.chapterStatus.key === 'open', 'The Key opens');
@@ -125,7 +125,7 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   const reading = page.locator('[data-entry="arrival.heat"] .value');
   await reading.waitFor();
   const readingText = await reading.innerText();
-  assert(/^[\d,]{9,}/.test(readingText), `the time is written in hydrogen periods with Arabic digits (${readingText})`);
+  assert(/^4\.133/.test(readingText), `the time is written in the alien's beats with Arabic digits, 3.6 s = 4.133 beats (${readingText})`);
   assert(/\(3\.6 s\)/.test(readingText), `the human gloss adds SI in parentheses (${readingText})`);
   await page.evaluate(() => window.__finder.dispatch({ type: 'settings.set', name: 'humanGloss', value: false }));
   assert(!/\(3\.6 s\)/.test(await reading.innerText()), 'with the human gloss off there is no SI');
@@ -165,23 +165,22 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${baseUrl}/play/`, { waitUntil: 'load' });
   await page.waitForFunction(() => Boolean(window.__finder));
+  // Arrival's real checkers are always on; the test checker's word "correct" is just a wrong answer to them,
+  // and a deduction with no real checker yet is refused.
   const plain = await page.evaluate(async () => {
-    try {
-      await window.__finder.dispatch({ type: 'deduction.propose', id: 'arrival.purpose', answer: 'correct' });
-      return 'accepted';
-    } catch (e) {
-      return String(e.message);
-    }
+    await window.__finder.dispatch({ type: 'deduction.propose', id: 'arrival.purpose', answer: 'correct' });
+    return window.__finder.state().game.nodes['arrival.purpose'];
   });
-  assert(/no checker/.test(plain), `without ?testcheckers=1 the test checkers are off (${plain})`);
+  const lastPlain = plain.attempts[plain.attempts.length - 1];
+  assert(!plain.confirmed && !/test checker/.test(lastPlain.message), `without ?testcheckers=1 the test checkers are off (${lastPlain.message})`);
 
   log('shell: ring, gating, wrong answers, hints, codex link, persistence, settings, start over, URL gating and phone width all hold');
   record({
     id: 'game.shell',
     claim: 'The game shell works end to end through the same commands a player uses: confirming the first Arrival deduction opens The Key, the codex shows the entry and its How it\'s checked link lands on the right row, progress and settings survive a reload, and Start over clears the progress.',
-    measured: 'ring of 10 chapters with only Arrival open at the start; arrival.purpose confirmed with the test checker (wrong attempt kept); The Key opened, player and pictures stayed locked; hint tiers revealed one at a time; codex link /checked/#row-1 scrolls to the heat-source row; reload kept the deduction, attempts, hint count, chapter and the human gloss setting; save.reset emptied the stored save; a locked chapter in the URL was refused; no sideways scroll at 390 px',
+    measured: 'ring of 10 chapters with only Arrival open at the start; arrival.purpose confirmed with its real checker (wrong attempt kept); The Key opened, player and pictures stayed locked; hint tiers revealed one at a time; codex link /checked/#row-1 scrolls to the heat-source row; reload kept the deduction, attempts, hint count, chapter and the human gloss setting; save.reset emptied the stored save; a locked chapter in the URL was refused; no sideways scroll at 390 px',
     expected: 'the behaviour specified in docs/plans/M3_specs/step1-shell-graph-codex.md',
-    tolerance: 'exact (interface behaviour, with test checkers: the real checkers arrive in steps 3 to 6)',
+    tolerance: 'exact (interface behaviour; Arrival uses its real checkers, the other chapters test checkers until their steps land)',
     pass: true,
   });
 }

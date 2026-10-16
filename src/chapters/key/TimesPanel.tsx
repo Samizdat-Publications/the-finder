@@ -5,7 +5,7 @@
 import { game } from '../../game/state';
 import { formatNumber, quantity } from '../../ui/units';
 import { CRAFT_SPAN_M, RECORD_RADIUS_M, keyInputs, pulsarSpan } from './data';
-import { LastReading, PanelHead, Propose, type Choice } from './parts';
+import { LastReading, PanelHead, Propose, plural, type Choice } from './parts';
 import { ABSURD_FACTOR, timesAndLengths } from './readings';
 
 export const TIMES_CHOICES: Choice[] = [
@@ -17,7 +17,7 @@ function Q(p: { dim: 'time' | 'length'; si: number; bare?: boolean }) {
   const q = quantity(p.dim, p.si);
   return (
     <span class="q">
-      <span class="num">{q.number}</span> {!p.bare && <span class="unitname">{q.number === '1' ? q.unitKey : `${q.unitKey}s`}</span>}
+      <span class="num">{q.number}</span> {!p.bare && <span class="unitname">{q.number === '1' ? q.unitKey : plural(q.unitKey)}</span>}
       {game.settings.value.humanGloss && <span class="si"> ({q.si})</span>}
     </span>
   );
@@ -45,7 +45,7 @@ export function TimesPanel() {
               <thead>
                 <tr>
                   <th>number</th>
-                  <th>as a time, in hydrogen periods</th>
+                  <th>as a time, in beats</th>
                   <th>as a length, in discs</th>
                   <th>in crafts</th>
                 </tr>

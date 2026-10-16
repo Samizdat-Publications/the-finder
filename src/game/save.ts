@@ -5,7 +5,7 @@
 
 import { effect } from '@preact/signals';
 import { chapterDef, nodeDef, parseChapterHash, type ChapterView } from './graph';
-import type { Answer, Attempt, Reading } from './deductions';
+import { DEFAULT_SEED, type Answer, type Attempt, type Reading } from './deductions';
 import { defaultSettings, normalizeSettings, type Settings } from './settings';
 import { game, type NodeRecord } from './state';
 
@@ -20,7 +20,11 @@ export interface SaveV1 {
   nodes: Record<string, NodeRecord>;
   chapter: ChapterView;
   settings: Settings;
+  /** The playthrough's seed (added in M3 step 3c; a save without one gets DEFAULT_SEED). */
+  seed: string;
 }
+
+const cleanSeed = (raw: unknown): string => (typeof raw === 'string' && raw.length > 0 && raw.length <= 64 ? raw : DEFAULT_SEED);
 
 const isObject = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 
@@ -67,10 +71,10 @@ export function migrate(raw: unknown): SaveV1 | null {
     for (const id of done) if (nodeDef(id)) nodes[id] = { confirmed: true, attempts: [], hints: 0 };
     const settings = defaultSettings();
     if (typeof raw.sound === 'number' && Number.isFinite(raw.sound)) settings.masterVolume = Math.min(1, Math.max(0, raw.sound));
-    return { version: 1, nodes, chapter: cleanChapter(raw.current), settings };
+    return { version: 1, nodes, chapter: cleanChapter(raw.current), settings, seed: DEFAULT_SEED };
   }
   if (version === 1) {
-    return { version: 1, nodes: cleanNodes(raw.nodes), chapter: cleanChapter(raw.chapter), settings: normalizeSettings(raw.settings) };
+    return { version: 1, nodes: cleanNodes(raw.nodes), chapter: cleanChapter(raw.chapter), settings: normalizeSettings(raw.settings), seed: cleanSeed(raw.seed) };
   }
   return null;
 }
@@ -81,13 +85,14 @@ export function serialize(): SaveV1 {
   for (const [id, r] of Object.entries(game.records.value)) {
     if (r.confirmed || r.attempts.length > 0 || r.hints > 0) nodes[id] = r;
   }
-  return { version: 1, nodes, chapter: game.chapter.value, settings: game.settings.value };
+  return { version: 1, nodes, chapter: game.chapter.value, settings: game.settings.value, seed: game.seed.value };
 }
 
 export function applySave(s: SaveV1): void {
   game.records.value = s.nodes;
   game.chapter.value = s.chapter;
   game.settings.value = s.settings;
+  game.seed.value = s.seed;
 }
 
 /** Load from storage into the game state. Returns true when a save was found and used. */
@@ -135,7 +140,7 @@ export function startAutosave(storage: StorageLike, debounceMs = 250): () => voi
   let first = true;
   const stopEffect = effect(() => {
     // Read every part of the save so the effect re-runs when any of them changes.
-    void [game.records.value, game.chapter.value, game.settings.value];
+    void [game.records.value, game.chapter.value, game.settings.value, game.seed.value];
     if (first) {
       first = false;
       return;

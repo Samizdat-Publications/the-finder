@@ -94,3 +94,8 @@ export function StrokeBars(p: { kinds: StrokeKind[]; max?: number }) {
     </svg>
   );
 }
+
+/** The plural of an alien unit's English key (reach, reaches; beat, beats). */
+export function plural(key: string): string {
+  return /(ch|sh|s|x)$/.test(key) ? `${key}es` : `${key}s`;
+}

@@ -42,7 +42,7 @@ describe('the save', () => {
     const before = snapshot().game;
     const storage = fakeStorage();
     saveToStorage(storage);
-    expect(Object.keys(JSON.parse(storage.data.get(SAVE_KEY) ?? '{}')).sort()).toEqual(['chapter', 'nodes', 'settings', 'version']);
+    expect(Object.keys(JSON.parse(storage.data.get(SAVE_KEY) ?? '{}')).sort()).toEqual(['chapter', 'nodes', 'seed', 'settings', 'version']);
 
     resetAll();
     expect(snapshot().game.confirmed).toEqual([]);

@@ -3,7 +3,7 @@
 // reason has also been written to game.error for the interface to show. A WRONG answer is not an error: it
 // is recorded as an attempt with what it showed.
 
-import { evaluate, nodeStatus, chapterOpen, type Answer, type Attempt } from './deductions';
+import { DEFAULT_SEED, evaluate, nodeStatus, chapterOpen, type Answer, type Attempt } from './deductions';
 import { chapterDef, nodeDef, type ChapterView } from './graph';
 import { coerceSetting, defaultSettings, type SettingName, type Settings } from './settings';
 import { confirmedSet, game, type NodeRecord } from './state';
@@ -45,7 +45,7 @@ export function propose(id: string, answer: Answer): void {
   const prior = record(id);
   let outcome;
   try {
-    outcome = evaluate(id, answer, confirmedSet.value, prior.attempts.length);
+    outcome = evaluate(id, answer, confirmedSet.value, prior.attempts.length, game.seed.value);
   } catch (e) {
     return refuse(e instanceof Error ? e.message : String(e));
   }
@@ -91,10 +91,14 @@ export function settingsPanel(open: boolean): void {
   game.settingsOpen.value = open;
 }
 
-/** Start over: forget every deduction, hint and attempt, and go back to the hub. Settings stay as the player set them. */
+/**
+ * Start over: forget every deduction, hint and attempt, and go back to the hub. Settings stay as the player set
+ * them. The new playthrough gets a new seed, from the (injectable) clock, so its measurements differ.
+ */
 export function resetSave(): void {
   game.error.value = null;
   game.records.value = {};
+  game.seed.value = `finder-${clock()}`;
   game.chapter.value = 'hub';
   game.codexOpen.value = false;
   game.codexFocus.value = null;
@@ -105,4 +109,5 @@ export function resetSave(): void {
 export function resetAll(): void {
   resetSave();
   game.settings.value = defaultSettings();
+  game.seed.value = DEFAULT_SEED;
 }

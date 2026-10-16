@@ -6,7 +6,7 @@ import { game } from '../../game/state';
 import { GlyphLabel } from '../../ui/Glyph';
 import { formatNumber, quantity } from '../../ui/units';
 import { keyInputs, pulsarError, pulsarSpan } from './data';
-import { LastReading, PanelHead, Propose, type Choice } from './parts';
+import { LastReading, PanelHead, Propose, plural, type Choice } from './parts';
 import { TRANSITIONS, periodS, transition, wavelengthM, type TransitionId } from './physics';
 import { readWithUnit } from './readings';
 
@@ -16,7 +16,7 @@ function Q(p: { dim: 'time' | 'length'; si: number }) {
   const q = quantity(p.dim, p.si);
   return (
     <span class="q">
-      <span class="num">{q.number}</span> <span class="unitname">{q.number === '1' ? q.unitKey : `${q.unitKey}s`}</span>
+      <span class="num">{q.number}</span> <span class="unitname">{q.number === '1' ? q.unitKey : plural(q.unitKey)}</span>
       {game.settings.value.humanGloss && <span class="si"> ({q.si})</span>}
     </span>
   );

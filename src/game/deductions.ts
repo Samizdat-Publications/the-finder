@@ -3,6 +3,7 @@
 // changes it. Every deduction is confirmed by a checker that calls the science (rule 1); step 1 registers
 // test checkers only, behind a flag.
 
+import type { Dim } from '../ui/units';
 import { NODES, chapterDef, nodeDef, type ChapterId, type NodeDef } from './graph';
 
 export type NodeStatus = 'locked' | 'open' | 'confirmed';
@@ -11,12 +12,12 @@ export type ChapterStatus = 'later' | 'locked' | 'open' | 'done';
 /** A value a player can propose: anything that survives JSON, so it can be saved. */
 export type Answer = string | number | boolean | null | Answer[] | { [key: string]: Answer };
 
-/** One reading in a checker's result. A reading with a dimension holds SI (seconds or metres). */
+/** One reading in a checker's result. A reading with a dimension holds SI (seconds, metres, kilograms, watts, kelvin...). */
 export interface Reading {
   /** English key, shown as a glyph label. */
   key: string;
   value: number | string;
-  dim?: 'time' | 'length';
+  dim?: Dim;
 }
 
 export interface CheckResult {
@@ -31,7 +32,12 @@ export interface CheckContext {
   /** Attempts already made on this node. */
   attempts: number;
   confirmed: ReadonlySet<string>;
+  /** The playthrough's seed (in the save): checkers that simulate a measurement draw from it (rule 6). */
+  seed: string;
 }
+
+/** The seed of a first playthrough, and of a save written before saves carried one. */
+export const DEFAULT_SEED = 'finder-1';
 
 export type Checker = (answer: Answer, ctx: CheckContext) => CheckResult;
 
@@ -107,7 +113,7 @@ export function openNodes(chapter: ChapterId, confirmed: ReadonlySet<string>): N
 }
 
 /** Run the node's checker. Throws when the node is unknown, not open, or has no checker yet. */
-export function evaluate(id: string, answer: Answer, confirmed: ReadonlySet<string>, attempts: number): CheckResult {
+export function evaluate(id: string, answer: Answer, confirmed: ReadonlySet<string>, attempts: number, seed: string = DEFAULT_SEED): CheckResult {
   const status = nodeStatus(id, confirmed);
   if (status === 'confirmed') throw new Error(`${id} is already confirmed`);
   if (status === 'locked') {
@@ -115,7 +121,7 @@ export function evaluate(id: string, answer: Answer, confirmed: ReadonlySet<stri
   }
   const checker = checkers.get(id);
   if (!checker) throw new Error(`${id} has no checker yet`);
-  return checker(answer, { attempts, confirmed });
+  return checker(answer, { attempts, confirmed, seed });
 }
 
 /** The flag the browser uses to ask for test checkers: the test handle must be on as well. */
