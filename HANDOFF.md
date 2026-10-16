@@ -1,6 +1,6 @@
 # HANDOFF: start here
 
-_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 to M4 complete; M5 planned, researched and starting. Whoever stops next updates this block,
+_Last updated: 2026-10-16 by build session 2 (Opus 5.5): PAUSED (quota) until next Thursday inside the M5 gate: M1 to M4 complete, M5's chapters live, its audit fixes half done (see PROGRESS "Next"). Whoever stops next updates this block,
 "Where things stand", and anything below that changed._
 
 ## For Stewart: how to start the next session
@@ -67,6 +67,11 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
   messages in the alien's units, a QA audit, two blind critic passes and step 7e (staged moments,
   headline results, the heavy science in a Worker). 147 checks pass; M4 closed. M5 is planned (`docs/plans/M5.md`) with research in `docs/research/teaching-frames.md`
   and `voices.md`.
+- **Paused 2026-10-16 (quota):** M5's chapters (The Pictures complete, The Voices) are live with 43
+  deductions; the M5 science audit's fixes are half done: 6b's code is in (its docs left), 6a is partly
+  done and not wired in. Start from PROGRESS "Next (exact)" and the two progress notes in
+  `docs/plans/M5_specs/` (`step6a-progress.md`, `step6b-progress.md`). Stewart's open items:
+  `docs/NEEDS_STEWART.md` (the Gemini cap, a stray folder, the optional Firefox check).
 - **How session 2 worked (keep doing this):** every helper got a written spec saved in
   `docs/plans/Mx_specs/` before launch; the lead reviewed every report, looked at every picture and
   capture, ran the tests itself before each commit, and resumed the same helper (SendMessage) for

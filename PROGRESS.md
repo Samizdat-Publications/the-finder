@@ -1,16 +1,20 @@
 # PROGRESS
 
-_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 to M4 complete; M5 starting. Update after
-every meaningful chunk._
+_Last updated: 2026-10-16 by build session 2 (Opus 5.5): PAUSED at Stewart's request (quota) until next
+Thursday, at a clean checkpoint inside the M5 gate. Update after every meaningful chunk._
 
 ## Current milestone
 
-**M5: The pictures complete, and The Voices.** Plan: `docs/plans/M5.md`; specs in `docs/plans/M5_specs/`.
-Steps 0, 3 and 4 are committed, deployed and live-checked: The Pictures complete (eight deductions) and The
-Voices (four); 43 deductions in play, bot.game plays them all from a fresh save; `npm run check` green
-(371 unit tests, 21 browser tests, the Voices reference checks, 183 checks). In flight for the gate: the
-M5 science audit and a run of every browser test in Edge. Then the blind critic, the QA audit and
-`docs/plans/M6.md`.
+**M5: The pictures complete, and The Voices (paused inside its gate).** Plan: `docs/plans/M5.md`; specs in
+`docs/plans/M5_specs/`. Live and deployed: The Pictures complete (eight deductions) and The Voices (four);
+43 deductions, bot.game plays them all from a fresh save; Edge passes every browser test. The M5 science
+audit (`docs/reviews/2026-10-16-M5-science-audit.md`) found five checkers to fix. At the pause:
+- **6b (The Pictures and the identification): code done**, committed with this update if the full check
+  passed (see the commit log); its documentation items are left: `docs/plans/M5_specs/step6b-progress.md`.
+- **6a (The Voices): partly done, not wired in**: item 1 half done (`tools/voices/others.py`, not imported),
+  the octave design found, items 3 to 5 not started: `docs/plans/M5_specs/step6a-progress.md`. Until it
+  lands, the live Voices chapter still has the audited faults (the whale check on other tracks, the octave
+  test, the "cannot give 55" claim, the hearing wording).
 
 **M4 closed (2026-10-16):** The Map, The Spot and The Trail playable after The Key; 31 deductions from a
 fresh save (bot.game); a science audit, a QA audit and two blind critic passes, every finding fixed or
@@ -144,7 +148,7 @@ and live-checked.
 
 ## In flight
 
-- The M5 science audit (science-auditor, read-only).
+- Nothing running (paused). Resume with "Next (exact)" below.
 
 ## Known issues and open questions
 
@@ -185,9 +189,16 @@ and live-checked.
 
 ## Next (exact)
 
-1. When the science audit reports: record it in `docs/reviews/` with a decision per finding; fix.
-3. A fresh whole-game capture for the blind critic (archive older inbox folders first); record its review.
-4. M5 gate: QA audit, PROGRESS and HANDOFF, `docs/plans/M6.md` (Portrait: the codex assembles into the
-   senders' portrait and a final message, the critic's flat finish; Our Frame, the epilogue; hints and
-   accessibility; the full art pass for the charts is M7), and Stewart's Firefox checklist
-   (`docs/NEEDS_STEWART.md`).
+1. **Finish 6a** (The Voices' audit fixes) from `docs/plans/M5_specs/step6a-progress.md`: wire
+   `tools/voices/others.py` into the analysis and `checkOthers`; render the Sounds of Earth spectrogram
+   panels and read them (the lead) to give that test independent truth; decide the music-items question
+   (proposed: refuse stretches on music items); the multi-harmonic octave fold with bootstrap margins and
+   a two-sided coverage band; `voices.many` with one shared definition of reasonable settings (recompute
+   the count-against-cut table); the hearing wording within the research; row 16, D-A32 and
+   `src/game/nodesM5.ts` wording. One builder-opus, resumed from the progress note.
+2. **Finish 6b's docs** (`docs/plans/M5_specs/step6b-progress.md`): How it's checked rows 5, 13 and 14;
+   split `checkersM5.ts`; the `pictures.down` hint.
+3. `npm run check`, deploy, live check.
+4. The blind critic on a fresh whole-game capture (archive older inbox folders first); the QA audit; the
+   M5 gate (PROGRESS and HANDOFF); then M6 (`docs/plans/M6.md`; research done in
+   `docs/research/epilogue.md`).
