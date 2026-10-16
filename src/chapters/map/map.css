@@ -1,0 +1,118 @@
+/* The Map: the galaxy chart large (alien, cyan and violet), the cover's map beside it in gold (the human
+   artifact), the step's tool under the chart. Clue text at the M3 sizes: labels 13 px, values 15 px. */
+.mapinst { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.9rem; margin-bottom: 1.25rem; }
+.map-left, .map-right { display: flex; flex-direction: column; gap: 0.7rem; min-width: 0; min-height: 0; }
+
+.map-chart { margin: 0; display: flex; flex-direction: column; min-height: 0; background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.map-chart canvas { display: block; width: 100%; height: 60vh; min-height: 0; flex: 1 1 auto; touch-action: none; }
+.map-charttools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.9rem; padding: 0.45rem 0.7rem; border-top: 1px solid var(--line); background: rgba(20, 18, 46, 0.92); }
+.map-angle { display: grid; gap: 0.05rem; min-width: 9.5rem; }
+.map-views { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.map-views .btn.on { color: var(--bg); background: var(--cyan); }
+.map-tip { margin: 0; flex: 1 1 14rem; font-size: var(--fs-label); color: var(--text-dim); line-height: 1.35; }
+.map-k { font-size: var(--fs-label); color: var(--text-dim); }
+.map-v { font-family: var(--font-mono); font-size: var(--fs-value); color: var(--cyan); }
+
+.map-dial { flex: none; cursor: grab; touch-action: none; }
+.map-dial:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 50%; }
+.map-dial-face { fill: var(--bg-sunk); stroke: var(--violet); stroke-width: 1.2; }
+.map-dial-tick { stroke: var(--violet); stroke-width: 1; }
+.map-dial-hand { stroke: var(--gold); stroke-width: 2.5; stroke-linecap: round; }
+.map-dial-hub { fill: var(--gold); }
+
+/* ---- the cover's map ---- */
+.map-cover { display: grid; gap: 0.4rem; padding: 0.6rem 0.7rem; background: linear-gradient(180deg, rgba(20, 18, 46, 0.92), rgba(8, 7, 26, 0.92)); border: 1px solid rgba(232, 182, 74, 0.35); border-radius: 8px; }
+.map-cover-svg { width: 100%; height: 12rem; display: block; }
+.map-cp { fill: none; stroke: var(--gold); stroke-linecap: round; opacity: 0.85; vector-effect: non-scaling-stroke; stroke-width: 1.4px; }
+.map-cp.one, .map-cp.zero { stroke-width: 1.1px; }
+.map-cl.gc .map-cp { opacity: 1; }
+.map-cl.given .map-cp { opacity: 1; }
+.map-cl.sel .map-cp { stroke: var(--cyan); opacity: 1; filter: drop-shadow(0 0 1.2px rgba(79, 240, 196, 0.9)); }
+.map-hit { stroke: transparent; stroke-width: 12px; vector-effect: non-scaling-stroke; cursor: pointer; pointer-events: stroke; }
+.map-tipmark { fill: var(--cyan); }
+.map-linebtns { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 0.2rem; }
+.map-lb { font: var(--fs-label) var(--font-mono); color: var(--gold); background: var(--bg-sunk); border: 1px solid rgba(232, 182, 74, 0.4); border-radius: 4px; padding: 0.2rem 0; cursor: pointer; min-height: 1.9rem; }
+.map-lb.given { border-color: var(--cyan); color: var(--cyan); }
+.map-lb.sel { background: var(--cyan); color: var(--bg); border-color: var(--cyan); }
+.map-read { margin: 0; font-size: var(--fs-label); color: var(--text); font-family: var(--font-mono); }
+
+/* ---- the chosen line's readout (under the chart while lines are matched) ---- */
+.map-line .note { margin: 0; font-size: var(--fs-label); }
+.map-linecap { margin: 0; font-size: var(--fs-label); color: var(--violet); }
+.map-readout { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.25rem 1rem; margin: 0; }
+.map-readout dt { font-size: var(--fs-label); color: var(--text-dim); }
+.map-readout dd { margin: 0; font-family: var(--font-mono); font-size: var(--fs-value); color: var(--cyan); }
+.map-readout .quality { grid-column: span 2; }
+.map-readout .quality dd { color: var(--gold); }
+.map-notes { margin: 0.1rem 0 0; padding-left: 1rem; font-size: var(--fs-label); color: var(--text-dim); line-height: 1.35; }
+
+/* ---- the steps ---- */
+.map-steps { display: grid; gap: 0.5rem; align-content: start; min-height: 0; }
+.map-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.map-chip { font: var(--fs-label) var(--font-mono); color: var(--text-dim); background: transparent; border: 1px solid var(--line); border-radius: 99px; padding: 0.2rem 0.65rem; cursor: pointer; }
+.map-chip.open { color: var(--cyan); border-color: var(--cyan); }
+.map-chip.confirmed { color: var(--violet); border-color: var(--violet); }
+.map-chip.on { background: rgba(79, 240, 196, 0.14); }
+.map-chip[disabled] { opacity: 0.45; cursor: default; }
+.map-measuring { margin: 0; font-size: var(--fs-label); color: var(--gold); }
+.map-panel { padding: 0.7rem 0.9rem; }
+.map-panel .note { font-size: var(--fs-label); margin: 0 0 0.5rem; }
+.map-propose { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+
+/* ---- the tools under the chart ---- */
+.map-tool { display: grid; gap: 0.35rem; padding: 0.5rem 0.7rem; background: linear-gradient(180deg, rgba(20, 18, 46, 0.92), rgba(8, 7, 26, 0.92)); border: 1px solid var(--line); border-radius: 8px; min-height: 0; }
+.map-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.6rem; }
+.map-row input[type='range'] { flex: 1; accent-color: var(--cyan); min-width: 10rem; }
+.map-plot { position: relative; min-width: 0; height: 12rem; }
+.map-plot svg { display: block; touch-action: none; }
+.map-plot-label { font-size: 13px; fill: var(--text-dim); font-family: var(--font-sans); paint-order: stroke; stroke: rgba(8, 7, 26, 0.92); stroke-width: 3px; stroke-linejoin: round; }
+.map-plot-label.gold { fill: var(--gold); }
+.map-axis { stroke: var(--text-dim); stroke-width: 1; }
+.map-axis-gold { stroke: var(--gold); stroke-width: 1.5; }
+.map-axis-dash { stroke: var(--line); stroke-width: 1; stroke-dasharray: 4 4; }
+.map-cursor { stroke: var(--cyan); stroke-width: 1.5; }
+.map-curve { fill: none; stroke: rgba(79, 240, 196, 0.55); stroke-width: 1.5; }
+.map-curve.young { stroke: rgba(155, 123, 255, 0.6); stroke-dasharray: 5 4; }
+.map-curve.agrees { stroke: var(--gold); stroke-width: 2.2; }
+.map-dot { fill: var(--cyan); }
+.map-dot.agrees { fill: var(--gold); }
+.map-skyrow { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 0.6rem; }
+.map-sky { cursor: crosshair; }
+.map-skybox { fill: rgba(8, 7, 26, 0.85); stroke: var(--line); }
+.map-skypt { stroke: rgba(220, 220, 242, 0.8); stroke-width: 1; }
+.map-skypt.left-out, .map-sidept.left-out { fill: none; stroke: var(--text-dim); stroke-dasharray: 2 2; }
+.map-axis-mark circle, .map-axis-mark line { fill: none; stroke: var(--cyan); stroke-width: 2; }
+.map-axis-anti { fill: none; stroke: var(--cyan); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.map-fitline { stroke: var(--violet); stroke-width: 1.5; }
+.map-sidept { fill: var(--cyan); }
+.map-skyread { gap: 0.25rem 0.5rem; }
+.map-nudge { padding: 0.15rem 0.45rem; min-height: 1.9rem; font-size: var(--fs-label); }
+.map-legend { margin: 0; }
+.map-legend .older { color: var(--heat); }
+.map-legend .younger { color: var(--cold); }
+.map-originrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.7rem; }
+.map-plane { cursor: crosshair; height: 15rem; }
+.map-star { fill: rgba(220, 220, 242, 0.35); }
+.map-star.in { fill: rgba(232, 182, 74, 0.85); }
+.map-region { fill: rgba(111, 224, 255, 0.12); stroke: #8fe8ff; stroke-width: 1.5; }
+.map-home circle { fill: none; stroke: #a8ffd0; stroke-width: 2; }
+.map-originmark circle, .map-originmark line { fill: none; stroke: var(--cyan); stroke-width: 2; }
+.map-originread { display: grid; gap: 0.35rem; align-content: start; margin: 0; }
+.map-originread dt { font-size: var(--fs-label); color: var(--text-dim); }
+.map-originread dd { margin: 0; font-family: var(--font-mono); font-size: var(--fs-value); color: var(--cyan); }
+.map-originread input[type='range'] { width: 100%; accent-color: var(--cyan); }
+
+/* On a screen with room (1000 x 620 and up) the page does not scroll: the chart takes the left column's height
+   (less the step's tool), the cover's map and the readout stand at the top of the right column, and the steps
+   scroll in their own box. */
+@media (min-width: 1000px) and (min-height: 620px) {
+  .mapinst { height: 100%; margin: 0; grid-template-columns: minmax(0, 1.5fr) minmax(19rem, 1fr); align-items: stretch; }
+  .map-chart { flex: 1 1 0; }
+  .map-chart canvas { height: auto; flex: 1 1 0; }
+  .map-tool { flex: none; }
+  .map-plot { height: clamp(8.5rem, 24vh, 13rem); }
+  .map-plane { height: clamp(10rem, 30vh, 15rem); }
+  .map-cover { flex: none; }
+  .map-cover-svg { height: clamp(7.5rem, 22vh, 13rem); }
+  .map-steps { flex: 1 1 0; overflow-y: auto; overscroll-behavior: contain; padding-right: 0.2rem; }
+}

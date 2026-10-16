@@ -404,3 +404,22 @@ export function velocityMahalanobis2(fit: AgeVelocityFit, v: Vec3): number {
   const d = sub(v, fit.velKmS);
   return [0, 1, 2].reduce((s, i) => s + (d[i] as number) * [0, 1, 2].reduce((s2, j) => s2 + (inv[i]![j] as number) * (d[j] as number), 0), 0);
 }
+
+/**
+ * How far an axis on the sky is from the fit's velocity, as a chi-square: the smallest squared Mahalanobis
+ * distance, over the speed s along the axis, between the fit's velocity v and s a (a the unit axis, in the
+ * fit's frame), under the fit's velocity covariance C. The minimum is in closed form, s = a'C^-1 v / a'C^-1 a;
+ * the axis is a line, so s may be negative. Two angles are tested, so a 95% acceptance compares it with the
+ * chi-square of 2 degrees of freedom (triangulation.ts CHI2_2DOF_95).
+ */
+export function axisDeltaChi2(fit: AgeVelocityFit, axis: Vec3): number {
+  const len = norm(axis);
+  if (!(len > 0)) throw new Error('axisDeltaChi2: the axis has no direction');
+  const a = scale(axis, 1 / len);
+  const inv = invert(fit.velCov);
+  const mul = (x: Vec3): Vec3 => [0, 1, 2].map((i) => [0, 1, 2].reduce((s, j) => s + (inv[i]![j] as number) * (x[j] as number), 0)) as unknown as Vec3;
+  const ia = mul(a);
+  const s = dot(ia, fit.velKmS) / dot(ia, a);
+  const d = sub(fit.velKmS, scale(a, s));
+  return dot(d, mul(d));
+}
