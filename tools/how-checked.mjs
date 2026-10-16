@@ -33,7 +33,12 @@ if (existsSync(IN_DIR)) {
 records.sort((a, b) => a.id.localeCompare(b.id));
 
 // Table cells: keep pipes and line breaks from breaking the markdown table.
-const cell = (v) => String(v ?? '').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+/** A table cell: objects (a record's measured value may be one) as "key value; key value", never "[object Object]". */
+const flat = (v) =>
+  v !== null && typeof v === 'object'
+    ? Object.entries(v).map(([k, x]) => `${k} ${typeof x === 'object' && x !== null ? JSON.stringify(x) : x}`).join('; ')
+    : String(v ?? '');
+const cell = (v) => flat(v).replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
 const today = new Date().toISOString().slice(0, 10);
 
 const clean = records.map(({ at: _at, ...rest }) => rest);
