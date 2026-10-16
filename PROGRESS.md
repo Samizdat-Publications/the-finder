@@ -6,10 +6,11 @@ reviewed (layout pass in flight); M4 started. Update after every meaningful chun
 ## Current milestone
 
 **M4: Where and when (The Map, The Spot, The Trail, the reframed dating).** Plan: `docs/plans/M4.md`;
-specs in `docs/plans/M4_specs/`. Steps 1 to 6 done: The Map, The Spot and The Trail are built, playable
-after The Key, deployed and live-checked (31 deductions; `npm run check` green: 281 unit tests, 16
-browser tests, 126 checks). In flight: step 7 (sound for the new moments, the whole-game bots, captures
-for the critic) and the M4 science audit. Then the player-critic and the gate (step 8).
+specs in `docs/plans/M4_specs/`. Steps 1 to 7 and the science audit's fixes (7b) are committed; `npm
+run check` green (292 unit tests, 135 checks). In flight: 7d (no dead ends from measurement noise,
+D-A28) then 7c (result messages in the alien's units; past verdicts marked as past), one builder. Then
+the player-critic, deploy and the gate (step 8). M5 is planned (`docs/plans/M5.md`) with its research
+done (`docs/research/teaching-frames.md`, `voices.md`).
 
 **Preview (the slice and M4):** https://the-finder.stewartgregerson.workers.dev/play/
 
@@ -92,11 +93,20 @@ for the critic) and the M4 science audit. Then the player-critic and the gate (s
   to 44,210, the motion agreeing within about 1 sigma). Measured quantities from a million up read as
   powers of ten; captions in the top bar. D-A26, D-A27.
 
+- **M4 step 7 and the audit (2026-10-16):** sound for the new moments and a key and bed per chapter;
+  bot.game (31 of 31 from a fresh save, 95 s) and bot.m4Wrong (27 wrong answers); the science audit
+  (`docs/reviews/2026-10-16-M4-science-audit.md`) and its fixes: `map.periods` judged on pass-1 anchors;
+  the Trail shows measured values against a computed 95% cut (coverage 94.1% and 94.3%); the Map's axis
+  cost shown live; the motion fit Birge-scaled (axis coverage 96.0%, velocity 94.5%, from 93.7% and
+  90.5%); purity calibrated at 5% with the accepted starts shown; tracer and shielded-laboratory
+  caveats. D-A28. Research for M5: the teaching frames (heights printed 155 and 160 cm; the planets
+  table; the last column cut at our decode's edge) and The Voices (silence cannot count the 55
+  greetings; no cutoff in the recorded band).
+
 ## In flight
 
-- M4 step 7: sound for the new moments, bot.game and bot.m4Wrong, captures for the critic
-  (`docs/plans/M4_specs/step7-sound-bots-captures.md`, builder-opus).
-- The M4 science audit (science-auditor, read-only).
+- M4 steps 7d and 7c (`docs/plans/M4_specs/step7d-no-dead-ends.md`, then
+  `step7c-messages-in-alien-units.md`), one builder-opus run.
 
 ## Known issues and open questions
 
@@ -115,9 +125,9 @@ for the critic) and the M4 science audit. Then the player-critic and the gate (s
 
 ## Next (exact)
 
-1. When the science audit reports: fix or record every finding (DECISIONS.md for judgment calls).
-2. When step 7 reports: look at its captures, commit, run the `player-critic` ("A new build is in
-   review/inbox. Play it."), record its review and decisions in `docs/reviews/`, fix what is clear.
-3. Gate (step 8): `npm run check`, deploy, live check, QA audit (also covers M3's gate), PROGRESS and
-   HANDOFF, write `docs/plans/M5.md` (The Voices, Portrait, the epilogue; the critic's design follow-ups:
-   an alien-script puzzle, Arrival as evidence selection; the Map axis "settle" aid if playtests need it).
+1. When 7d and 7c report: review, commit, `npm run check`, deploy, live check.
+2. Run the `player-critic` on a fresh capture of the whole game (`node tools/harness/browser-tests.mjs
+   game` writes `review/inbox/<timestamp>-m4/`); record its review and decisions in `docs/reviews/`;
+   fix what is clear.
+3. Gate (step 8): QA audit (also M3's), PROGRESS and HANDOFF; then M5 step 1's follow-up (does the tape
+   carry the right edge our decode cuts on L004 and L005?) and the M5 specs.
