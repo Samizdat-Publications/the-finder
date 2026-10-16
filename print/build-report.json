@@ -1,0 +1,125 @@
+{
+ "200mm": {
+  "file": "print/voyager-cover-200mm.stl",
+  "size_bytes": 1317884,
+  "diameter_mm": 200.0,
+  "scale": 0.656168,
+  "relief_polygons": 424,
+  "min_line_width_mm": 0.6,
+  "lines": 617,
+  "lines_floored_to_0_6": 617,
+  "rings": 13,
+  "dots": 4,
+  "dots_floored_to_0_8": 4,
+  "roundtrip_area_slice_mm2": 2025.169,
+  "roundtrip_area_polygon_mm2": 2025.168,
+  "roundtrip_area_ratio": 1.0,
+  "skipped": [
+   "cover.edge (circle, becomes the rim)"
+  ],
+  "triangles": 26356,
+  "vertices": 13180,
+  "watertight": true,
+  "is_volume": true,
+  "winding_consistent": true,
+  "volume_mm3": 95867.61533462757,
+  "bounds_mm": [
+   [
+    -100.0,
+    -100.0,
+    0.0
+   ],
+   [
+    100.0,
+    100.0,
+    3.8
+   ]
+  ],
+  "preview": "print/voyager-cover-200mm-preview.png"
+ },
+ "250mm": {
+  "file": "print/voyager-cover-250mm.stl",
+  "size_bytes": 1403684,
+  "diameter_mm": 250.0,
+  "scale": 0.82021,
+  "relief_polygons": 453,
+  "min_line_width_mm": 0.6,
+  "lines": 617,
+  "lines_floored_to_0_6": 617,
+  "rings": 13,
+  "dots": 4,
+  "dots_floored_to_0_8": 4,
+  "roundtrip_area_slice_mm2": 2567.6,
+  "roundtrip_area_polygon_mm2": 2567.6,
+  "roundtrip_area_ratio": 1.0,
+  "skipped": [
+   "cover.edge (circle, becomes the rim)"
+  ],
+  "triangles": 28072,
+  "vertices": 14038,
+  "watertight": true,
+  "is_volume": true,
+  "winding_consistent": true,
+  "volume_mm3": 149315.76797561513,
+  "bounds_mm": [
+   [
+    -125.0,
+    -125.0,
+    0.0
+   ],
+   [
+    125.0,
+    125.0,
+    3.8
+   ]
+  ],
+  "preview": "print/voyager-cover-250mm-preview.png"
+ },
+ "full-305mm": {
+  "file": "print/voyager-cover-full-305mm.stl",
+  "size_bytes": 1477784,
+  "diameter_mm": 304.8,
+  "scale": 1.0,
+  "relief_polygons": 488,
+  "min_line_width_mm": 0.6,
+  "lines": 617,
+  "lines_floored_to_0_6": 617,
+  "rings": 13,
+  "dots": 4,
+  "dots_floored_to_0_8": 0,
+  "roundtrip_area_slice_mm2": 3163.157,
+  "roundtrip_area_polygon_mm2": 3163.158,
+  "roundtrip_area_ratio": 1.0,
+  "skipped": [
+   "cover.edge (circle, becomes the rim)"
+  ],
+  "triangles": 29554,
+  "vertices": 14779,
+  "watertight": true,
+  "is_volume": true,
+  "winding_consistent": true,
+  "volume_mm3": 221427.46163337634,
+  "bounds_mm": [
+   [
+    -152.4,
+    -152.4,
+    0.0
+   ],
+   [
+    152.4,
+    152.4,
+    3.8
+   ]
+  ],
+  "preview": "print/voyager-cover-full-305mm-preview.png"
+ },
+ "_svg_elements": {
+  "svg": 1,
+  "title": 1,
+  "desc": 5,
+  "style": 1,
+  "g": 78,
+  "circle": 18,
+  "path": 617
+ }
+}
