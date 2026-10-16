@@ -9,6 +9,7 @@ do not redo it. Anything marked "could not confirm" is open and may need a `scou
 | `clocks.md` | ATNF catalogue access; spin and position tables for the 14 pulsars; spin-down dating today (about 1971) and at 40,000 years, with what limits it (braking index, glitches, timing noise, observer motion, light time); the uranium-238 and RTG decay clocks with formulas and numbers; the hydrogen constant |
 | `images-and-audio.md` | How the pictures are encoded on the tape; the one genuine image-tape transfer and its provenance; existing decoders and their artifacts; the record audio sources, programme order and durations; the side layout; the 116 images, colour list, and discrepancies; a malware warning |
 | `voyager.md` | NASA's 3D models and what they contain; spacecraft facts; JPL Horizons usage and a precomputed-table recommendation; mission status as of October 2026 and the one-light-day date; future stellar encounters (Gaia-based); Cloudflare hosting limits including the Range finding |
+| `key-physics.md` | The Key's physics, each value checked against its source on 2026-10-16: CODATA 2022 constants (Rydberg, electron-proton mass ratio, fine-structure), NIST ASD vacuum wavelengths of Lyman-alpha, H-alpha, Paschen-alpha and the ionization limit, annealed copper C11000 (CDA) and the rotating-disc burst speed (Timoshenko and Goodier) |
 | `data/` | The agents' derived data and calculation scripts (reference only; scripts may point at old scratch paths) |
 
 ## Cross-report corrections (read these)
