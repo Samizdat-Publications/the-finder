@@ -23,7 +23,7 @@ describe('the graph data', () => {
   it('has the slice nodes with stable ids, real prerequisites and a row of the deduction table each', () => {
     const ids = new Set(NODES.map((n) => n.id));
     expect(ids.size).toBe(NODES.length);
-    expect(NODES.length).toBe(18);
+    expect(NODES.length).toBe(31); // 18 slice nodes and 13 for M4 (map, spot, trail)
     for (const n of NODES) {
       expect(n.id.startsWith(`${n.chapter}.`)).toBe(true);
       for (const r of n.requires) expect(ids.has(r), `${n.id} requires unknown ${r}`).toBe(true);
@@ -40,6 +40,13 @@ describe('the graph data', () => {
     expect(nodeDef('key.timesNotLengths')?.checkedRow).toBe(4);
     expect(nodeDef('player.firstSound')?.checkedRow).toBe(11);
     expect(nodeDef('pictures.firstFrames')?.checkedRow).toBe(12);
+    expect(nodeDef('map.identify')?.checkedRow).toBe(5);
+    expect(nodeDef('map.region')?.checkedRow).toBe(6);
+    expect(nodeDef('map.motion')?.checkedRow).toBe(7);
+    expect(nodeDef('spot.age')?.checkedRow).toBe(8);
+    expect(nodeDef('trail.origin')?.checkedRow).toBe(9);
+    expect(nodeDef('trail.neighbour')?.checkedRow).toBe(10);
+    expect(nodeDef('trail.when')?.checkedRow).toBe(7);
   });
 
   it('has no cycle: every node can be reached from the start', () => {
@@ -90,6 +97,19 @@ describe('no spoilers', () => {
     'pictures.aspect': ['rows', 'lines'],
     'pictures.circle': ['round', 'circle'],
     'pictures.firstFrames': ['following', 'develop'],
+    'map.periods': ['pulsar', 'spin', 'period'],
+    'map.old': ['slower', 'ticks'],
+    'map.identify': ['pulsar', 'direction', 'rate'],
+    'map.motion': ['motion', 'velocity', 'move'],
+    'map.region': ['region', 'parsec', 'thousand'],
+    'spot.find': ['uranium', 'radioactive', 'spot'],
+    'spot.age': ['uranium-234', 'ratio', 'count'],
+    'spot.purity': ['thorium', 'natural'],
+    'trail.origin': ['warm-white', 'straight away', 'behind'],
+    'trail.age': ['distance', 'speed'],
+    'trail.neighbour': ['nearest', 'neighbour', 'brightest'],
+    'trail.where': ['inside', 'region', 'home'],
+    'trail.when': ['rest frame', 'agree'],
   };
   it('every node has a question that gives away neither its conclusion nor its key terms', () => {
     for (const n of NODES) {
@@ -129,13 +149,14 @@ describe('gating (D-A06)', () => {
     expect(chapterStatus('key', confirmedSet.value)).toBe('done');
   });
 
-  it('keeps later chapters locked as "later", with no nodes yet', async () => {
+  it('keeps chapters that are not built locked as "later", whether or not their nodes exist yet', async () => {
     for (const id of ['arrival.purpose', 'key.binary', 'key.unit', 'key.timesNotLengths']) await confirm(id);
     for (const c of ['map', 'spot', 'trail', 'voices', 'portrait', 'epilogue'] as const) {
+      if (CHAPTERS.find((d) => d.id === c)?.built) continue;
       expect(chapterStatus(c, confirmedSet.value)).toBe('later');
-      expect(NODES.some((n) => n.chapter === c)).toBe(false);
       await expect(dispatch({ type: 'chapter.enter', chapter: c })).rejects.toThrow(/later/);
     }
+    for (const c of ['voices', 'portrait', 'epilogue'] as const) expect(NODES.some((n) => n.chapter === c)).toBe(false);
   });
 
   it('orders the nodes inside a chapter, and the pictures line-time work needs player.speed', async () => {

@@ -1,5 +1,5 @@
-// The deduction graph's data: the chapters and, for the vertical slice, their nodes. Ids are stable; later
-// milestones add the rest. Plain English only (no em dashes). Hints are the three tiers (nudge, method,
+// The deduction graph's data: the chapters and their nodes (the slice's, and M4's for The Map, The Spot and
+// The Trail). Ids are stable; later milestones add the rest. Plain English only (no em dashes). Hints are the three tiers (nudge, method,
 // answer); a number inside a hint is computed from the cover's own data (data/cover.json), never typed.
 
 import coverJson from '../../data/cover.json';
@@ -53,6 +53,8 @@ const rotationAsKm = binaryToMetres(coverJson.record.rotationPeriod.binary) / 10
 const lineMs = binaryToSeconds(coverJson.picture.lineTime.binary) * 1000;
 
 /** Round to three significant figures for a hint. */
+/** The pulsar lines on the cover's map that carry a number (the Galactic-centre line carries none). */
+const mapLineCount = coverJson.pulsarMap.lines.length;
 const sig3 = (x: number): string => Number(x.toPrecision(3)).toLocaleString('en-US', { maximumFractionDigits: 20 });
 
 export const CHAPTERS: readonly ChapterDef[] = [
@@ -87,6 +89,19 @@ const QUESTIONS: Record<string, string> = {
   'pictures.aspect': 'What shape is the picture?',
   'pictures.circle': 'Does the calibration figure come out true?',
   'pictures.firstFrames': 'Do the same settings read the next pictures?',
+  'map.periods': `What are the ${mapLineCount} numbers along the lines?`,
+  'map.old': 'Is the map new, or old?',
+  'map.identify': 'Which line belongs to which star?',
+  'map.motion': 'Why do the lines tell different ages?',
+  'map.region': 'Where was the map drawn from?',
+  'spot.find': 'Is there anything on the cover that the diagrams do not show?',
+  'spot.age': 'How long ago was it laid down?',
+  'spot.purity': 'Was it pure when it was laid down?',
+  'trail.origin': 'Which star did it come from?',
+  'trail.age': 'How long has it been travelling?',
+  'trail.neighbour': 'How far is that star from your own?',
+  'trail.where': 'Is that the star the map was drawn from?',
+  'trail.when': 'When was the map made?',
 };
 
 const RAW_NODES: readonly Omit<NodeDef, 'question'>[] = [
@@ -254,6 +269,123 @@ const RAW_NODES: readonly Omit<NodeDef, 'question'>[] = [
       'With the circle round, play on.',
       'Keep the same settings and decode the next frames at record speed.',
       'The settings that made the circle round develop the pictures that follow it, line by line.',
+    ],
+  },
+  {
+    id: 'map.periods', chapter: 'map', key: 'periods', checkedRow: 5, requires: ['key.timesNotLengths'],
+    gloss: 'They are the spin periods of pulsars, in the cover\'s unit.',
+    hints: [
+      'Read the numbers through the key you found, as times.',
+      'Compare each time with the stars in your catalogue that pulse.',
+      'Each number is a pulsar\'s period: drag a line onto the pulsar that lies along it and ticks at nearly that rate.',
+    ],
+  },
+  {
+    id: 'map.old', chapter: 'map', key: 'old map', checkedRow: 7, requires: ['map.periods'],
+    gloss: 'The map is old: nearly every pulsar now ticks slower than the map says.',
+    hints: [
+      'Set each matched star\'s rate beside the map\'s number.',
+      'Pulsars slow down as they age. Which way do the differences go?',
+      'Almost every matched pulsar ticks slower now than on the map: the map was made long ago.',
+    ],
+  },
+  {
+    id: 'map.identify', chapter: 'map', key: 'identify', checkedRow: 5, requires: ['map.old'],
+    gloss: `Each of the ${mapLineCount} lines belongs to one pulsar in your catalogue: the old ones by rate and direction, the young ones by direction once the age is known.`,
+    hints: [
+      'Start with the lines whose stars barely change.',
+      'Match the old pulsars first by rate and direction; their ages give you the map\'s age, and then the young ones can be found by direction alone.',
+      'Assign every line to its best match on the chart: the match quality tells you when it fits.',
+    ],
+  },
+  {
+    id: 'map.motion', chapter: 'map', key: 'motion', checkedRow: 7, requires: ['map.identify'],
+    gloss: 'Your own motion shifts every rate: the ages disagree in a pattern across the sky, and that pattern measures how fast you move relative to the map\'s makers.',
+    hints: [
+      'Plot each line\'s age against where its star lies in your sky.',
+      'The errors are not random: one side of the sky reads too old, the other too young.',
+      'Fit one velocity to the pattern: your motion relative to the map\'s frame shifts every rate by the same rule.',
+    ],
+  },
+  {
+    id: 'map.region', chapter: 'map', key: 'origin', checkedRow: 6, requires: ['map.identify'],
+    gloss: 'The map was drawn from a small region of the galaxy, not a single point; your own star was among the stars inside it when the map was made.',
+    hints: [
+      'All the lines start from one point.',
+      'Slide and turn the map until its lines point at their stars; where they cross is where it was drawn.',
+      'Fit the lines\' common origin: the fit gives a region, not a point, because the map\'s angles and lengths are rough.',
+    ],
+  },
+  {
+    id: 'spot.find', chapter: 'spot', key: 'spot', checkedRow: 8, requires: ['key.timesNotLengths'],
+    gloss: 'A faint radioactive spot of uranium that no diagram mentions.',
+    hints: [
+      'Not everything on the cover can be seen.',
+      'Sweep the cover with the detector.',
+      'There is a small, faintly radioactive patch: mark where the count rate rises.',
+    ],
+  },
+  {
+    id: 'spot.age', chapter: 'spot', key: 'spot age', checkedRow: 8, requires: ['spot.find'],
+    gloss: 'The uranium-234 grown inside the spot gives its age, with an error bar that shrinks the longer you count.',
+    hints: [
+      'Count what comes off it.',
+      'Separate the two kinds of uranium and count each; their ratio grows with time.',
+      'Count long enough for a narrow error bar, then read the age from the ratio of uranium-234 to uranium-238.',
+    ],
+  },
+  {
+    id: 'spot.purity', chapter: 'spot', key: 'purity', checkedRow: 8, requires: ['spot.age'],
+    gloss: 'It started as pure uranium-238: the thorium-230 agrees, and natural uranium would not.',
+    hints: [
+      'One clock assumes how it began. A second can check that.',
+      'Count the thorium too.',
+      'With thorium-230 counted, test the two starting assumptions: only a pure start fits both clocks.',
+    ],
+  },
+  {
+    id: 'trail.origin', chapter: 'trail', key: 'origin star', checkedRow: 9, requires: ['key.timesNotLengths'],
+    gloss: 'From the warm-white star behind it: the only star it flies straight away from.',
+    hints: [
+      'A thrown object flies straight away from where it was thrown.',
+      'For each nearby star, compare the machine\'s motion relative to that star with the direction from that star.',
+      'Pick the star for which the two directions agree within the measurement error.',
+    ],
+  },
+  {
+    id: 'trail.age', chapter: 'trail', key: 'travel time', checkedRow: 9, requires: ['trail.origin'],
+    gloss: 'Distance over speed: it has been travelling for about as long as the other clocks say.',
+    hints: [
+      'You know how far it is from that star, and how fast it moves away.',
+      'Divide one by the other.',
+      'Distance over speed gives the travel time, a third clock independent of the other two.',
+    ],
+  },
+  {
+    id: 'trail.neighbour', chapter: 'trail', key: 'neighbour', checkedRow: 10, requires: ['trail.origin'],
+    gloss: 'That star is your nearest neighbour, and one of the brightest in your sky.',
+    hints: [
+      'Measure that star\'s distance from your own.',
+      'Compare it with the distances of the other stars around you.',
+      'It is the closest star to yours in your whole catalogue.',
+    ],
+  },
+  {
+    id: 'trail.where', chapter: 'trail', key: 'where', checkedRow: 6, requires: ['trail.origin', 'map.region'],
+    gloss: 'Yes: that star lies inside the map\'s region; the map points home.',
+    hints: [
+      'You have a region from the map and a star from the trail.',
+      'Move the star back to when the map was made and lay it on the region.',
+      'The star the machine came from lies inside the region the map was drawn from.',
+    ],
+  },
+  {
+    id: 'trail.when', chapter: 'trail', key: 'when', checkedRow: 7, requires: ['trail.where', 'map.motion'],
+    gloss: 'Moved into that star\'s rest frame, the pulsar ages agree: the map was made about as long ago as the craft has been travelling.',
+    hints: [
+      'The map\'s ages disagreed because of your own motion.',
+      'Measure the rates as that star would see them: take out your motion relative to it.',
+      'In that star\'s rest frame the old pulsars agree on one age: that is when the map was made.',
     ],
   },
 ];
