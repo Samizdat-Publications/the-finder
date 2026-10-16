@@ -94,5 +94,9 @@ describe('the tour script', () => {
   });
 
   // Flip to a plain `it` when the script holds every deduction (the lead's finishing step).
-  it.todo('every playable deduction (a node in a built chapter) appears in the script');
+  it('every playable deduction (a node in a built chapter) appears in the script', () => {
+    const inScript = new Set(STOPS.map((s) => s.node).filter((n): n is string => Boolean(n)));
+    const missing = NODES.filter((n) => chapterDef(n.chapter)?.built && !inScript.has(n.id)).map((n) => n.id);
+    expect(missing).toEqual([]);
+  });
 });
