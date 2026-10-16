@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { loadScenario, loadStars } from '../../tests/support/data';
 import { recordCheck } from '../../tests/support/record';
-import { KM_S_TO_PC_PER_YEAR, add, angleBetweenDeg, norm, scale, sub, unitVector } from './astro';
-import { discoveryState, homeObserver, launchYear, starStateAt } from './epoch';
-import { goldenMax } from './stats';
+import { discoveryState, homeObserver, launchYear } from './epoch';
 import type { StarRecord } from './types';
-import { choleskyPsd, trail, trailCensus, type TrailEntry } from './kinematics';
+import { TRAIL_CONSISTENT_SIGMA, choleskyPsd, minAngleNoRv, trail, trailCensus, type TrailEntry } from './kinematics';
 
 const scenario = loadScenario();
 const stars = loadStars();
@@ -21,37 +19,19 @@ const label = (e: TrailEntry): string => e.star.name ?? e.star.gl ?? `HYG ${e.st
 
 /**
  * Stars without a radial velocity are left out of the table, so prove the claim for them separately:
- * for each, every radial velocity |v_r| <= vmax is tried (0.25 km/s grid, then golden-section refinement
- * around the best grid point), keeping only the values that put the star within 10 pc of the craft, and
- * the smallest possible angle is returned.
+ * for each, minAngleNoRv (kinematics.ts) tries every radial velocity |v_r| <= vmax (0.25 km/s grid, then
+ * golden-section refinement around the best grid point), keeping only the values that put the star within
+ * 10 pc of the craft, and the smallest possible angle over all of them is returned.
  */
 function worstCaseNoRv(vmax: number): { star: StarRecord; vr: number; angleDeg: number; tested: number } {
-  const t = d.decimalYear;
   let best = { star: stars.near[0]!, vr: 0, angleDeg: Infinity };
   let tested = 0;
   for (const star of [...stars.near, ...stars.sky]) {
     if (star.rvKmS !== null || star.distPc === null || star.id === 0) continue;
-    const s0 = starStateAt(star, t); // v_r = 0
-    const dir = unitVector(star.raDeg, star.decDeg);
-    const span = KM_S_TO_PC_PER_YEAR * (t - star.epoch); // pc of displacement per km/s of v_r
-    const at = (vr: number): { angle: number; dist: number } => {
-      const p = add(s0.posPc, scale(dir, vr * span));
-      const v = add(s0.velKmS, scale(dir, vr));
-      const sep = sub(d.craft.posPc, p);
-      return { angle: angleBetweenDeg(sub(d.craft.velKmS, v), sep), dist: norm(sep) };
-    };
-    let local = { vr: 0, angle: Infinity };
-    for (let vr = -vmax; vr <= vmax + 1e-9; vr += 0.25) {
-      const r = at(vr);
-      if (r.dist <= OPTS.maxDistPc && r.angle < local.angle) local = { vr, angle: r.angle };
-    }
-    if (local.angle === Infinity) continue;
+    const r = minAngleNoRv(d.craft, star, d.decimalYear, vmax, OPTS.maxDistPc);
+    if (!r) continue;
     tested++;
-    const lo = Math.max(-vmax, local.vr - 0.25);
-    const hi = Math.min(vmax, local.vr + 0.25);
-    const g = goldenMax((vr) => (at(vr).dist <= OPTS.maxDistPc ? -at(vr).angle : -Infinity), lo, hi);
-    const refined = -g.f < local.angle ? { vr: g.x, angle: -g.f } : local;
-    if (refined.angle < best.angleDeg) best = { star, vr: refined.vr, angleDeg: refined.angle };
+    if (r.angleDeg < best.angleDeg) best = { star, vr: r.vrKmS, angleDeg: r.angleDeg };
   }
   return { ...best, tested };
 }
@@ -91,8 +71,8 @@ describe('kinematics: The Trail', () => {
     const margins = others.map((e) => ({ e, z: e.angleDeg / e.angleSigmaDeg })).sort((a, b) => a.z - b.z);
     const worst = margins[0]!;
     const sunZ = sun.angleDeg / sun.angleSigmaDeg;
-    // 2 sigma and 5 sigma: the spec's thresholds (step4c spec, "trail.uniqueWithErrors").
-    const pass = sunZ <= 2 && worst.z > 5;
+    // 2 sigma and 5 sigma: the spec's thresholds (step4c spec, "trail.uniqueWithErrors"); 2 is TRAIL_CONSISTENT_SIGMA.
+    const pass = sunZ <= TRAIL_CONSISTENT_SIGMA && worst.z > 5;
     recordCheck({
       id: 'trail.uniqueWithErrors',
       claim: 'Even with realistic measurement errors, only the Sun fits: its angle is consistent with zero and every other star is ruled out.',
@@ -102,7 +82,8 @@ describe('kinematics: The Trail', () => {
       pass,
       notes: 'Measurement model (kinematics.ts): every star measured with Gaia DR3\'s precision for Gliese 445 (radial velocity 0.15 km/s; parallax distance error growing with distance squared), aimed along the alien\'s line of sight; the craft\'s own state is exact. A model, labelled as one.',
     });
-    expect(sunZ).toBeLessThanOrEqual(2);
+    expect(TRAIL_CONSISTENT_SIGMA).toBe(2);
+    expect(sunZ).toBeLessThanOrEqual(TRAIL_CONSISTENT_SIGMA);
     expect(worst.z).toBeGreaterThan(5);
   });
 
@@ -131,6 +112,17 @@ describe('kinematics: The Trail', () => {
     });
     expect(w100.angleDeg).toBeGreaterThan(sunLimit);
     expect(ownZ).toBeGreaterThan(5);
+  });
+
+  it('minAngleNoRv never does worse than the true radial velocity, and refuses stars it cannot bring near', () => {
+    // A star with a measured radial velocity, searched as if it had none: the search over |v_r| <= 150 km/s
+    // must find an angle no larger than the exact angle at its catalogue v_r (the true value is in range).
+    const row = rows.find((e) => e.star.id !== 0 && e.star.id !== observer.starId && Math.abs(e.star.rvKmS ?? 999) < 150)!;
+    const r = minAngleNoRv(d.craft, row.star, d.decimalYear, 150, OPTS.maxDistPc)!;
+    expect(r.angleDeg).toBeLessThanOrEqual(row.angleDeg + 1e-9);
+    expect(Math.abs(r.vrKmS)).toBeLessThanOrEqual(150);
+    // Within 1e-3 pc of the craft no star can be brought for any |v_r| <= 1 km/s: null.
+    expect(minAngleNoRv(d.craft, row.star, d.decimalYear, 1, 1e-3)).toBeNull();
   });
 
   it('distance over speed for the Sun is the time since launch', () => {

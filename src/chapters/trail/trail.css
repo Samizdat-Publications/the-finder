@@ -1,0 +1,99 @@
+/* The Trail: the neighbourhood chart (or the region view, or the reframe) large on the left; the tools in a
+   column on the right. Gold marks what the machine did (its run-back, the star it came from); cyan the
+   alien's instruments (the ruler, the cursor). Clue text at 13 px labels and 15 px values (M3 step 8b). */
+.trinst { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(19rem, 1fr); gap: 1rem; align-items: start; margin-bottom: 1.25rem; }
+.tr-main { position: relative; min-width: 0; min-height: 26rem; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #02030a; }
+.tr-side { display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; }
+
+.tr-chart { position: absolute; inset: 0; }
+.tr-canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+.tr-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.tr-track { stroke: var(--gold); stroke-width: 1.5; stroke-dasharray: 5 5; opacity: 0.8; }
+.tr-sep { stroke: var(--gold); stroke-width: 1; opacity: 0.55; }
+.tr-craftdot { fill: var(--gold); stroke: #fff6dc; stroke-width: 1.5; }
+.tr-ruler line { stroke: var(--cyan); stroke-width: 2; }
+.tr-ruler text { fill: var(--cyan); font: var(--fs-value) var(--font-mono); paint-order: stroke; stroke: #02030a; stroke-width: 4px; text-anchor: middle; }
+.tr-chart-help { position: absolute; left: 0.7rem; bottom: 0.5rem; margin: 0; font-size: var(--fs-label); color: var(--text-dim); pointer-events: none; text-shadow: 0 0 4px #02030a; }
+.trinst[data-view='region'] .tr-chart, .trinst[data-view='reframe'] .tr-chart { visibility: hidden; }
+
+.tr-plotwrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0.6rem; background: var(--bg-sunk); }
+.tr-measuring { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 0.7rem 1.1rem; border: 1px solid var(--violet); border-radius: 8px; background: rgba(8, 7, 26, 0.92); color: var(--violet); font-size: var(--fs-value); }
+
+.tr-tabs { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.tr-tab { font: inherit; font-size: var(--fs-label); color: var(--cyan); background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 6px; padding: 0.35rem 0.7rem; cursor: pointer; min-height: 2.1rem; }
+.tr-tab.on { border-color: var(--cyan); background: rgba(79, 240, 196, 0.12); }
+.tr-tab.locked { color: var(--text-dim); }
+.tr-tab.done::after { content: ' \2713'; color: var(--violet); }
+
+.tr-toolcol { min-height: 0; }
+.tr-tool { padding: 0.7rem 0.9rem; }
+.tr-tool .note { font-size: var(--fs-label); margin: 0 0 0.5rem; line-height: 1.4; }
+.tr-tool.locked { opacity: 0.75; }
+.tr-name { margin: 0 0 0.35rem; font-size: var(--fs-value); font-weight: 600; color: var(--gold); }
+.tr-dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.25rem 0.8rem; margin: 0 0 0.55rem; font-size: var(--fs-label); }
+.tr-dl dt { color: var(--text-dim); }
+.tr-dl dd { margin: 0; font-family: var(--font-mono); font-size: var(--fs-value); color: var(--cyan); text-align: right; overflow-wrap: anywhere; }
+.tr-verdict { color: var(--text); }
+.tr-empty { color: var(--text-dim); }
+.tr-row { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; margin: 0.2rem 0 0.5rem; }
+.tr-propose { border-color: var(--gold); color: var(--gold); }
+.tr-propose:hover { background: rgba(232, 182, 74, 0.12); }
+.tr-propose:disabled, .tr-row .btn:disabled { opacity: 0.45; cursor: default; }
+.btn.on { background: rgba(79, 240, 196, 0.16); }
+.tr-wait { color: var(--violet); font-size: var(--fs-label); }
+
+.tr-slider { display: grid; gap: 0.3rem; font-size: var(--fs-label); margin-bottom: 0.3rem; }
+.tr-slider span { display: flex; justify-content: space-between; gap: 0.6rem; }
+.tr-slider output { font-family: var(--font-mono); font-size: var(--fs-value); color: var(--gold); }
+.tr-slider input { width: 100%; accent-color: var(--gold); }
+.tr-step { min-height: 2rem; padding: 0.2rem 0.5rem; font-family: var(--font-mono); }
+.tr-num { width: 6.5rem; font-family: var(--font-mono); font-size: var(--fs-value); color: var(--gold); background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 4px; padding: 0.2rem 0.4rem; }
+.tr-sepplot { display: block; width: 100%; height: auto; margin: 0.2rem 0 0.4rem; }
+.tr-sepplot .axis { stroke: var(--line); }
+.tr-sepplot .curve { fill: none; stroke: var(--gold); stroke-width: 1.6; }
+.tr-sepplot .now { stroke: var(--cyan); stroke-width: 1; stroke-dasharray: 3 3; }
+.tr-sepplot .nowdot { fill: var(--cyan); }
+.tr-sepplot text { fill: var(--text-dim); font-size: 13px; }
+
+.tr-region { width: 100%; height: 100%; display: block; cursor: crosshair; }
+.tr-ellipse { fill: rgba(155, 123, 255, 0.1); stroke: var(--violet); stroke-width: 2; }
+.tr-rs { fill: #6d6b94; }
+.tr-rs.in { fill: #c9c7ee; }
+.tr-home rect { fill: none; stroke: var(--cyan); stroke-width: 2; }
+.tr-home text, .tr-origin text, .tr-legend, .tr-scale text { font-size: var(--fs-label); paint-order: stroke; stroke: var(--bg-sunk); stroke-width: 4px; }
+.tr-home text { fill: var(--cyan); }
+.tr-origin circle { fill: none; stroke: var(--gold); stroke-width: 2; }
+.tr-origin text { fill: var(--gold); }
+.tr-sel circle { fill: none; stroke: #ffffff; stroke-width: 1.5; stroke-dasharray: 3 2; }
+.tr-scale line { stroke: var(--text-dim); stroke-width: 2; }
+.tr-scale text, .tr-legend { fill: var(--text-dim); }
+.tr-legend { fill: var(--violet); }
+
+.tr-reframe { width: 100%; max-height: 100%; display: block; cursor: ew-resize; touch-action: none; }
+.tr-reframe .tick line { stroke: var(--line); }
+.tr-reframe text { fill: var(--text-dim); font-size: 13px; }
+.tr-reframe .lab { fill: var(--text); font-family: var(--font-mono); }
+.tr-reframe .bar { stroke: var(--gold); stroke-width: 2; }
+.tr-reframe .pt { fill: var(--gold); }
+.tr-reframe .young .bar { stroke: #6d6b94; stroke-dasharray: 3 3; }
+.tr-reframe .young .pt { fill: #6d6b94; }
+.tr-reframe .young .lab { fill: var(--text-dim); }
+.tr-band { fill: rgba(155, 123, 255, 0.18); stroke: var(--violet); stroke-width: 1; }
+.tr-cursor line { stroke: var(--cyan); stroke-width: 2; }
+.tr-frames { display: grid; gap: 0.35rem; margin-bottom: 0.5rem; font-size: var(--fs-label); }
+.tr-radio { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+.tr-radio select { font: inherit; font-size: var(--fs-label); color: var(--cyan); background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 4px; padding: 0.2rem 0.3rem; max-width: 13rem; }
+
+@media (max-width: 900px) {
+  .trinst { grid-template-columns: minmax(0, 1fr); }
+  .tr-main { height: 60vh; }
+}
+
+/* On a screen with room (1000 x 620 and up) the page does not scroll: the view fills the height, and the tool
+   column scrolls in its own box. */
+@media (min-width: 1000px) and (min-height: 620px) {
+  .trinst { height: 100%; margin: 0; align-items: stretch; }
+  .tr-main { height: 100%; min-height: 0; }
+  .tr-side { min-height: 0; }
+  .tr-toolcol { flex: 1 1 0; overflow-y: auto; overscroll-behavior: contain; padding-right: 0.2rem; }
+}

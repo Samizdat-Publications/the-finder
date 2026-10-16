@@ -27,12 +27,58 @@
 // Correlations between position and velocity errors are ignored (as the published Gaia
 // correlations are; see epoch.ts).
 
-import { KM_S_TO_PC_PER_YEAR, add, angleBetweenDeg, cross, dot, norm, scale, sub, type Vec3 } from './astro';
+import { KM_S_TO_PC_PER_YEAR, add, angleBetweenDeg, cross, dot, norm, scale, sub, unitVector, type Vec3 } from './astro';
 import type { BodyState, Observer } from './epoch';
 import { starStateAt } from './epoch';
 import { createRng } from './random';
-import { mean, sd } from './stats';
+import { goldenMax, mean, sd } from './stats';
 import type { StarCatalogue, StarRecord } from './types';
+
+/**
+ * A star is "consistent with the craft flying straight away from it" when its trail angle is at most this
+ * many of its own sigma (angleDeg / angleSigmaDeg <= 2). The threshold of trail.uniqueWithErrors
+ * (step4c spec; kinematics.test.ts); The Trail's checker uses the same.
+ */
+export const TRAIL_CONSISTENT_SIGMA = 2;
+
+/** Step of the radial-velocity grid in minAngleNoRv, km/s (kinematics.test.ts, trail.uniqueNoRv). */
+const NO_RV_GRID_KMS = 0.25;
+
+/**
+ * For a star without a measured radial velocity: the smallest angle between the craft's velocity relative
+ * to the star and the direction from the star to the craft, over every radial velocity |v_r| <= vmaxKmS,
+ * counting only values that put the star within maxDistPc of the craft at decimalYear. A 0.25 km/s grid,
+ * then golden-section refinement around the best grid point (the search of trail.uniqueNoRv). Returns
+ * null when no radial velocity in range puts the star within maxDistPc. Deterministic.
+ */
+export function minAngleNoRv(
+  craft: BodyState,
+  star: StarRecord,
+  decimalYear: number,
+  vmaxKmS: number,
+  maxDistPc: number,
+): { vrKmS: number; angleDeg: number } | null {
+  const s0 = starStateAt({ ...star, rvKmS: null }, decimalYear); // v_r = 0 (starStateAt's rule for a missing v_r)
+  const dir = unitVector(star.raDeg, star.decDeg);
+  const span = KM_S_TO_PC_PER_YEAR * (decimalYear - star.epoch); // pc of displacement per km/s of v_r
+  const at = (vr: number): { angle: number; dist: number } => {
+    const p = add(s0.posPc, scale(dir, vr * span));
+    const v = add(s0.velKmS, scale(dir, vr));
+    const sep = sub(craft.posPc, p);
+    return { angle: angleBetweenDeg(sub(craft.velKmS, v), sep), dist: norm(sep) };
+  };
+  let local = { vr: 0, angle: Infinity };
+  for (let vr = -vmaxKmS; vr <= vmaxKmS + 1e-9; vr += NO_RV_GRID_KMS) {
+    const r = at(vr);
+    if (r.dist <= maxDistPc && r.angle < local.angle) local = { vr, angle: r.angle };
+  }
+  if (local.angle === Infinity) return null;
+  const lo = Math.max(-vmaxKmS, local.vr - NO_RV_GRID_KMS);
+  const hi = Math.min(vmaxKmS, local.vr + NO_RV_GRID_KMS);
+  const g = goldenMax((vr) => (at(vr).dist <= maxDistPc ? -at(vr).angle : -Infinity), lo, hi);
+  const refined = -g.f < local.angle ? { vr: g.x, angle: -g.f } : local;
+  return { vrKmS: refined.vr, angleDeg: refined.angle };
+}
 
 export interface TrailEntry {
   star: StarRecord;
