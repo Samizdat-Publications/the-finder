@@ -15,6 +15,9 @@ export default defineConfig({
   plugins: [preact()],
   server: {
     watch: { ignored: IGNORED.map((g) => `**/${g}`) },
+    // The browser-test harness sets FINDER_NO_HMR=1: tests never edit files, and under load the HMR
+    // websocket sometimes timed out and failed a test with a console error.
+    ...(process.env.FINDER_NO_HMR === '1' ? { hmr: false } : {}),
   },
   optimizeDeps: {
     entries: ['index.html', 'play/index.html', 'play/bench/index.html', 'play/scene/index.html', 'checked/index.html', ...IGNORED.map((g) => `!${g}`)],

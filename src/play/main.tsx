@@ -17,6 +17,7 @@ import '../ui/shell.css';
 import '../ui/codex.css';
 import { startRouter } from './router';
 import '../chapters/index';
+import '../audio/start';
 
 installBootErrors();
 

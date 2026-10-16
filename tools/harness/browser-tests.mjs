@@ -48,28 +48,55 @@ function assert(cond, message) {
 const server = await startDevServer();
 const browser = await launchChrome();
 let failed = 0;
+const failures = [];
+const flaky = [];
+
+// One attempt of one test file in a fresh browser context. Returns null on a pass, or the error text.
+async function attempt(file, name) {
+  const { page, errors, context } = await openPage(browser, `${server.url}/`);
+  page.setDefaultTimeout(120_000);
+  const log = (line) => console.log(`  [${name}] ${line}`);
+  try {
+    const mod = await import(pathToFileURL(join(TEST_DIR, file)).href);
+    await mod.default({ page, baseUrl: server.url, record, assert, log });
+    if (errors.length) throw new Error(`console errors:\n${errors.join('\n')}`);
+    return null;
+  } catch (e) {
+    return e instanceof Error ? e.stack ?? e.message : String(e);
+  } finally {
+    await context.close();
+  }
+}
+
 try {
   for (const file of files) {
     const name = file.replace(/\.browser\.mjs$/, '');
     const started = Date.now();
-    const { page, errors, context } = await openPage(browser, `${server.url}/`);
-    page.setDefaultTimeout(120_000);
-    const log = (line) => console.log(`  [${name}] ${line}`);
-    try {
-      const mod = await import(pathToFileURL(join(TEST_DIR, file)).href);
-      await mod.default({ page, baseUrl: server.url, record, assert, log });
-      if (errors.length) throw new Error(`console errors:\n${errors.join('\n')}`);
+    const first = await attempt(file, name);
+    if (first === null) {
       console.log(`PASS  ${name} (${((Date.now() - started) / 1000).toFixed(1)} s)`);
-    } catch (e) {
+      continue;
+    }
+    // One retry, reported loudly: a test that passes only on retry is FLAKY, never silently green.
+    console.log(`RETRY ${name}: first attempt failed: ${first.split('\n')[0]}`);
+    const second = await attempt(file, name);
+    if (second === null) {
+      flaky.push({ name, error: first });
+      console.log(`PASS  ${name} on retry (FLAKY) (${((Date.now() - started) / 1000).toFixed(1)} s)`);
+    } else {
       failed++;
-      console.log(`FAIL  ${name}: ${e instanceof Error ? e.stack ?? e.message : e}`);
-    } finally {
-      await context.close();
+      failures.push({ name, error: second });
+      console.log(`FAIL  ${name}: ${second}`);
     }
   }
 } finally {
   await browser.close();
   await server.close();
 }
-console.log(`[browser-tests] ${files.length - failed} of ${files.length} passed`);
+mkdirSync(join(ROOT, 'harness', 'out'), { recursive: true });
+writeFileSync(join(ROOT, 'harness', 'out', 'browser-tests.json'), JSON.stringify({ failures, flaky }, null, 2));
+// Repeat the outcome at the end so a truncated log tail still shows it.
+for (const f of flaky) console.log(`FLAKY ${f.name}: passed on retry; first failure: ${f.error.split('\n')[0]}`);
+for (const f of failures) console.log(`FAIL  ${f.name}: ${f.error.split('\n')[0]}`);
+console.log(`[browser-tests] ${files.length - failed} of ${files.length} passed${flaky.length ? `, ${flaky.length} flaky` : ''}`);
 process.exitCode = failed ? 1 : 0;

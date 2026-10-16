@@ -77,6 +77,8 @@ export async function startDevServer() {
   const child = spawn(process.execPath, [vite, '--host', '127.0.0.1', '--port', String(port), '--strictPort'], {
     cwd: ROOT,
     stdio: ['ignore', 'ignore', 'pipe'],
+    // No hot reload for tests (vite.config.ts reads this): it only added a flaky websocket.
+    env: { ...process.env, FINDER_NO_HMR: '1' },
   });
   let stderr = '';
   child.stderr.on('data', (d) => {
