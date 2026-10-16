@@ -14,7 +14,8 @@
     "test": "vitest run",
     "check": "node tools/check.mjs",
     "capture": "node tools/harness/capture.mjs",
-    "probe:audio": "node tools/harness/probe-audio.mjs"
+    "probe:audio": "node tools/harness/probe-audio.mjs",
+    "smoke:live": "node tools/harness/live-smoke.mjs"
   },
   "devDependencies": {
     "@preact/preset-vite": "2.10.6",
