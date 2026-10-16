@@ -1,14 +1,12 @@
 # PROGRESS
 
-_Last updated: 2026-10-15 by build session 2 (Opus 5.5), mid-M1. Update after every meaningful chunk._
+_Last updated: 2026-10-15 by build session 2 (Opus 5.5), M1 audit fixes and M2 in flight. Update after every meaningful chunk._
 
 ## Current milestone
 
-**M1: Ground truth (steps 0, 2, 3 and 4a done; 1, 4b in flight; 5 tooling ready).** Checklist:
-`docs/plans/M1.md`. Goal: prove the hard parts with real data before any game code: the real image
-tape decoded (calibration circle and all 156 frames), every number on the cover transcribed and
-verified, and the science core (pulsar dating and triangulation, decay clocks, the trail, the epoch
-model) built and tested against the research numbers.
+**M1: Ground truth: all steps built and green; the science audit's fixes are in flight (step 5);
+gate (step 6) next. M2 (engines and scaffold) is running in parallel: steps 0 to 2 done, 3 and 4 in
+flight.** Checklists: `docs/plans/M1.md`, `docs/plans/M2.md`.
 
 ## Done
 
@@ -30,16 +28,31 @@ model) built and tested against the research numbers.
   - `tools/how-checked.mjs` (results table generated into `docs/HOW_ITS_CHECKED.md`),
     `tools/checkrecord.py`, `npm run check` now 5 steps; `src/science/types.ts` and
     `tests/support/data.ts` (data types and loaders); fetch script exits cleanly on Windows.
+  - **Step 4 S2a** (29ce252): epoch, trail, ephemeris. Discovery 44,100 yr after launch; the Sun is
+    Gliese 445's nearest star (1.024 pc) and fifth-brightest (D-A15); light-day 2026-11-18 10:16 UTC.
+  - **Step 4 S2b** (64aebc7): pulsar dating today (1969.75 mean), at the epoch (reframed coverage
+    95.3%, B1240-64 outlier), likelihood identification on all 14 lines (D-A16), triangulation.
+  - **Step 1, reference decoder** (45f914a, 3086e20): all 156 frames from the real tape; droop
+    measured from content; pictures sent to Stewart (`docs/progress/2026-10-15-*`).
+  - `npm run check` (7 steps) green; How it's checked table generated from the records.
+  - **M2 steps 0 to 2**: decisions D-A17 (side break after music #11) and D-A18 (FLAC slices, Opus
+    music); site scaffold (`/`, `/play/`, `/checked/`), Play The Finder.bat, Playwright harness and
+    browser-test runner, audio probe (sample-exact 96 kHz FLAC in Chrome); media pipeline (31 Opus
+    tracks plus the picture side, 156 FLAC slices, `data/record.json`, `data/frames.json`); the 31
+    Ozma tracks downloaded and MD5-verified.
   - Specs S2a and S2b written (`docs/plans/M1_specs/step4c-...`, `step4d-...`); M2 plan drafted
     (`docs/plans/M2.md`, with the scout's version and browser-audio facts).
 
-## In flight (background helpers; their specs are saved, so a session switch loses nothing)
+## In flight (background helpers; every spec is saved in `docs/plans/M*_specs/`)
 
-- Step 1, reference decoder (`docs/plans/M1_specs/step1-reference-decoder.md`): `tools/ref-decoder/`.
-- S2a epoch, trail, ephemeris (`step4c-epoch-kinematics-ephemeris.md`): `src/science/epoch.ts`,
-  `kinematics.ts`, `ephemeris.ts`.
-- S2b pulsars and triangulation (`step4d-pulsars-triangulation.md`): `src/science/pulsars.ts`,
-  `pulsarEpoch.ts`, `triangulation.ts`.
+- Science-audit fixes (M1 step 5), four helpers by module: pulsars (Vela 1971.75 +/- 0.15 with the
+  PEPOCH glitch added back; misspecification coverage runs; per-pulsar timing noise from Lyne 2010;
+  triangulation coverage), clocks (half-life systematic about 137 yr; heat range 4.9 to 8.7 W;
+  Pu-242), epoch and trail (wording; radial-velocity-less stars proven harmless; solar M_V 4.81), the
+  reference decoder (circle and slant relabelled as self-tests; independent geometry check against
+  clean published images; decoder records).
+- M2 step 3, the browser decoder (`docs/plans/M2_specs/step3-browser-decoder.md`).
+- M2 step 4, the turntable engine (`docs/plans/M2_specs/step4-turntable.md`).
 
 ## Known issues and open questions
 
@@ -55,10 +68,8 @@ model) built and tested against the research numbers.
 
 ## Next (exact)
 
-1. When the decoder reports: look at `build/ref/circle_fit.png` and `build/ref/contact_native.png`
-   yourself, copy the best into `docs/progress/`, send both to Stewart, commit the decoder.
-2. When S2a and S2b report: review, run `npm run check`, commit; send Stewart one sentence each on the
-   dating and the clocks.
-3. Step 5: align the deduction table ids in `docs/HOW_ITS_CHECKED.md` with the recorded check ids;
-   add decoder and data records (`tools/checkrecord.py`); run `science-auditor`.
-4. Step 6 gate (`qa-auditor`, push), finalize `docs/plans/M2.md`, continue into M2.
+1. As each audit fix reports: review, run `npm run check`, commit. Then rerun `science-auditor` on the
+   changed claims only, and `qa-auditor` on PROGRESS and HANDOFF (M1 gate), push.
+2. If the reference decoder gains a shear parameter, tell the browser-decoder helper to port it.
+3. When M2 steps 3 and 4 land: M2 step 5 (the bare instrument on `/play/`), captures, deploy
+   (`npm run deploy`), send Stewart the link; M2 gate; write `docs/plans/M3.md`.
