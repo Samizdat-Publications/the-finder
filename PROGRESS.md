@@ -1,9 +1,16 @@
 # PROGRESS
 
-_Last updated: 2026-10-16 by build session 2 (Opus 5.5): PAUSED at Stewart's request (quota) until next
-Thursday, at a clean checkpoint inside the M5 gate. Update after every meaningful chunk._
+_Last updated: 2026-10-16 evening by build session 3 (Opus 5.5): the guided tour, after Stewart's playtest. Update after every meaningful chunk._
 
 ## Current milestone
+
+**The guided tour (2026-10-16 evening, D-A33): live.** Stewart's playtest note (docs/STEWART_FEEDBACK.md):
+he could not tell what to do or why; the audience is him walking his almost-12-year-old son through it.
+The landing page's first button now starts a guided tour: 58 stops through all 43 deductions in one fixed
+order, a guide panel in place of the notebook (what we're looking at, your turn with the control spotlit,
+what we just learned, the real story, talk about it), "Do it for me" on every step, story cards for the
+prologue and finale (the live where-is-Voyager-tonight panel). Free play is unchanged. Printable cover
+STLs in `print/`. Tour bot 58 of 58 stops, 43 of 43 from a fresh save; live tour check passes.
 
 **M5: The pictures complete, and The Voices (paused inside its gate).** Plan: `docs/plans/M5.md`; specs in
 `docs/plans/M5_specs/`. Live and deployed: The Pictures complete (eight deductions) and The Voices (four);
@@ -142,18 +149,32 @@ and live-checked.
   hearing at least 17.1 kHz, an octave of 1199.3 cents cut into 12 equal steps, the whale song (D-A32);
   DSP in TypeScript matched to a Python reference and to the browser Worker.
 
+- **The guided tour (2026-10-16 evening, build session 3):** `src/tour/` (script, guide, story stage,
+  spotlight, Voyager-now, Do-it-for-me actions per chapter), tour commands on the bus and in the save,
+  landing and hub entry points; specs in `docs/plans/tour_specs/`; the control digest
+  `docs/plans/tour_specs/controls.md`; The Map's chart exports `chartHandle()` so the tour clicks pulsars
+  onto lines; Trail readouts stack label over value; the human gloss reads days up to two years. Bots:
+  `tests/browser/tour.browser.mjs` (bot.tour), `tools/harness/live-tour.mjs`. Blind critic on the tour:
+  `docs/reviews/2026-10-16-tour-player-critic.md` (6 to 8; its "explains too much" declined per Stewart).
+  Printable relief plate (PLAN M8 bonus): `print/` STLs at 200, 250 and 305 mm. Full check: all green but
+  the `enter` perf test (101 ms against 100 under load; 78 ms alone). Deployed and live-checked.
+
 - **Edge (2026-10-16):** every browser test passes in the installed Edge, 21 of 21, audio included
   (`FINDER_BROWSER=msedge node tools/harness/browser-tests.mjs`); the whole-game bot needed one retry (a
   click timed out at 120 s). M6 is planned (`docs/plans/M6.md`).
 
 ## In flight
 
-- **The guided tour (2026-10-16 evening, Stewart's note in docs/STEWART_FEEDBACK.md, D-A33):** the script
-  (`src/tour/script.ts`, every deduction in one order) and the live Voyager-now panel are in; the guide
-  panel and story cards (spec `docs/plans/tour_specs/T1-core.md`) and the "Do it for me" actions with the
-  tour bot (`T2-actions.md`) are being built by two helpers. M5's audit fixes (below) wait until after.
+- **6a (The Voices' audit fixes)** resumed by a builder-opus helper at about 17:35 on 2026-10-16, with the
+  rule that the tour bot must keep passing (see the commit log for whether it landed).
 
 ## Known issues and open questions
+
+- **The `enter` browser test** can exceed its 100 ms long-task limit by a millisecond or two when the
+  whole check loads the machine (101 ms once on 2026-10-16; 78 ms when run alone).
+- **Tour:** "Do it for me" works the real controls everywhere except where a canvas gesture has no in-page
+  handle (none left after the Map's chartHandle). The tour's spotlight rings a group of choices, not the
+  right one. Any new deduction must get a tour stop and an action, or `src/tour/*.test.ts` fails.
 
 - **QA audit (M3 and M4 gate, 2026-10-16):** all its code items are fixed (7e: no long freeze entering a
   chapter, old saves' seeds, contour text, Trail chart labels; the doc items earlier). Still open from it:
@@ -192,6 +213,8 @@ and live-checked.
 
 ## Next (exact)
 
+0. **Read Stewart's notes from playing the tour with his son** (docs/STEWART_FEEDBACK.md) and act on them
+   first. If 6a landed (commit log), skip item 1.
 1. **Finish 6a** (The Voices' audit fixes) from `docs/plans/M5_specs/step6a-progress.md`: wire
    `tools/voices/others.py` into the analysis and `checkOthers`; render the Sounds of Earth spectrogram
    panels and read them (the lead) to give that test independent truth; decide the music-items question

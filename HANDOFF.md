@@ -1,7 +1,6 @@
 # HANDOFF: start here
 
-_Last updated: 2026-10-16 by build session 2 (Opus 5.5): PAUSED (quota) until next Thursday inside the M5 gate: M1 to M4 complete, M5's chapters live, its audit fixes half done (see PROGRESS "Next"). Whoever stops next updates this block,
-"Where things stand", and anything below that changed._
+_Last updated: 2026-10-16 evening by build session 3 (Opus 5.5): the guided tour is live (Stewart's playtest note); M5's Voices audit fixes resumed. Whoever stops next updates this block, "Where things stand", and anything below that changed._
 
 ## For Stewart: how to start the next session
 
@@ -72,6 +71,11 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
   done and not wired in. Start from PROGRESS "Next (exact)" and the two progress notes in
   `docs/plans/M5_specs/` (`step6a-progress.md`, `step6b-progress.md`). Stewart's open items:
   `docs/NEEDS_STEWART.md` (the Gemini cap, a stray folder, the optional Firefox check).
+- **Build session 3 (2026-10-16 evening):** Stewart played the start and got lost at the gold disc. The
+  audience is now explicit: Stewart walking his almost-12-year-old son through it. Built the guided tour
+  (D-A33, `src/tour/`): the landing page's first button, 58 stops over all 43 deductions in one order,
+  a guide panel with "Do it for me" on every step, live Voyager-now finale; printable cover STLs in
+  `print/`. Deployed and live-checked. 6a (the Voices' audit fixes) handed to a builder-opus helper.
 - **How session 2 worked (keep doing this):** every helper got a written spec saved in
   `docs/plans/Mx_specs/` before launch; the lead reviewed every report, looked at every picture and
   capture, ran the tests itself before each commit, and resumed the same helper (SendMessage) for
@@ -233,6 +237,14 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
 - **The dev server sometimes drops or times out a request under load** (connection reset on a page,
   `ERR_CONNECTION_TIMED_OUT` on a module); the browser-test runner retries a page open three times and
   each test once, and reports FLAKY. A test that fails twice is real.
+
+- **The guided tour is the main way in (D-A33).** Every deduction is a stop in `src/tour/script.ts` (the
+  lead writes the narration: plain words, the real story, a question for the child) with a "Do it for me"
+  in `src/tour/actions/<chapter>.ts` and spotlight selectors in `src/tour/actions.ts`; the tests fail if a
+  playable deduction is missing. Changing an instrument's controls, labels or right answers means updating
+  its tour action and the script's "Your turn" text, then `node tools/harness/browser-tests.mjs tour`
+  (about 3 minutes; `TOUR_ARCHIVE=1` writes its capture to `review/archive/` instead of the inbox).
+  `node tools/harness/live-tour.mjs` checks the deployed site.
 
 ## End-of-session protocol
 
