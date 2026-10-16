@@ -61,8 +61,7 @@ sources below are planned; each gets its final line (with checksum and date) whe
 - Half-lives and decay energies: LNHB recommended data (as quoted in docs/research/clocks.md) and NNDC NuDat 3 (cited per entry in src/science/nuclides.ts).
 
 ## Images and models
-- Voyager 3D model: NASA Visualization Technology Applications and Development (VTAD), science.nasa.gov
-  (free to use under NASA's media guidelines; no endorsement implied). Planned.
+- Voyager 3D model: NASA Visualization Technology Applications and Development (VTAD), science.nasa.gov, free to use under NASA's media guidelines; no endorsement implied. `Voyager.glb`, https://science.nasa.gov/resource/voyager-3d-model/ (source `nasa-voyager-glb`). Fetched 2026-10-15; cleaned and compressed to `public/media/models/voyager.glb` by `tools/models/build-voyager.mjs`.
 - The Golden Record cover photo: NASA/JPL, GPN-2000-001978 (public domain), via Wikimedia Commons. Fetched 2026-10-15.
 - NASA/JPL "Explanation of Recording Cover Diagram" (science.nasa.gov). Fetched 2026-10-15.
 - NASA "Images on the Golden Record" gallery (science.nasa.gov; JPL scans, most likely from Murmurs of Earth): ten images used ONLY in tests, as clean references for the decoder's independent geometry check (sources nasa-gr-* in tools/sources.json); never shown in the experience. Fetched 2026-10-15.

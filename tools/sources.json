@@ -703,6 +703,17 @@
       "credit": "NASA Science, Images on the Golden Record gallery (image 39, diagram of continental drift); JPL copies most likely scanned from Murmurs of Earth (Pescovitz)",
       "usedFor": "Tests only: independent geometry check of the reference decoder (aspect and shear by affine registration); never shown in the experience",
       "research": "docs/research/images-and-audio.md section 5"
+    },
+    {
+      "id": "nasa-voyager-glb",
+      "file": "Voyager.glb",
+      "url": "https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/v/Voyager.glb",
+      "bytes": 3128204,
+      "md5": null,
+      "sha256": "5338241f2e89e9cfe3ebb82f519b4cad64c97e66883cccba6fdda98667aec731",
+      "credit": "NASA Visualization Technology Applications and Development (VTAD), science.nasa.gov, free to use under NASA's media guidelines; no endorsement implied",
+      "usedFor": "The Voyager spacecraft model in the Arrival scene (cleaned and compressed to public/media/models/voyager.glb)",
+      "research": "docs/research/voyager.md section 1"
     }
   ]
 }

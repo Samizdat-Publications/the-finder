@@ -1,0 +1,99 @@
+{
+  "source": {
+    "id": "nasa-voyager-glb",
+    "file": "sources/nasa-voyager-glb/Voyager.glb",
+    "bytes": 3128204,
+    "sha256": "5338241f2e89e9cfe3ebb82f519b4cad64c97e66883cccba6fdda98667aec731",
+    "url": "https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/v/Voyager.glb",
+    "credit": "NASA Visualization Technology Applications and Development (VTAD), science.nasa.gov"
+  },
+  "output": {
+    "file": "public/media/models/voyager.glb",
+    "bytes": 464552,
+    "sha256": "5f0b238ae605e0bce405fc899b593ce26b6aa8c727f373f725f9af3675cabb81"
+  },
+  "units": "metres",
+  "up": "Y",
+  "triangles": 20378,
+  "extents": {
+    "min": [
+      -3.879138225164608,
+      -2.0338005994962414,
+      -4.2085371017456055
+    ],
+    "max": [
+      3.873323139209644,
+      9.003768203179714,
+      12.700529098510742
+    ]
+  },
+  "nodes": [
+    "tex_01",
+    "tex_02_AO",
+    "tex_02_AO_dark",
+    "record_cover"
+  ],
+  "materials": [
+    "tex_01",
+    "brass",
+    "tex_02_AO",
+    "tex_02_AO_other",
+    "record_cover"
+  ],
+  "textures": [
+    {
+      "name": "voyager_tex_01.jpg",
+      "mime": "image/webp",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 148152
+    },
+    {
+      "name": "voyager_tex_02_AO.jpg",
+      "mime": "image/webp",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 34298
+    },
+    {
+      "name": "voyager_tex_02_AO_other.jpg",
+      "mime": "image/webp",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 55682
+    }
+  ],
+  "recordDisc": {
+    "nodeName": "record_cover",
+    "materialName": "record_cover",
+    "triangles": 20,
+    "centre": [
+      0.9484980418346822,
+      -0.00020295381546020508,
+      -0.0021229535341262817
+    ],
+    "normal": [
+      1,
+      0,
+      0
+    ],
+    "radius": 0.1570388376712799,
+    "atlasUv": "U 0.010..0.227, V 0.169..0.385 of voyager_tex_01"
+  },
+  "settings": {
+    "textureFormat": "webp",
+    "textureQuality": 90,
+    "textureMaxSize": 1024,
+    "meshoptLevel": "high",
+    "quantizePosition": 16,
+    "quantizeNormal": 10,
+    "quantizeTexcoord": 14
+  },
+  "builtBy": "tools/models/build-voyager.mjs"
+}

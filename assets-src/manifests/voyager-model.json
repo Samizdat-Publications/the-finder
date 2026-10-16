@@ -1,0 +1,40 @@
+{
+  "asset": "voyager-model",
+  "script": "tools/models/build-voyager.mjs",
+  "inputs": [
+    {
+      "id": "nasa-voyager-glb",
+      "file": "sources/nasa-voyager-glb/Voyager.glb",
+      "bytes": 3128204,
+      "sha256": "5338241f2e89e9cfe3ebb82f519b4cad64c97e66883cccba6fdda98667aec731",
+      "url": "https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/v/Voyager.glb",
+      "credit": "NASA Visualization Technology Applications and Development (VTAD), science.nasa.gov"
+    }
+  ],
+  "outputs": [
+    {
+      "file": "public/media/models/voyager.glb",
+      "bytes": 464552,
+      "sha256": "5f0b238ae605e0bce405fc899b593ce26b6aa8c727f373f725f9af3675cabb81"
+    },
+    {
+      "file": "public/media/models/voyager.json"
+    }
+  ],
+  "settings": {
+    "textureFormat": "webp",
+    "textureQuality": 90,
+    "textureMaxSize": 1024,
+    "meshoptLevel": "high",
+    "quantizePosition": 16,
+    "quantizeNormal": 10,
+    "quantizeTexcoord": 14
+  },
+  "tools": {
+    "@gltf-transform/core": "4.5.1",
+    "meshoptimizer": "1.3.0",
+    "sharp": "0.35.5"
+  },
+  "seeds": null,
+  "prompts": null
+}
