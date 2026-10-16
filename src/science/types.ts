@@ -113,6 +113,8 @@ export interface StarRecord {
   pmraMasYr: number;
   pmdecMasYr: number;
   rvKmS: number | null;
+  /** True when the radial velocity is the system primary's (a companion without its own; tools/data/build_stars.py). */
+  rvFromPrimary?: boolean;
   mag: number;
   absmag: number;
   spect: string | null;

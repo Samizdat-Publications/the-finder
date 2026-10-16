@@ -1,18 +1,20 @@
 # PROGRESS
 
-_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 and M2 complete; M3 steps 1 to 7 built.
-Update after every meaningful chunk._
+_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 and M2 complete; M3 slice built, deployed and
+reviewed (layout pass in flight); M4 started. Update after every meaningful chunk._
 
 ## Current milestone
 
-**M3: Vertical slice (Arrival, The Key, The Player, The Pictures to the circle).** Plan:
-`docs/plans/M3.md`; specs in `docs/plans/M3_specs/`. Steps 1 to 7 are built and committed (the shell,
-the cover SVG, the Voyager model, the encounter scene, the four chapters, sound v1); step 8 (the slice
-bots, a filmed run with sound, the Gemini video critic) is in flight; then the player-critic, deploy,
-Stewart's playtest link (step 8) and the gate (step 9).
+**M4: Where and when (The Map, The Spot, The Trail, the reframed dating).** Plan: `docs/plans/M4.md`;
+specs in `docs/plans/M4_specs/`. Done: D-A23 (the spot's position), step 2 (the galaxy and neighbourhood
+charts), the 13 M4 deductions in the graph (chapters still "later"), the shared epoch model
+(`src/chapters/shared/epochModel.ts`), and the specs for steps 3 to 5. Next: the three chapters, built in
+parallel once M3's layout pass (step 8b) lands.
 
-**Preview (still the M2 bench, redeployed with the slice at step 8):**
-https://the-finder.stewartgregerson.workers.dev/play/
+M3 is complete except its layout pass (8b, in flight) and the gate (QA audit), which runs with M4's
+first deploy.
+
+**Preview (the M3 slice):** https://the-finder.stewartgregerson.workers.dev/play/
 
 ## Done
 
@@ -63,10 +65,24 @@ https://the-finder.stewartgregerson.workers.dev/play/
   decoder to the round circle and the first frames); sound v1 (synthesized cues and beds, captions);
   `docs/research/key-physics.md`. Browser tests report a pass on retry as FLAKY.
 
+- **M3 step 8 (2026-10-16):** the slice bots (18 deductions from a fresh save; 43 wrong answers, each
+  rejected with its computed result), one shared AudioContext, the filmed run with sound; the Gemini
+  video critic is blocked by the Gemini project's spend cap (nothing charged; `docs/NEEDS_STEWART.md`).
+  Deployed; live game check; Stewart sent the playtest link with three questions (answers pending).
+  Blind player-critic review: `docs/reviews/2026-10-16-M3-player-critic.md` (pictures 8/10, layout 4/10;
+  decisions recorded).
+- **M4 so far (2026-10-16):** plan with the deduce-on-the-instrument rule; D-A23; the galaxy chart (the
+  alien's pulsar catalogue at the epoch, the map overlay, the origin region) and the neighbourhood chart
+  (the trail, star by star); the 13 deductions of The Map, The Spot and The Trail; the shared epoch model
+  (identification, ages in both frames, motion fit, region, trail; default seed: 14 of 14 lines right,
+  combined map age 44,068 yr, 95% 43,930 to 44,210; the motion fit alone 44,050 +/- 92 yr);
+  `mapPointsAtEpoch` moved into the science core (same numbers).
+
 ## In flight
 
-- M3 step 8, the slice bots, the filmed run and the Gemini critic
-  (`docs/plans/M3_specs/step8-bots-film-critics.md`, builder-opus).
+- M3 step 8b, the layout pass (`docs/plans/M3_specs/step8b-layout-pass.md`, builder).
+- A scout verifying the galaxy chart's constants (GRAVITY 2021 Galactic-centre distance, Sgr A*
+  position, the millisecond-pulsar cut) for a research note.
 
 ## Known issues and open questions
 
@@ -74,16 +90,21 @@ https://the-finder.stewartgregerson.workers.dev/play/
 - **Uranium spot position** is not on the cover diagram: our documented choice (M4).
 - **Colour channel order** cannot be proven from the record: shown as "probable".
 - **The decoded pictures' small geometry error** (D-A19) is detected but its origin is unresolved.
-- **Three nearby stars lack radial velocities** published elsewhere (Sirius B, GJ 1245 A/B): source or
-  copy them before the sky is shown (M3 step 3).
+- **Nearby stars without radial velocities:** companions now take their primary's (Sirius B, Procyon B
+  and others; `tools/data/build_stars.py`, rebuild pending until the layout pass lands); GJ 1245 A and B
+  have none in HYG and stay hollow on the neighbourhood chart, handled by the no-RV bound.
+- **Shell counter** says "N of 31 deductions" now that M4's nodes exist; count only built chapters'
+  nodes (after the layout pass, which owns `src/ui/Shell.tsx`).
 - **Firefox and Safari are untested** (no Playwright browsers here); the audio probe ran in Chrome only.
 - Python packages live in the user site-packages, so run Python as `python -P` (not `-I`).
 
 ## Next (exact)
 
-1. When step 8 reports: watch `slice.mp4` (Read frames if needed), read `gemini.md`, run the
-   `player-critic` ("A new build is in review/inbox. Play it."), act on the clear findings.
-2. Deploy (`npm run deploy`), run `npm run smoke:live`, send Stewart the playtest link with three
-   questions; write his answers into `docs/STEWART_FEEDBACK.md` when they come.
-3. M3 gate (step 9): `npm run check` green, QA audit, PROGRESS and HANDOFF, write `docs/plans/M4.md`
-   (The Map, The Spot, the RTG clock, The Trail, reframed dating) and continue.
+1. When the layout pass reports: look at its captures, check the targets, commit, redeploy, live check.
+2. Rebuild the star data with the companion rule (`python -P tools/data/build_stars.py`), run the data
+   and science checks, commit.
+3. Launch The Map, The Spot and The Trail (`docs/plans/M4_specs/step3` to `step5`, builder-opus, in
+   parallel). Review each report and its captures; flip any chapter left "later"; run the Trail's
+   region and reframe browser steps once The Map is in.
+4. M4 steps 6 to 8: gating check, sound for the new moments, bots through the three chapters, captures,
+   the player-critic, Stewart's feedback, the gate (with M3's QA audit), `docs/plans/M5.md`.

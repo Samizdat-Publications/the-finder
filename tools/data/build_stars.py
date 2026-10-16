@@ -11,6 +11,10 @@ Decisions (documented in data/README.md):
 - rv: HYG stores 0.0 when no radial velocity is known, so rv == 0.0 is stored as null. A real radial
   velocity of exactly 0.0 km/s at HYG's 0.1 km/s resolution would be lost; that is accepted.
 - dist 100000 (unknown) is stored as distPc null; such stars can only be in "sky".
+- Companions: a star with no radial velocity whose HYG comp_primary (the system's primary) has one takes
+  the primary's, flagged rvFromPrimary (near list only). A bound companion shares the system's velocity to
+  within its orbital speed (Sirius B about Sirius A: a few km/s), far below the trail's tens of km/s; this
+  fills Sirius B and Procyon B among others. Systems whose primary has none (GJ 1245 A and B) stay null.
 - Gliese 445: ra, dec, parallax, pmra, pmdec, radial_velocity and their 1-sigma errors from the Gaia
   DR3 row (epoch J2016.0) override the HYG row; distPc = 1000 / parallax.
 
@@ -88,6 +92,7 @@ def build():
     if float(gaia['ref_epoch']) != GAIA_EPOCH:
         raise SystemExit(f"unexpected Gaia ref_epoch {gaia['ref_epoch']}")
     near, sky = [], []
+    companions, rv_by_id = [], {}
     gl445 = None
     with gzip.open(common.source_path('hyg'), 'rt', encoding='utf-8', newline='') as f:
         for r in csv.DictReader(f):
@@ -115,6 +120,11 @@ def build():
                 'astrometrySource': 'hyg',
                 'epoch': HYG_EPOCH,
             }
+            primary = _i(r['comp_primary'])
+            if primary is not None and primary != hid:
+                companions.append((star, primary))
+            if star['rvKmS'] is not None:
+                rv_by_id[hid] = star['rvKmS']
             if hid == 0:
                 # The Sun: the frame origin (solar-system barycentre), at rest.
                 star.update({'raDeg': 0.0, 'decDeg': 0.0, 'distPc': 0.0, 'pmraMasYr': 0.0, 'pmdecMasYr': 0.0, 'rvKmS': 0.0})
@@ -145,6 +155,12 @@ def build():
                 sky.append(star)
     if gl445 is None:
         raise SystemExit('Gliese 445 (HIP 57544) not found in HYG')
+    near_ids = {x['id'] for x in near}
+    for star, primary in companions:
+        if star['rvKmS'] is None and primary in rv_by_id:
+            star['rvKmS'] = rv_by_id[primary]
+            if star['id'] in near_ids:
+                star['rvFromPrimary'] = True
     near.sort(key=lambda s: (s['distPc'], s['id']))
     sky.sort(key=lambda s: s['id'])
     return {
@@ -156,7 +172,9 @@ def build():
             'units': 'raDeg, decDeg deg (at epoch); distPc pc; pmraMasYr (includes cos dec), pmdecMasYr mas/yr; rvKmS km/s; mag, absmag V mag; epoch decimal Julian year of the astrometry',
             'selection': f'near: 0 < dist <= {NEAR_PC} pc plus the Sun, sorted by distance; sky: mag <= {SKY_MAG} and not near (dist > {NEAR_PC} pc or unknown), sorted by id, in data/sky.json as {{columns, rows}} (same fields as near)',
             'gaiaErrors': 'stars with astrometrySource gaia-dr3 also carry parallaxMas and 1-sigma errors parallaxErrMas, pmraErrMasYr, pmdecErrMasYr, rvErrKmS; HYG rows have no errors (fields absent)',
-            'counts': {'near': len(near), 'sky': len(sky), 'nearWithRv': sum(1 for s in near if s['rvKmS'] is not None)},
+            'counts': {'near': len(near), 'sky': len(sky), 'nearWithRv': sum(1 for s in near if s['rvKmS'] is not None),
+                       'nearRvFromPrimary': sum(1 for s in near if s.get('rvFromPrimary'))},
+            'rvFromPrimary': 'near stars flagged rvFromPrimary take the radial velocity of their system primary (HYG comp_primary): a bound companion shares the system velocity to within its orbital speed',
         },
         'near': near,
         'sky': sky,
