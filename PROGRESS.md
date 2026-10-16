@@ -1,16 +1,18 @@
 # PROGRESS
 
-_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 and M2 complete pending the QA audit;
-M3 started. Update after every meaningful chunk._
+_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 and M2 complete; M3 steps 1 to 7 built.
+Update after every meaningful chunk._
 
 ## Current milestone
 
 **M3: Vertical slice (Arrival, The Key, The Player, The Pictures to the circle).** Plan:
-`docs/plans/M3.md` (steps 1 to 9; specs go in `docs/plans/M3_specs/`). Step 2 (the cover as exact SVG)
-is in flight. M1 (ground truth) and M2 (engines and scaffold) are built, checked and audited: two science audits
-and a QA gate audit (2026-10-16) passed, their findings fixed.
+`docs/plans/M3.md`; specs in `docs/plans/M3_specs/`. Steps 1 to 7 are built and committed (the shell,
+the cover SVG, the Voyager model, the encounter scene, the four chapters, sound v1); step 8 (the slice
+bots, a filmed run with sound, the Gemini video critic) is in flight; then the player-critic, deploy,
+Stewart's playtest link (step 8) and the gate (step 9).
 
-**Preview (M2 bench, not the game):** https://the-finder.stewartgregerson.workers.dev/play/
+**Preview (still the M2 bench, redeployed with the slice at step 8):**
+https://the-finder.stewartgregerson.workers.dev/play/
 
 ## Done
 
@@ -52,10 +54,19 @@ and a QA gate audit (2026-10-16) passed, their findings fixed.
     the turntable (`src/record/`: pitch exact to 3e-8, reverse, run-out, the real record); the
     instrument bench on `/play/` with the command bus and the harness API.
 
+- **M3 steps 1 to 7 (2026-10-16):** the game shell (hub ring, workbenches, codex, settings, hints, saves,
+  no-spoilers questions); the cover as exact SVG (533 binary digits verified, 0.26 mm against NASA's
+  photo); NASA's Voyager model at 465 KB; the encounter scene under the sky computed for AD 46,078 (the
+  Sun at -0.82 in Orion; Milky Way from Gaia; D-A21 physical star colours); Arrival (four computed
+  deductions), The Key (strokes, the hydrogen atlas, times not lengths; D-A22 alien units), The Player
+  (turntable to the cover's drawing, the groove microscope, the first sound), The Pictures (free-running
+  decoder to the round circle and the first frames); sound v1 (synthesized cues and beds, captions);
+  `docs/research/key-physics.md`. Browser tests report a pass on retry as FLAKY.
+
 ## In flight
 
-- M3 step 1, the shell, deduction graph, codex, saves and hints (`docs/plans/M3_specs/step1-shell-graph-codex.md`, builder).
-- M3 step 2, the cover as exact SVG (`docs/plans/M3_specs/step2-cover-svg.md`, asset-smith).
+- M3 step 8, the slice bots, the filmed run and the Gemini critic
+  (`docs/plans/M3_specs/step8-bots-film-critics.md`, builder-opus).
 
 ## Known issues and open questions
 
@@ -63,7 +74,6 @@ and a QA gate audit (2026-10-16) passed, their findings fixed.
 - **Uranium spot position** is not on the cover diagram: our documented choice (M4).
 - **Colour channel order** cannot be proven from the record: shown as "probable".
 - **The decoded pictures' small geometry error** (D-A19) is detected but its origin is unresolved.
-- **The bench's radius readout** does not follow a needle dropped through the bus (M3 step 5).
 - **Three nearby stars lack radial velocities** published elsewhere (Sirius B, GJ 1245 A/B): source or
   copy them before the sky is shown (M3 step 3).
 - **Firefox and Safari are untested** (no Playwright browsers here); the audio probe ran in Chrome only.
@@ -71,9 +81,9 @@ and a QA gate audit (2026-10-16) passed, their findings fixed.
 
 ## Next (exact)
 
-1. M3 step 1 (shell, deduction graph, codex v1, saves, hints, chapter routing; the bench moves to
-   `/play/bench/`) and step 2 (the cover SVG) are in flight: review each report, look at the captures,
-   run `npm run check`, commit.
-2. Then M3 steps 3 to 9 in order (Arrival scene and workbenches, The Key, The Player, The Pictures,
-   sound, bots and critics, deploy and Stewart's playtest link, gate), each with a spec in
-   `docs/plans/M3_specs/` first.
+1. When step 8 reports: watch `slice.mp4` (Read frames if needed), read `gemini.md`, run the
+   `player-critic` ("A new build is in review/inbox. Play it."), act on the clear findings.
+2. Deploy (`npm run deploy`), run `npm run smoke:live`, send Stewart the playtest link with three
+   questions; write his answers into `docs/STEWART_FEEDBACK.md` when they come.
+3. M3 gate (step 9): `npm run check` green, QA audit, PROGRESS and HANDOFF, write `docs/plans/M4.md`
+   (The Map, The Spot, the RTG clock, The Trail, reframed dating) and continue.
