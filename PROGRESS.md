@@ -6,15 +6,12 @@ reviewed (layout pass in flight); M4 started. Update after every meaningful chun
 ## Current milestone
 
 **M4: Where and when (The Map, The Spot, The Trail, the reframed dating).** Plan: `docs/plans/M4.md`;
-specs in `docs/plans/M4_specs/`. Done: D-A23 (the spot's position), step 2 (the galaxy and neighbourhood
-charts), the 13 M4 deductions in the graph (chapters still "later"), the shared epoch model
-(`src/chapters/shared/epochModel.ts`), the specs for steps 3 to 5, and the star data's companion rule.
-In flight: steps 3, 4 and 5 (The Map, The Spot, The Trail), three builders in parallel.
+specs in `docs/plans/M4_specs/`. Steps 1 to 6 done: The Map, The Spot and The Trail are built, playable
+after The Key, deployed and live-checked (31 deductions; `npm run check` green: 281 unit tests, 16
+browser tests, 126 checks). In flight: step 7 (sound for the new moments, the whole-game bots, captures
+for the critic) and the M4 science audit. Then the player-critic and the gate (step 8).
 
-M3 is complete except its gate (QA audit), which runs with M4's first deploy. The layout pass (8b) is
-committed, deployed and live-checked.
-
-**Preview (the M3 slice):** https://the-finder.stewartgregerson.workers.dev/play/
+**Preview (the slice and M4):** https://the-finder.stewartgregerson.workers.dev/play/
 
 ## Done
 
@@ -85,10 +82,21 @@ committed, deployed and live-checked.
   companions take their primary's radial velocity (85 stars within 10 pc of the craft still lack one,
   down from 105; the trail still picks out only the Sun).
 
+- **M4 steps 3 to 6 (2026-10-16):** The Map (align the map to the Galactic centre, match each line to its
+  pulsar with computed match quality, the spin-down clock, ages across the sky and the motion axis, the
+  origin region: 14 of 14 lines, region 30 by 14 pc with 1,007 stars, the alien's own star inside), The
+  Spot (detector sweep to the hidden spot, alpha counting with error bars that narrow, the two-clock purity
+  test: about a day of counting gives 44,124 yr, 95% 42,786 to 45,506; natural uranium rejected at
+  p < 1e-12; detector D-A24), The Trail (only the warm-white star fits, 0.0043 +/- 0.20 deg, next 8.58 deg;
+  distance over speed 44,100 yr; the neighbour twist; the region view; the reframe: 44,068 yr, 95% 43,930
+  to 44,210, the motion agreeing within about 1 sigma). Measured quantities from a million up read as
+  powers of ten; captions in the top bar. D-A26, D-A27.
+
 ## In flight
 
-- M4 steps 3 to 5: The Map, The Spot, The Trail (`docs/plans/M4_specs/step3` to `step5`, three
-  builder-opus helpers in parallel, none committing).
+- M4 step 7: sound for the new moments, bot.game and bot.m4Wrong, captures for the critic
+  (`docs/plans/M4_specs/step7-sound-bots-captures.md`, builder-opus).
+- The M4 science audit (science-auditor, read-only).
 
 ## Known issues and open questions
 
@@ -107,9 +115,9 @@ committed, deployed and live-checked.
 
 ## Next (exact)
 
-1. As each chapter helper reports: read its report, look at its captures, run its tests, commit it.
-   When all three are in: run The Trail's region and reframe browser steps (they need The Map built),
-   `npm run check`, deploy, live check.
-2. M4 steps 6 to 8: gating check, sound for the new moments (the ages snapping together; the Sun
-   found), bots through the three chapters (right and wrong answers), captures, the player-critic,
-   Stewart's feedback, the gate (with M3's QA audit), `docs/plans/M5.md`.
+1. When the science audit reports: fix or record every finding (DECISIONS.md for judgment calls).
+2. When step 7 reports: look at its captures, commit, run the `player-critic` ("A new build is in
+   review/inbox. Play it."), record its review and decisions in `docs/reviews/`, fix what is clear.
+3. Gate (step 8): `npm run check`, deploy, live check, QA audit (also covers M3's gate), PROGRESS and
+   HANDOFF, write `docs/plans/M5.md` (The Voices, Portrait, the epilogue; the critic's design follow-ups:
+   an alien-script puzzle, Arrival as evidence selection; the Map axis "settle" aid if playtests need it).
