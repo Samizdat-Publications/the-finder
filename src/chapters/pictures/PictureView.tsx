@@ -47,6 +47,9 @@ export function goldThumb(p: Picture, w = 160): string {
   return t.toDataURL('image/png');
 }
 
+/** Room kept under the picture for its caption, CSS px. */
+const CAPTION_PX = 34;
+
 export function PictureView() {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -58,13 +61,18 @@ export function PictureView() {
   useEffect(() => {
     const el = wrap.current;
     if (!el) return;
-    // as large as the column allows, up to twice the decoded size (pixelated, so the lines stay sharp)
-    const fit = (): void => setCssW(Math.min(el.clientWidth, 2 * w));
+    // As large as the column allows, up to twice the decoded size (pixelated, so the lines stay sharp). On a
+    // screen with room the box has a height of its own, so the picture also keeps its caption inside it.
+    const room = window.matchMedia('(min-width: 1000px) and (min-height: 620px)');
+    const fit = (): void => {
+      const byHeight = room.matches && el.clientHeight > 0 ? ((el.clientHeight - CAPTION_PX) * w) / h : Infinity;
+      setCssW(Math.max(160, Math.min(el.clientWidth, 2 * w, byHeight)));
+    };
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [w]);
+  }, [w, h]);
 
   useEffect(() => {
     const cv = canvas.current;

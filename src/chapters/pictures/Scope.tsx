@@ -62,7 +62,8 @@ export function Scope(p: { sig: FrameSignal | undefined }) {
     if (!cv || !ctx) return;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const W = Math.max(200, Math.round(cv.clientWidth * dpr));
-    const H = Math.round(200 * dpr);
+    // 200 px by default; the layout may set the canvas's CSS height (the stack keeps its proportions)
+    const H = Math.max(Math.round(80 * dpr), Math.round(cv.clientHeight * dpr));
     if (cv.width !== W || cv.height !== H) {
       cv.width = W;
       cv.height = H;
@@ -84,7 +85,7 @@ export function Scope(p: { sig: FrameSignal | undefined }) {
       ctx.stroke();
     }
     // long sweep: three line times in a row
-    const topH = 64 * dpr;
+    const topH = H * 0.32; // 64 px at the default 200
     ctx.strokeStyle = '#4ff0c4';
     ctx.lineWidth = dpr;
     const s0 = sweepStart(sig, k, lock, bench.lineTimeMs) - PRE;

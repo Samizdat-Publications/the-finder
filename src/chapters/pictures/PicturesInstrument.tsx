@@ -99,13 +99,15 @@ export function PicturesInstrument() {
     <div class="picinst" data-pictures-ready={ready ? 'true' : 'false'} data-frame={frame}>
       <div class="pic-main">
         <PictureView />
-        {circleDone && (
-          <p class="pic-they" role="status">
-            They see.
-          </p>
-        )}
         <Scope sig={sig} />
-        <Seen />
+        <div class="pic-lower">
+          {circleDone && (
+            <p class="pic-they" role="status">
+              They see.
+            </p>
+          )}
+          <Seen />
+        </div>
       </div>
       <div class="pic-side">
         <CoverViewer

@@ -1,20 +1,26 @@
 /* The Arrival instrument: the scene fills the frame, translucent alien panels float over it. Cool cyan and
    violet for the instruments; warm colours only for heat readings and gold only for the record. */
-.arrival { margin-bottom: 1.25rem; }
+.arrival { margin-bottom: 1.25rem; height: 100%; }
 .ar-viewport {
-  position: relative; isolation: isolate; height: clamp(30rem, calc(100vh - 13rem), 44rem); overflow: hidden;
+  position: relative; isolation: isolate; height: 100%; min-height: 24rem; overflow: hidden;
   background: #000; border: 1px solid var(--line); border-radius: 8px;
+  --panel-w: min(30rem, 46%); --panel-gap: 0.75rem;
 }
-.ar-viewport { --panel-w: min(25rem, 46%); }
-/* The scene's centre sits in the open area left of the panel; the panel overlaps its right edge. */
-.ar-scene { position: absolute; left: 0; top: 0; width: calc(100% - var(--panel-w) + 3rem); height: 100%; display: block; touch-action: none; cursor: grab; }
+/* The scene fills the whole instrument. Its canvas is wider than the frame and reaches off its left edge, so
+   the craft sits in the middle of the open area left of the scan panel (the panel floats over the right end,
+   never over the craft). The markers share the canvas's box, so they stay on their parts. */
+.ar-scene, .ar-markers {
+  position: absolute; top: 0; height: 100%;
+  left: calc(-1 * (var(--panel-w) + var(--panel-gap))); width: calc(100% + var(--panel-w) + var(--panel-gap));
+}
+.ar-scene { display: block; touch-action: none; cursor: grab; }
 .ar-scene:active { cursor: grabbing; }
-.ar-scene-note { position: absolute; left: 1rem; bottom: 0.6rem; margin: 0; font: 0.8rem var(--font-mono); color: var(--text-dim); }
+.ar-scene-note { position: absolute; left: 1rem; bottom: 0.6rem; margin: 0; font: var(--fs-label) var(--font-mono); color: var(--text-dim); }
 
 /* scan tabs, top left over the scene */
 .ar-scans { position: absolute; left: 0.75rem; top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.35rem; z-index: 3; max-width: calc(100% - var(--panel-w) - 2rem); }
 .ar-tab {
-  font: inherit; font-size: 0.82rem; color: var(--text); min-height: 2.25rem; padding: 0.3rem 0.75rem; cursor: pointer;
+  font: inherit; font-size: var(--fs-label); color: var(--text); min-height: 2.25rem; padding: 0.3rem 0.75rem; cursor: pointer;
   background: rgba(8, 7, 26, 0.78); border: 1px solid var(--line); border-radius: 6px; backdrop-filter: blur(4px);
 }
 .ar-tab:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
@@ -24,60 +30,61 @@
 
 /* the panel, right side over the scene */
 .ar-panelwrap {
-  position: absolute; right: 0.75rem; top: 0.75rem; bottom: 0.75rem; width: var(--panel-w); z-index: 3;
+  position: absolute; right: var(--panel-gap); top: var(--panel-gap); max-height: calc(100% - 2 * var(--panel-gap)); width: var(--panel-w); z-index: 3;
   overflow-y: auto; overscroll-behavior: contain;
   background: rgba(8, 7, 26, 0.84); border: 1px solid var(--line); border-radius: 8px; backdrop-filter: blur(6px);
 }
-.ar-panel { padding: 0.9rem 1rem 1rem; font-size: 0.86rem; line-height: 1.45; }
-.ar-panel h2 { margin: 0 0 0.6rem; font-size: 1rem; }
-.ar-list { list-style: none; margin: 0 0 0.6rem; padding: 0; display: grid; gap: 0.45rem; }
-.ar-list li { display: grid; gap: 0.1rem; padding-left: 0.6rem; border-left: 2px solid var(--line); }
-.ar-list .k { font: 0.68rem var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--violet); }
+.ar-panel { padding: 0.75rem 1rem 0.9rem; font-size: var(--fs-value); line-height: 1.4; }
+.ar-panel h2 { margin: 0 0 0.45rem; font-size: 1rem; }
+.ar-list { list-style: none; margin: 0 0 0.5rem; padding: 0; display: grid; gap: 0.4rem; }
+.ar-list li { display: grid; gap: 0.05rem; padding-left: 0.6rem; border-left: 2px solid #3a3868; }
+.ar-list .k { font: var(--fs-label) var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--violet); }
 .ar-list .v { color: var(--text); }
 .ar-list .value { display: inline-flex; align-items: baseline; gap: 0.3rem; }
 .ar-list .value .unitgloss { display: none; }
-.assume { color: var(--text-dim); border-bottom: 1px dotted var(--text-dim); cursor: help; font-size: 0.78rem; }
-.ar-small { font-size: 0.78rem; color: var(--text-dim); margin: 0.4rem 0; }
-.ar-question { margin: 0.8rem 0 0.4rem; color: var(--cyan); font-weight: 600; }
-.ar-needs { margin: 0.8rem 0 0.4rem; color: var(--text-dim); font-style: italic; }
+.assume { color: var(--text-dim); border-bottom: 1px dotted var(--text-dim); cursor: help; font-size: var(--fs-label); }
+.ar-small { font-size: var(--fs-label); color: var(--text-dim); margin: 0.35rem 0; }
+.ar-question { margin: 0.6rem 0 0.35rem; color: var(--cyan); font-weight: 600; }
+.ar-needs { margin: 0.6rem 0 0.35rem; color: var(--text-dim); font-style: italic; }
 .ar-choices, .ar-chains { border: 0; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
-.ar-choices legend, .ar-chains legend { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 0.3rem; padding: 0; }
+.ar-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ar-choices legend, .ar-chains legend { font-size: var(--fs-label); color: var(--text-dim); margin-bottom: 0.3rem; padding: 0; grid-column: 1 / -1; }
 .ar-choice {
-  font: inherit; font-size: 0.84rem; text-align: left; color: var(--text); cursor: pointer; min-height: 2.3rem;
+  font: inherit; font-size: var(--fs-label); text-align: left; color: var(--text); cursor: pointer; min-height: 2.3rem;
   padding: 0.4rem 0.7rem; background: var(--bg-raised); border: 1px solid var(--line); border-radius: 6px;
 }
 .ar-choice:hover { border-color: var(--cyan); color: var(--cyan); }
 .ar-choice.tried { border-style: dashed; color: var(--text-dim); }
-.ar-chain { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.84rem; cursor: pointer; }
+.ar-chain { display: flex; gap: 0.5rem; align-items: flex-start; font-size: var(--fs-label); cursor: pointer; }
 .ar-chain input { margin-top: 0.25rem; accent-color: var(--cyan); }
 .ar-answer .btn { margin-top: 0.5rem; }
 .ar-result { margin-top: 0.7rem; padding: 0.6rem 0.75rem; border-radius: 6px; border: 1px solid var(--line); background: rgba(20, 18, 46, 0.9); }
 .ar-result p { margin: 0 0 0.35rem; }
-.ar-result .ar-verdict { font: 700 0.72rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.ar-result .ar-verdict { font: 700 var(--fs-label) var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
 .ar-result.ok { border-color: var(--violet); }
 .ar-result.ok .ar-verdict { color: var(--violet); }
 .ar-result.wrong { border-color: var(--danger); }
 .ar-result.wrong .ar-verdict { color: var(--danger); }
-.ar-readings { list-style: none; margin: 0.3rem 0 0.5rem; padding: 0; display: grid; gap: 0.2rem; font-size: 0.8rem; }
+.ar-readings { list-style: none; margin: 0.3rem 0 0.5rem; padding: 0; display: grid; gap: 0.2rem; font-size: var(--fs-label); }
 .ar-readings .k { color: var(--text-dim); }
 .ar-readings .value { display: inline-flex; align-items: baseline; gap: 0.3rem; }
 .ar-readings .unitgloss { display: none; }
 
 /* markers over the scene */
-.ar-markers { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.ar-markers { pointer-events: none; z-index: 2; }
 .ar-marker { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 0.35rem; transition: opacity 0.3s; }
 .ar-marker[data-visible='0'] { opacity: 0; }
 .ar-marker .dot { width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; border: 1.5px solid var(--cyan); box-shadow: 0 0 8px rgba(79, 240, 196, 0.7); }
 .ar-marker .lbl {
-  font: 0.72rem var(--font-mono); color: var(--cyan); white-space: nowrap; transform: translateY(-50%);
+  font: var(--fs-label) var(--font-mono); color: var(--cyan); white-space: nowrap; transform: translateY(-50%);
   padding: 0.1rem 0.4rem; background: rgba(8, 7, 26, 0.7); border: 1px solid rgba(79, 240, 196, 0.35); border-radius: 4px; margin-top: 10px;
 }
 .ar-marker.gold .dot { border-color: var(--gold); box-shadow: 0 0 8px rgba(232, 182, 74, 0.7); }
 .ar-marker.gold .lbl { color: var(--gold); border-color: rgba(232, 182, 74, 0.4); }
 .ar-marker.warm .dot { width: 34px; height: 34px; margin: -17px 0 0 -17px; border: 0; background: radial-gradient(circle, rgba(255, 150, 70, 0.75), rgba(255, 90, 40, 0.15) 60%, transparent 72%); box-shadow: none; }
-.ar-marker.warm .lbl { color: #ffb27a; border-color: rgba(255, 150, 70, 0.4); }
+.ar-marker.warm .lbl { color: var(--heat); border-color: rgba(255, 150, 70, 0.4); }
 .ar-marker.cold .dot { border-color: #7aa8ff; box-shadow: 0 0 8px rgba(122, 168, 255, 0.6); }
-.ar-marker.cold .lbl { color: #9bbcff; border-color: rgba(122, 168, 255, 0.4); }
+.ar-marker.cold .lbl { color: var(--cold); border-color: rgba(122, 168, 255, 0.4); }
 .ar-marker.probe .dot { border-color: var(--violet); box-shadow: 0 0 10px rgba(155, 123, 255, 0.8); }
 .ar-marker.probe .lbl { color: var(--violet); border-color: rgba(155, 123, 255, 0.45); }
 :root:not(.calm) .ar-marker.warm .dot { animation: ar-pulse 3.2s ease-in-out infinite; }
@@ -85,24 +92,31 @@
 
 /* charts */
 .ar-spectrum, .ar-clock { width: 100%; height: auto; display: block; margin: 0.2rem 0 0.4rem; }
-.ar-spectrum .grid, .ar-clock .grid { stroke: var(--line); stroke-width: 0.6; }
-.ar-spectrum .tick, .ar-clock .tick { fill: var(--text-dim); font: 8.5px var(--font-mono); }
-.ar-spectrum .axis, .ar-clock .axis { fill: var(--text-dim); font: 9px var(--font-sans); }
+/* The charts are drawn 340 to 360 units wide and shown about 400 px wide, so 12 units of type read as 13 px. */
+.ar-spectrum .grid, .ar-clock .grid { stroke: #2a2750; stroke-width: 0.6; }
+.ar-spectrum .tick, .ar-clock .tick { fill: var(--text-dim); font: 12px var(--font-mono); }
+.ar-spectrum .axis, .ar-clock .axis { fill: var(--text-dim); font: 12.5px var(--font-sans); }
 .ar-spectrum .bar { fill: var(--cyan); opacity: 0.75; }
 .ar-spectrum .bar.hot { fill: var(--violet); opacity: 1; }
 .ar-clock .axisline { stroke: var(--text-dim); }
-.ar-clock .si { fill: #77759c; }
+.ar-clock .si { fill: var(--text-dim); }
 .ar-clock .band { fill: rgba(155, 123, 255, 0.22); }
 .ar-clock .meas { stroke: var(--violet); stroke-width: 1; stroke-dasharray: 3 2; }
 .ar-clock .meas-label { fill: var(--violet); }
+.ar-spectrum, .ar-clock { max-height: 15rem; }
 .ar-clock .curve { stroke: var(--cyan); stroke-width: 2; }
 .ar-clock .ageband { fill: rgba(79, 240, 196, 0.14); }
 .ar-clock .meet { fill: var(--bg); stroke: var(--cyan); stroke-width: 2; }
 
+/* Without room for a wide instrument (under 1000 px wide or 620 px tall) the instrument flows and the page scrolls. */
+@media (max-width: 999px), (max-height: 619px) {
+  .arrival { height: auto; }
+  .ar-viewport { height: clamp(30rem, 75vh, 42rem); }
+}
 @media (max-width: 760px) {
   .ar-viewport { height: auto; overflow: visible; background: transparent; border: 0; }
-  .ar-scene { position: relative; width: 100%; height: 18rem; border: 1px solid var(--line); border-radius: 8px; background: #000; }
-  .ar-markers { height: 18rem; overflow: hidden; }
+  .ar-scene { position: relative; left: 0; width: 100%; height: 18rem; border: 1px solid var(--line); border-radius: 8px; background: #000; }
+  .ar-markers { left: 0; width: 100%; height: 18rem; overflow: hidden; }
   .ar-scans { position: static; max-width: none; margin: 0.6rem 0; }
   .ar-panelwrap { position: static; width: auto; max-height: none; }
 }

@@ -6,7 +6,7 @@ import { useState } from 'preact/hooks';
 import { nodeStatus } from '../../game/deductions';
 import { confirmedSet, game } from '../../game/state';
 import { GlyphLabel, GlyphSvg } from '../../ui/Glyph';
-import { UNIT_KEY, formatSI, quantity, toAlien } from '../../ui/units';
+import { UNIT_KEY, formatSI, quantity, superscript, toAlien } from '../../ui/units';
 import { normalQuantile } from '../../science/stats';
 import { JULIAN_YEAR_S } from '../../science/units';
 import { ResultLine, Status, propose } from './AnswerBox';
@@ -19,7 +19,7 @@ const W = 360;
 const H = 220;
 const PAD = { l: 40, r: 10, t: 10, b: 40 };
 const Y_MAX = 0.35; // Th-230/U-234 atoms; old ore sits at 0.307
-/** The age axis runs to 4e12 alien time units (D-A22: about 110,000 years), ticks every 1e12. */
+/** The age axis runs to 4 × 10¹² alien time units (D-A22: about 110,000 years), ticks every 10¹² (written as 1 to 4 under a × 10¹² label). */
 const AXIS_BEATS = [0, 1e12, 2e12, 3e12, 4e12];
 const beatsToYears = (n: number): number => n / toAlien('time', 1) / JULIAN_YEAR_S;
 const MAX_YEARS = beatsToYears(4e12);
@@ -51,7 +51,7 @@ export function DecayPlot(p: { m: ArrivalModel; chain: ChainId }) {
         <g key={n}>
           <line x1={sx(beatsToYears(n))} x2={sx(beatsToYears(n))} y1={H - PAD.b} y2={H - PAD.b + 4} class="axisline" />
           <text x={sx(beatsToYears(n))} y={H - PAD.b + 14} class="tick" text-anchor="middle">
-            {n === 0 ? '0' : `${n / 1e12}e12`}
+            {n / 1e12}
           </text>
           {gloss && n > 0 && (
             <text x={sx(beatsToYears(n))} y={H - PAD.b + 24} class="tick si" text-anchor="middle">
@@ -61,7 +61,7 @@ export function DecayPlot(p: { m: ArrivalModel; chain: ChainId }) {
         </g>
       ))}
       <text x={PAD.l + (W - PAD.l - PAD.r) / 2} y={H - 3} class="axis" text-anchor="middle">
-        age ({UNIT_KEY.time})
+        age ({UNIT_KEY.time}s × 10{superscript(12)})
       </text>
       <rect x={PAD.l} width={W - PAD.l - PAD.r} y={sy(band[1]!)} height={sy(band[0]!) - sy(band[1]!)} class="band" />
       <line x1={PAD.l} x2={W - PAD.r} y1={sy(meas.th230OverU234)} y2={sy(meas.th230OverU234)} class="meas" />

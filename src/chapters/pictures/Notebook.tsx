@@ -4,9 +4,11 @@
 // develop, and the gold thumbnails of what has been seen.
 
 import type { ComponentChildren } from 'preact';
+import { useEffect, useRef } from 'preact/hooks';
 import { nodeStatus, type Answer } from '../../game/deductions';
 import { dispatch } from '../../game/bus';
 import { confirmedSet, decoder as D } from '../../game/state';
+import { alignOpenPanel } from '../../ui/notebook';
 import { send } from '../../ui/send';
 import { LastReading, PanelHead } from '../key/parts';
 import { FIRST_FRAMES, FRAMES_TO_WATCH, sliceInfo, type PictureNodeId } from './checkers';
@@ -145,8 +147,14 @@ export function Seen() {
 
 export function Notebook() {
   const confirmed = confirmedSet.value;
+  const col = useRef<HTMLDivElement>(null);
+  // The next panel opens as one is confirmed: keep it, and the result just given, in view in this column.
+  useEffect(() => {
+    const el = col.current;
+    if (el) requestAnimationFrame(() => alignOpenPanel(el));
+  }, [confirmed.size]);
   return (
-    <div class="pic-notebook">
+    <div class="pic-notebook" ref={col}>
       <Panel id="pictures.lineTime" />
       <Panel id="pictures.sync" />
       <Panel id="pictures.interlace" />

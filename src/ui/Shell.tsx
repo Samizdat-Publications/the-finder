@@ -9,6 +9,7 @@ import { confirmedSet, game, hintsUsed } from '../game/state';
 import { Codex } from './Codex';
 import { GlyphLabel } from './Glyph';
 import { Hub } from './Hub';
+import { notebookOpen, revealInside } from './notebook';
 import { SettingsPanel } from './SettingsPanel';
 import { Workbench } from './Workbench';
 import { send } from './send';
@@ -33,12 +34,14 @@ function TopBar() {
   const view = game.chapter.value;
   const where = view === 'hub' ? 'the ring' : (chapterDef(view)?.title ?? view);
   const open = view === 'hub' ? [] : openNodes(view, confirmed);
+  // Only chapters whose instruments exist count: the later chapters' deductions are in the graph before they are playable.
+  const playable = NODES.filter((n) => chapterDef(n.chapter)?.built);
   return (
     <header class="topbar">
       <div class="status" role="status">
         <GlyphLabel k="vessel status" height={20} />
         <span class="statusline">
-          At {where}. {confirmed.size} of {NODES.length} deductions confirmed
+          At {where}. {playable.filter((n) => confirmed.has(n.id)).length} of {playable.length} deductions confirmed
           {hintsUsed.value > 0 ? `, ${hintsUsed.value} hint${hintsUsed.value === 1 ? '' : 's'} used` : ''}.
         </span>
       </div>
@@ -56,9 +59,14 @@ function TopBar() {
           onClick={() => {
             const first = open[0];
             if (!first) return;
-            const btn = document.querySelector<HTMLElement>(`[data-hint="${first.id}"]`);
-            btn?.scrollIntoView({ block: 'center' });
-            btn?.focus();
+            // The hint buttons live in the notebook: open it, then reveal the button inside its own column.
+            notebookOpen.value = true;
+            requestAnimationFrame(() => {
+              const btn = document.querySelector<HTMLElement>(`[data-hint="${first.id}"]`);
+              if (!btn) return;
+              btn.focus({ preventScroll: true });
+              revealInside(btn);
+            });
           }}
         >
           <span>Hint</span>

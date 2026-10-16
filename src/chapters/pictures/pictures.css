@@ -13,25 +13,25 @@
 .pic-frame canvas { display: block; image-rendering: pixelated; }
 .pic-beam { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: rgba(255, 240, 200, 0.85); box-shadow: 0 0 10px rgba(232, 182, 74, 0.9); pointer-events: none; }
 .pic-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-dim); font-size: 0.9rem; }
-.pic-caption { margin: 0.35rem 0 0; font-size: 0.8rem; color: var(--text-dim); min-height: 1.3em; }
+.pic-caption { margin: 0.35rem 0 0; font-size: var(--fs-label); color: var(--text-dim); min-height: 1.3em; }
 .pic-they { margin: 0; text-align: center; font-size: 1.5rem; letter-spacing: 0.08em; color: var(--gold); text-shadow: 0 0 18px rgba(232, 182, 74, 0.5); }
-.pic-caption-sound { margin: 0; text-align: center; font-size: 0.85rem; color: var(--violet); font-style: italic; }
+.pic-caption-sound { margin: 0; text-align: center; font-size: var(--fs-label); color: var(--violet); font-style: italic; }
 
 .pic-scope { margin: 0; padding: 0.6rem 0.7rem; background: linear-gradient(180deg, rgba(20, 18, 46, 0.92), rgba(8, 7, 26, 0.92)); border: 1px solid var(--line); border-radius: 8px; }
 .pic-scope canvas { display: block; width: 100%; height: 200px; border-radius: 4px; }
-.pic-scope figcaption { margin: 0.4rem 0 0; font-size: 0.8rem; }
-.pic-dim { color: var(--text-dim); font-size: 0.85em; }
+.pic-scope figcaption { margin: 0.4rem 0 0; font-size: var(--fs-label); }
+.pic-dim { color: var(--text-dim); }
 
 .pic-knobs { display: grid; gap: 0.65rem; padding: 0.9rem 1rem; background: linear-gradient(180deg, rgba(20, 18, 46, 0.92), rgba(8, 7, 26, 0.92)); border: 1px solid var(--line); border-radius: 8px; }
 .pic-knob { display: grid; gap: 0.3rem; }
-.pic-knob label { display: flex; justify-content: space-between; gap: 0.6rem; font-size: 0.85rem; }
-.pic-knob output { font-family: var(--font-mono); color: var(--cyan); }
+.pic-knob label { display: flex; justify-content: space-between; gap: 0.6rem; font-size: var(--fs-label); }
+.pic-knob output { font-family: var(--font-mono); font-size: var(--fs-value); color: var(--cyan); }
 .pic-knob input[type='range'] { width: 100%; accent-color: var(--cyan); }
-.pic-klabel { font-size: 0.85rem; }
+.pic-klabel { font-size: var(--fs-label); }
 .pic-row { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
-.pic-num { width: 8.5rem; font-family: var(--font-mono); font-size: 0.85rem; color: var(--cyan); background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 4px; padding: 0.2rem 0.4rem; }
+.pic-num { width: 8.5rem; font-family: var(--font-mono); font-size: var(--fs-value); color: var(--cyan); background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 4px; padding: 0.2rem 0.4rem; }
 .pic-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-.pic-seg button { font: inherit; font-size: 0.82rem; color: var(--text-dim); background: var(--bg-sunk); border: 0; padding: 0.3rem 0.7rem; cursor: pointer; }
+.pic-seg button { font: inherit; font-size: var(--fs-label); color: var(--text-dim); background: var(--bg-sunk); border: 0; padding: 0.3rem 0.7rem; cursor: pointer; }
 .pic-seg button + button { border-left: 1px solid var(--line); }
 .pic-seg button.on { color: var(--bg); background: var(--cyan); }
 .pic-run { margin-top: 0.2rem; }
@@ -40,16 +40,61 @@
 .pic-panel { padding: 0.7rem 0.9rem; }
 .pic-panel.locked { opacity: 0.5; padding: 0.45rem 0.9rem; }
 .pic-panel.locked .khead { margin-bottom: 0; }
-.pic-panel .note { font-size: 0.84rem; margin: 0 0 0.5rem; }
+.pic-panel .note { font-size: var(--fs-label); margin: 0 0 0.5rem; }
 .pic-follow { margin: 0.2rem 0 0.5rem; }
 .pic-frame-btn.seen { border-color: var(--gold); color: var(--gold); }
 
 .pic-seen { padding: 0.6rem 0.8rem; border: 1px solid rgba(232, 182, 74, 0.35); border-radius: 8px; background: rgba(232, 182, 74, 0.04); }
-.pic-h { margin: 0 0 0.5rem; font-size: 0.85rem; font-weight: 400; color: var(--gold); }
+.pic-h { margin: 0 0 0.5rem; font-size: var(--fs-label); font-weight: 400; color: var(--gold); }
 .pic-seen ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.6rem; }
-.pic-seen li { display: grid; gap: 0.2rem; font-size: 0.72rem; color: var(--gold); font-family: var(--font-mono); }
+.pic-seen li { display: grid; gap: 0.2rem; font-size: var(--fs-label); color: var(--gold); font-family: var(--font-mono); }
 .pic-seen img { width: 128px; height: auto; border: 1px solid rgba(232, 182, 74, 0.4); border-radius: 3px; image-rendering: auto; }
 
 @media (max-width: 900px) {
   .picinst { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* On a screen with room (1000 x 620 and up) the page does not scroll. Two columns: the picture over the scope and
+   what has been seen on the left; the cover's diagrams over the knobs over the notebook on the right. When the
+   instrument is 1200 px or more across, three: the picture and what has been seen; the scope over the knobs;
+   the diagrams over the notebook. The notebook scrolls in its own box; nothing scrolls the page. */
+@media (min-width: 1000px) and (min-height: 620px) {
+  .picinst { height: 100%; margin: 0; gap: 1rem; align-items: stretch; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+  .pic-main, .pic-side { display: flex; flex-direction: column; gap: 0.7rem; min-width: 0; min-height: 0; }
+  .pic-view { flex: 1 1 0; min-height: 0; contain: size; }
+  .pic-lower { display: flex; align-items: center; gap: 0.9rem; min-width: 0; }
+  .pic-lower .pic-seen { flex: 1; min-width: 0; }
+  .pic-they { font-size: 1.2rem; flex: none; }
+  .pic-scope canvas { height: 130px; }
+  .pic-seen { padding: 0.4rem 0.6rem; }
+  .pic-seen ul { gap: 0.4rem; }
+  .pic-seen img { width: 84px; }
+  .pic-h { margin-bottom: 0.3rem; }
+  .pic-side > .coverwrap { display: flex; gap: 0.7rem; align-items: stretch; min-width: 0; flex: none; }
+  .pic-side .coverviewer { width: 11.5rem; flex: none; }
+  .pic-side .covertools { display: grid; grid-template-columns: auto auto; align-content: start; align-items: start; justify-content: start; gap: 0.4rem 0.6rem; margin: 0; }
+  .pic-side .covernote { grid-column: 1 / -1; min-width: 0; }
+  .pic-side .covernote .note { font-size: var(--fs-label); margin: 0; line-height: 1.35; }
+  .pic-knobs { flex: none; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.5rem 0.8rem; padding: 0.7rem 0.9rem; }
+  .pic-knobs > * { grid-column: span 2; }
+  .pic-knobs [data-knob='lineTime'] { grid-column: 1 / -1; }
+  .pic-knobs [data-knob='rows'], .pic-knobs .pic-run { grid-column: span 3; }
+  .pic-knobs .pic-run { align-content: end; }
+  .pic-seg { display: flex; }
+  .pic-seg button { flex: 1; padding: 0.3rem 0.4rem; }
+  .pic-notebook { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; padding-right: 0.2rem; }
+  @container (min-width: 1200px) {
+    .picinst {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-areas: 'pic scope cover' 'pic knobs notes' 'lower knobs notes';
+    }
+    .pic-main, .pic-side { display: contents; }
+    .pic-view { grid-area: pic; }
+    .pic-scope { grid-area: scope; align-self: start; }
+    .pic-lower { grid-area: lower; align-self: start; }
+    .pic-side > .coverwrap { grid-area: cover; }
+    .pic-knobs { grid-area: knobs; align-self: start; }
+    .pic-notebook { grid-area: notes; }
+  }
 }

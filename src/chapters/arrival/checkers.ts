@@ -4,17 +4,18 @@
 
 import { registerChecker, type CheckResult, type Checker, type Reading } from '../../game/deductions';
 import { JULIAN_YEAR_S } from '../../science/units';
+import { formatPower } from '../../ui/units';
 import { NATURAL_U238_OVER_U234, chainRatios, judgeChain, type ChainId } from './chains';
 import { CHOICES } from './choices';
 import { DISH_DIAMETER_M } from './constants';
 import type { ArrivalModel } from './model';
 import { SECONDS_PER_DAY, cylinderGeometry, secondsToYears } from './physics';
 
-/** n significant figures, grouped, never in e-notation below 1e6. */
+/** n significant figures, grouped; below 0.001 and from 1,000,000 up a power of ten (units.ts formatPower), never e-notation. */
 export function sig(x: number, n = 3): string {
   if (!Number.isFinite(x)) return String(x);
   const a = Math.abs(x);
-  if (a !== 0 && (a >= 1e6 || a < 1e-3)) return x.toExponential(n - 1).replace('e+', 'e');
+  if (a !== 0 && (a >= 1e6 || a < 1e-3)) return formatPower(x, n);
   return Number(x.toPrecision(n)).toLocaleString('en-US', { maximumFractionDigits: 6 });
 }
 

@@ -7,6 +7,7 @@ import { instrumentFor } from '../chapters/registry';
 import { chapterDef, nodeDef, nodesOf, type ChapterId, type NodeDef } from '../game/graph';
 import { confirmedSet, game } from '../game/state';
 import { GlyphLabel } from './Glyph';
+import { notebookOpen } from './notebook';
 import { send } from './send';
 
 const STATUS_TEXT: Record<NodeStatus, string> = { locked: 'locked', open: 'open', confirmed: 'confirmed' };
@@ -78,6 +79,9 @@ export function Workbench(p: { chapter: ChapterId }) {
   const def = chapterDef(p.chapter);
   if (!def) return null;
   const nodes = nodesOf(p.chapter);
+  const confirmed = confirmedSet.value;
+  const done = nodes.filter((n) => confirmed.has(n.id)).length;
+  const open = notebookOpen.value;
   const Instrument = instrumentFor(p.chapter);
   return (
     <section class="bench-area" aria-label={def.title} data-chapter={p.chapter}>
@@ -86,25 +90,41 @@ export function Workbench(p: { chapter: ChapterId }) {
           Back to the ring
         </button>
         <h1>
-          <GlyphLabel k={def.title} gloss={def.title} height={38} />
+          <GlyphLabel k={def.title} gloss={def.title} height={30} />
         </h1>
         <p class="note">{def.gloss}</p>
+        <button
+          type="button"
+          class="btn small notebook-toggle"
+          data-tool="notebook"
+          aria-expanded={open}
+          aria-controls="notebook"
+          onClick={() => (notebookOpen.value = !open)}
+        >
+          Notebook <b class="count">{done}/{nodes.length}</b>
+        </button>
       </header>
-      {Instrument ? (
-        <Instrument chapter={p.chapter} />
-      ) : (
-        <div class="frame">
-          <p class="building" role="status">
-            This instrument is being built.
-          </p>
-          <p class="note">The deductions of this chapter are listed below, with what each one waits for.</p>
+      <div class="bench-body" data-notebook={open ? 'open' : 'closed'}>
+        <div class="bench-main">
+          {Instrument ? (
+            <Instrument chapter={p.chapter} />
+          ) : (
+            <div class="frame">
+              <p class="building" role="status">
+                This instrument is being built.
+              </p>
+              <p class="note">The deductions of this chapter are listed in the notebook, with what each one waits for.</p>
+            </div>
+          )}
         </div>
-      )}
-      <ul class="nodes" aria-label="Deductions in this chapter">
-        {nodes.map((n) => (
-          <NodeRow key={n.id} node={n} />
-        ))}
-      </ul>
+        <aside class="notebook" id="notebook" aria-label="Notebook of deductions" hidden={!open}>
+          <ul class="nodes" aria-label="Deductions in this chapter">
+            {nodes.map((n) => (
+              <NodeRow key={n.id} node={n} />
+            ))}
+          </ul>
+        </aside>
+      </div>
     </section>
   );
 }

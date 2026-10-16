@@ -4,7 +4,7 @@
 import type { ComponentChildren } from 'preact';
 import { game } from '../../game/state';
 import { GlyphLabel, GlyphSvg, Value } from '../../ui/Glyph';
-import { UNIT_KEY, formatSI, quantity, type Dim } from '../../ui/units';
+import { UNIT_KEY, formatSI, quantity, quantityText, superscript, type Dim } from '../../ui/units';
 import { AnswerBox } from './AnswerBox';
 import { sig } from './checkers';
 import { DISH_DIAMETER_M, MAG_BOOM_M, RTG_CYLINDER } from './constants';
@@ -68,10 +68,11 @@ export function HeatPanel(p: { m: ArrivalModel }) {
   const { low, high } = p.m.heatW;
   const tLow = leftoverEstimate(low).surfaceK;
   const tHigh = leftoverEstimate(high).surfaceK;
+  const gloss = game.settings.value.humanGloss;
   const assumptions =
-    `Low: radon escapes the fuel, so the heat of radium-226's short-lived daughters (${sig(high - low, 2)} W) is lost. ` +
+    `Low: radon escapes the fuel, so the heat of radium-226's short-lived daughters (${quantityText('power', high - low, gloss)}) is lost. ` +
     `High: radon is retained. Both assume the plutonium that was not plutonium-238 had the Cassini mix; ` +
-    `its plutonium-239 gives ${sig(p.m.pu239HeatW, 2)} W of the total.`;
+    `its plutonium-239 gives ${quantityText('power', p.m.pu239HeatW, gloss)} of the total.`;
   return (
     <section class="ar-panel" aria-label="Heat scan" data-panel="heat">
       <h2>
@@ -110,9 +111,9 @@ const LOG_MIN = -6; // the spectrum's floor: atom fraction 1e-6
 export function SpectrumChart(p: { m: ArrivalModel }) {
   const lines = p.m.spectrum;
   const W = 340;
-  const H = 190;
-  const padL = 34;
-  const padB = 26;
+  const H = 204;
+  const padL = 36;
+  const padB = 40;
   const bw = (W - padL - 6) / lines.length;
   const y = (f: number): number => {
     const l = Math.max(LOG_MIN, Math.log10(Math.max(f, 1e-30)));
@@ -124,7 +125,7 @@ export function SpectrumChart(p: { m: ArrivalModel }) {
         <g key={e}>
           <line x1={padL} x2={W - 4} y1={y(10 ** e)} y2={y(10 ** e)} class="grid" />
           <text x={padL - 4} y={y(10 ** e) + 3} class="tick" text-anchor="end">
-            {e === 0 ? '1' : `1e${e}`}
+            {e === 0 ? '1' : `10${superscript(e)}`}
           </text>
         </g>
       ))}

@@ -6,6 +6,7 @@
 // number never begins with 0) and with the single stroke between the two hydrogen drawings reading as 1.
 
 import type { Answer, CheckResult, Reading } from '../../game/deductions';
+import { formatPower } from '../../ui/units';
 import type { BinaryGroup, StrokeKind } from '../shared/coverSvg';
 
 export type BinaryReading = 'positional' | 'tally' | 'letters' | 'decoration';
@@ -97,7 +98,7 @@ export function letterFits(groups: readonly BinaryGroup[]): { long: number; gcd:
   return { long: lens.length, gcd: lens.reduce(gcd, 0), best };
 }
 
-const fmtChance = (p: number): string => (p > 0 ? `1 in ${Number((1 / p).toPrecision(2)).toExponential(1).replace('e+', 'e')}` : '0');
+const fmtChance = (p: number): string => (p > 0 ? `1 in ${formatPower(1 / p, 2)}` : '0');
 
 export function parseBinaryAnswer(answer: Answer): BinaryAnswer | null {
   if (typeof answer !== 'object' || answer === null || Array.isArray(answer)) return null;

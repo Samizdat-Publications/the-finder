@@ -2,9 +2,10 @@
 // panel reads the cover's numbers with it, live: the disc's turn and how its rim speed compares with what a
 // copper disc survives, a side, a picture line, and the 14 map numbers against the pulsar catalogue.
 
-import { game } from '../../game/state';
+import { nodeStatus } from '../../game/deductions';
+import { confirmedSet, game } from '../../game/state';
 import { GlyphLabel } from '../../ui/Glyph';
-import { formatNumber, quantity } from '../../ui/units';
+import { formatNumber, formatPower, quantity } from '../../ui/units';
 import { keyInputs, pulsarError, pulsarSpan } from './data';
 import { LastReading, PanelHead, Propose, plural, type Choice } from './parts';
 import { TRANSITIONS, periodS, transition, wavelengthM, type TransitionId } from './physics';
@@ -22,7 +23,7 @@ function Q(p: { dim: 'time' | 'length'; si: number }) {
   );
 }
 
-const ratio = (x: number): string => (x >= 1000 || x < 0.01 ? x.toExponential(1).replace('e+', 'e') : formatNumber(Number(x.toPrecision(2))));
+const ratio = (x: number): string => (x >= 1000 || x < 0.01 ? formatPower(x, 2) : formatNumber(Number(x.toPrecision(2))));
 
 function UnitsTable(p: { id: TransitionId }) {
   const t = transition(p.id);
@@ -85,8 +86,9 @@ function UnitsTable(p: { id: TransitionId }) {
 }
 
 export function AtlasPanel(p: { choice: TransitionId; onChoice: (id: TransitionId) => void }) {
+  const status = nodeStatus('key.unit', confirmedSet.value);
   return (
-    <section class="kpanel" data-panel="key.unit" aria-label="Atlas of hydrogen">
+    <section class={`kpanel ${status}`} data-panel="key.unit" data-status={status} aria-label="Atlas of hydrogen">
       <PanelHead id="key.unit" />
       <p class="note">
         The plate draws one small atom twice, side by side, with a single stroke between them; inside each, two little marks point the

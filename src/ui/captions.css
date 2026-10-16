@@ -5,14 +5,20 @@
 }
 .caption {
   display: inline-block; padding: 0.25rem 0.8rem;
-  font: 0.85rem/1.4 var(--font-mono); color: var(--text);
+  font: var(--fs-label)/1.4 var(--font-mono); color: var(--text);
   background: rgba(8, 7, 26, 0.88); border: 1px solid var(--line); border-radius: 6px;
 }
 .soundtoggle {
   position: fixed; left: 1rem; bottom: 1rem; z-index: 40;
   min-height: 2rem; padding: 0.15rem 0.7rem;
-  font: 0.78rem/1.4 var(--font-mono); color: var(--text-dim);
+  font: var(--fs-label)/1.4 var(--font-mono); color: var(--text-dim);
   background: rgba(8, 7, 26, 0.88); border: 1px solid var(--line); border-radius: 6px; cursor: pointer;
 }
 .soundtoggle:hover { border-color: var(--cyan); color: var(--cyan); }
 .soundtoggle[aria-pressed='true'] { color: var(--danger); border-color: var(--danger); }
+
+/* On a screen with room the instrument fills the page down to its bottom edge, so the mute switch moves up into
+   the top bar's empty middle, where it covers nothing. */
+@media (min-width: 1000px) and (min-height: 620px) {
+  .soundtoggle { top: calc((var(--topbar-h) - 2rem) / 2); bottom: auto; left: auto; right: 23.5rem; font-size: var(--fs-label); }
+}

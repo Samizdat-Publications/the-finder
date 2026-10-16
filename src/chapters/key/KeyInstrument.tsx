@@ -2,12 +2,13 @@
 // the atlas of hydrogen, times or lengths), each opening as the one before it is confirmed. Proposals go
 // through the command bus; the lamp, the view, the table and the atlas choice are the instrument's own state.
 
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { nodeStatus } from '../../game/deductions';
 import { nodeDef } from '../../game/graph';
 import { confirmedSet, game } from '../../game/state';
 import { GlyphLabel } from '../../ui/Glyph';
 import { formatNumber, formatSI } from '../../ui/units';
+import { alignOpenPanel } from '../../ui/notebook';
 import { coverModel } from '../shared/coverData';
 import { CoverViewer, type StrokeRef } from '../shared/CoverViewer';
 import type { Lamp } from '../shared/relief';
@@ -57,6 +58,14 @@ export function KeyInstrument() {
     return `${formatNumber(n)}${si}`;
   };
   const status = (id: string) => nodeStatus(id, confirmed);
+  // When a deduction is confirmed the next instrument opens: keep it (and the result just given) in view in the
+  // instruments' own column.
+  const col = useRef<HTMLDivElement>(null);
+  const stage = `${binaryDone}${status('key.unit')}${timesDone}`;
+  useEffect(() => {
+    const el = col.current;
+    if (el) requestAnimationFrame(() => alignOpenPanel(el));
+  }, [stage]);
 
   return (
     <div class="keyinst" data-key-ready={pulsarSpan.value ? 'true' : 'false'}>
@@ -78,7 +87,7 @@ export function KeyInstrument() {
           </p>
         </CoverViewer>
       </div>
-      <div class="kpanels">
+      <div class="kpanels" ref={col}>
         <BinaryPanel
           groups={coverModel.groups}
           size={coverModel.size}

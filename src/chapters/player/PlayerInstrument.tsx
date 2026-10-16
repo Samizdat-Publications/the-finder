@@ -189,11 +189,8 @@ export function PlayerInstrument() {
       </div>
 
       <div class="ppanels">
-        <section class="kpanel pdeck" aria-label="The turntable">
-          <div class="pdeckgrid">
-            <Platter target={target} onTarget={setTarget} reducedMotion={reduced} />
-            <Controls target={target} reading={rd} dirChosen={dirKnown} onDirection={onDirection} onDrop={() => void onDrop()} />
-          </div>
+        <section class="kpanel pctlpanel" aria-label="The turntable controls">
+          <Controls target={target} reading={rd} dirChosen={dirKnown} onDirection={onDirection} onDrop={() => void onDrop()} />
           {reduced && (
             <p class="note small" data-rate="">
               The platter turns {T.direction.value === 'cw' ? 'clockwise' : 'counter-clockwise'} once every <Time s={T.secondsPerTurn.value} /> (held still: reduced motion).
@@ -201,25 +198,32 @@ export function PlayerInstrument() {
           )}
         </section>
 
-        <section class="kpanel" aria-label="The groove microscope">
-          <header class="khead">
-            <span class="plabel">The groove under the microscope, where the needle drops</span>
-          </header>
-          <Microscope centreMm={target} reducedMotion={reduced} />
-        </section>
-
-        {(['player.speed', 'player.start', 'player.direction', 'player.firstSound'] as const).map((id) => (
-          <section key={id} class="kpanel pnode" data-panel={id}>
-            <PanelHead id={id} />
-            {id === 'player.start' && nodeStatus(id, confirmed) === 'open' && <p class="note small">Drop the needle where the side begins: the drop is your answer.</p>}
-            {id === 'player.firstSound' && fsOpen && (
-              <p class="note small" data-listening={rd.down ? listened.value.toFixed(1) : ''}>
-                {rd.down ? `Listening: ${formatNumber(Math.floor((listened.value / BEAT_S) * 10) / 10)} beats undisturbed.` : 'Set the turntable up, drop the needle, and listen.'}
-              </p>
-            )}
-            <LastReading id={id} />
+        <div class="pscene">
+          <section class="kpanel pdeck" aria-label="The turntable">
+            <Platter target={target} onTarget={setTarget} reducedMotion={reduced} />
           </section>
-        ))}
+          <section class="kpanel pscope" aria-label="The groove microscope">
+            <header class="khead">
+              <span class="plabel">The groove under the microscope, where the needle drops</span>
+            </header>
+            <Microscope centreMm={target} reducedMotion={reduced} />
+          </section>
+        </div>
+
+        <div class="pnodes">
+          {(['player.speed', 'player.start', 'player.direction', 'player.firstSound'] as const).map((id) => (
+            <section key={id} class={`kpanel pnode ${nodeStatus(id, confirmed)}`} data-panel={id}>
+              <PanelHead id={id} />
+              {id === 'player.start' && nodeStatus(id, confirmed) === 'open' && <p class="note small">Drop the needle where the side begins: the drop is your answer.</p>}
+              {id === 'player.firstSound' && fsOpen && (
+                <p class="note small" data-listening={rd.down ? listened.value.toFixed(1) : ''}>
+                  {rd.down ? `Listening: ${formatNumber(Math.floor((listened.value / BEAT_S) * 10) / 10)} beats undisturbed.` : 'Set the turntable up, drop the needle, and listen.'}
+                </p>
+              )}
+              <LastReading id={id} />
+            </section>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -38,7 +38,7 @@ export function BinaryPanel(p: {
   const sel = p.selected ? p.groups.find((g) => g.id === p.selected?.group) : undefined;
   const bit = sel?.bits[p.selected?.index ?? -1];
   return (
-    <section class="kpanel" data-panel="key.binary" aria-label="Strokes">
+    <section class={`kpanel${decoded ? ' confirmed' : ''}`} data-panel="key.binary" data-status={decoded ? 'confirmed' : 'open'} aria-label="Strokes">
       <PanelHead id="key.binary" />
       <table class="ktable census" data-census="">
         <caption>Every string on the plate, counted by the instrument</caption>

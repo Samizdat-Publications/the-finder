@@ -6,6 +6,7 @@
 import type { Answer, CheckResult, Reading } from '../../game/deductions';
 import type { CoverData, PulsarCatalogue } from '../../science/types';
 import { binaryToMetres, binaryToSeconds, parseCoverBinary } from '../../science/units';
+import { formatPower } from '../../ui/units';
 import { TRANSITIONS, burstRimSpeed, rimSpeed, transition, type Transition } from './physics';
 
 export interface CoverNumberRef {
@@ -93,7 +94,7 @@ export function readWithUnit(t: Transition, inp: KeyInputs, range: PulsarRange):
 
 const sig = (x: number, n = 3): string => {
   const v = Number(x.toPrecision(n));
-  return Math.abs(v) >= 1e6 || Math.abs(v) < 1e-3 ? v.toExponential(n - 1).replace('e+', 'e') : v.toLocaleString('en-US', { maximumFractionDigits: 12 });
+  return Math.abs(v) >= 1e6 || Math.abs(v) < 1e-3 ? formatPower(v, n) : v.toLocaleString('en-US', { maximumFractionDigits: 12 });
 };
 
 /** A time in plain human units (for the checker's English message; the interface shows the alien's units). */

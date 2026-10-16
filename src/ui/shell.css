@@ -16,7 +16,7 @@ body {
 
 /* ---- top bar ---- */
 .topbar {
-  position: sticky; top: 0; z-index: 20;
+  position: relative; flex: none; z-index: 20; /* in the flow: its height is reserved, it never covers content */
   display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; align-items: center; justify-content: space-between;
   padding: 0.6rem 1.25rem;
   background: rgba(8, 7, 26, 0.9); backdrop-filter: blur(6px);
@@ -27,7 +27,7 @@ body {
   background: linear-gradient(90deg, transparent, var(--cyan), var(--violet), transparent); opacity: 0.55;
 }
 .status { display: flex; align-items: center; gap: 0.8rem; min-width: 0; color: var(--cyan); }
-.statusline { font: 0.78rem/1.4 var(--font-mono); color: var(--text-dim); letter-spacing: 0.02em; }
+.statusline { font: var(--fs-label)/1.4 var(--font-mono); color: var(--text-dim); letter-spacing: 0.02em; }
 .tools { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .tool {
   display: inline-flex; align-items: center; gap: 0.45rem;
@@ -38,14 +38,14 @@ body {
 .tool:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
 .tool:disabled { opacity: 0.4; cursor: default; }
 .tool[aria-expanded='true'], .tool[aria-current='true'] { border-color: var(--violet); box-shadow: 0 0 0 1px var(--violet) inset; }
-.tool .count { font: 700 0.72rem var(--font-mono); background: var(--bg-sunk); color: var(--cyan); padding: 0.05rem 0.4rem; border-radius: 99px; }
+.tool .count { font: 700 0.8125rem var(--font-mono); background: var(--bg-sunk); color: var(--cyan); padding: 0.05rem 0.4rem; border-radius: 99px; }
 .miniring .mtrack { fill: none; stroke: var(--line); stroke-width: 0.8; }
 .miniring .mdot { fill: var(--bg-sunk); stroke: var(--text-dim); stroke-width: 0.6; }
 .miniring .mdot.open { fill: var(--cyan); stroke: var(--cyan); }
 .miniring .mdot.done { fill: var(--violet); stroke: var(--violet); }
 
 /* ---- stage ---- */
-.stage { flex: 1; width: 100%; max-width: 64rem; margin: 0 auto; padding: 1.25rem 1.25rem 4rem; }
+.stage { flex: 1; width: 100%; max-width: 100rem; margin: 0 auto; padding: 1rem 1.25rem 3rem; }
 .notice { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 30; max-width: min(36rem, 92vw); pointer-events: none; }
 .notice span {
   display: block; padding: 0.55rem 0.9rem; font-size: 0.9rem; color: #ffe3e7;
@@ -56,7 +56,7 @@ body {
 .glyph { color: var(--cyan); flex: none; }
 .glyph.unit, .glyph.rk { color: var(--violet); }
 .glyphlabel { display: inline-flex; flex-direction: column; gap: 0.15rem; align-items: flex-start; }
-.glyphlabel .gloss, .gloss { font-size: 0.78rem; line-height: 1.3; color: var(--text-dim); }
+.glyphlabel .gloss, .gloss { font-size: var(--fs-label); line-height: 1.3; color: var(--text-dim); }
 
 /* ---- the ring ---- */
 .hub { display: flex; justify-content: center; }
@@ -65,7 +65,26 @@ body {
 .ringlines .track { fill: none; stroke: var(--line); stroke-width: 0.35; stroke-dasharray: 0.6 1.2; }
 .ringlines .track.faint { opacity: 0.45; }
 .ringlines .arc { fill: none; stroke: var(--line); stroke-width: 0.5; }
-.ringlines .arc.lit { stroke: var(--cyan); stroke-width: 0.8; filter: drop-shadow(0 0 1.2px var(--cyan)); }
+.ringlines .arc.lit { stroke: var(--cyan); stroke-width: 0.9; filter: drop-shadow(0 0 1.2px var(--cyan)); }
+/* The finished ring: the lit arcs go violet and a slow glow travels along them (reduced motion: held still, same glow). */
+.ring.finished .arc.lit { stroke: var(--violet); stroke-width: 1.1; filter: drop-shadow(0 0 2.4px var(--violet)); }
+.ring.finished .arc.lit.run { stroke: var(--cyan); stroke-width: 1.3; stroke-dasharray: 9 40; stroke-linecap: round; filter: drop-shadow(0 0 2.6px var(--cyan)); }
+:root:not(.calm) .ring.finished .arc.lit.run { animation: ringglow 9s linear infinite; }
+@keyframes ringglow { to { stroke-dashoffset: -98; } }
+.ring.finished .core { text-shadow: 0 0 18px rgba(155, 123, 255, 0.6); }
+@media (prefers-reduced-motion: reduce) { .ring.finished .arc.lit.run { animation: none; } }
+.ringlegend {
+  list-style: none; margin: 0; padding: 0.6rem 0.8rem; display: grid; gap: 0.35rem;
+  font-size: var(--fs-label); color: var(--text-dim);
+  background: rgba(8, 7, 26, 0.7); border: 1px solid var(--line); border-radius: 8px;
+}
+.ringlegend li { display: flex; align-items: center; gap: 0.55rem; }
+.ringlegend b { font: 700 var(--fs-label) var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); min-width: 4.4rem; }
+.swatch { flex: none; width: 1.5rem; height: 0.95rem; border-radius: 4px; border: 1px solid var(--line); background: #14122e; }
+.swatch.open { border-color: var(--cyan); box-shadow: 0 0 8px rgba(79, 240, 196, 0.35); }
+.swatch.done { border-color: var(--violet); box-shadow: 0 0 8px rgba(155, 123, 255, 0.35); }
+.swatch.locked { background: #0e0c24; border-color: #3a3868; }
+.swatch.later { background: #0e0c24; border-color: #3a3868; border-style: dashed; }
 .core { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; color: var(--violet); width: 34%; }
 .core .gloss { margin: 0.4rem 0 0; }
 .chap {
@@ -77,25 +96,30 @@ body {
   transition: border-color 0.2s, box-shadow 0.2s, opacity 0.2s;
 }
 .chap .glyphlabel { align-items: center; }
-.chap .cname { font-size: 0.78rem; line-height: 1.2; }
-.chap .tag { font: 0.66rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
+.chap .cname { font-size: var(--fs-label); line-height: 1.2; }
+.chap .tag { font: 0.8125rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
 .chap.open { border-color: var(--cyan); box-shadow: 0 0 14px rgba(79, 240, 196, 0.25); }
 .chap.open .tag { color: var(--cyan); }
 .chap.done { border-color: var(--violet); box-shadow: 0 0 12px rgba(155, 123, 255, 0.28); }
 .chap.done .tag { color: var(--violet); }
 .chap.open:hover { box-shadow: 0 0 20px rgba(79, 240, 196, 0.45); }
-.chap.locked, .chap.later { cursor: default; background: #0e0c24; border-color: #201e42; color: #7d7ba6; }
-.chap.locked .glyph, .chap.later .glyph { color: #5b5992; }
-.chap.locked .tag, .chap.later .tag { color: #6a6894; }
+.chap.locked, .chap.later { cursor: default; background: #0e0c24; border-color: #3a3868; color: var(--text-dim); }
+.chap.locked .glyph, .chap.later .glyph { color: #6a67a3; }
+.chap.locked .tag, .chap.later .tag { color: var(--text-dim); }
 .chap.later { border-style: dashed; }
 :root:not(.calm) .chap.open { animation: breathe 3.6s ease-in-out infinite; }
 @keyframes breathe { 50% { box-shadow: 0 0 22px rgba(79, 240, 196, 0.5); } }
 .calm *, .calm *::before, .calm *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 
 /* ---- the workbench ---- */
-.chaphead { display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; margin-bottom: 1rem; }
+.chaphead { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1rem; margin-bottom: 0.75rem; }
 .chaphead h1 { margin: 0; font-size: 1rem; }
-.chaphead .note { margin: 0; }
+.chaphead .note { margin: 0; flex: 1; min-width: 12rem; font-size: var(--fs-label); }
+.notebook-toggle .count { font: 700 0.8125rem var(--font-mono); margin-left: 0.3rem; color: var(--violet); }
+.bench-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.bench-main { min-width: 0; }
+.notebook[hidden] { display: none; }
+.notebook .nodes { gap: 0.6rem; }
 .frame {
   position: relative; padding: 1.6rem 1.4rem; margin-bottom: 1.25rem;
   background: linear-gradient(180deg, rgba(20, 18, 46, 0.9), rgba(8, 7, 26, 0.9));
@@ -108,19 +132,19 @@ body {
 .frame::after { right: -1px; bottom: -1px; border-left: 0; border-top: 0; border-bottom-right-radius: 8px; }
 .building { margin: 0 0 0.3rem; font-size: 1.15rem; color: var(--cyan); }
 .nodes { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
-.node { padding: 0.8rem 1rem; background: var(--bg-raised); border: 1px solid var(--line); border-radius: 8px; }
+.node { padding: 0.65rem 0.8rem; background: var(--bg-raised); border: 1px solid var(--line); border-radius: 8px; }
 .node.locked { opacity: 0.55; }
 .node.confirmed { border-color: var(--violet); }
 .nodehead { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
-.chip { flex: none; font: 0.68rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; padding: 0.15rem 0.55rem; border-radius: 99px; border: 1px solid var(--line); color: var(--text-dim); }
+.chip { flex: none; font: 0.8125rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; padding: 0.15rem 0.55rem; border-radius: 99px; border: 1px solid var(--line); color: var(--text-dim); }
 .chip.open { color: var(--cyan); border-color: var(--cyan); }
 .chip.confirmed { color: var(--violet); border-color: var(--violet); }
-.needs { margin: 0.5rem 0 0; font-size: 0.8rem; color: var(--text-dim); }
+.needs { margin: 0.5rem 0 0; font-size: var(--fs-label); color: var(--text-dim); }
 .hintbox { margin-top: 0.6rem; }
-.hints { margin: 0.5rem 0 0; padding-left: 1.2rem; font-size: 0.88rem; }
+.hints { margin: 0.5rem 0 0; padding-left: 1.2rem; font-size: var(--fs-label); }
 .hints li { margin: 0.25rem 0; }
-.tier { font: 0.68rem var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--violet); }
-.wrong { margin-top: 0.6rem; font-size: 0.85rem; color: var(--text-dim); }
+.tier { font: 0.8125rem var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--violet); }
+.wrong { margin-top: 0.6rem; font-size: var(--fs-label); color: var(--text-dim); }
 .wrong summary { cursor: pointer; color: var(--danger); }
 .wrong ul { margin: 0.4rem 0 0; padding-left: 1.2rem; }
 
@@ -142,4 +166,31 @@ body {
   .chap .glyph { height: 20px; width: auto; }
   .core { width: 38%; }
   .core .gloss { font-size: 0.72rem; }
+}
+
+/* ---- reduced motion: the finished ring's glow is held still ---- */
+.calm .ring.finished .arc.lit.run { stroke-dasharray: none; opacity: 0.5; }
+
+/* ---- on a screen with room (1000 x 620 and up) the page itself never scrolls: the chapter's instrument takes
+   the height between the top bar and the bottom, the notebook is a column beside it that scrolls on its own ---- */
+@media (min-width: 1000px) and (min-height: 620px) {
+  html, body { height: 100%; overflow: hidden; }
+  .shell { height: 100vh; height: 100dvh; min-height: 0; }
+  .stage { min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding: 0.75rem 1.25rem 0.9rem; }
+  .bench-area { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .chaphead { flex: none; margin-bottom: 0.55rem; }
+  .bench-body { flex: 1; min-height: 0; grid-template-columns: minmax(0, 1fr); }
+  .bench-body[data-notebook='open'] { grid-template-columns: minmax(0, 1fr) clamp(15rem, 18vw, 18rem); }
+  .bench-main { min-height: 0; container-type: size; }
+  .notebook { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-right: 0.2rem; }
+  .hub { flex: 1; min-height: 0; position: relative; align-items: center; }
+  .ring { height: 100%; width: auto; max-height: 46rem; margin: 0 auto; }
+  .ringlegend { position: absolute; right: 0; bottom: 0; }
+}
+
+@media (max-width: 999px), (max-height: 619px) {
+  .hub { flex-direction: column; align-items: center; gap: 1rem; }
+  .ring { width: min(100%, 46rem, calc(100vh - 7.5rem)); }
+  .ringlegend { width: min(100%, 24rem); }
+  .notebook { margin-top: 0.4rem; }
 }

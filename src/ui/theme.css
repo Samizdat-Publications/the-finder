@@ -11,6 +11,13 @@
   --violet: #9b7bff;
   --gold: #e8b64a;
   --danger: #ff7a8a;
+  --heat: #ffb27a;
+  --cold: #9bbcff;
+  /* Clue sizes: every label that carries evidence is at least 13 px, every value at least 15 px. */
+  --fs-label: 0.8125rem;
+  --fs-value: 0.9375rem;
+  /* Layout: the top bar's height is reserved, never overlaid. */
+  --topbar-h: 3.75rem;
   --font-sans: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
 }

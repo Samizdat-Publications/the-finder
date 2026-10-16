@@ -66,7 +66,7 @@ describe('the alien units', () => {
   it('write numbers in Arabic digits and the human gloss in SI', () => {
     expect(formatNumber(5_113_380_864)).toBe('5,113,380,864');
     expect(formatNumber(3.5994)).toBe('3.599');
-    expect(formatNumber(1.97e21)).toBe('1.97e21');
+    expect(formatNumber(1.97e21)).toBe('1.97 × 10²¹');
     expect(formatSI('time', 3.599944)).toBe('3.6 s');
     expect(formatSI('time', 8.3396e-3)).toBe('8.34 ms');
     expect(formatSI('time', 7.04e-10)).toBe('0.704 ns');

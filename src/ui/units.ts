@@ -67,12 +67,33 @@ export function fromAlien(dim: Dim, n: number): number {
 
 const grouped = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
 
-/** Arabic digits, grouped in thousands; very large or small numbers in e-notation with three significant figures. */
+const SUPERSCRIPT: Record<string, string> = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '-': '⁻' };
+
+/** An integer as superscript characters (12 gives ¹², -6 gives ⁻⁶). */
+export function superscript(n: number): string {
+  return String(Math.trunc(n))
+    .split('')
+    .map((c) => SUPERSCRIPT[c] ?? c)
+    .join('');
+}
+
+/**
+ * The one way the interface writes a very large or very small number: a mantissa and a power of ten with a
+ * superscript exponent (1.59 × 10¹², 3.2 × 10⁻⁷), never e-notation. `digits` is the number of significant figures.
+ */
+export function formatPower(x: number, digits = 3): string {
+  if (!Number.isFinite(x)) return String(x);
+  if (x === 0) return '0';
+  const [m, e] = x.toExponential(Math.max(0, digits - 1)).split('e') as [string, string];
+  return `${Number(m)} × 10${superscript(Number(e))}`;
+}
+
+/** Arabic digits, grouped in thousands; very large or small numbers as a power of ten with three significant figures. */
 export function formatNumber(x: number): string {
   if (!Number.isFinite(x)) return String(x);
   if (x === 0) return '0';
   const a = Math.abs(x);
-  if (a >= 1e12 || a < 1e-3) return x.toExponential(2).replace('e+', 'e');
+  if (a >= 1e12 || a < 1e-3) return formatPower(x, 3);
   if (a >= 1000) return grouped.format(x);
   return String(Number(x.toPrecision(4)));
 }
@@ -123,6 +144,12 @@ export interface QuantityText {
   unitGloss: string;
   /** The same quantity in SI, for the human gloss. */
   si: string;
+}
+
+/** A quantity as plain text for a sentence or a tooltip: the alien's number and unit, with the SI value in parentheses only when the human gloss is on. */
+export function quantityText(dim: Dim, si: number, humanGloss: boolean): string {
+  const q = quantity(dim, si);
+  return `${q.number} ${q.unitKey}${humanGloss ? ` (${q.si})` : ''}`;
 }
 
 /** A quantity given in SI, as the alien writes it. */

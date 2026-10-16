@@ -2,8 +2,9 @@
 // time (that many periods) and as a length (that many wavelengths), beside the disc in the alien's hand and
 // the whole craft, so the absurd reading shows itself.
 
-import { game } from '../../game/state';
-import { formatNumber, quantity } from '../../ui/units';
+import { nodeStatus } from '../../game/deductions';
+import { confirmedSet, game } from '../../game/state';
+import { formatNumber, formatPower, quantity } from '../../ui/units';
 import { CRAFT_SPAN_M, RECORD_RADIUS_M, keyInputs, pulsarSpan } from './data';
 import { LastReading, PanelHead, Propose, plural, type Choice } from './parts';
 import { ABSURD_FACTOR, timesAndLengths } from './readings';
@@ -23,14 +24,15 @@ function Q(p: { dim: 'time' | 'length'; si: number; bare?: boolean }) {
   );
 }
 
-const big = (x: number): string => (x >= 1e6 ? x.toExponential(2).replace('e+', 'e') : formatNumber(Number(x.toPrecision(3))));
+const big = (x: number): string => (x >= 1e6 ? formatPower(x, 3) : formatNumber(Number(x.toPrecision(3))));
 
 export function TimesPanel() {
+  const status = nodeStatus('key.timesNotLengths', confirmedSet.value);
   const range = pulsarSpan.value;
   const disc = 2 * RECORD_RADIUS_M;
   const tl = range ? timesAndLengths(keyInputs(), range) : null;
   return (
-    <section class="kpanel" data-panel="key.timesNotLengths" aria-label="Times or lengths">
+    <section class={`kpanel ${status}`} data-panel="key.timesNotLengths" data-status={status} aria-label="Times or lengths">
       <PanelHead id="key.timesNotLengths" />
       {!tl ? (
         <p class="note" role="status">Loading the pulsar catalogue...</p>
