@@ -1,5 +1,5 @@
 // The alien's likelihood identification of the map lines at the story epoch (decision D-A16; PLAN.md
-// chapter 2 shows it as "match quality"). Pre-selection by direction and age (pulsars.ts identifyLines),
+// chapter 2 shows it as "match quality"). Pre-selection by direction and age (identifyPrior.ts preselect),
 // then each surviving candidate is scored by three computed factors: how sharply it predicts the map's
 // own period (an Occam factor), its direction, and its latitude where the map's tick resolves it. In
 // pass 1 map distances are not used (scale unknown, off by up to 6 times, cover.md section 2). Pass 2
@@ -7,24 +7,29 @@
 // weak, heavy-tailed factor. Pure and deterministic: seeded streams only.
 
 import { KMS_PER_MASYR_PC, KM_S_TO_PC_PER_YEAR, add, norm, scale, toGalacticCartesian, toSpherical, type Vec3 } from './astro';
-import { alienCandidateView, fitAgeAndVelocity } from './pulsarAge';
+import { fitAgeAndVelocity } from './pulsarAge';
+import { preselect, rtgAgeModel, timingNoiseModel, type RtgAgeModel } from './identifyPrior';
 import { fitMapOrigin, type MapPoint, type OriginFit } from './triangulation';
 import { N_PRIOR_OLD, N_PRIOR_YOUNG, OLD_TAU_C_YEARS, eastNorth, type AlienPulsar } from './pulsarEpoch';
-import { characteristicAgeYears, identifyLines, lsbHalfWidth, mapPeriod, spinForward, wrapDeg } from './pulsars';
+import { characteristicAgeYears, lsbHalfWidth, mapPeriod, spinForward, wrapDeg } from './pulsars';
 import { createRng } from './random';
+import type { RtgMeasurement } from './rtg';
 import type { CoverMapLine } from './types';
 import { HYDROGEN_HZ, JULIAN_YEAR_S } from './units';
+
+/** The age and timing-noise models and the pre-selection live in identifyPrior.ts; re-exported here. */
+export { AGE_WINDOW_TAIL, PRESELECT, preselect, rtgAgeModel, timingNoiseModel, type RtgAgeModel, type TimingNoiseModel } from './identifyPrior';
 
 const DEG = Math.PI / 180;
 const MAS_TO_RAD = DEG / 3.6e6;
 
 export interface IdentifyEpochOptions {
   seed: string;
-  /** The RTG clock's 95% interval [t_lo, t_hi], years; ages are drawn from U[t_lo, 2 t_hi]. */
-  rtgInterval: readonly [number, number];
+  /** The Arrival clock's measurement (Th-230/U-234 and its relative precision); the map's age is drawn from its error model (rtgAgeModel). */
+  rtg: RtgMeasurement;
   /** Monte Carlo draws per candidate for the period factor (at least 2,000). */
   draws: number;
-  /** Years to back-project directions by proper motion; default the window's mid-age (t_lo + 2 t_hi) / 2. */
+  /** Years to back-project directions by proper motion; default the clock's central age. */
   backProjectYears?: number;
 }
 
@@ -82,28 +87,31 @@ function backProjected(e: AlienPulsar, years: number): { l: number; b: number } 
 }
 
 /**
- * Period factor: draws age A ~ U[t_lo, 2 t_hi], a braking index from the candidate's class by its
- * characteristic age now (old above 300 kyr: U[2, 4]; young: U[0.9, 3.2]) and a Doppler factor
- * U[-1e-3, 1e-3] (relative speeds up to 300 km/s), spins the measured state back by A, and returns the
+ * Period factor: draws age A from the Arrival clock's confidence distribution (identifyPrior.ts
+ * rtgAgeModel), a braking index from the candidate's class by its characteristic age now (old above
+ * 300 kyr: U[2, 4]; young: U[0.9, 3.2]), a Doppler factor U[-1e-3, 1e-3] (relative speeds up to 300 km/s)
+ * and the long-term spin-down Pdot_meas / (1 + s z) (timing noise, timingNoiseModel: the dating's own
+ * model), spins the state back by A, and returns the
  * kernel density of ln(predicted map period) at ln(P_map): Gaussian kernel, Silverman's bandwidth
  * 0.9 min(sd, IQR / 1.34) N^(-1/5), floored at one LSB in ln P. Draws that spin back to an impossible
  * state (period reaching zero) count as predicting nothing.
  */
-export function periodLogLikelihood(e: AlienPulsar, line: CoverMapLine, opts: IdentifyEpochOptions): number {
+export function periodLogLikelihood(e: AlienPulsar, line: CoverMapLine, opts: IdentifyEpochOptions, ages: RtgAgeModel = rtgAgeModel(opts.rtg)): number {
   const rng = createRng(opts.seed).fork(`period/${line.jname}/${e.jname}`);
   const target = Math.log(mapPeriod(line, HYDROGEN_HZ));
   const lsb = (2 * lsbHalfWidth(HYDROGEN_HZ)) / mapPeriod(line, HYDROGEN_HZ);
-  const [tLo, tHi] = opts.rtgInterval;
   const hasSpin = e.pdotMeas !== null && e.pdotMeas > 0;
   const young = hasSpin ? characteristicAgeYears(e.pObs, e.pdotMeas as number) < OLD_TAU_C_YEARS : false;
   const prior = young ? N_PRIOR_YOUNG : N_PRIOR_OLD;
+  const noise = hasSpin ? timingNoiseModel(e.timingNoiseRmsMeas) : null;
   const xs: number[] = [];
   for (let k = 0; k < opts.draws; k++) {
-    const A = tLo + (2 * tHi - tLo) * rng.uniform();
+    const A = ages.draw(rng);
     const n = prior[0] + (prior[1] - prior[0]) * rng.uniform();
     const d = (2 * rng.uniform() - 1) * 1e-3;
     const p = e.pObs * (1 + d);
-    const back = hasSpin ? spinForward(p, e.pdotMeas as number, n, -A * JULIAN_YEAR_S).p : p;
+    const f = noise ? noise.draw(rng) : 1;
+    const back = hasSpin && f > 0 ? spinForward(p, (e.pdotMeas as number) / f, n, -A * JULIAN_YEAR_S).p : hasSpin ? NaN : p;
     if (Number.isFinite(back) && back > 0) xs.push(Math.log(back));
   }
   if (xs.length < 2) return -Infinity;
@@ -123,42 +131,26 @@ export function periodLogLikelihood(e: AlienPulsar, line: CoverMapLine, opts: Id
 const logGauss = (x: number, s: number): number => -0.5 * (x / s) ** 2 - Math.log(s * Math.sqrt(2 * Math.PI));
 
 /**
- * The pre-selection tolerances identifyAtEpoch uses (D-A16): a candidate's direction within 5 deg of the
- * map angle (a generous box around the map's drawing accuracy, about 1 deg, plus 44,000 years of proper
- * motion), a Doppler allowance of 1e-3 (relative speeds up to 300 km/s) and braking indices 0.9 to 4. The
- * instrument (src/chapters/map/mapMath.ts) reuses them to say why a pulsar was not considered.
- */
-export const PRESELECT = { directionTolDeg: 5, dopplerAllowance: 1e-3, nRange: [0.9, 4] as const } as const;
-
-/**
- * Identify every line: pre-select (direction within 5 deg, age range overlapping [t_lo, 2 t_hi] for
- * some n in [0.9, 4], Doppler 1e-3, map period to 1 LSB), score, and rank. sigma_theta and sigma_b are
+ * Identify every line: pre-select (identifyPrior.ts preselect: direction within 5 deg; age range for some
+ * n in [0.9, 4], Doppler 1e-3, map period to 1 LSB and the candidate's timing-noise bound overlapping the
+ * clock's window), score, and rank. sigma_theta and sigma_b are
  * the alien's own estimates: the rms of the best candidates' residuals, iterated from 1 deg until
  * they stop changing (the best candidates can change between passes).
  */
 export function identifyAtEpoch(lines: readonly CoverMapLine[], alien: readonly AlienPulsar[], opts: IdentifyEpochOptions): EpochIdentificationResult {
-  const [tLo, tHi] = opts.rtgInterval;
-  const midAge = opts.backProjectYears ?? (tLo + 2 * tHi) / 2;
-  const byJ = new Map(alien.map((a) => [a.jname, a]));
-  const pre = identifyLines(lines, alien.map(alienCandidateView), {
-    directionTolDeg: PRESELECT.directionTolDeg,
-    dopplerAllowance: PRESELECT.dopplerAllowance,
-    windowYears: [tLo, 2 * tHi],
-    nRange: PRESELECT.nRange,
-    mapHalfWidth: () => lsbHalfWidth(HYDROGEN_HZ),
-    hz: HYDROGEN_HZ,
-  });
+  const ages = rtgAgeModel(opts.rtg);
+  const midAge = opts.backProjectYears ?? ages.centralYears;
+  const pre = preselect(lines, alien, ages.windowYears);
   const base = pre.map((r) => {
     const tick = tickLatitudeDeg(r.line);
     return {
       line: r.line,
       preselected: r.candidates.length,
-      cands: r.candidates.map((c) => {
-        const e = byJ.get(c.view.jname) as AlienPulsar;
+      cands: r.candidates.map((e) => {
         const bp = backProjected(e, midAge);
         return {
           entry: e,
-          periodLogLikelihood: periodLogLikelihood(e, r.line, opts),
+          periodLogLikelihood: periodLogLikelihood(e, r.line, opts, ages),
           dLonDeg: wrapDeg(bp.l - r.line.mapAngleDeg),
           dLatDeg: tick === null ? null : Math.abs(bp.b) - tick,
         };
@@ -256,8 +248,8 @@ export function backProjectedPositionPc(e: AlienPulsar, years: number): Vec3 | n
  * back-projected longitude); a new distance factor compares the in-plane distance from the origin with
  * the map length times the anchors' scale, x = ln(r / (rOverR0 scale)), Student-t with 2 degrees of
  * freedom on x / sigma_ln, sigma_ln the rms of the anchors' x (a candidate without a distance gets the
- * anchors' mean density, a neutral factor). The period factor keeps the RTG window, so a wrong map
- * number cannot lose its line to a young impostor; latitude is unchanged.
+ * anchors' mean density, a neutral factor). The period factor keeps the clock's age distribution, so a wrong
+ * map number cannot lose its line to a young impostor; latitude is unchanged.
  */
 function secondPass(base: readonly BaseLine[], pass1: EpochIdentification): { ident: EpochIdentification; info: SecondPassInfo } {
   const anchors = pass1.lines.filter((m) => m.best !== null && m.log10Odds >= ANCHOR_LOG10_MARGIN);

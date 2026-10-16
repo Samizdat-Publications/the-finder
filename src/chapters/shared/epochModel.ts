@@ -30,7 +30,7 @@ import { discoveryState, homeObserver, starStateAt, type DiscoveryState, type Ob
 import { TRAIL_ACCEPT_DRAWS, TRAIL_ACCEPT_QUANTILE, trail, trailNullQuantile, type TrailEntry } from '../../science/kinematics';
 import { combineAges, datePulsar, fitAgeAndVelocity, type AgeVelocityFit, type CombinedAge, type PulsarAge } from '../../science/pulsarAge';
 import { drawObserver, projectCatalogue, type AlienPulsar } from '../../science/pulsarEpoch';
-import { identifyAtEpoch, type EpochIdentificationResult } from '../../science/pulsarIdentify';
+import { identifyAtEpoch, rtgAgeModel, type EpochIdentificationResult } from '../../science/pulsarIdentify';
 import { createRng } from '../../science/random';
 import { mapPointsAtEpoch, originRegion, type OriginRegion } from '../../science/triangulation';
 import { expandColumnar, type ColumnarStars, type CoverData, type CoverMapLine, type PulsarCatalogue, type ScenarioData, type StarCatalogue, type StarRecord } from '../../science/types';
@@ -63,6 +63,8 @@ export interface EpochModel {
   lines: readonly CoverMapLine[];
   /** The RTG clock's 95% interval from the player's own Arrival measurement, years. */
   rtgInterval: [number, number];
+  /** The identification's pre-selection age window from the same measurement (rtgAgeModel: the clock's 1e-6 two-sided tails), years. */
+  ageWindow: [number, number];
   /** The likelihood identification of the map's lines (D-A16), pass 2. */
   identification(): EpochIdentificationResult;
   /** One line's age for a chosen pulsar, in the alien's own frame or moved into the Sun's rest frame. */
@@ -138,8 +140,10 @@ export function buildEpochModel(inputs: EpochInputs, seed: string, opts: BuildOp
   };
   const byJ = new Map(alien.map((a) => [a.jname, a]));
   const lines = cover.pulsarMap.lines;
-  const rtg = ageFromTh230U234(arrivalModel(seed).measurement);
+  const rtgMeasurement = arrivalModel(seed).measurement;
+  const rtg = ageFromTh230U234(rtgMeasurement);
   const rtgInterval: [number, number] = [rtg.lo, rtg.hi];
+  const ageWindow = rtgAgeModel(rtgMeasurement).windowYears;
   const entry = (jname: string): AlienPulsar => {
     const a = byJ.get(jname);
     if (!a) throw new Error(`${jname} is not in the alien's catalogue`);
@@ -165,10 +169,10 @@ export function buildEpochModel(inputs: EpochInputs, seed: string, opts: BuildOp
   };
 
   const model: EpochModel = {
-    seed, inputs, disc, truth, measured, alien, byJ, lines, rtgInterval,
+    seed, inputs, disc, truth, measured, alien, byJ, lines, rtgInterval, ageWindow,
     identification() {
       need('identification', ident);
-      ident ??= identifyAtEpoch(lines, alien, { seed, rtgInterval, draws: EPOCH_DRAWS });
+      ident ??= identifyAtEpoch(lines, alien, { seed, rtg: rtgMeasurement, draws: EPOCH_DRAWS });
       return ident;
     },
     ageOf,

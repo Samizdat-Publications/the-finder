@@ -6,9 +6,8 @@
 
 import { dot, galacticToIcrsCartesian, toGalacticCartesian, toSpherical, type Vec3 } from '../../science/astro';
 import { OLD_TAU_C_YEARS, type AlienPulsar } from '../../science/pulsarEpoch';
-import { identifyLines, characteristicAgeYears, elapsedFromSpin, lsbHalfWidth, mapPeriod, spinForward, wrapDeg } from '../../science/pulsars';
-import { alienCandidateView } from '../../science/pulsarAge';
-import { ANCHOR_LOG10_MARGIN, PRESELECT, tickLatitudeDeg, type LineMatch } from '../../science/pulsarIdentify';
+import { characteristicAgeYears, elapsedFromSpin, mapPeriod, spinForward, wrapDeg } from '../../science/pulsars';
+import { ANCHOR_LOG10_MARGIN, PRESELECT, preselect, tickLatitudeDeg, type LineMatch } from '../../science/pulsarIdentify';
 import { insideRegion, mapPointsAtEpoch, type MapPoint } from '../../science/triangulation';
 import type { CoverMapLine } from '../../science/types';
 import { C_KM_S, HYDROGEN_HZ, JULIAN_YEAR_S } from '../../science/units';
@@ -17,12 +16,11 @@ import type { EpochModel } from '../shared/epochModel';
 /**
  * The identification's pre-selection, the same constants identifyAtEpoch (src/science/pulsarIdentify.ts
  * PRESELECT) runs with: direction within 5 deg of the map angle (the pre-selection's tolerance, not the
- * map's accuracy), a Doppler allowance of 1e-3, braking indices 0.9 to 4, the map period to one LSB, and an
- * age window from the RTG clock [t_lo, 2 t_hi].
+ * map's accuracy), a Doppler allowance of 1e-3, braking indices 0.9 to 4, the map period to one LSB, and the
+ * age window from the Arrival clock's own error model widened by the pulsar's timing noise (identifyPrior.ts
+ * preselect, model.ageWindow).
  */
 export const PRESELECT_DIRECTION_DEG = PRESELECT.directionTolDeg;
-const PRESELECT_DOPPLER = PRESELECT.dopplerAllowance;
-const PRESELECT_N = PRESELECT.nRange;
 
 /** Old or young by the characteristic age the alien measures now (the dating's own boundary, 300,000 yr). */
 export function isYoung(e: Pick<AlienPulsar, 'pObs' | 'pdotMeas'>): boolean {
@@ -82,18 +80,10 @@ export function log10BestOver(lm: LineMatch, jname: string): number | null {
 
 export type NotConsidered = 'direction' | 'age';
 
-/** Why a pulsar was not among the line's candidates: its direction, or no allowed age makes its period reach the map's number. */
+/** Why a pulsar was not among the line's candidates (identifyPrior.ts preselect, the identification's own): its direction, or no allowed age makes its period reach the map's number. */
 export function whyNotConsidered(model: EpochModel, line: CoverMapLine, e: AlienPulsar): NotConsidered | null {
   if (Math.abs(wrapDeg(e.lDeg - line.mapAngleDeg)) > PRESELECT_DIRECTION_DEG) return 'direction';
-  const [tLo, tHi] = model.rtgInterval;
-  const r = identifyLines([line], [alienCandidateView(e)], {
-    directionTolDeg: PRESELECT_DIRECTION_DEG,
-    dopplerAllowance: PRESELECT_DOPPLER,
-    windowYears: [tLo, 2 * tHi],
-    nRange: PRESELECT_N,
-    mapHalfWidth: () => lsbHalfWidth(HYDROGEN_HZ),
-    hz: HYDROGEN_HZ,
-  })[0];
+  const r = preselect([line], [e], model.ageWindow)[0];
   return r && r.candidates.length > 0 ? null : 'age';
 }
 

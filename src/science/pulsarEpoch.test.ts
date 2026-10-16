@@ -2,12 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { loadCover, loadPulsars, loadScenario, loadStars } from '../../tests/support/data';
 import { recordCheck } from '../../tests/support/record';
 import { KM_S_TO_PC_PER_YEAR, dot, scale, sub, toGalacticCartesian } from './astro';
-import { ageFromTh230U234, rtgState, simulateRtgMeasurement } from './clocks';
+import { ageFromTh230U234, rtgAgeAtDeviate, rtgState, simulateRtgMeasurement } from './clocks';
 import { discoveryState, homeObserver } from './epoch';
-import { projectCatalogue, projectPulsar, timingNoiseSigma } from './pulsarEpoch';
-import { identifyAtEpoch } from './pulsarIdentify';
+import { LYNE2010_PEAK_TO_PEAK, TIMING_NOISE_RMS_DEFAULT, projectCatalogue, projectPulsar, timingNoiseSigma } from './pulsarEpoch';
+import { AGE_WINDOW_TAIL, identifyAtEpoch, rtgAgeModel, timingNoiseModel } from './pulsarIdentify';
 import { wrapDeg } from './pulsars';
-import { createRng } from './random';
+import { createRng, type Rng } from './random';
+import { normalQuantile } from './stats';
 import { C_KM_S, JULIAN_YEAR_S } from './units';
 
 const cover = loadCover();
@@ -121,29 +122,92 @@ describe('the pulsar sky at the story epoch (a projection)', () => {
 });
 
 describe('identification at the story epoch (likelihood)', () => {
-  it('the most likely candidate is the right pulsar on every line, by a strong margin', () => {
+  it("the clock's age model: the pre-selection range's tails and the interpolated draws (identify.ageModel)", () => {
+    // Under the clock's own error model (m = R (1 + s z), simulateRtgMeasurement), the true fuel age falls
+    // outside [age(+z_w), age(-z_w)] with probability AGE_WINDOW_TAIL exactly, and outside the 95% interval
+    // with probability 0.05. Checked over seeded measurements at the epoch's true fuel age.
+    const truthAge = disc.yearsAfterLaunch;
+    const state = rtgState(truthAge);
+    const zw = -normalQuantile(AGE_WINDOW_TAIL / 2);
+    const z95 = -normalQuantile(0.025);
+    const N = 20_000;
+    let out95 = 0;
+    let outWindow = 0;
+    let belowLo95 = 0;
+    for (let i = 0; i < N; i++) {
+      const m = simulateRtgMeasurement(state, { relativePrecision: 0.01 }, createRng(`identify.ageModel/${i}`));
+      const lo95 = rtgAgeAtDeviate(m, z95);
+      const hi95 = rtgAgeAtDeviate(m, -z95);
+      if (truthAge < lo95 || truthAge > hi95) out95++;
+      if (truthAge < lo95) belowLo95++;
+      if (truthAge < rtgAgeAtDeviate(m, zw) || truthAge > rtgAgeAtDeviate(m, -zw)) outWindow++;
+    }
+    // ageFromTh230U234's interval is the same construction: its lo and hi equal age(+-z95).
+    const m0 = simulateRtgMeasurement(state, { relativePrecision: 0.01 }, createRng('identify.ageModel/ref'));
+    const ref = ageFromTh230U234(m0);
+    expect(Math.abs(rtgAgeAtDeviate(m0, z95) - ref.lo)).toBeLessThan(1e-6 * ref.lo); // the same bisection: rounding only
+    expect(Math.abs(rtgAgeAtDeviate(m0, -z95) - ref.hi)).toBeLessThan(1e-6 * ref.hi);
+    // The interpolated draw against the exact age at the same deviate, on a fine z grid across and beyond the range.
+    const model = rtgAgeModel(m0);
+    let worstInterp = 0;
+    for (let k = 0; k <= 1000; k++) {
+      const z = -zw * 1.2 + (2.4 * zw * k) / 1000;
+      const fixed = { normal: () => z, uniform: () => 0, poisson: () => 0, fork: () => fixed } as unknown as Rng;
+      worstInterp = Math.max(worstInterp, Math.abs(model.draw(fixed) - rtgAgeAtDeviate(m0, z)));
+    }
+    const sigma1 = (rtgAgeAtDeviate(m0, -1) - rtgAgeAtDeviate(m0, 1)) / 2;
+    // The candidates' timing-noise bound at the same tail, for the default amplitude (0.425%, Lyne et al. 2010 median) and the largest (6.64%).
+    const xDefault = timingNoiseModel(TIMING_NOISE_RMS_DEFAULT).bound;
+    const xMax = timingNoiseModel(LYNE2010_PEAK_TO_PEAK[0]! / 2).bound;
+    // 5% within 3 binomial standard errors over N; the range's expected misses are N x 1e-6 = 0.02.
+    const tol95 = 3 * Math.sqrt((0.05 * 0.95) / N);
+    // Interpolation: 0.01 yr is under 1e-4 of the clock's 1 sigma (about 500 yr), so it cannot move a likelihood.
+    const pass = Math.abs(out95 / N - 0.05) <= tol95 && outWindow === 0 && worstInterp < 0.01;
+    recordCheck({
+      id: 'identify.ageModel',
+      claim: `The identification takes the map's age from the Arrival clock's own error model, not from a hard 95% range: its pre-selection keeps every age the clock allows except a two-sided ${AGE_WINDOW_TAIL.toExponential(0)} tail, so the true age is not cut off.`,
+      measured: `over ${N.toLocaleString('en-US')} seeded 1% measurements at ${Math.round(truthAge).toLocaleString('en-US')} yr: true age outside the 95% interval ${out95} times (${((100 * out95) / N).toFixed(2)}%; below its lower bound ${belowLo95}, the case that used to lose a pulsar), outside the range ${outWindow} times. One measurement: central ${model.centralYears.toFixed(0)} yr, 1 sigma ${sigma1.toFixed(0)} yr, 95% [${ref.lo.toFixed(0)}, ${ref.hi.toFixed(0)}], range [${model.windowYears[0].toFixed(0)}, ${model.windowYears[1].toFixed(0)}] yr (z_w ${zw.toFixed(2)}); interpolated draws within ${worstInterp.toExponential(1)} yr of the exact age. Each candidate's long-term Pdot is allowed Pdot_meas / (1 +- x) at the same tail: x ${(100 * xDefault).toFixed(1)}% for a measured noise amplitude of 0.425%, ${(100 * xMax).toFixed(1)}% for 6.64% (the alien's amplitude posterior over Lyne et al. 2010)`,
+      expected: "5% outside the 95% interval and 1e-6 outside the range (the clock's pivot (m / R - 1) / s ~ N(0, 1)); the map is older than the fuel by about 6 to 11 years (clocks.md section 2: map epochs 1966.6 to 1972.2, launch 1977.7), 1 to 2 per cent of 1 sigma",
+      tolerance: `5% within ${(100 * tol95).toFixed(2)} points (3 binomial standard errors); no misses of the range (0.02 expected); interpolation under 0.01 yr (under 1e-4 sigma)`,
+      pass,
+      notes: "Replaces U[t_lo, 2 t_hi] (D-A16 amended, M5 step 0a). The upper allowance 2 t_hi (up to twice the fuel's age) stood in, one-sidedly and without a stated basis, for the candidates' timing noise (with the clock alone and no noise term, 15 of 7,000 seeded lines went wrong); it is removed and the timing noise is modelled instead; the map's true excess age over the fuel (6 to 11 years) is carried by the simulation (fuel dated from launch, map lines the 1970/71 periods) and covered by the tails, as identify.epoch shows over 500 seeds.",
+    });
+    expect(Math.abs(out95 / N - 0.05)).toBeLessThanOrEqual(tol95);
+    expect(outWindow).toBe(0);
+    expect(worstInterp).toBeLessThan(0.01);
+  }, 300_000);
+
+  it('the most likely candidate is the right pulsar on every line, by a strong margin, over 500 seeds', () => {
     // One RTG measurement per realization (Th-230/U-234 at 1%), as the alien would make it.
     const run = (seed: string, nominal: boolean) => {
       const alien = projectCatalogue(cat, observer, { seed, nominal });
-      const rtg = ageFromTh230U234(simulateRtgMeasurement(rtgState(disc.yearsAfterLaunch), { relativePrecision: 0.01 }, createRng(seed).fork('rtg')));
-      return identifyAtEpoch(lines, alien, { seed, rtgInterval: [rtg.lo, rtg.hi], draws: 2000 });
+      const rtg = simulateRtgMeasurement(rtgState(disc.yearsAfterLaunch), { relativePrecision: 0.01 }, createRng(seed).fork('rtg'));
+      return { rtg, idr: identifyAtEpoch(lines, alien, { seed, rtg, draws: 2000 }) };
     };
-    const nominal = run('identify.epoch.nominal', true);
-    const seeds = Array.from({ length: 20 }, (_, i) => run(`identify.epoch/${i}`, false));
+    const SEEDS = 500;
+    const t0 = performance.now();
+    const nominal = run('identify.epoch.nominal', true).idr;
     const wrong: string[] = [];
     const minMargin = new Map<string, number>();
-    for (const [k, idr] of [nominal, ...seeds].entries()) {
+    let tailSeeds = 0;
+    let anchorsMin = Infinity;
+    for (let k = 0; k < SEEDS; k++) {
+      const { rtg, idr } = run(`identify.epoch/${k}`, false);
+      if (ageFromTh230U234(rtg).lo > disc.yearsAfterLaunch) tailSeeds++;
+      anchorsMin = Math.min(anchorsMin, idr.pass2Info.anchors.length);
       for (const m of idr.lines) {
-        if (m.best?.entry.jname !== m.line.jname) wrong.push(`${k === 0 ? 'nominal' : `seed ${k - 1}`} ${m.line.bname} -> ${m.best?.entry.jname ?? 'none'}`);
-        if (k > 0) minMargin.set(m.line.bname, Math.min(minMargin.get(m.line.bname) ?? Infinity, m.log10Odds));
+        if (m.best?.entry.jname !== m.line.jname) wrong.push(`seed ${k} ${m.line.bname} -> ${m.best?.entry.jname ?? 'none'}`);
+        minMargin.set(m.line.bname, Math.min(minMargin.get(m.line.bname) ?? Infinity, m.log10Odds));
       }
     }
+    for (const m of nominal.lines) if (m.best?.entry.jname !== m.line.jname) wrong.push(`nominal ${m.line.bname} -> ${m.best?.entry.jname ?? 'none'}`);
+    const seconds = (performance.now() - t0) / 1000;
     // 20: "strong evidence" on the Kass and Raftery (1995, JASA 90, 773) scale of Bayes factors.
     const weak = nominal.lines.filter((m) => m.log10Odds < Math.log10(20));
     const fmt = (x: number): string => (!Number.isFinite(x) ? 'no competitor' : x > 6 ? '> 10^6' : `10^${x.toFixed(1)}`);
     const p1 = new Map(nominal.pass1.lines.map((m) => [m.line.bname, m]));
     const rows = nominal.lines.map((m) =>
-      `${m.line.bname}: ${m.preselected} pre-selected, runner-up ${m.runnerUp?.entry.jname ?? 'none'}, margin ${fmt(m.log10Margin)}, odds against all others ${fmt(m.log10Odds)} (min odds over 20 seeds ${fmt(minMargin.get(m.line.bname) ?? Infinity)}; pass 1 ${fmt(p1.get(m.line.bname)?.log10Margin ?? Infinity)})`);
+      `${m.line.bname}: ${m.preselected} pre-selected, runner-up ${m.runnerUp?.entry.jname ?? 'none'}, margin ${fmt(m.log10Margin)}, odds against all others ${fmt(m.log10Odds)} (min odds over ${SEEDS} seeds ${fmt(minMargin.get(m.line.bname) ?? Infinity)}; pass 1 ${fmt(p1.get(m.line.bname)?.log10Margin ?? Infinity)})`);
     const info = nominal.pass2Info;
     // The Sun in the alien's frame at the map epoch: minus the observer's position then (truth, for the report only).
     const xMap = toGalacticCartesian(sub(observer.posPc, scale(observer.velKmS, KM_S_TO_PC_PER_YEAR * info.fittedAgeYears)));
@@ -152,13 +216,13 @@ describe('identification at the story epoch (likelihood)', () => {
     recordCheck({
       id: 'identify.epoch',
       claim: `In the alien's catalogue, ${Math.round(disc.yearsAfterLaunch).toLocaleString('en-US')} years after launch, the most likely pulsar for every map line is the right one, by strong odds over all the alternatives.`,
-      measured: `pass 2 (final): sigma_theta ${nominal.sigmaThetaDeg.toFixed(2)} deg, sigma_b ${nominal.sigmaBDeg.toFixed(2)} deg; anchors ${info.anchors.length} (${info.anchors.join(', ')}); fitted age ${info.fittedAgeYears.toFixed(0)} yr (dropped ${info.ageFitDropped.join(', ') || 'none'}); origin ${offset.toFixed(1)} pc from the Sun; length scale ${info.scalePcPerR0.toFixed(0)} pc per R0, sigma_ln ${info.sigmaLn.toFixed(2)}. Pass 1: sigma_theta ${nominal.pass1.sigmaThetaDeg.toFixed(2)} deg. ${rows.join('; ')}${wrong.length ? `; WRONG: ${wrong.join(', ')}` : ''}`,
+      measured: `${SEEDS} seeded realizations and the nominal: ${wrong.length} wrong lines of ${(SEEDS + 1) * lines.length}; ${tailSeeds} seeds had the Arrival clock's 95% lower bound above the true fuel age (the case the old range lost) and identify every line; fewest anchors in any seed ${anchorsMin}. Nominal pass 2 (final): sigma_theta ${nominal.sigmaThetaDeg.toFixed(2)} deg, sigma_b ${nominal.sigmaBDeg.toFixed(2)} deg; anchors ${info.anchors.length} (${info.anchors.join(', ')}); fitted age ${info.fittedAgeYears.toFixed(0)} yr (dropped ${info.ageFitDropped.join(', ') || 'none'}); origin ${offset.toFixed(1)} pc from the Sun; length scale ${info.scalePcPerR0.toFixed(0)} pc per R0, sigma_ln ${info.sigmaLn.toFixed(2)}. Pass 1: sigma_theta ${nominal.pass1.sigmaThetaDeg.toFixed(2)} deg. ${rows.join('; ')}${wrong.length ? `; WRONG: ${wrong.join(', ')}` : ''}`,
       expected: 'the 14 identities (Sagan et al. 1972)',
-      tolerance: 'right pulsar on all 14 lines in the nominal and 20 seeded realizations; nominal odds against all other candidates combined at least 20 (Kass and Raftery 1995, strong evidence)',
+      tolerance: `right pulsar on all 14 lines in the nominal and ${SEEDS} seeded realizations; nominal odds against all other candidates combined at least 20 (Kass and Raftery 1995, strong evidence)`,
       pass,
-      notes: 'Pass 1: period (how sharply the candidate predicts the map number; Monte Carlo over age in the RTG range, braking index and Doppler) x direction from the observer x latitude where the tick resolves. Pass 2: from the anchors (pass-1 odds against all others at least 20), the shared age (pulsars only) and the map origin (leave-one-out for anchor lines); direction from that origin, plus a heavy-tailed distance factor from the map lengths (Student-t, 2 dof); candidates without a distance get the anchors\' mean distance density. Pre-selection: direction within 5 deg and age range overlapping the RTG age range.',
+      notes: `Pass 1: period (how sharply the candidate predicts the map number; Monte Carlo over the map's age drawn from the Arrival clock's own error model (identify.ageModel), braking index, Doppler and the candidate's timing noise on Pdot, the dating's own model) x direction from the observer x latitude where the tick resolves. Pass 2: from the anchors (pass-1 odds against all others at least 20), the shared age (pulsars only) and the map origin (leave-one-out for anchor lines); direction from that origin, plus a heavy-tailed distance factor from the map lengths (Student-t, 2 dof); candidates without a distance get the anchors' mean distance density. Pre-selection: direction within 5 deg and age range, widened by the candidate's timing-noise bound, overlapping the clock's range (each with two-sided tails of 1e-6). ${SEEDS} seeds took ${seconds.toFixed(0)} s.`,
     });
     expect(wrong, wrong.join('; ')).toEqual([]);
     expect(weak.map((m) => m.line.bname), rows.join('; ')).toEqual([]);
-  });
+  }, 3_600_000);
 });

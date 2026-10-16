@@ -190,6 +190,19 @@ export function ageFromTh230U234(
   };
 }
 
+/**
+ * The fuel age at a standard-normal deviate z of the measurement: the age whose Th-230/U-234 atom ratio is
+ * m / (1 + s z). The measurement is m = R (1 + s z) with z ~ N(0, 1) (simulateRtgMeasurement), so
+ * (m / R - 1) / s is pivotal and drawing z ~ N(0, 1) here draws the age from the clock's own confidence
+ * distribution; ageFromTh230U234's interval at conf is exactly [age(+z_conf), age(-z_conf)]. Increasing z
+ * gives a younger age. Infinity when 1 + s z <= 0 (z <= -100 at 1%: never met).
+ */
+export function rtgAgeAtDeviate(m: RtgMeasurement, z: number): number {
+  const d = 1 + m.relativePrecision * z;
+  if (d <= 0) return Infinity;
+  return invertRatio((t) => chainRatios('pu238', t)[0], m.th230OverU234 / d);
+}
+
 export interface ChainSolution {
   hypothesis: ChainHypothesis;
   /** True when one age fits every ratio the hypothesis predicts (chi-square p-value >= alpha). */

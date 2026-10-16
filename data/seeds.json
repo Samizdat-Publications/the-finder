@@ -5,12 +5,11 @@
   "candidates": 2000,
   "firstCandidate": "finder-2",
   "lastCandidate": "finder-2001",
-  "listed": 1974,
+  "listed": 1993,
   "excluded": {
-   "total": 26,
+   "total": 7,
    "byCheck": {
-    "map.identify": 19,
-    "map.motion": 5,
+    "map.motion": 3,
     "trail.origin": 4
    },
    "seeds": [
@@ -24,51 +23,11 @@
      ]
     },
     {
-     "seed": "finder-86",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 14: PSR B1727-47 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
      "seed": "finder-118",
      "failed": [
       {
        "id": "trail.origin",
        "message": "You measure 1.01 deg between the machine's motion relative to the warm-white star and straight away from it; a star it truly flew from would show at most 0.56 deg 95% of the time (rms 0.20 deg per axis), and at most 0.93 deg 999 times in 1,000: this is 1.8 times the 95% cut, beyond the 99.9% one. Something thrown from there would fly straight out of it."
-      }
-     ]
-    },
-    {
-     "seed": "finder-135",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 3: PSR B1933+16 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
-     "seed": "finder-157",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 14: PSR B1727-47 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      },
-      {
-       "id": "map.motion",
-       "message": "Along this axis the ages still scatter by {{q|time|376594010930.94464}} about a straight line. The velocity that fits all the old lines at once lies 2.2 deg from it: a chi-square of 6.3, more than the 5.99 two angles allow at 95%."
-      }
-     ]
-    },
-    {
-     "seed": "finder-218",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 14: PSR B1727-47 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
       }
      ]
     },
@@ -82,101 +41,11 @@
      ]
     },
     {
-     "seed": "finder-272",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 7: PSR B0525+21 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
-     "seed": "finder-330",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 14: PSR B1727-47 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
-     "seed": "finder-331",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 3: PSR B1933+16 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
-     "seed": "finder-386",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 7: PSR B0525+21 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
-     "seed": "finder-530",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 7: PSR B0525+21 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
      "seed": "finder-707",
      "failed": [
       {
        "id": "map.motion",
        "message": "Along this axis the ages still scatter by {{q|time|8335246047.273185}} about a straight line. The velocity that fits all the old lines at once lies 2.3 deg from it: a chi-square of 6.6, more than the 5.99 two angles allow at 95%."
-      }
-     ]
-    },
-    {
-     "seed": "finder-843",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 14: PSR B1727-47 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
-     "seed": "finder-1096",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 7: PSR B0525+21 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
-     "seed": "finder-1194",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 3: PSR B1933+16 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
-     "seed": "finder-1292",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 3: PSR B1933+16 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
-     "seed": "finder-1319",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 3: PSR B1933+16 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
       }
      ]
     },
@@ -204,55 +73,6 @@
       {
        "id": "trail.origin",
        "message": "You measure 1.02 deg between the machine's motion relative to the warm-white star and straight away from it; a star it truly flew from would show at most 0.58 deg 95% of the time (rms 0.21 deg per axis), and at most 0.97 deg 999 times in 1,000: this is 1.8 times the 95% cut, beyond the 99.9% one. Something thrown from there would fly straight out of it."
-      }
-     ]
-    },
-    {
-     "seed": "finder-1584",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 3: PSR B1933+16 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
-     "seed": "finder-1693",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 7: PSR B0525+21 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
-     "seed": "finder-1762",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 14: PSR B1727-47 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      }
-     ]
-    },
-    {
-     "seed": "finder-1810",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 14: PSR B1727-47 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
-      },
-      {
-       "id": "map.motion",
-       "message": "Along this axis the ages still scatter by {{q|time|376610830180.4454}} about a straight line. The velocity that fits all the old lines at once lies 4.6 deg from it: a chi-square of 8.5, more than the 5.99 two angles allow at 95%."
-      }
-     ]
-    },
-    {
-     "seed": "finder-1835",
-     "failed": [
-      {
-       "id": "map.identify",
-       "message": "1 of 14 lines does not have its most likely pulsar: line 3: PSR B1933+16 was not considered (no age the Arrival clock allows makes its period reach the map's number, for any braking index)."
       }
      ]
     }
@@ -352,6 +172,7 @@
   "finder-83",
   "finder-84",
   "finder-85",
+  "finder-86",
   "finder-87",
   "finder-88",
   "finder-89",
@@ -399,6 +220,7 @@
   "finder-132",
   "finder-133",
   "finder-134",
+  "finder-135",
   "finder-136",
   "finder-137",
   "finder-138",
@@ -420,6 +242,7 @@
   "finder-154",
   "finder-155",
   "finder-156",
+  "finder-157",
   "finder-158",
   "finder-159",
   "finder-160",
@@ -480,6 +303,7 @@
   "finder-215",
   "finder-216",
   "finder-217",
+  "finder-218",
   "finder-219",
   "finder-220",
   "finder-222",
@@ -532,6 +356,7 @@
   "finder-269",
   "finder-270",
   "finder-271",
+  "finder-272",
   "finder-273",
   "finder-274",
   "finder-275",
@@ -589,6 +414,8 @@
   "finder-327",
   "finder-328",
   "finder-329",
+  "finder-330",
+  "finder-331",
   "finder-332",
   "finder-333",
   "finder-334",
@@ -643,6 +470,7 @@
   "finder-383",
   "finder-384",
   "finder-385",
+  "finder-386",
   "finder-387",
   "finder-388",
   "finder-389",
@@ -786,6 +614,7 @@
   "finder-527",
   "finder-528",
   "finder-529",
+  "finder-530",
   "finder-531",
   "finder-532",
   "finder-533",
@@ -1097,6 +926,7 @@
   "finder-840",
   "finder-841",
   "finder-842",
+  "finder-843",
   "finder-844",
   "finder-845",
   "finder-846",
@@ -1349,6 +1179,7 @@
   "finder-1093",
   "finder-1094",
   "finder-1095",
+  "finder-1096",
   "finder-1097",
   "finder-1098",
   "finder-1099",
@@ -1446,6 +1277,7 @@
   "finder-1191",
   "finder-1192",
   "finder-1193",
+  "finder-1194",
   "finder-1195",
   "finder-1196",
   "finder-1197",
@@ -1543,6 +1375,7 @@
   "finder-1289",
   "finder-1290",
   "finder-1291",
+  "finder-1292",
   "finder-1293",
   "finder-1294",
   "finder-1295",
@@ -1569,6 +1402,7 @@
   "finder-1316",
   "finder-1317",
   "finder-1318",
+  "finder-1319",
   "finder-1320",
   "finder-1321",
   "finder-1322",
@@ -1830,6 +1664,7 @@
   "finder-1581",
   "finder-1582",
   "finder-1583",
+  "finder-1584",
   "finder-1585",
   "finder-1586",
   "finder-1587",
@@ -1938,6 +1773,7 @@
   "finder-1690",
   "finder-1691",
   "finder-1692",
+  "finder-1693",
   "finder-1694",
   "finder-1695",
   "finder-1696",
@@ -2006,6 +1842,7 @@
   "finder-1759",
   "finder-1760",
   "finder-1761",
+  "finder-1762",
   "finder-1763",
   "finder-1764",
   "finder-1765",
@@ -2053,6 +1890,7 @@
   "finder-1807",
   "finder-1808",
   "finder-1809",
+  "finder-1810",
   "finder-1811",
   "finder-1812",
   "finder-1813",
@@ -2077,6 +1915,7 @@
   "finder-1832",
   "finder-1833",
   "finder-1834",
+  "finder-1835",
   "finder-1836",
   "finder-1837",
   "finder-1838",

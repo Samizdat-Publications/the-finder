@@ -55,17 +55,19 @@ describe('The Map checkers: right answers', () => {
       }
       for (const l of youngLines(m)) pass &&= !checkPeriods(m, { line: l.order, jname: l.jname }).ok;
     }
-    // The audit's case: seed map-seed-b's line 2 (B1929+10), whose pass-1 best is another pulsar, is refused.
+    // The audit's case: seed map-seed-b's line 2 (B1929+10) is refused. Under the old age window its pass-1 best
+    // was another pulsar; since M5 step 0a (the clock's own error model plus timing noise) it is B1929+10 itself,
+    // under 20 to 1, so the anchor rule, not a wrong best, refuses it.
     const mb = models.get('map-seed-b')!;
     const b2 = checkPeriods(mb, { line: 2, jname: mb.lines.find((l) => l.order === 2)!.jname });
-    pass &&= !b2.ok && matchOf(mb, 2, 1).best?.entry.jname !== mb.lines.find((l) => l.order === 2)!.jname;
+    pass &&= !b2.ok && !isPass1Anchor(mb, 2);
     // Every line accepted on the default seed is a pass-1 anchor, and there are enough of them to date the map.
     pass &&= rows.length >= 3;
     console.log(`map.periods (default seed): accepted ${rows.join('; ')}; refused ${refusedRows.join('; ')}; seed b line 2: ${b2.message}`);
     recordCheck({
       id: 'map.periods',
       claim: `Every old map line that stands out by period, direction and latitude alone (a pass-1 anchor, the evidence the alien has before the map is dated) is read through the key as the period of its documented pulsar; the game accepts only those lines, with odds of at least 20 to 1 against every other candidate, and the other lines wait for the map's age and origin.`,
-      measured: `default seed, accepted: ${rows.join('; ')}; refused for now: ${refusedRows.join('; ')}; seed map-seed-b line 2 refused (its pass-1 best is another pulsar); the three young lines (Crab, Vela, B1727-47) refused by period alone`,
+      measured: `default seed, accepted: ${rows.join('; ')}; refused for now: ${refusedRows.join('; ')}; seed map-seed-b line 2 refused (pass-1 odds ${oddsText(matchOf(mb, 2, 1).log10Odds)}, under the anchor rule); the three young lines (Crab, Vela, B1727-47) refused by period alone`,
       expected: `The documented identities (cover.json; Johnston 2002, research cover.md section 2) on every pass-1 anchor; D-A16's anchor rule, defined on pass 1 (pulsarIdentify.ts secondPass)`,
       tolerance: `pass-1 log10 odds at least ${ANCHOR_LOG10_MARGIN.toFixed(2)} (20 to 1, Kass and Raftery 1995, the identification's own anchor rule)`,
       pass,
@@ -201,6 +203,8 @@ describe('The Map checkers: meaningful wrong answers say what they computed', ()
     // A weak line: line 2 (B1929+10), its pulsar the best in pass 1 but under the anchor rule (M4 science audit finding 1).
     const l2 = m.lines.find((l) => l.order === 2)!;
     const weak = checkPeriods(m, { line: 2, jname: l2.jname });
+    // Line 1's pass-1 runner-up. Since M5 step 0a every competitor the pre-selection keeps on an old line of this
+    // seed is young, so the checker refuses it as young before it would say "less well than another pulsar".
     const runner = lm1.runnerUp!.entry.jname;
     const wrongP = checkPeriods(m, { line: 1, jname: runner });
     const far = checkPeriods(m, { line: 1, jname: m.lines.find((l) => l.order === 11)!.jname });
@@ -229,7 +233,7 @@ describe('The Map checkers: meaningful wrong answers say what they computed', ()
     expect(weak.message).toMatch(/strong evidence/);
     expect(weak.message).toMatch(/age and origin are known/);
     expect(wrongP.ok).toBe(false);
-    expect(wrongP.message).toMatch(/less well than another pulsar/);
+    expect(wrongP.message).toMatch(isYoung(lm1.runnerUp!.entry) ? /too fast to match by period alone/ : /less well than another pulsar/);
     expect(far.ok).toBe(false);
     expect(far.message).toMatch(/cannot be line 1's star/);
     expect(young.ok).toBe(false);
