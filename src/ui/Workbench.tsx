@@ -3,6 +3,7 @@
 // steps replace the placeholder with the real instrument and keep the node list as the notebook beside it.
 
 import { HINT_TIER_NAMES, missingFor, nodeStatus, type NodeStatus } from '../game/deductions';
+import { instrumentFor } from '../chapters/registry';
 import { chapterDef, nodeDef, nodesOf, type ChapterId, type NodeDef } from '../game/graph';
 import { confirmedSet, game } from '../game/state';
 import { GlyphLabel } from './Glyph';
@@ -77,6 +78,7 @@ export function Workbench(p: { chapter: ChapterId }) {
   const def = chapterDef(p.chapter);
   if (!def) return null;
   const nodes = nodesOf(p.chapter);
+  const Instrument = instrumentFor(p.chapter);
   return (
     <section class="bench-area" aria-label={def.title} data-chapter={p.chapter}>
       <header class="chaphead">
@@ -88,12 +90,16 @@ export function Workbench(p: { chapter: ChapterId }) {
         </h1>
         <p class="note">{def.gloss}</p>
       </header>
-      <div class="frame">
-        <p class="building" role="status">
-          This instrument is being built.
-        </p>
-        <p class="note">The deductions of this chapter are listed below, with what each one waits for.</p>
-      </div>
+      {Instrument ? (
+        <Instrument chapter={p.chapter} />
+      ) : (
+        <div class="frame">
+          <p class="building" role="status">
+            This instrument is being built.
+          </p>
+          <p class="note">The deductions of this chapter are listed below, with what each one waits for.</p>
+        </div>
+      )}
       <ul class="nodes" aria-label="Deductions in this chapter">
         {nodes.map((n) => (
           <NodeRow key={n.id} node={n} />
