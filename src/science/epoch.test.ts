@@ -13,6 +13,7 @@ import {
   homeObserver,
   nearestStars,
   starStateAt,
+  SUN_ABS_MAG_V,
 } from './epoch';
 import { createRng } from './random';
 import type { StarCatalogue } from './types';
@@ -40,7 +41,7 @@ describe('epoch: the discovery', () => {
       expected: 'Gaia DR3 recheck 44.1 kyr, 0.573 pc, 115.9 km/s (voyager.md section 5); Bailer-Jones and Farnocchia 2019 (Gaia DR2) 44.0 kyr, 0.575 pc, 116.0 km/s',
       tolerance: '0.3 kyr, 0.01 pc, 0.5 km/s (published rounding plus the DR2-to-DR3 shift)',
       pass,
-      notes: 'Straight-line motion of both bodies from the Gaia DR3 astrometry of Gliese 445 and the Bailer-Jones and Farnocchia asymptote; no Galactic potential, as in the published calculation.',
+      notes: 'Straight-line motion of both bodies from the Gaia DR3 astrometry of Gliese 445 and the Bailer-Jones and Farnocchia asymptote, with no Galactic potential, as in the research DR3 recheck. Bailer-Jones and Farnocchia integrated through a Galactic potential, and their 44.0 kyr counts from about the Gaia epoch (2016 to 2019), not from launch; that offset of about 40 years is inside the 0.3 kyr tolerance.',
     });
     expect(Math.abs(kyr - 44.1)).toBeLessThanOrEqual(0.3);
     expect(Math.abs(d.minDistPc - 0.573)).toBeLessThanOrEqual(0.01);
@@ -132,7 +133,7 @@ describe('epoch: the neighbour twist', () => {
       expected: 'Rank 1 to 3 (PLAN.md "The story frame"); the story figure about 1.06 pc (3.45 ly) is from Wikipedia\'s Gliese 445 article (voyager.md section 5)',
       tolerance: 'rank <= 3; distance error propagated from the Gaia DR3 errors of Gliese 445 (1 sigma)',
       pass,
-      notes: `${catalogueNotes} The DR3 distance is ${((sunDist - 1.06) / sunDistSigma).toFixed(1)} sigma from the 1.06 pc figure; see epoch.neighbourDistance.`,
+      notes: `${catalogueNotes} The DR3 distance differs from the older 1.06 pc figure by ${Math.abs(sunDist - 1.06).toFixed(3)} pc, many times its Gaia DR3 uncertainty of ${sunDistSigma.toFixed(4)} pc; see epoch.neighbourDistance.`,
     });
     expect(sunRank).toBeGreaterThanOrEqual(1);
     expect(sunRank).toBeLessThanOrEqual(3);
@@ -161,16 +162,15 @@ describe('epoch: the neighbour twist', () => {
       expected: `${dMin.toFixed(4)} pc: Gliese 445's closest approach to the Sun in closed form from its Gaia DR3 parallax, proper motion and radial velocity`,
       tolerance: `${tol.toFixed(4)} pc (2 sigma propagated from Gaia DR3, plus 0.001 pc for the few centuries between the two moments)`,
       pass,
-      notes: 'Older pre-Gaia figures (Wikipedia, about 1.06 pc or 3.45 ly) differ by about 22 sigma; the story uses the Gaia DR3 value (D-A15).',
+      notes: `Older pre-Gaia figures (Wikipedia, about 1.06 pc or 3.45 ly) differ by ${Math.abs(sunDist - 1.06).toFixed(3)} pc, many times the Gaia DR3 uncertainty of ${sunDistSigma.toFixed(4)} pc; the story uses the Gaia DR3 value (D-A15).`,
     });
     expect(Math.abs(sunDist - dMin)).toBeLessThanOrEqual(tol);
   });
 
   it('the Sun is among the ten brightest stars in Gliese 445\'s sky', () => {
     const bright = brightestStars(stars, P, d.decimalYear, 10, [home.id]);
-    const sunRow = stars.near.find((s) => s.id === 0)!;
-    const sunFromHome = apparentMagnitude(sunRow.absmag, sunDist);
-    const sunFromCraft = apparentMagnitude(sunRow.absmag, norm(d.craft.posPc));
+    const sunFromHome = apparentMagnitude(SUN_ABS_MAG_V, sunDist);
+    const sunFromCraft = apparentMagnitude(SUN_ABS_MAG_V, norm(d.craft.posPc));
     const sunBrightRank = bright.findIndex((x) => x.star.id === 0) + 1;
     const blist = bright.map((x, i) => `${i + 1}. ${x.star.name ?? x.star.gl ?? `HYG ${x.star.id}`} ${x.appMag.toFixed(2)} (${x.distPc.toFixed(1)} pc)`).join('; ');
     console.log(`[epoch.sunBrightness] ${blist}`);
@@ -181,7 +181,7 @@ describe('epoch: the neighbour twist', () => {
       claim: 'From Gliese 445 at the epoch, the Sun is one of the ten brightest stars in the sky.',
       measured: `Sun magnitude ${sunFromHome.toFixed(2)} from Gliese 445 (rank ${sunBrightRank}), ${sunFromCraft.toFixed(2)} from the craft. Brightest: ${blist}`,
       expected: 'Rank 1 to 10 (PLAN.md "The story frame")',
-      tolerance: 'rank <= 10; magnitudes from HYG absolute V magnitudes (Sun 4.85) and distances at the epoch, no extinction',
+      tolerance: 'rank <= 10; magnitudes from HYG absolute V magnitudes (the Sun 4.81, Willmer 2018, in place of the HYG value 4.85) and distances at the epoch, no extinction',
       pass,
       notes: `Includes the naked-eye sky list (mag <= 6.5 from Earth) moved to the epoch; ${stars.sky.filter((s) => s.distPc === null).length} sky stars without a distance are skipped (all fainter than mag 3.3 from Earth). Double stars are listed per component. ${catalogueNotes}`,
     });

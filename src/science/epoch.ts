@@ -247,6 +247,17 @@ export function nearestStars(
     .slice(0, k);
 }
 
+/**
+ * The Sun's absolute V magnitude, 4.81 (Willmer 2018, ApJS 236, 47, Table 3, on the IAU 2015 Resolution
+ * B3 solar zero point). Used for the Sun in place of HYG's 4.85 (stars.json), a 0.04 mag difference.
+ */
+export const SUN_ABS_MAG_V = 4.81;
+
+/** Absolute V magnitude used for a star: the modern solar value for the Sun, the catalogue's otherwise. */
+export function absMagV(star: StarRecord): number {
+  return star.id === 0 ? SUN_ABS_MAG_V : star.absmag;
+}
+
 /** Apparent magnitude from absolute magnitude and distance (distance modulus, no extinction within a few pc). */
 export function apparentMagnitude(absmag: number, distPc: number): number {
   return absmag + 5 * Math.log10(distPc / 10);
@@ -271,7 +282,7 @@ export function brightestStars(
     if (skip.has(star.id)) continue;
     const d = norm(sub(starStateAt(star, decimalYear).posPc, observerPc));
     if (d < 1e-6) continue;
-    out.push({ star, distPc: d, appMag: apparentMagnitude(star.absmag, d) });
+    out.push({ star, distPc: d, appMag: apparentMagnitude(absMagV(star), d) });
   }
   return out.sort(byKeyThenId((x) => x.appMag)).slice(0, k);
 }

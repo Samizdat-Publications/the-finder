@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { loadScenario, loadStars } from '../../tests/support/data';
 import { recordCheck } from '../../tests/support/record';
-import { discoveryState, homeObserver, launchYear } from './epoch';
+import { KM_S_TO_PC_PER_YEAR, add, angleBetweenDeg, norm, scale, sub, unitVector } from './astro';
+import { discoveryState, homeObserver, launchYear, starStateAt } from './epoch';
+import { goldenMax } from './stats';
+import type { StarRecord } from './types';
 import { choleskyPsd, trail, trailCensus, type TrailEntry } from './kinematics';
 
 const scenario = loadScenario();
@@ -14,6 +17,44 @@ const OPTS = { maxDistPc: 10, draws: 2000, seed: 'trail.discovery' };
 const rows = trail(d.craft, stars, observer, OPTS);
 const census = trailCensus(d.craft, stars, OPTS.maxDistPc);
 const label = (e: TrailEntry): string => e.star.name ?? e.star.gl ?? `HYG ${e.star.id}`;
+
+
+/**
+ * Stars without a radial velocity are left out of the table, so prove the claim for them separately:
+ * for each, every radial velocity |v_r| <= vmax is tried (0.25 km/s grid, then golden-section refinement
+ * around the best grid point), keeping only the values that put the star within 10 pc of the craft, and
+ * the smallest possible angle is returned.
+ */
+function worstCaseNoRv(vmax: number): { star: StarRecord; vr: number; angleDeg: number; tested: number } {
+  const t = d.decimalYear;
+  let best = { star: stars.near[0]!, vr: 0, angleDeg: Infinity };
+  let tested = 0;
+  for (const star of [...stars.near, ...stars.sky]) {
+    if (star.rvKmS !== null || star.distPc === null || star.id === 0) continue;
+    const s0 = starStateAt(star, t); // v_r = 0
+    const dir = unitVector(star.raDeg, star.decDeg);
+    const span = KM_S_TO_PC_PER_YEAR * (t - star.epoch); // pc of displacement per km/s of v_r
+    const at = (vr: number): { angle: number; dist: number } => {
+      const p = add(s0.posPc, scale(dir, vr * span));
+      const v = add(s0.velKmS, scale(dir, vr));
+      const sep = sub(d.craft.posPc, p);
+      return { angle: angleBetweenDeg(sub(d.craft.velKmS, v), sep), dist: norm(sep) };
+    };
+    let local = { vr: 0, angle: Infinity };
+    for (let vr = -vmax; vr <= vmax + 1e-9; vr += 0.25) {
+      const r = at(vr);
+      if (r.dist <= OPTS.maxDistPc && r.angle < local.angle) local = { vr, angle: r.angle };
+    }
+    if (local.angle === Infinity) continue;
+    tested++;
+    const lo = Math.max(-vmax, local.vr - 0.25);
+    const hi = Math.min(vmax, local.vr + 0.25);
+    const g = goldenMax((vr) => (at(vr).dist <= OPTS.maxDistPc ? -at(vr).angle : -Infinity), lo, hi);
+    const refined = -g.f < local.angle ? { vr: g.x, angle: -g.f } : local;
+    if (refined.angle < best.angleDeg) best = { star, vr: refined.vr, angleDeg: refined.angle };
+  }
+  return { ...best, tested };
+}
 
 describe('kinematics: The Trail', () => {
   it('prints the table head and the census', () => {
@@ -63,6 +104,33 @@ describe('kinematics: The Trail', () => {
     });
     expect(sunZ).toBeLessThanOrEqual(2);
     expect(worst.z).toBeGreaterThan(5);
+  });
+
+  it('stars without a radial velocity cannot mimic the Sun for any plausible radial velocity', () => {
+    const sun = rows.find((e) => e.star.id === 0)!;
+    const sunLimit = sun.angleDeg + 5 * sun.angleSigmaDeg; // the Sun's angle plus 5 of its sigma
+    const w100 = worstCaseNoRv(100);
+    const w300 = worstCaseNoRv(300);
+    // The worst case at 300 km/s, measured with the same model as everything else (its own sigma).
+    const mimic = { ...w300.star, rvKmS: w300.vr };
+    const own = trail(d.craft, { meta: {}, near: [mimic], sky: [] }, observer, { ...OPTS, seed: 'trail.noRv' })[0]!;
+    const ownZ = own.angleDeg / own.angleSigmaDeg;
+    const name = (s: StarRecord): string => s.name ?? s.gl ?? `HYG ${s.id}`;
+    console.log(`[trail.unique] no-RV worst case: |v_r| <= 100: ${name(w100.star)} ${w100.angleDeg.toFixed(2)} deg at ${w100.vr.toFixed(1)} km/s (${w100.tested} stars); |v_r| <= 300: ${name(w300.star)} ${w300.angleDeg.toFixed(2)} deg at ${w300.vr.toFixed(1)} km/s, ${ownZ.toFixed(0)} of its own sigma (${w300.tested} stars); Sun limit ${sunLimit.toFixed(2)} deg`);
+    // Thresholds: 100 km/s bounds nearly all nearby disc stars (Gliese 445's 111 km/s is exceptional);
+    // 300 km/s is beyond halo speeds, and there a star is tested against its own simulated sigma (5, the
+    // same margin as trail.uniqueWithErrors).
+    const pass = w100.angleDeg > sunLimit && ownZ > 5;
+    recordCheck({
+      id: 'trail.uniqueNoRv',
+      claim: `Of ${w300.tested + census.fullVelocity} stars tested in total, the ${w300.tested} with no measured radial velocity that could lie within 10 parsecs of the craft (the other ${census.fullVelocity} have full velocities) cannot fake the Sun's straight-away signature for any radial velocity up to 300 km/s.`,
+      measured: `smallest possible angle ${w100.angleDeg.toFixed(2)} deg for |v_r| <= 100 km/s (${name(w100.star)} at ${w100.vr.toFixed(1)} km/s); ${w300.angleDeg.toFixed(2)} deg for |v_r| <= 300 km/s (${name(w300.star)} at ${w300.vr.toFixed(1)} km/s, ${ownZ.toFixed(0)} sigma from zero by its own simulated measurement); tested ${w300.tested} stars without and ${census.fullVelocity} with radial velocities`,
+      expected: `above the Sun's angle plus 5 sigma (${sunLimit.toFixed(2)} deg) for |v_r| <= 100 km/s; more than 5 of its own sigma for |v_r| <= 300 km/s`,
+      tolerance: 'radial velocities scanned on a 0.25 km/s grid with golden-section refinement; only values that put the star within 10 pc of the craft count',
+      pass,
+    });
+    expect(w100.angleDeg).toBeGreaterThan(sunLimit);
+    expect(ownZ).toBeGreaterThan(5);
   });
 
   it('distance over speed for the Sun is the time since launch', () => {
