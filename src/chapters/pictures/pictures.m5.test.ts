@@ -9,12 +9,16 @@ import { describe, expect, it } from 'vitest';
 import { recordCheck } from '../../../tests/support/record';
 import { decodePng } from '../../../tests/support/png';
 import { loadSlice, slicesUnavailable } from '../../../tests/support/wav';
+import { alienText } from '../../ui/message';
 import { REACH_M } from '../../ui/units';
 import { sliceInfo, type SignalProvider } from './checkers';
 import {
-  ALBUM_FRAMES, BARRY_TO_CW, HEIGHTS, HOME, SECOND_BEATS, SECOND_PRECISION, SLIP, TEACHING, TURNED_FRAMES, channelFrames, checkAlbum,
-  checkColour, checkDown, checkHeight, checkHome, checkNumerals, checkSlip, checkUnits, frameRow, stackOf, type DecodedPicture, type PictureProvider,
+  ALBUM_FRAMES, BARRY_TO_CW, HEIGHTS, HOME, LIKENESS_APART_MAX, LIKENESS_ONE_MIN, LIKENESS_THRESHOLD, SECOND_BEATS, SECOND_PRECISION, SLIP, TEACHING,
+  TURNED_FRAMES, channelFrames, checkAlbum, checkColour, checkDown, checkHeight, checkHome, checkNumerals, checkSlip, checkUnits, frameRow,
+  type DecodedPicture, type PictureProvider,
 } from './checkersM5';
+import { register } from '../../dsp/colour';
+import framesJson from '../../../data/frames.json';
 import { REFERENCE_SETTINGS, decodeWith, frameSignal, type FrameSignal } from './measure';
 import type { Region } from '../../science/teaching';
 
@@ -44,6 +48,9 @@ const picture: PictureProvider = (frame) => {
   return p;
 };
 const signals: SignalProvider = (f) => signal(f);
+/** The solar spectrum's first frame, by the record's own title (data/frames.json, the Ozma book list). */
+const ROWS_OF_SOLAR = (framesJson.frames as { frame: string; title: string; colourRole: string }[])
+  .filter((f) => f.title === 'Solar spectrum' && f.colourRole === 'R').map((f) => f.frame);
 const reading = (r: { result: { key: string; value: number | string }[] }, k: string) => r.result.find((x) => x.key === k)?.value;
 
 /** Dark pixels in a region: darker than 0.72 of the region's median (tools/data/build_teaching.py INK_FRAC). */
@@ -79,43 +86,69 @@ describe.skipIf(SKIP !== null)('The Pictures complete: the eight checkers on the
     expect(pass).toBe(true);
   });
 
-  it('pictures.colour: each of the 20 triples is one scene, more alike than with its neighbours; other picks are refused', { timeout: 300_000 }, () => {
-    const triples: string[][] = [];
+  it('pictures.colour: one scene is told by an absolute likeness measured over every window; the rest are refused', { timeout: 300_000 }, () => {
+    // Every consecutive three of each track (152 windows): the smaller of the two inner registration peaks, with
+    // the record's frame list (data/frames.json colourRole, Ozma book) as the independent truth of which are one picture.
+    const solar = new Set(ROWS_OF_SOLAR);
+    const apart: { w: string; a: number }[] = [];
+    const one: { w: string; a: number }[] = [];
+    let solarA = NaN;
+    let oldRulePassedApart = 0;
+    const wrong: string[] = [];
+    let listedMsg = '';
     for (const ch of ['L', 'R']) {
       const fs = channelFrames(ch);
+      const pair = fs.slice(0, -1).map((f, i) => register(picture(f)!, picture(fs[i + 1]!)!).peak);
       for (let i = 0; i + 2 < fs.length; i++) {
-        const r = fs.slice(i, i + 3).map(frameRow);
-        if (r[0]!.colourRole === 'R' && r[1]!.colourRole === 'G' && r[2]!.colourRole === 'B') triples.push(fs.slice(i, i + 3));
+        const w = fs.slice(i, i + 3);
+        const roles = w.map(frameRow);
+        const triple = roles[0]!.colourRole === 'R' && roles[1]!.colourRole === 'G' && roles[2]!.colourRole === 'B' && roles.every((r) => r.image === roles[0]!.image);
+        const a = Math.min(pair[i]!, pair[i + 1]!);
+        const outer = [...(i > 0 ? [pair[i - 1]!] : []), ...(i + 3 < fs.length ? [pair[i + 2]!] : [])];
+        const r = checkColour(picture, { frames: w });
+        // the checker's own reading must be this measurement (the same registration)
+        if (Math.abs((reading(r, 'likeness of the three') as number) - a) > 5e-4) wrong.push(`${w[0]} reading`);
+        if (r.ok !== triple) wrong.push(`${w[0]} ${r.ok ? 'accepted' : 'refused'}`);
+        if (triple && solar.has(w[0]!)) {
+          solarA = a;
+          listedMsg = r.message;
+        } else (triple ? one : apart).push({ w: w[0]!, a });
+        if (!triple && a > Math.max(...outer, 0)) oldRulePassedApart++;
       }
     }
-    const lines: string[] = [];
-    let worst = Infinity;
-    let allOk = true;
-    for (const t of triples) {
-      const r = checkColour(picture, { frames: t });
-      const a = reading(r, 'likeness of the three') as number;
-      const b = reading(r, 'likeness to the neighbours') as number;
-      worst = Math.min(worst, a / b);
-      allOk &&= r.ok;
-      lines.push(`${t[0]} ${a.toFixed(2)}/${b.toFixed(2)}${r.ok ? '' : ' REFUSED'}`);
-    }
+    const maxApart = apart.reduce((m, x) => (x.a > m.a ? x : m));
+    const minOne = one.reduce((m, x) => (x.a < m.a ? x : m));
+    // for comparison only: the equal-error point of Gaussians fitted to the two groups
+    const fit = (xs: number[]) => {
+      const m = xs.reduce((s, x) => s + x, 0) / xs.length;
+      return { m, sd: Math.sqrt(xs.reduce((s, x) => s + (x - m) ** 2, 0) / (xs.length - 1)) };
+    };
+    const g0 = fit(apart.map((x) => x.a));
+    const g1 = fit(one.map((x) => x.a));
+    const equalError = (g0.m * g1.sd + g1.m * g0.sd) / (g0.sd + g1.sd);
     // meaningful wrong picks: a near-duplicate pair with a third (Anatomy 3, 4 and 5), and a triple read one
     // frame late (the Earth's G and B with the next scene's R)
     const dup = checkColour(picture, { frames: ['L024', 'L025', 'L026'] });
     const late = checkColour(picture, { frames: ['L014', 'L015', 'L016'] });
-    const st = stackOf(picture, ['L014', 'L015', 'L016']);
     expect(() => checkColour(picture, { frames: ['L013', 'L015', 'L014'] })).toThrow(/follow each other/);
-    console.log(`pictures.colour: ${lines.join('; ')}; worst ratio ${worst.toFixed(2)}; L024-26 ${dup.ok} (${dup.message.slice(0, 80)}); L014-16 ${late.ok} inner ${st.inner.map((x) => x.toFixed(2))}`);
-    const pass = triples.length === 20 && allOk && !dup.ok && !late.ok && worst > 1;
+    const good = checkColour(picture, { frames: ['L013', 'L014', 'L015'] });
+    // the constants are this measurement written to three decimals: 5e-4 is their rounding
+    const constantsOk = Math.abs(maxApart.a - LIKENESS_APART_MAX) <= 5e-4 && Math.abs(minOne.a - LIKENESS_ONE_MIN) <= 5e-4;
+    const summary = `${apart.length} windows that are not one picture: at most ${maxApart.a.toFixed(3)} (${maxApart.w}); ${one.length} colour pictures with a scene: at least ${minOne.a.toFixed(3)} (${minOne.w}); the solar spectrum ${solarA.toFixed(3)}; threshold ${LIKENESS_THRESHOLD.toFixed(3)} (the gap's midpoint; Gaussian equal-error point ${equalError.toFixed(3)}, for comparison); the former relative rule let ${oldRulePassedApart} non-pictures through`;
+    console.log(`pictures.colour: ${summary}; wrong ${wrong.join(', ') || 'none'}`);
+    const pass =
+      wrong.length === 0 && apart.length === 132 && one.length === 19 && Number.isFinite(solarA) && solarA < LIKENESS_THRESHOLD && constantsOk &&
+      /too faint/.test(listedMsg) && /line up edge for edge/.test(good.message) && /most readers/.test(good.message) && !dup.ok && !late.ok;
     recordCheck({
       id: 'pictures.colour',
-      claim: 'Every one of the record\'s 20 colour pictures is three consecutive frames of one scene: the three line up edge for edge far better than with the frames round them, and stacked as three primaries they make one colour picture. Picks that are not a triple are refused.',
-      measured: `20 of 20 accepted; edge likeness of the three over that with their neighbours, worst ${worst.toFixed(2)} (the solar spectrum, nearly featureless); ${lines.join('; ')}`,
-      expected: 'The 20 triples of data/frames.json (colourRole R, G, B; Ozma book and the tape); neighbours that are not part of the triple',
-      tolerance: 'Accepted when the triple\'s smaller inner likeness exceeds the larger likeness with its outside neighbours (a ratio above 1); the likeness is the colour registration\'s own correlation peak (src/dsp/colour.ts)',
+      claim: 'Three consecutive frames are one colour picture when their edges line up better than any three frames that are not one picture ever do: the measurement finds 19 of the record\'s 20 colour pictures and refuses every other pick; the 20th, the nearly featureless solar spectrum, is accepted because the record\'s frame list says so, and the message says the measurement cannot confirm it.',
+      measured: summary,
+      expected: 'The 20 triples of data/frames.json (colourRole R, G, B; Ozma book and the tape) against the 132 other windows of three consecutive frames on one track',
+      tolerance: `Accepted at a likeness of ${LIKENESS_THRESHOLD.toFixed(3)} or more: the midpoint of the measured gap (${LIKENESS_APART_MAX} to ${LIKENESS_ONE_MIN}), the line farthest from both groups; the likeness is the registration's correlation peak (src/dsp/colour.ts)`,
       pass,
-      notes: 'The order of the three is shown as probable (D-A08): red, green, blue, as every other reader of the tape uses; the record does not state it.',
+      notes: 'The threshold is set from the same 152 windows it is tested on (the record holds no others), so this shows the gap exists, with 0.176 of margin either side, not a held-out error rate. The order of the three is shown as probable (D-A08): red, green, blue, as most readers assemble them (Barry, gourneau); amazing-rando\'s README says blue, green, red (teaching-frames.md "Colour order").',
     });
+    expect(wrong).toEqual([]);
     expect(pass).toBe(true);
   });
 
@@ -125,13 +158,16 @@ describe.skipIf(SKIP !== null)('The Pictures complete: the eight checkers on the
     const flip = checkDown({ frame: 'L039', quarterTurns: 2 });
     const upright = checkDown({ frame: 'L002', quarterTurns: 0 });
     const anti = checkDown({ frame: 'L012', quarterTurns: -1 });
+    const jupiterHeads = checkDown({ frame: 'L012', quarterTurns: 1 });
+    // people are spoken of only where the record's title names them (L039 a diagram of male and female; L012 Jupiter)
+    const wording = /people/.test(ok.message) && !/people/.test(anti.message) && !/people/.test(jupiterHeads.message) && /its head/.test(jupiterHeads.message);
     // every turned frame accepts exactly one of the four turns
     const unique = TURNED_FRAMES.every((f) => [0, 1, 2, 3].filter((t) => checkDown({ frame: f, quarterTurns: t }).ok).length === 1);
-    const pass = ok.ok && !heads.ok && /heads/.test(heads.message) && !flip.ok && /sides/.test(flip.message) && !upright.ok && anti.ok && unique && BARRY_TO_CW[1] === 1 && BARRY_TO_CW[2] === 3;
+    const pass = ok.ok && !heads.ok && /heads/.test(heads.message) && !flip.ok && /sides/.test(flip.message) && !upright.ok && anti.ok && unique && wording && BARRY_TO_CW[1] === 1 && BARRY_TO_CW[2] === 3;
     recordCheck({
       id: 'pictures.down',
       claim: 'Turned a quarter turn clockwise, the diagram of the two figures stands upright, as Barry\'s table says; every other turn is refused with what it would show, and pictures that came upright are not counted.',
-      measured: `L039: 1 quarter turn accepted, 3 (${heads.message.slice(0, 40)}...) and 2 refused; L012 anticlockwise accepted; ${TURNED_FRAMES.length} turned frames each accept exactly one turn`,
+      measured: `L039: 1 quarter turn accepted, 3 (${heads.message.slice(0, 40)}...) and 2 refused; L012 (Jupiter) anticlockwise accepted without a word of people (${anti.message.slice(0, 60)}...); ${TURNED_FRAMES.length} turned frames each accept exactly one turn`,
       expected: 'Barry\'s orientation table, read from his code (tools/ref-decoder/barry.py: 1 is the native frame turned 90 degrees clockwise, 2 anticlockwise); teaching-frames.md: for L039 the clockwise turn puts "20 y" upright',
       tolerance: 'exact',
       pass,
@@ -191,10 +227,22 @@ describe('The Pictures complete: the teaching checkers', () => {
     const ok = checkNumerals({ table: right });
     const swapped = checkNumerals({ table: { ...right, '6': 6, '5': 7 } });
     const part = checkNumerals({ table: { '0': 1, '1': 2 } });
-    expect(ok.ok && reading(ok, 'their base') === 10).toBe(true);
-    expect(swapped.ok).toBe(false);
-    expect(swapped.message).toMatch(/row of 7, set as 6/);
-    expect(part.ok).toBe(false);
+    // independent truth, the research's reading of L002 (teaching-frames.md): beside the rows of one to nine dots
+    // their own digit for that count, and ten written with two digits, one (the mark of the first row) and none
+    // (the one new mark, listed on the row of ten)
+    const nine = TEACHING.L002.digits.filter((d) => d.row <= 9);
+    const ten = TEACHING.L002.digits.filter((d) => d.row === 10).map((d) => d.value);
+    const truthOk = nine.length === 9 && nine.every((d) => d.value === d.row) && JSON.stringify(ten) === '[0]';
+    const pass = truthOk && ok.ok && reading(ok, 'their base') === 10 && !swapped.ok && /row of 7, set as 6/.test(swapped.message) && !part.ok;
+    recordCheck({
+      id: 'pictures.numerals',
+      claim: 'Matching each of their ten digits to the count of dots beside it is accepted only when all ten are right; ten is written with two of them, one and none, so they count by place in tens. A swapped or missing digit is refused.',
+      measured: `${reading(ok, 'digits matched')} matched, base ${reading(ok, 'their base')}; two digits swapped refused (${swapped.message.slice(0, 60)}...); two of ten set refused`,
+      expected: 'teaching-frames.md L002: dots one to six with binary and "= decimal", the digits 0 to 9 beside the counts, ten as "1 0"',
+      tolerance: 'exact',
+      pass,
+    });
+    expect(pass).toBe(true);
   });
 
   it('pictures.units: their second in beats within the three figures they wrote', () => {
@@ -223,18 +271,25 @@ describe('The Pictures complete: the teaching checkers', () => {
     const slip = checkSlip({ column: 9, row: 'distance' });
     const fits = checkSlip({ column: 8, row: 'distance' });
     const otherRow = checkSlip({ column: 9, row: 'day' });
-    const pass =
-      home.ok && reading(home, 'place outward') === 3 && !venus.ok && !sun.ok && /star/.test(sun.message) &&
-      slip.ok && /4,498|4498|more than/.test(slip.message) && /not in your decoding/.test(slip.message) && !fits.ok && !otherRow.ok;
+    const homePass = home.ok && reading(home, 'place outward') === 3 && !venus.ok && !sun.ok && /star/.test(sun.message);
+    const slipPass = slip.ok && /4,498|4498|more than/.test(slip.message) && /not in your decoding/.test(slip.message) && !fits.ok && !otherRow.ok;
     recordCheck({
       id: 'pictures.home',
-      claim: 'Of the ten columns, the one whose mass and day are both one is the third world out from the star: home. One cell, the outermost distance, breaks the rising order of distances, and the order alone says it must be more than Neptune\'s.',
-      measured: `home: column 3, place ${reading(home, 'place outward')}; Venus and the Sun refused; slip: column 9 distance accepted (${slip.message.slice(0, 90)}...); Neptune's distance and Pluto's day refused`,
-      expected: 'teaching-frames.md: "Earth\'s column is the column of ones: the third world is home"; "Pluto\'s column breaks the table\'s own pattern"',
+      claim: 'Of the ten columns, the one whose mass and day are both one is the third world out from the star: home.',
+      measured: `home: column 3, place ${reading(home, 'place outward')}; Venus and the Sun refused`,
+      expected: 'teaching-frames.md: "Earth\'s column is the column of ones: the third world is home"',
       tolerance: 'exact',
-      pass,
+      pass: homePass,
     });
-    expect(pass).toBe(true);
+    recordCheck({
+      id: 'pictures.slip',
+      claim: 'One cell, the outermost distance, breaks the rising order of distances; the order alone says it must be more than Neptune\'s, and it is a slip in their table, not in the decoding.',
+      measured: `column 9's distance accepted (${slip.message.slice(0, 90)}...); Neptune's distance (which fits the order) and Pluto's day (no rule for it) refused`,
+      expected: 'teaching-frames.md: "Pluto\'s column breaks the table\'s own pattern"; its 591 read whole on the 536-line decode (decoder.ref.rightEdge)',
+      tolerance: 'exact',
+      pass: slipPass,
+    });
+    expect(homePass && slipPass).toBe(true);
   });
 
   it('pictures.height: 160 of their centimetres in reaches, within half a centimetre', () => {
@@ -245,13 +300,17 @@ describe('The Pictures complete: the teaching checkers', () => {
     const both = checkHeight({ reaches: [shorter.metres / REACH_M, r160] });
     const metres = checkHeight({ reaches: 160 / REACH_M }); // read as metres
     const swapped = checkHeight({ reaches: shorter.metres / REACH_M }); // the shorter figure's number
+    const near = checkHeight({ reaches: (159 * taller.metres) / 160 / REACH_M }); // 159 read for 160: refused
+    // the refusal must show the two readings with enough figures to differ (M5 science audit, wording)
+    const shown = [...near.message.matchAll(/\{\{q\|length\|([^|}]+)\|(\d+)\}\}/g)].map((m) => alienText('length', Number(m[1]), Number(m[2])));
+    const apart = !near.ok && shown.length === 2 && shown[0] !== shown[1];
     // independent truth: 160 x (21.106114054 cm / 21) over 1.37 m per reach (D-A22) = 1.1738
     const truth = (160 * 0.21106114054) / 21 / 1.37;
-    const pass = ok.ok && both.ok && !metres.ok && !swapped.ok && Math.abs(r160 / truth - 1) < 1e-9 && /reaches/.test(String(reading(ok, 'their heights')));
+    const pass = ok.ok && both.ok && !metres.ok && !swapped.ok && apart && Math.abs(r160 / truth - 1) < 1e-9 && /reaches/.test(String(reading(ok, 'their heights')));
     recordCheck({
       id: 'pictures.height',
       claim: 'The taller figure is 160 of their centimetres, 1.174 of the alien\'s reaches (the shorter 155, 1.137); a reading within half a centimetre is accepted, a misread unit or the other bar is refused.',
-      measured: `taller ${r160.toFixed(4)} reaches, shorter ${(shorter.metres / REACH_M).toFixed(4)}; ${String(reading(ok, 'their heights'))}; 160 read as metres refused; the shorter bar alone refused`,
+      measured: `taller ${r160.toFixed(4)} reaches, shorter ${(shorter.metres / REACH_M).toFixed(4)}; ${String(reading(ok, 'their heights'))}; 160 read as metres refused; the shorter bar alone refused; 159 refused, shown as ${shown.join(' against ')}`,
       expected: 'teaching-frames.md L039: 155 cm and 160 cm; their cm = 1/21 of the hydrogen wavelength (units.ts); 1.37 m per reach (D-A22)',
       tolerance: 'half a centimetre in 160 (0.31%)',
       pass,

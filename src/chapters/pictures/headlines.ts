@@ -12,7 +12,7 @@ export const PICTURES_HEADLINES: Record<string, HeadlineDef> = {
   // M5: the pictures complete
   'pictures.album': { from: { reading: 'frames developed' }, sentence: 'Every frame of the side, developed from the tape with the settings that made the circle round.' },
   'pictures.colour': { from: { reading: 'probable order' }, sentence: 'One scene three times: stacked as three primaries it is a colour picture. The order is probable, not proven.' },
-  'pictures.down': { from: { reading: 'turned frames on the side' }, sentence: 'Turned so that people stand: the same turn rights every picture stored on its side.' },
+  'pictures.down': { from: { reading: 'turned frames on the side' }, sentence: 'Turned upright: the same turn rights every picture stored on its side.' },
   'pictures.numerals': { from: { reading: 'their base' }, sentence: 'They count by place: this many of one place make one of the next.' },
   'pictures.units': { from: { reading: 'their second' }, sentence: 'Their second, counted in spin flips of hydrogen: the root of every unit they use.' },
   'pictures.home': { from: { reading: 'place outward' }, sentence: 'The column of ones is theirs: this many worlds out from their star.' },

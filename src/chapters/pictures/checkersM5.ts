@@ -13,7 +13,7 @@ import {
   digitTable, heights, homeColumn, placeBase, placeOutward, planetColumns, ROWS, senderUnits, slips, writtenPrecision, type Row, type TeachingData,
 } from '../../science/teaching';
 import { BEAT_S, REACH_M, formatNumber } from '../../ui/units';
-import { q } from '../../ui/message';
+import { alienText, q } from '../../ui/message';
 import { checkCircle, parseSettings, type SignalProvider } from './checkers';
 import type { PictureSettings } from './measure';
 
@@ -144,6 +144,31 @@ export function stackOf(get: PictureProvider, frames: readonly string[]): Stack 
   return { frames: [frames[0], frames[1], frames[2]] as [string, string, string], inner, outer, triple };
 }
 
+/**
+ * Edge likeness (the colour registration's correlation peak, src/dsp/colour.ts) that separates one scene's three
+ * shades from three frames that are not one picture, measured on the browser's own 96 kHz decodes of every
+ * consecutive three frames of both tracks (152 windows; pictures.m5.test.ts, M5 science audit finding 5):
+ * - LIKENESS_APART_MAX: the most alike of the 132 windows that are not one picture, 0.236 (R068 to R070, whose
+ *   last two frames are the astronaut's red and green);
+ * - LIKENESS_ONE_MIN: the least alike of the 19 colour pictures whose frames show a scene, 0.588 (R073 to R075,
+ *   the sunset with birds). The 20th, the solar spectrum (L007 to L009), reads 0.144: its frames are too faint and
+ *   featureless to register (teaching-frames.md "Colour order": nearly featureless, as gourneau also found).
+ * The threshold is the midpoint of that gap, the line farthest from both measured extremes (0.176 either side).
+ * Not the point of equal error under a fitted model: with 19 scenes against 132 non-scenes, the shapes are not
+ * Gaussian (the scenes bunch at 0.75 to 0.94 with one at 0.59) and a model's tails would be its assumption,
+ * not the data's; the test reports that point for comparison.
+ */
+export const LIKENESS_APART_MAX = 0.236;
+export const LIKENESS_ONE_MIN = 0.588;
+export const LIKENESS_THRESHOLD = (LIKENESS_APART_MAX + LIKENESS_ONE_MIN) / 2;
+
+/**
+ * The colour order shown with every colour picture (D-A08): probable, not proven. Evidence, from
+ * docs/research/teaching-frames.md "Colour order" and images-and-audio.md section 3: Barry and gourneau assemble
+ * the three as red, green, blue; amazing-rando's README says blue, green, red (its code reads the first as red).
+ */
+const ORDER_NOTE = 'red, green, blue, as most readers of the tape assemble them (one reads blue, green, red); the record does not say';
+
 export function checkColour(get: PictureProvider, answer: Answer): CheckResult {
   const a = obj(answer, 'the three frames');
   const f = a.frames;
@@ -151,14 +176,19 @@ export function checkColour(get: PictureProvider, answer: Answer): CheckResult {
   const st = stackOf(get, f as string[]);
   const alike = Math.min(...st.inner);
   const around = st.outer.length ? Math.max(...st.outer) : 0;
-  const same = alike > around;
-  const ok = st.triple && same;
+  // the measurement decides; a triple of the record's own frame list the measurement cannot confirm (on the
+  // record, only the solar spectrum) is accepted on the list's word, and the message says so
+  const measured = alike >= LIKENESS_THRESHOLD;
+  const listedOnly = !measured && st.triple;
+  const ok = measured || listedOnly;
   const levels = st.frames.map((x) => meanBrightness(need(get, x)));
   const top = Math.max(...levels);
   const rel = levels.map((v) => Math.round((100 * v) / top));
   const tape = st.frames.reduce((s, x) => s + DECODER_DATA.geometry.columns * lineSeconds(x), 0);
+  const T = LIKENESS_THRESHOLD.toFixed(2);
   const result: Reading[] = [
     { key: 'likeness of the three', value: Number(alike.toFixed(3)) },
+    { key: 'likeness of one scene', value: `${T} or more` },
     { key: 'likeness to the neighbours', value: Number(around.toFixed(3)) },
     { key: 'mean brightness of the three', value: rel.join(' / ') },
   ];
@@ -166,16 +196,13 @@ export function checkColour(get: PictureProvider, answer: Answer): CheckResult {
     result.push({ key: 'probable order', value: 'red, green, blue' });
     result.push({ key: 'tape time of the three', value: tape, dim: 'time' });
   }
-  const wrongWhy = !same
-    ? `the three are less alike (${alike.toFixed(2)}) than they are like their neighbours (${around.toFixed(2)}): not one scene`
-    : 'they are alike, but the record does not store them as one picture\'s three shades: stacked, the shades do not belong together';
-  return {
-    ok,
-    result,
-    message: ok
-      ? `One scene three times: the three line up edge for edge (likeness ${alike.toFixed(2)}, against ${around.toFixed(2)} with the frames round them). Stacked as three primaries they make one colour picture. The order of the three is probable, not proven: red, green, blue, the order every other reader of the tape uses; the record does not say (their mean brightness ${rel.join(', ')}). The three take ${q('time', tape, 3)} of tape.`
-      : `Not a colour picture: ${wrongWhy}. Stacked, they come out as a misregistered smear.`,
-  };
+  const gap = `three frames that are not one picture reach at most ${LIKENESS_APART_MAX.toFixed(2)}, one scene's three shades at least ${LIKENESS_ONE_MIN.toFixed(2)}`;
+  const order = `The order of the three is probable, not proven: ${ORDER_NOTE} (their mean brightness ${rel.join(', ')}). The three take ${q('time', tape, 3)} of tape.`;
+  let message: string;
+  if (measured) message = `One scene three times: the three line up edge for edge (likeness ${alike.toFixed(2)}; ${gap}, so the line is drawn midway, at ${T}). Stacked as three primaries they make one colour picture. ${order}`;
+  else if (listedOnly) message = `The record's list of pictures stores these three as one picture's three shades, and stacked they make one colour picture; but their frames are too faint and featureless for the measurement to confirm it: their likeness is ${alike.toFixed(2)}, below the ${T} that marks one scene (${gap}). Accepted on the record's word, not on the measurement. ${order}`;
+  else message = `Not a colour picture: the three are not one scene (likeness ${alike.toFixed(2)}, below the ${T} that marks one; ${gap}). Stacked, they come out as a misregistered smear.`;
+  return { ok, result, message };
 }
 
 // ---- pictures.down -------------------------------------------------------------------------------------
@@ -187,6 +214,13 @@ const TURN_WORDS = ['no turn', 'a quarter turn clockwise', 'a half turn', 'a qua
 /** Frames the record stores turned on their sides (Barry's table, data/frames.json orientationBarry). */
 export const TURNED_FRAMES: readonly string[] = ROWS_DATA.filter((f) => f.orientationBarry !== 0).map((f) => f.frame);
 
+/**
+ * Images whose subject is people, by the record's own titles (data/frames.json, the Ozma book list): a person or
+ * people named as the subject (a figure diagram included). Only these messages speak of people; every other
+ * picture is said to stand or lie (M5 science audit, wording: Jupiter, L012, has no people in it).
+ */
+export const PEOPLE_IMAGES: ReadonlySet<number> = new Set([32, 34, 35, 36, 37, 38, 60, 61, 62, 63, 64, 65, 66, 68, 69, 70, 71, 72, 73, 74, 76, 81, 82, 89, 96, 100, 115]);
+
 export function checkDown(answer: Answer): CheckResult {
   const a = obj(answer, 'a turned picture');
   const frame = a.frame;
@@ -194,6 +228,7 @@ export function checkDown(answer: Answer): CheckResult {
   if (typeof frame !== 'string') throw new Error('frame must be a frame id.');
   if (typeof t !== 'number' || !Number.isInteger(t)) throw new Error('quarterTurns must be a whole number of quarter turns.');
   const row = frameRow(frame);
+  const people = PEOPLE_IMAGES.has(row.image);
   const turns = ((t % 4) + 4) % 4;
   const right = BARRY_TO_CW[row.orientationBarry] as number;
   const off = (turns - right + 4) % 4;
@@ -202,10 +237,15 @@ export function checkDown(answer: Answer): CheckResult {
     { key: 'turn', value: TURN_WORDS[turns] as string },
     { key: 'turned frames on the side', value: TURNED_FRAMES.length },
   ];
+  const tw = TURN_WORDS[turns] as string;
   let message: string;
-  if (ok) message = `Turned ${TURN_WORDS[turns]}, the picture stands upright: people stand, the ground is below them. The same table turns every one of the ${TURNED_FRAMES.length} pictures the record stores on their sides.`;
-  else if (row.orientationBarry === 0) message = turns === 0 ? 'This picture already came the right way up. Find one that came off the tape on its side, and turn it.' : `This picture came the right way up; turned ${TURN_WORDS[turns]}, people would stand on the wall or on their heads.`;
-  else message = off === 2 ? `Turned ${TURN_WORDS[turns]}, people would stand on their heads.` : `Turned ${TURN_WORDS[turns]}, people would lie on their sides, and the ground would stand up beside them.`;
+  if (ok) message = `Turned ${tw}, the picture stands upright${people ? ': people stand, heads up' : ''}. The same table turns every one of the ${TURNED_FRAMES.length} pictures the record stores on their sides.`;
+  else if (row.orientationBarry === 0)
+    message = turns === 0
+      ? 'This picture already came the right way up. Find one that came off the tape on its side, and turn it.'
+      : `This picture came the right way up; turned ${tw}, ${people ? 'people would stand on the wall or on their heads' : 'it would lie on its side or stand on its head'}.`;
+  else if (off === 2) message = `Turned ${tw}, ${people ? 'people would stand on their heads' : 'the picture would stand on its head'}.`;
+  else message = `Turned ${tw}, ${people ? 'people would lie on their sides, and the ground would stand up beside them' : 'the picture would lie on its side'}.`;
   return { ok, result, message };
 }
 
@@ -364,12 +404,16 @@ export function checkHeight(answer: Answer): CheckResult {
     { key: 'your reading', value: (given[0] as number) * REACH_M, dim: 'length' },
   ];
   if (ok) result.unshift({ key: 'their heights', value: `${both} reaches` });
+  // a refusal shows the refused and the true readings to as many figures as it takes to tell them apart
+  const gm = (given[0] as number) * REACH_M;
+  let d = 3;
+  while (d < 7 && alienText('length', gm, d) === alienText('length', truth[0]!.metres, d)) d++;
   return {
     ok,
     result,
     message: ok
       ? `The bars run the figures' full height: ${truth.map((h) => `${h.cm} of their centimetres, ${q('length', h.metres, 3)}`).join(', and ')}. A little taller than one of your reaches.`
-      : `Read that way the taller figure would stand ${q('length', (given[0] as number) * REACH_M, 3)}; the bar beside it says ${truth[0]!.cm} of their centimetres, ${q('length', truth[0]!.metres, 3)}.`,
+      : `Read that way the taller figure would stand ${q('length', gm, d)}; the bar beside it says ${truth[0]!.cm} of their centimetres, ${q('length', truth[0]!.metres, d)}.`,
   };
 }
 

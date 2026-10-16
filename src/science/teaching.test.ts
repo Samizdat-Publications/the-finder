@@ -1,7 +1,8 @@
 // The teaching pictures' arithmetic against independent truth: the hydrogen constants of units.ts and the SI
 // definitions (their second, centimetre, gram and Earth mass must land on ours within the precision of the
-// numbers the senders wrote), and today's planetary values (NASA's Planetary Fact Sheet) with a stated
-// tolerance that admits 1977's estimates and names them. Never the module's own earlier output.
+// numbers the senders wrote), and today's planetary values (NASA's Planetary Fact Sheet) cell by cell at each
+// number's own written precision, with 1977's estimates and the discrepancies named. Never the module's own
+// earlier output.
 import { describe, expect, it } from 'vitest';
 import teachingJson from '../../data/teaching.json';
 import { recordCheck } from '../../tests/support/record';
@@ -37,18 +38,42 @@ const TODAY: { name: string; diameter: number; distance: number | null; mass: nu
 const EARTH_KG = 5.9722e24;
 
 /**
- * The cells the research marks as 1977's estimates, or as the slip (docs/research/teaching-frames.md "L004 and
- * L005": Uranus, Neptune and Pluto "from the estimates of the time"; Pluto's 591 breaks the table's order).
- * Every other cell must agree with today's value within TOL.
+ * The columns the research marks as 1977's estimates (docs/research/teaching-frames.md "L004 and L005": "Uranus,
+ * Neptune and Pluto from the estimates of the time"), whose cells are listed with their disagreement, not tested,
+ * and the slip (Pluto's 591 breaks the table's order, found by the order alone). Earth's mass and day are the
+ * units e and d themselves (L003 defines them; teaching.units tests them), not readings to compare.
  */
-const ESTIMATES = new Set(['Uranus diameter', 'Neptune diameter', 'Uranus day', 'Pluto diameter', 'Pluto mass', 'Pluto day']);
+const ESTIMATE_COLUMNS = new Set(['Uranus', 'Neptune', 'Pluto']);
 const SLIP = 'Pluto distance';
+const UNITS_THEMSELVES = new Set(['Earth mass', 'Earth day']);
+
 /**
- * 5%: the senders wrote two to four figures and rounded small masses to a simple fraction; the widest such
- * rounding in the table is Mercury's mass written 1/19 (today 1/18.1, 4.8% low). Everything else well measured
- * by 1977 sits within 3.2% (Saturn's day 0.43 against 0.444).
+ * The precision a cell's writing carries, relative (M5 science audit finding 6: each cell against its own
+ * written precision, not one tolerance for the table): half a unit in its last written figure. A whole
+ * number's trailing zeros are not counted as written figures (12400 is written to the hundred, as the senders
+ * wrote 139 x 10^4 for the Sun's diameter); that is our reading of the writing, an assumption. A decimal
+ * fraction (82/100, 14 6/10) carries half its step (1/200, 1/20); a unit fraction carries half a unit of its
+ * denominator (1/19: 0.5 / 19, 2.6%).
  */
-const TOL = 0.05;
+function cellPrecision(c: { whole: number; num: number; den: number }): number {
+  if (c.num && c.den) {
+    const decimal = Number.isInteger(Math.log10(c.den));
+    if (!decimal && c.whole === 0 && c.num === 1) return 0.5 / c.den;
+    return 0.5 / c.den / (c.whole + c.num / c.den);
+  }
+  let place = 1;
+  while (c.whole % (place * 10) === 0 && place * 10 <= c.whole) place *= 10;
+  return (0.5 * place) / c.whole;
+}
+
+/**
+ * The cells that differ from today's values by more than their written precision, found by this comparison
+ * on 2026-10-16 and stated as discrepancies (the test fails if the set changes, so a changed reading or
+ * transcription cannot pass silently). Mercury's mass written 1/19 against today's 1/18.1 is a mis-rounding;
+ * the others differ by 0.3% to 3.2%, more than their figures carry; why (1977's values, equatorial against
+ * mean diameters, which rotation was meant) is not established here: UNVERIFIED.
+ */
+const STATED = ['Mercury diameter', 'Mercury mass', 'Mercury day', 'Venus diameter', 'Venus mass', 'Jupiter diameter', 'Saturn distance', 'Saturn day'];
 
 describe('teaching: the senders\' numerals (L002)', () => {
   it('sets a digit beside each count, and writes ten as one and none', () => {
@@ -109,34 +134,39 @@ describe('teaching: their units (L003)', () => {
 });
 
 describe('teaching: their planets (L004, L005)', () => {
-  it('agrees with today\'s values except the estimates of 1977 and the slip, which the order alone finds', () => {
+  it('compares every cell with today\'s value at its own written precision; home and the slip from the table alone', () => {
     const cols = planetColumns(D);
     expect(cols.length).toBe(TODAY.length);
-    const bad: string[] = [];
+    const within: string[] = [];
+    const beyond: string[] = [];
     const marked: string[] = [];
-    let worst = { k: '', r: 0 };
     cols.forEach((c, i) => {
       const t = TODAY[i]!;
       for (const row of ['diameter', 'distance', 'mass', 'day'] as const) {
         const v = c.read[row];
+        const cell = D.table.columns[c.index]!.cells[row];
         const truth = row === 'distance' ? (t.distance === null ? null : t.distance * 1e6) : t[row];
-        if (v === undefined || truth === null) continue;
-        const r = v / truth - 1;
+        if (v === undefined || !cell || truth === null) continue;
         const k = `${t.name} ${row}`;
-        if (ESTIMATES.has(k) || k === SLIP) {
-          marked.push(`${k} ${(r * 100).toFixed(0)}%`);
+        if (UNITS_THEMSELVES.has(k)) continue;
+        const r = v / truth - 1;
+        if (ESTIMATE_COLUMNS.has(t.name) || k === SLIP) {
+          marked.push(`${k} ${(r * 100).toFixed(1)}%`);
           continue;
         }
-        if (Math.abs(r) > Math.abs(worst.r)) worst = { k, r };
-        if (Math.abs(r) > TOL) bad.push(`${k} ${(r * 100).toFixed(1)}%`);
+        const prec = cellPrecision(cell);
+        const txt = `${k} ${cell.text} ${(r * 100).toFixed(2)}% (written to ${(prec * 100).toFixed(2)}%)`;
+        (Math.abs(r) <= prec ? within : beyond).push(txt);
       }
     });
+    const beyondKeys = beyond.map((x) => x.split(' ').slice(0, 2).join(' '));
+    const asStated = JSON.stringify([...beyondKeys].sort()) === JSON.stringify([...STATED].sort());
     const home = homeColumn(D);
     const place = placeOutward(D, home);
     const s = slips(D);
     const slip = s[0]!;
     const pass =
-      bad.length === 0 &&
+      asStated &&
       TODAY[home]!.name === 'Earth' &&
       place === 3 &&
       s.length === 1 &&
@@ -148,15 +178,15 @@ describe('teaching: their planets (L004, L005)', () => {
       slip.fallsInsidePlace === 5 &&
       // today's distance does fit the order the table asks for
       TODAY[slip.column]!.distance! * 1e6 > slip.mustExceed;
-    console.log(`teaching.planets: worst ${worst.k} ${(worst.r * 100).toFixed(1)}%; marked ${marked.join(', ')}; home ${home} (place ${place}); slip column ${slip.column} ${slip.read / 1e6} must exceed ${slip.mustExceed / 1e6}`);
+    console.log(`teaching.planets: within ${within.length}: ${within.join('; ')}\nbeyond ${beyond.length}: ${beyond.join('; ')}\nmarked: ${marked.join(', ')}`);
     recordCheck({
       id: 'teaching.planets',
-      claim: 'The table of circles, read in their units, agrees with today\'s Sun and planets except where 1977 had only estimates; the column of ones is the third world out; and one cell, the last distance, breaks the table\'s own rising order, which a reader can find from the table alone.',
-      measured: `every well-measured cell within ${(Math.abs(worst.r) * 100).toFixed(1)}% (worst ${worst.k}); 1977 estimates and the slip: ${marked.join(', ')}; home = column ${home}, ${place}rd from the star; slip: column ${slip.column}'s ${slip.read / 1e6} x 10^6 km, which the order says must exceed ${slip.mustExceed / 1e6} x 10^6 km (today 5,906)`,
-      expected: 'NASA Planetary and Sun Fact Sheets (values in the test, recalled, not fetched); teaching-frames.md: Uranus, Neptune and Pluto from 1977 estimates; Pluto\'s 591 breaks the order',
-      tolerance: `${TOL * 100}%: the senders\' widest rounding (Mercury\'s mass written 1/19); marked cells are listed with their disagreement, not tested`,
+      claim: 'The table of circles, read in their units, agrees cell by cell with today\'s Sun and planets to the precision each number is written, except eight stated discrepancies and the columns 1977 could only estimate; the column of ones is the third world out; and one cell, the last distance, breaks the table\'s own rising order, which a reader can find from the table alone.',
+      measured: `${within.length} of ${within.length + beyond.length} cells outside the estimate columns agree within their written precision; ${beyond.length} differ by more (stated): ${beyond.join('; ')}; 1977 estimates and the slip, not tested: ${marked.join(', ')}; home = column ${home}, ${place}rd from the star; slip: column ${slip.column}'s ${slip.read / 1e6} x 10^6 km, which the order says must exceed ${slip.mustExceed / 1e6} x 10^6 km (today 5,906)`,
+      expected: 'NASA Planetary and Sun Fact Sheets, checked against the sheets on 2026-10-16 (metric planetary sheet updated 18 Mar 2025; Mars\'s distance 227.9 here, which the summary table rounds to 228.0); teaching-frames.md: Uranus, Neptune and Pluto from 1977 estimates; Pluto\'s 591 breaks the order',
+      tolerance: 'Each cell\'s own written precision: half a unit in its last written figure (trailing zeros of a whole number not counted), half the step of a decimal fraction, half a unit of a unit fraction\'s denominator (Mercury\'s 1/19: 2.6%); the cells beyond it must be exactly the stated eight',
       pass,
-      notes: 'The table\'s values were read from our decode (research); a test cannot read today\'s values from the frame, so the comparison checks the reading, not the decoder.',
+      notes: 'Mercury\'s mass written 1/19 is 4.8% low against today\'s 1/18.1, beyond the 2.6% its writing carries: a mis-rounding in the table. The other stated cells differ by 0.3% to 3.2%; their cause is UNVERIFIED. Two cells sit at the edge of their precision: the mass of Venus (0.613% against 0.610%, beyond) and the distance of Jupiter (0.0642% against 0.0643%, within). The numbers are compared as written (the senders meant our km; their hydrogen centimetre is 0.5% larger than ours, teaching.units). The table\'s values were read from our decode (research); the comparison checks the reading, not the decoder.',
     });
     expect(pass).toBe(true);
   });

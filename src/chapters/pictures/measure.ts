@@ -2,13 +2,17 @@
 // imports only src/dsp, the science units and data/ (no DOM), so Node tests and the browser run the same
 // numbers. Each checker decodes the calibration frame (L000) with the player's settings and measures what
 // those settings did: the slant, the line-start wobble, the even/odd comb, the shade of the slide mount
-// at the frame's edges, the roundness of the circle.
+// at the frame's edges, the roundness of the circle. Every one of these measures over the cover's raster,
+// the first 512 lines (coverRaster), which every frame on the tape carries in full: the decoded pictures
+// are 536 lines wide (D-A30), and on frames whose raster ends at 534 or 535 lines the last columns are the
+// flat lines after the picture, which would otherwise enter the fits and the mount's outer ring
+// (M5 science audit, finding 9).
 
 import coverJson from '../../../data/cover.json';
 import { decodeFrame, decodeLines, makeJob, measureInterlace, planLines, syncFrame, toTapeUnits, type DecodedFrame, type FrameSync } from '../../dsp/decode';
 import { fitEllipse, ringPoints, type EllipseFit } from '../../dsp/ellipse';
 import { argmax, pyInt, unwrap } from '../../dsp/numeric';
-import { BASE_RATE, DECODER_DATA, periodPrior, referenceParams, type Channel, type DecodeParams } from '../../dsp/params';
+import { BASE_RATE, DECODER_DATA, LINES_PER_FRAME, periodPrior, referenceParams, type Channel, type DecodeParams } from '../../dsp/params';
 import { refineEdge, robustLineFit } from '../../dsp/sync';
 import { binaryToSeconds } from '../../science/units';
 
@@ -71,6 +75,23 @@ export interface FrameSignal {
 export function frameSignal(info: SliceInfo, samples: ArrayLike<number>): FrameSignal {
   const x = toTapeUnits(samples, info.gain);
   return { info, x, sync: syncFrame(x, info.sampleRate, info.firstLineOffset, periodPrior(info.frame)) };
+}
+
+/**
+ * The same signal with its sync tracked over the cover's 512 lines only (cover.md section 1c, LINES_PER_FRAME):
+ * every frame on the tape carries at least 534 lines (decoder.ref.rightEdge), so these 512 are picture on every
+ * frame. The line-time, sync, interlace, polarity and circle measurements use it, as the M1 checks did and as
+ * src/dsp/decode.test.ts measures the comb (decoder.slant). Memoised per signal.
+ */
+const coverMemo = new WeakMap<FrameSignal, FrameSignal>();
+export function coverRaster(sig: FrameSignal): FrameSignal {
+  let c = coverMemo.get(sig);
+  if (!c) {
+    const { info, x } = sig;
+    c = { info, x, sync: syncFrame(x, info.sampleRate, info.firstLineOffset, periodPrior(info.frame), LINES_PER_FRAME) };
+    coverMemo.set(sig, c);
+  }
+  return c;
 }
 
 /** The player's settings, as the instrument proposes them (the bench knobs). */
@@ -149,7 +170,8 @@ export interface LineTiming {
  * Slant and wobble of the line starts these settings use (free-running: line 1's edge plus k times the line
  * time; locked: each line's own edge), measured against the real sync edges as decode.py measure_slant does.
  */
-export function lineTiming(sig: FrameSignal, s: PictureSettings): LineTiming {
+export function lineTiming(whole: FrameSignal, s: PictureSettings): LineTiming {
+  const sig = coverRaster(whole);
   const plan = planLines(sig.sync, paramsFor(sig, s));
   const { ks, offs } = edgeOffsets(sig, plan.starts);
   const fit = robustLineFit(ks, offs, true);
@@ -169,9 +191,11 @@ export function lineTiming(sig: FrameSignal, s: PictureSettings): LineTiming {
 
 /**
  * The even/odd comb: the content shift between long-pulse and short-pulse lines, in samples at 384 kHz,
- * decoded at one row per 384 kHz sample with the sync locked (decode_all.py: max lag 40, min peak 0.5).
+ * decoded at one row per 384 kHz sample with the sync locked (decode_all.py: max lag 40, min peak 0.5), over
+ * the cover's 512 lines (coverRaster) as decode_all.py measures it.
  */
-export function evenOddComb(sig: FrameSignal, interlace: boolean): number {
+export function evenOddComb(whole: FrameSignal, interlace: boolean): number {
+  const sig = coverRaster(whole);
   const p = paramsFor(sig, { ...REFERENCE_SETTINGS, interlace });
   const pf: DecodeParams = { ...p, nRows: Math.trunc(p.w1 - p.w0), parityProfile: null };
   const job = makeJob(sig.x, sig.sync, pf);
@@ -194,9 +218,14 @@ export function decodeWith(sig: FrameSignal, s: PictureSettings): DecodedFrame {
   return d;
 }
 
+/** Decode the cover's 512 lines with these settings (the polarity and circle checkers measure this picture: 512 x rows). */
+export function decodeCover(sig: FrameSignal, s: PictureSettings): DecodedFrame {
+  return decodeWith(coverRaster(sig), s);
+}
+
 /**
  * The slide mount cue: mean grey of the frame's outer ring (MOUNT_BORDER_PX wide) and of its central half,
- * in the decoded 8-bit picture. Each frame is a photograph of a slide in its mount, and no light comes
+ * in the decoded 8-bit picture (decodeCover: the outer 4 pixels of the 512 x 355 frame). Each frame is a photograph of a slide in its mount, and no light comes
  * through a mount: in a right reading the border is the darker (images-and-audio.md section 1).
  */
 export function mountCue(d: DecodedFrame): { border: number; centre: number; margin: number } {

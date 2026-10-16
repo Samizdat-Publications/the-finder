@@ -287,7 +287,7 @@ def main():
                      "geometry are measurable but too small to see.",
                      txt, f"|aspect offset| and |shear| each under {PERCEPTUAL_LIMIT_PCT:.0f}% (chosen visibility threshold)",
                      "at mean + 2 standard errors of the mean over the images", ok,
-                     "Measured, not agreement: our aspect is off by about 0.9% (about 2.8 standard errors) and our frames "
+                     "Measured, not agreement: our aspect is off by about 0.9% (about 2.6 standard errors) and our frames "
                      "are sheared by about 1.4% against the clean NASA gallery copies (tests only). The shear's origin is "
                      "unresolved: the 1977 equipment, the artwork or its copy, the gallery scans, or our decode. Our own "
                      "circle is a diagonal ellipse (0.9934 at 137 deg; shear +0.0066 if the artwork is round), opposite in "

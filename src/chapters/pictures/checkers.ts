@@ -1,6 +1,7 @@
 // The Pictures' seven checkers. Each decodes real slices of the 1977 tape with the player's settings and
 // measures the decoded picture (rule 3): the slant of a free-running decode, the wobble a sync lock
-// removes, the even/odd comb, the shade of the slide mounts, the roundness of the calibration circle.
+// removes, the even/odd comb, the shade of the slide mounts, the roundness of the calibration circle, each
+// over the cover's 512 lines (measure.ts coverRaster).
 // Pure: the slices come from a provider (the browser's signal store, or the WAV copies in Node tests).
 // A checker whose slice is not loaded yet throws, so the bus refuses the proposal instead of recording it.
 
@@ -9,7 +10,7 @@ import { registerChecker, type Answer, type Checker, type CheckResult, type Read
 import { BASE_RATE, type Channel } from '../../dsp/params';
 import { q } from '../../ui/message';
 import {
-  CIRCLE_FRAME, COMB_TOLERANCE_384, REFERENCE_SETTINGS, ROUND_TOLERANCE, SYNC_JITTER_RMS_384, TAPE_SPEED_OFFSET_MAX, circleFit, decodeWith,
+  CIRCLE_FRAME, COMB_TOLERANCE_384, REFERENCE_SETTINGS, ROUND_TOLERANCE, SYNC_JITTER_RMS_384, TAPE_SPEED_OFFSET_MAX, circleFit, decodeCover,
   evenOddComb, lineTiming, mountCue, type FrameSignal, type PictureSettings, type SliceInfo,
 } from './measure';
 
@@ -147,7 +148,7 @@ export function checkInterlace(get: SignalProvider, answer: Answer): CheckResult
 /** pictures.polarity: read this way, are the slide mounts at the frame edges dark? */
 export function checkPolarity(get: SignalProvider, answer: Answer): CheckResult {
   const pol = polarity(obj(answer));
-  const cues = POLARITY_FRAMES.map((f) => mountCue(decodeWith(need(get, f), { ...REFERENCE_SETTINGS, polarity: pol })));
+  const cues = POLARITY_FRAMES.map((f) => mountCue(decodeCover(need(get, f), { ...REFERENCE_SETTINGS, polarity: pol })));
   const dark = cues.filter((c) => c.margin > 0).length;
   const border = cues.reduce((s, c) => s + c.border, 0) / cues.length;
   const centre = cues.reduce((s, c) => s + c.centre, 0) / cues.length;
@@ -168,7 +169,7 @@ export function checkPolarity(get: SignalProvider, answer: Answer): CheckResult 
 /** pictures.aspect: with this many rows, does the calibration circle come out round? */
 export function checkAspect(get: SignalProvider, answer: Answer): CheckResult {
   const n = rows(obj(answer));
-  const fit = circleFit(decodeWith(need(get, CIRCLE_FRAME), { ...REFERENCE_SETTINGS, rows: n }));
+  const fit = circleFit(decodeCover(need(get, CIRCLE_FRAME), { ...REFERENCE_SETTINGS, rows: n }));
   const ok = Math.abs(fit.axisRatio - 1) <= ROUND_TOLERANCE;
   const shape = fit.axisRatio > 1 ? 'wider than tall' : 'taller than wide';
   return {
@@ -201,7 +202,7 @@ export function checkCircle(get: SignalProvider, answer: Answer): CheckResult {
     ['aspect', checkAspect(get, s as unknown as Answer)],
   ];
   const bad = parts.filter(([, r]) => !r.ok);
-  const fit = circleFit(decodeWith(need(get, CIRCLE_FRAME), s));
+  const fit = circleFit(decodeCover(need(get, CIRCLE_FRAME), s));
   const ok = bad.length === 0 && Math.abs(fit.axisRatio - 1) <= ROUND_TOLERANCE;
   return {
     ok,

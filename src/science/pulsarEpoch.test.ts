@@ -8,7 +8,7 @@ import { LYNE2010_PEAK_TO_PEAK, TIMING_NOISE_RMS_DEFAULT, projectCatalogue, proj
 import { AGE_WINDOW_TAIL, identifyAtEpoch, rtgAgeModel, timingNoiseModel } from './pulsarIdentify';
 import { wrapDeg } from './pulsars';
 import { createRng, type Rng } from './random';
-import { normalQuantile } from './stats';
+import { normalCdf, normalQuantile } from './stats';
 import { C_KM_S, JULIAN_YEAR_S } from './units';
 
 const cover = loadCover();
@@ -156,6 +156,12 @@ describe('identification at the story epoch (likelihood)', () => {
       worstInterp = Math.max(worstInterp, Math.abs(model.draw(fixed) - rtgAgeAtDeviate(m0, z)));
     }
     const sigma1 = (rtgAgeAtDeviate(m0, -1) - rtgAgeAtDeviate(m0, 1)) / 2;
+    // The half-life systematic the clock reports beside its interval (LNHB 1-sigma half-lives of U-234, Th-230
+    // and Pu-238, rtg.ts ageFromTh230U234) is not in the age model: a 1-sigma half-life error shifts every age
+    // by sys, so the range's two-sided tail becomes Phi(-z_w + d) + Phi(-z_w - d), d = sys / sigma.
+    const sysYears = ref.halfLifeSystematicYears;
+    const dSys = sysYears / sigma1;
+    const tailSys = normalCdf(-zw + dSys) + normalCdf(-zw - dSys);
     // The candidates' timing-noise bound at the same tail, for the default amplitude (0.425%, Lyne et al. 2010 median) and the largest (6.64%).
     const xDefault = timingNoiseModel(TIMING_NOISE_RMS_DEFAULT).bound;
     const xMax = timingNoiseModel(LYNE2010_PEAK_TO_PEAK[0]! / 2).bound;
@@ -166,7 +172,7 @@ describe('identification at the story epoch (likelihood)', () => {
     recordCheck({
       id: 'identify.ageModel',
       claim: `The identification takes the map's age from the Arrival clock's own error model, not from a hard 95% range: its pre-selection keeps every age the clock allows except a two-sided ${AGE_WINDOW_TAIL.toExponential(0)} tail, so the true age is not cut off.`,
-      measured: `over ${N.toLocaleString('en-US')} seeded 1% measurements at ${Math.round(truthAge).toLocaleString('en-US')} yr: true age outside the 95% interval ${out95} times (${((100 * out95) / N).toFixed(2)}%; below its lower bound ${belowLo95}, the case that used to lose a pulsar), outside the range ${outWindow} times. One measurement: central ${model.centralYears.toFixed(0)} yr, 1 sigma ${sigma1.toFixed(0)} yr, 95% [${ref.lo.toFixed(0)}, ${ref.hi.toFixed(0)}], range [${model.windowYears[0].toFixed(0)}, ${model.windowYears[1].toFixed(0)}] yr (z_w ${zw.toFixed(2)}); interpolated draws within ${worstInterp.toExponential(1)} yr of the exact age. Each candidate's long-term Pdot is allowed Pdot_meas / (1 +- x) at the same tail: x ${(100 * xDefault).toFixed(1)}% for a measured noise amplitude of 0.425%, ${(100 * xMax).toFixed(1)}% for 6.64% (the alien's amplitude posterior over Lyne et al. 2010)`,
+      measured: `over ${N.toLocaleString('en-US')} seeded 1% measurements at ${Math.round(truthAge).toLocaleString('en-US')} yr: true age outside the 95% interval ${out95} times (${((100 * out95) / N).toFixed(2)}%; below its lower bound ${belowLo95}, the case that used to lose a pulsar), outside the range ${outWindow} times. One measurement: central ${model.centralYears.toFixed(0)} yr, 1 sigma ${sigma1.toFixed(0)} yr, 95% [${ref.lo.toFixed(0)}, ${ref.hi.toFixed(0)}], range [${model.windowYears[0].toFixed(0)}, ${model.windowYears[1].toFixed(0)}] yr (z_w ${zw.toFixed(2)}); interpolated draws within ${worstInterp.toExponential(1)} yr of the exact age. The half-life systematic (${sysYears.toFixed(0)} yr at 1 sigma, ${dSys.toFixed(2)} of the clock's sigma, not in the model) would raise the range's two-sided tail from ${AGE_WINDOW_TAIL.toExponential(0)} to ${tailSys.toExponential(1)}: harmless. Each candidate's long-term Pdot is allowed Pdot_meas / (1 +- x) at the same tail: x ${(100 * xDefault).toFixed(1)}% for a measured noise amplitude of 0.425%, ${(100 * xMax).toFixed(1)}% for 6.64% (the alien's amplitude posterior over Lyne et al. 2010)`,
       expected: "5% outside the 95% interval and 1e-6 outside the range (the clock's pivot (m / R - 1) / s ~ N(0, 1)); the map is older than the fuel by about 6 to 11 years (clocks.md section 2: map epochs 1966.6 to 1972.2, launch 1977.7), 1 to 2 per cent of 1 sigma",
       tolerance: `5% within ${(100 * tol95).toFixed(2)} points (3 binomial standard errors); no misses of the range (0.02 expected); interpolation under 0.01 yr (under 1e-4 sigma)`,
       pass,
@@ -224,5 +230,56 @@ describe('identification at the story epoch (likelihood)', () => {
     });
     expect(wrong, wrong.join('; ')).toEqual([]);
     expect(weak.map((m) => m.line.bname), rows.join('; ')).toEqual([]);
+  }, 3_600_000);
+
+  it('the right pulsar still wins every line when the truth breaks the identification\'s model (identify.misspecified)', () => {
+    // As dating.epoch.misspecified does for the dating: the truth drawn from a model the identification does not
+    // assume, the identification run unchanged. Three cases, each over SEEDS seeded realizations.
+    const SEEDS = 150;
+    const cases: { name: string; opts: Parameters<typeof projectCatalogue>[2] }[] = [
+      // timing noise as two switching states (red noise), the measured Pdot at Pdot (1 +- rms); the model assumes Gaussian
+      { name: 'two-state switching timing noise (the model assumes Gaussian)', opts: { seed: '', timingNoiseModel: 'twoState' } },
+      // the alien's own amplitude measurement twice as bad as the model allows (sigma_ln 0.6 against 0.3)
+      { name: 'noise amplitude measured twice as badly as assumed (truth sigma_ln 0.6, model 0.3)', opts: { seed: '', amplitudeMeasLnSigma: 0.6 } },
+      // old pulsars' braking index U[1, 5], partly beyond the pre-selection's hard range 0.9 to 4
+      { name: 'old braking index truly U[1, 5] (model U[2, 4]; pre-selection cut at 4)', opts: { seed: '', nOldRange: [1, 5] } },
+    ];
+    const t0 = performance.now();
+    const rows: string[] = [];
+    const wrongAll: string[] = [];
+    let total = 0;
+    for (const [ci, c] of cases.entries()) {
+      let wrong = 0;
+      let minOdds = Infinity;
+      for (let k = 0; k < SEEDS; k++) {
+        const seed = `identify.misspecified/${ci}/${k}`;
+        const alien = projectCatalogue(cat, observer, { ...c.opts, seed });
+        const rtg = simulateRtgMeasurement(rtgState(disc.yearsAfterLaunch), { relativePrecision: 0.01 }, createRng(seed).fork('rtg'));
+        const idr = identifyAtEpoch(lines, alien, { seed, rtg, draws: 2000 });
+        for (const m of idr.lines) {
+          if (m.best?.entry.jname !== m.line.jname) {
+            wrong++;
+            wrongAll.push(`${c.name}: seed ${k} ${m.line.bname} -> ${m.best?.entry.jname ?? 'none'}`);
+          } else minOdds = Math.min(minOdds, m.log10Odds);
+        }
+      }
+      const n = SEEDS * lines.length;
+      total += n;
+      // 95% upper bound on the per-line error rate: exact binomial, (1 - 0.05^(1/n)) when none are wrong (rule of three)
+      const upper = wrong === 0 ? 1 - 0.05 ** (1 / n) : NaN;
+      rows.push(`${c.name}: ${wrong} wrong of ${n} lines${wrong === 0 ? ` (rate under ${upper.toExponential(1)} at 95%)` : ''}; weakest right line odds 10^${minOdds.toFixed(1)}`);
+    }
+    const seconds = (performance.now() - t0) / 1000;
+    const pass = wrongAll.length === 0;
+    recordCheck({
+      id: 'identify.misspecified',
+      claim: 'The pulsar identification still gives the right pulsar on every map line when the real pulsars break its model: timing noise that switches between two states, a noise amplitude measured twice as badly as assumed, and old pulsars whose braking index runs outside the assumed range.',
+      measured: `${rows.join('; ')}; ${total} lines in all`,
+      expected: 'the 14 identities (Sagan et al. 1972), as identify.epoch',
+      tolerance: 'right pulsar on all 14 lines in every realization; the rate bound is the exact binomial 95% upper limit given no errors',
+      pass,
+      notes: `Misspecification options of the projection (pulsarEpoch.ts ProjectOptions, as dating.epoch.misspecified uses); the identification itself unchanged. ${SEEDS} seeds per case took ${seconds.toFixed(0)} s in all.${wrongAll.length ? ` WRONG: ${wrongAll.join(', ')}` : ''}`,
+    });
+    expect(wrongAll, wrongAll.join('; ')).toEqual([]);
   }, 3_600_000);
 });

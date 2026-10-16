@@ -14,7 +14,7 @@ import {
   checkPolarity, checkSync, sliceInfo, type SignalProvider,
 } from './checkers';
 import {
-  COMB_TOLERANCE_384, COVER_LINE_S, REFERENCE_SETTINGS, TAPE_SPEED_OFFSET_MAX, WOW_FLUTTER_RMS_384, decodeWith, frameSignal,
+  COMB_TOLERANCE_384, COVER_LINE_S, REFERENCE_SETTINGS, TAPE_SPEED_OFFSET_MAX, WOW_FLUTTER_RMS_384, decodeCover, frameSignal,
   lineTiming, mountCue, type FrameSignal,
 } from './measure';
 import { START_SETTINGS } from './start';
@@ -93,10 +93,11 @@ describe.skipIf(SKIP !== null)('The Pictures checkers on the real tape', () => {
     recordCheck({
       id: 'pictures.sync',
       claim: 'Locking every line to its own falling sync edge removes the line-start wobble a free-running decoder shows (the 1977 tape transport\'s wow and flutter).',
-      measured: `free-running at the cover's line time: ${before.toFixed(2)} samples rms (384 kHz) about the drift; at the tape's period ${free.wobble384.toFixed(2)}; locked: ${after.toFixed(4)}`,
+      measured: `over the cover's 512 lines of L000: free-running at the cover's line time ${before.toFixed(2)} samples rms (384 kHz) about the drift; at the tape's period ${free.wobble384.toFixed(2)}; locked: ${after.toFixed(4)}`,
       expected: `Wow and flutter ${WOW_FLUTTER_RMS_384} samples rms (README section 3); a lock leaves no wobble above the edges' own jitter`,
       tolerance: 'Locked wobble at most the 1.8-sample rms short-term edge jitter (README section 3, = 0.45 samples at 96 kHz); free-running wobble at the tape period within 25% of 4.6',
       pass,
+      notes: 'Measured over the first 512 lines (the cover raster; README section 3 measured the wow and flutter there). Over the 536-line decode (D-A30) the free-running wobble at the cover line time read 8.92, since a longer drift fit spans more of the tape wow (M5 science audit, finding 9).',
     });
     expect(pass).toBe(true);
   });
@@ -106,8 +107,9 @@ describe.skipIf(SKIP !== null)('The Pictures checkers on the real tape', () => {
     const on = checkInterlace(all, { interlace: true });
     const without = (reading(off, 'even and odd shift') as number) * 384_000;
     const withIt = (reading(on, 'even and odd shift') as number) * 384_000;
-    // the reference decoder on the same 96 kHz slice: 8.379 without, 0.585 with (decode.test.ts notes);
-    // held to the across-frame interquartile range, as decoder.slant does
+    // the reference decoder on the same 96 kHz slice over the cover's 512 lines: 8.379 without, 0.585 with
+    // (src/dsp/decode.test.ts decoder.slant notes; decode_all.py measures the comb on those 512 lines); held to
+    // the across-frame interquartile range, as decoder.slant does
     const ref96 = { without: 8.379, with: 0.585 };
     const near = Math.abs(without - ref96.without) <= COMB_TOLERANCE_384 && Math.abs(withIt - ref96.with) <= COMB_TOLERANCE_384;
     console.log(`pictures.interlace: comb ${without.toFixed(3)} without, ${withIt.toFixed(3)} with (tolerance ${COMB_TOLERANCE_384.toFixed(2)})`);
@@ -115,10 +117,11 @@ describe.skipIf(SKIP !== null)('The Pictures checkers on the real tape', () => {
     recordCheck({
       id: 'pictures.interlace',
       claim: 'Without the interlace offset the long-pulse and short-pulse lines are shifted against each other (a comb on vertical edges); with it they line up.',
-      measured: `even/odd shift ${without.toFixed(2)} samples (384 kHz) without, ${withIt.toFixed(2)} with`,
-      expected: `The reference decoder on the same 96 kHz slice: ${ref96.without} without, ${ref96.with} with (384 kHz decode: ${DECODER_DATA.reference.noInterlace.evenOddShiftWithout384k.toFixed(2)} and ${DECODER_DATA.reference.noInterlace.evenOddShiftWith384k.toFixed(2)})`,
+      measured: `even/odd shift ${without.toFixed(3)} samples (384 kHz) without, ${withIt.toFixed(3)} with, over the cover's 512 lines`,
+      expected: `The reference decoder on the same 96 kHz slice over the same 512 lines: ${ref96.without} without, ${ref96.with} with (decoder.slant; 384 kHz decode: ${DECODER_DATA.reference.noInterlace.evenOddShiftWithout384k.toFixed(2)} and ${DECODER_DATA.reference.noInterlace.evenOddShiftWith384k.toFixed(2)})`,
       tolerance: `Accepted while the shift is at most ${COMB_TOLERANCE_384.toFixed(2)} samples, the interquartile range of the offset across frames (README section 6)`,
       pass,
+      notes: 'Measured over the first 512 lines, the cover raster, which every frame carries in full (M5 science audit, finding 9): measured over the 536-line decode (D-A30) the comb read 8.30 and 0.73, because the flat lines after a 534 or 535-line raster entered the measurement.',
     });
     expect(pass).toBe(true);
   });
@@ -128,7 +131,7 @@ describe.skipIf(SKIP !== null)('The Pictures checkers on the real tape', () => {
     const pos = checkPolarity(all, { polarity: 'positive' });
     const margins: { f: string; m: number }[] = [];
     for (const f of (framesData.frames as { frame: string }[]).map((x) => x.frame)) {
-      margins.push({ f, m: mountCue(decodeWith(load(f), REFERENCE_SETTINGS)).margin });
+      margins.push({ f, m: mountCue(decodeCover(load(f), REFERENCE_SETTINGS)).margin });
     }
     const holdL = margins.filter((x) => x.f.startsWith('L') && x.m > 0).length;
     const holdR = margins.filter((x) => x.f.startsWith('R') && x.m > 0).length;
@@ -145,7 +148,7 @@ describe.skipIf(SKIP !== null)('The Pictures checkers on the real tape', () => {
       expected: 'Polarity: more signal is darker (images-and-audio.md section 1: Barry, aizquier, gourneau)',
       tolerance: 'The cue must hold on at least 20 frames across both channels (spec); the checker accepts the reading that darkens the mount on most of its five frames',
       pass,
-      notes: `Mount = the outer ${4} pixels of the 512 x 355 frame, chosen before measuring; 7 border widths and statistics tried while exploring held on 129 to 145 frames. Frames where it fails are pictures with bright content at the edges or dark centres (L039, the two figures, worst).`,
+      notes: `Mount = the outer ${4} pixels of the 512 x 355 frame (the cover's raster, decoded on its own: measure.ts decodeCover), chosen before measuring; 7 border widths and statistics tried while exploring held on 129 to 145 frames. Frames where it fails are pictures with bright content at the edges or dark centres (L039, the two figures, worst). Over the 536-line decode (D-A30) the ring's right side fell in the flat lines after a 534 or 535-line raster and the margins moved (76 and 70 frames, checker frames 118, 93, 96, 104, 108): the cue is measured on the picture only (M5 science audit, finding 9).`,
     });
     expect(pass).toBe(true);
   });

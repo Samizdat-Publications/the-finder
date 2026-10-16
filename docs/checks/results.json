@@ -1,6 +1,6 @@
 {
   "generated": "2026-10-16",
-  "count": 183,
+  "count": 186,
   "checks": [
     {
       "id": "arrival.fuelAge",
@@ -40,7 +40,7 @@
     {
       "id": "bot.game",
       "claim": "A bot plays the whole game built so far from a fresh save (no seeded save) through the command bus and the instruments: the slice, then The Map, The Spot and The Trail. Every deduction confirms, the codex holds every entry, the ring finishes, nothing errors, and the new sound moments play once each at their moments.",
-      "measured": "43 of 31 confirmed, each result with its headline; the five staged moments once each, skipped with their button, game state unchanged by each; codex 43 entries; done: arrival, key, map, spot, trail, player, pictures, voices; cues warm, twist, snap once each in play order; 164 s (slice 58 s, pictures 27 s, voices 21 s, map 14 s, spot 23 s, trail 20 s, end 3 s); 27 frames",
+      "measured": "43 of 31 confirmed, each result with its headline; the five staged moments once each, skipped with their button, game state unchanged by each; codex 43 entries; done: arrival, key, map, spot, trail, player, pictures, voices; cues warm, twist, snap once each in play order; 181 s (slice 59 s, pictures 34 s, voices 24 s, map 15 s, spot 24 s, trail 23 s, end 3 s); 27 frames",
       "expected": "31 of 31 (src/game/graph.ts: 18 slice, 5 Map, 3 Spot, 5 Trail), 31 codex entries, every built chapter done, no console errors (PLAN.md How it's checked item 11)",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -48,7 +48,7 @@
     {
       "id": "bot.m4Wrong",
       "claim": "From a fresh save, every meaningful wrong result the M4 checkers distinguish (as their Node tests list them) is played once through the command bus, rejected, and its computed result shown on the instrument and in the notebook; then the right answer confirms.",
-      "measured": "27 wrong answers over 13 deductions, each with its own result (map.periods 4, map.old 2, map.identify 2, map.motion 1, map.region 1, spot.find 2, spot.age 2, spot.purity 2, trail.origin 3, trail.age 2, trail.neighbour 1, trail.where 2, trail.when 3); all 13 then confirmed; 10 s; not played: none",
+      "measured": "27 wrong answers over 13 deductions, each with its own result (map.periods 4, map.old 2, map.identify 2, map.motion 1, map.region 1, spot.find 2, spot.age 2, spot.purity 2, trail.origin 3, trail.age 2, trail.neighbour 1, trail.where 2, trail.when 3); all 13 then confirmed; 12 s; not played: none",
       "expected": "each wrong answer rejected with its result on the instrument and in the notebook (map.test.ts, spot checkers.test.ts, trail.test.ts)",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -56,7 +56,7 @@
     {
       "id": "bot.slice",
       "claim": "A bot plays the slice from a fresh save through the command bus the interface uses (Arrival, The Key, The Player, The Pictures) with the right answers: every deduction confirms, the codex holds every entry, and nothing errors.",
-      "measured": "18 of 18 deductions confirmed; codex 18 entries; chapters done: arrival, key, player, pictures; 60 s; 16 screenshots",
+      "measured": "18 of 18 deductions confirmed; codex 18 entries; chapters done: arrival, key, player, pictures; 62 s; 16 screenshots",
       "expected": "18 of 18 confirmed (src/game/graph.ts: 4 Arrival, 3 Key, 4 Player, 7 Pictures), 18 codex entries, no console errors (PLAN.md How it's checked item 11)",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -64,7 +64,7 @@
     {
       "id": "bot.wrongAnswers",
       "claim": "From a fresh save, every wrong choice each slice checker offers is played once through the command bus, rejected, and its computed result shown in the notebook (and on the instrument where it has a result line); then the right answer confirms.",
-      "measured": "43 wrong answers over 18 deductions, all rejected and shown (arrival.purpose 3, arrival.heat 3, arrival.madeNotMined 1, arrival.fuelAge 3, key.binary 4, key.unit 4, key.timesNotLengths 1, player.speed 2, player.start 5, player.direction 1, player.firstSound 9, pictures.lineTime 1, pictures.sync 1, pictures.interlace 1, pictures.polarity 1, pictures.aspect 1, pictures.circle 1, pictures.firstFrames 1); all 18 then confirmed; 47 s",
+      "measured": "43 wrong answers over 18 deductions, all rejected and shown (arrival.purpose 3, arrival.heat 3, arrival.madeNotMined 1, arrival.fuelAge 3, key.binary 4, key.unit 4, key.timesNotLengths 1, player.speed 2, player.start 5, player.direction 1, player.firstSound 9, pictures.lineTime 1, pictures.sync 1, pictures.interlace 1, pictures.polarity 1, pictures.aspect 1, pictures.circle 1, pictures.firstFrames 1); all 18 then confirmed; 46 s",
       "expected": "each wrong answer rejected with its result shown; the arrival choices and hydrogen transitions read from the source; the player and picture wrong states one per distinct result",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -88,7 +88,7 @@
     {
       "id": "chapter.map",
       "claim": "The Map plays in the browser through its instrument: the dial aligns the map, lines are assigned by clicking pulsars on the chart, the clock dates the map, the axis is dragged on the sky and the origin slid on the plane; every wrong proposal is refused with what it computed.",
-      "measured": "periods: young line refused, line 1 accepted (match quality log10 92.5); old: future refused, 42268 years ago accepted; identify: one wrong line refused, all 14 accepted; motion: pole refused, l 141.7 b 39.2 accepted (scatter 516 yr); region: (20, -20) pc refused, (3.6, 3.4) accepted; frames 1440x900 4.2 ms mean, 1366x768 4.3 ms mean; longest main-thread task 88 ms; identification 0 ms, region 0 ms on the main thread",
+      "measured": "periods: young line refused, line 1 accepted (match quality log10 92.5); old: future refused, 42268 years ago accepted; identify: one wrong line refused, all 14 accepted; motion: pole refused, l 141.7 b 39.2 accepted (scatter 516 yr); region: (20, -20) pc refused, (3.6, 3.4) accepted; frames 1440x900 16.7 ms mean, 1366x768 16.7 ms mean; longest main-thread task 204 ms; identification 0 ms, region 0 ms on the main thread",
       "expected": "The same results as the Node checkers for the default seed (map.periods, map.old, map.identify, map.motion, map.region); no console errors",
       "tolerance": "As each checker; the spec allows a single blocking computation up to 1 s",
       "pass": true
@@ -96,7 +96,7 @@
     {
       "id": "chapter.pictures",
       "claim": "The Pictures plays in the browser on the real 1977 tape: from the free-running start every wrong setting is rejected with its measured result, the right ones bring the calibration circle round, and the next frames develop line by line at record speed.",
-      "measured": "start slant 187.3 samples/line; cover line time accepted (slant -4.97); wobble 8.92 free, 0.000 locked; comb 8.30 / 0.73; mounts 0 of 5 / 5 of 5; axis ratio 0.6935 at 512 rows, 1.0005 at 355; L001, R001, L002 watched",
+      "measured": "start slant 187.2 samples/line; cover line time accepted (slant -4.98); wobble 7.98 free, 0.000 locked; comb 8.38 / 0.58; mounts 0 of 5 / 5 of 5; axis ratio 0.6935 at 512 rows, 1.0006 at 355; L001, R001, L002 watched",
       "expected": "The same results as the Node checkers on the same slices (pictures.lineTime, pictures.sync, pictures.interlace, pictures.polarity, pictures.aspect); no console errors",
       "tolerance": "As each checker (README-sourced thresholds)",
       "pass": true
@@ -104,7 +104,7 @@
     {
       "id": "chapter.picturesComplete",
       "claim": "The Pictures, complete, plays in the browser on the real tape: the album fills with all 156 frames decoded from the tape, and each of the eight deductions (album, colour, down, numerals, units, home, slip, height) is refused once with its computed result and then confirmed on its work view; the three moments show once each.",
-      "measured": "8 wrong answers refused, 8 confirmed; album of 156 developed in 14.4 s; 20 captures",
+      "measured": "8 wrong answers refused, 8 confirmed; album of 156 developed in 16.1 s; 20 captures",
       "expected": "The same results as the Node checkers (pictures.album, pictures.colour, pictures.down, pictures.units, pictures.home, pictures.height); no console errors",
       "tolerance": "As each checker",
       "pass": true
@@ -112,7 +112,7 @@
     {
       "id": "chapter.player",
       "claim": "The Player plays in the browser: a wrong speed is heard shifted by exactly k, the run-out clicks once per turn, the label is silent, the wrong direction carries the groove outward and plays backward, and with all three right the first sound off side 1 is the picture signal, a pattern repeating every line.",
-      "measured": "3.47 s per turn: k 1.03745 on the engine and in the result, 0.636 semitones; run-out clicks every 2.4 s at 2.4 s per turn; ccw side time 1119.26 to 1117.81 s in 1.5 s; first sound every 8.3266 ms, confirmed 22.0 s after a drop at 147.5 mm; bench readout \"120.00 mm: the music\"",
+      "measured": "3.47 s per turn: k 1.03745 on the engine and in the result, 0.636 semitones; run-out clicks every 2.4 s at 2.4 s per turn; ccw side time 1119.26 to 1117.81 s in 1.5 s; first sound every 8.3266 ms, confirmed 21.9 s after a drop at 147.5 mm; bench readout \"120.00 mm: the music\"",
       "expected": "k = 3.59994 / 3.47 from the cover (cover.md 1b); one click per turn; the tape's 8.326 ms line period (images-and-audio.md section 1); the Node checkers' results",
       "tolerance": "k and semitones to 1e-9 (same arithmetic); line period within 0.001 ms (the research quotes it to that place)",
       "pass": true
@@ -120,7 +120,7 @@
     {
       "id": "chapter.spot",
       "claim": "The Spot plays start to finish through its instrument: the sweep finds the hidden spot by its counts, a short count gives a wide interval, a day's count dates the spot, and natural uranium is rejected while a pure start fits.",
-      "measured": "1440x900: rate 0.00000 /s away, 5.333 /s over the spot; age 44114 y (95% 42783 to 45489) after 24.2 h; one wrong answer per node rejected with its computed result; same at 1366x768",
+      "measured": "1440x900: rate 0.00000 /s away, 4.667 /s over the spot; age 44114 y (95% 42783 to 45489) after 24.2 h; one wrong answer per node rejected with its computed result; same at 1366x768",
       "expected": "the behaviour in docs/plans/M4_specs/step4-the-spot.md; the age from the test's own closed-form inversion of the measured ratio (LNHB half-lives)",
       "tolerance": "exact (interface behaviour); the proposed age is the closed-form age rounded to 50 years, well inside the interval",
       "pass": true
@@ -128,7 +128,7 @@
     {
       "id": "chapter.trail",
       "claim": "The Trail plays in the browser through its instrument: a wrong star, a short run-back and a wrong distance are each rejected with their computed results; the warm-white star, the meeting and the ruler's distance confirm; with The Map built, the region view and the reframe confirm WHERE and WHEN.",
-      "measured": "wrong star rejected (Ran 8.68 deg); Sun measured 0.162 deg (95% cut 0.575) accepted; meeting 44293 years accepted (95% 43609 to 44975); ruler 1.024 +/- 0.002 pc accepted; where and when: played; 1.09 ms per chart frame; longest measurement 37 ms",
+      "measured": "wrong star rejected (Ran 8.68 deg); Sun measured 0.162 deg (95% cut 0.575) accepted; meeting 44293 years accepted (95% 43609 to 44975); ruler 1.024 +/- 0.002 pc accepted; where and when: played; 1.26 ms per chart frame; longest measurement 49 ms",
       "expected": "the same results as the Node checkers (trail.check.*); no console errors; no measurement over 1 s on the main thread (spec)",
       "tolerance": "exact (interface behaviour); 1 s for a blocking call",
       "pass": true
@@ -136,7 +136,7 @@
     {
       "id": "chapter.voices",
       "claim": "The Voices plays in the browser: the rest of the record on the turntable through the shared audio context, the spectrogram and the four tools; each deduction rejected once with its computed result, then confirmed through the instrument, at two window sizes; the octave moment shows once and is skipped.",
-      "measured": "audio rms 0.0476 on the shared output; 4 deductions at 1440x900 and 1366x768; counted 111 voices at -30 and 0.25 s; 14 captures in C:\\Users\\stewa\\Documents\\Claude\\Golden Record\\review\\inbox\\2026-10-16T13-22-27-voices",
+      "measured": "audio rms 0.0607 on the shared output; 4 deductions at 1440x900 and 1366x768; counted 111 voices at -30 and 0.25 s; 14 captures in C:\\Users\\stewa\\Documents\\Claude\\Golden Record\\review\\inbox\\2026-10-16T14-29-13-voices",
       "expected": "audio above silence on the shared output; every wrong answer rejected and every right one confirmed; no console errors",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -153,7 +153,7 @@
     {
       "id": "chart.galaxy.view",
       "claim": "On the galaxy chart, pointing at a pulsar picks that pulsar, and the chart draws at 60 frames per second at 1440 x 900.",
-      "measured": "14 of 14 map pulsars picked at their projected points; 4366 pulsars drawn; 0.68 ms per frame (120 frames, each waited for)",
+      "measured": "14 of 14 map pulsars picked at their projected points; 4366 pulsars drawn; 1.13 ms per frame (120 frames, each waited for)",
       "expected": "every map pulsar picked; under 16.7 ms per frame",
       "tolerance": "pick radius 12 CSS px; frame budget 16.7 ms on this PC (headless Chrome)",
       "pass": true
@@ -169,7 +169,7 @@
     {
       "id": "chart.neighbourhood.view",
       "claim": "On the neighbourhood chart, pointing at a star picks that star, and the trail drawn for it shows the kinematics' own angle.",
-      "measured": "Sun and Ross 248 picked at their projected points (2 of 2); Sun 0.0043 deg, Ross 248 51.78 deg drawn; 315 stars; 0.72 ms per frame",
+      "measured": "Sun and Ross 248 picked at their projected points (2 of 2); Sun 0.0043 deg, Ross 248 51.78 deg drawn; 315 stars; 0.91 ms per frame",
       "expected": "kinematics.trail recomputed in the page from the science modules (seed 'charts.dev'); under 16.7 ms per frame",
       "tolerance": "1e-9 deg (same computation); pick radius 12 CSS px; frame budget 16.7 ms",
       "pass": true
@@ -427,11 +427,11 @@
     {
       "id": "decoder.browser",
       "claim": "In the browser, the real path (FLAC fetched whole, decoded at 96 kHz, decoded in a Worker) gives the same pictures as the tested Node decode, fast enough to keep up with playback.",
-      "measured": "3 frames (L000, L019, R072): largest pixel difference 0 grey levels; Worker decode 78, 70, 34 ms",
+      "measured": "3 frames (L000, L019, R072): largest pixel difference 0 grey levels; Worker decode 60, 54, 47 ms",
       "expected": "The Node decode of the same slices by the same code (itself pixel-equal to the Python reference, decoder.frames)",
       "tolerance": "At most 1 grey level per pixel (spec; both run V8); under 250 ms per frame (spec target for this PC; a frame lasts 4.3 s of tape)",
       "pass": true,
-      "notes": "Installed Chrome via Playwright. Chrome's decodeAudioData returns positive 16-bit samples as w / 32767 (negatives as w / 32768); src/media/frames.ts restores the exact integers before decoding, without which up to 407 pixels per frame differed by 1 grey level. Fetch plus decodeAudioData took 24, 25, 14 ms per frame on the dev server."
+      "notes": "Installed Chrome via Playwright. Chrome's decodeAudioData returns positive 16-bit samples as w / 32767 (negatives as w / 32768); src/media/frames.ts restores the exact integers before decoding, without which up to 407 pixels per frame differed by 1 grey level. Fetch plus decodeAudioData took 18, 22, 20 ms per frame on the dev server."
     },
     {
       "id": "decoder.circle",
@@ -449,7 +449,7 @@
       "expected": "The Python reference decoder's 96 kHz decodes of the same slices (build/ref96, tools/ref-decoder)",
       "tolerance": "SSIM at least 0.98 per frame (scikit-image defaults); for scale, the reference's own 96 vs 384 kHz decodes differ by SSIM 0.970 at worst",
       "pass": true,
-      "notes": "Node decode time 149 ms per frame including WAV and PNG reading."
+      "notes": "Node decode time 248 ms per frame including WAV and PNG reading."
     },
     {
       "id": "decoder.ref.aspectIndependent",
@@ -458,7 +458,7 @@
       "expected": "|aspect offset| and |shear| each under 2% (chosen visibility threshold)",
       "tolerance": "at mean + 2 standard errors of the mean over the images",
       "pass": true,
-      "notes": "Measured, not agreement: our aspect is off by about 0.9% (about 2.8 standard errors) and our frames are sheared by about 1.4% against the clean NASA gallery copies (tests only). The shear's origin is unresolved: the 1977 equipment, the artwork or its copy, the gallery scans, or our decode. Our own circle is a diagonal ellipse (0.9934 at 137 deg; shear +0.0066 if the artwork is round), opposite in sign, and the gallery circle (0.986 at 136.9 deg) sits on the same diagonal."
+      "notes": "Measured, not agreement: our aspect is off by about 0.9% (about 2.6 standard errors) and our frames are sheared by about 1.4% against the clean NASA gallery copies (tests only). The shear's origin is unresolved: the 1977 equipment, the artwork or its copy, the gallery scans, or our decode. Our own circle is a diagonal ellipse (0.9934 at 137 deg; shear +0.0066 if the artwork is round), opposite in sign, and the gallery circle (0.986 at 136.9 deg) sits on the same diagonal."
     },
     {
       "id": "decoder.ref.circle",
@@ -661,7 +661,7 @@
     {
       "id": "identify.ageModel",
       "claim": "The identification takes the map's age from the Arrival clock's own error model, not from a hard 95% range: its pre-selection keeps every age the clock allows except a two-sided 1e-6 tail, so the true age is not cut off.",
-      "measured": "over 20,000 seeded 1% measurements at 44,100 yr: true age outside the 95% interval 1034 times (5.17%; below its lower bound 500, the case that used to lose a pulsar), outside the range 0 times. One measurement: central 43114 yr, 1 sigma 495 yr, 95% [42166, 44106], range [40825, 45678] yr (z_w 4.89); interpolated draws within 1.0e-3 yr of the exact age. Each candidate's long-term Pdot is allowed Pdot_meas / (1 +- x) at the same tail: x 3.8% for a measured noise amplitude of 0.425%, 32.3% for 6.64% (the alien's amplitude posterior over Lyne et al. 2010)",
+      "measured": "over 20,000 seeded 1% measurements at 44,100 yr: true age outside the 95% interval 1034 times (5.17%; below its lower bound 500, the case that used to lose a pulsar), outside the range 0 times. One measurement: central 43114 yr, 1 sigma 495 yr, 95% [42166, 44106], range [40825, 45678] yr (z_w 4.89); interpolated draws within 1.0e-3 yr of the exact age. The half-life systematic (133 yr at 1 sigma, 0.27 of the clock's sigma, not in the model) would raise the range's two-sided tail from 1e-6 to 2.0e-6: harmless. Each candidate's long-term Pdot is allowed Pdot_meas / (1 +- x) at the same tail: x 3.8% for a measured noise amplitude of 0.425%, 32.3% for 6.64% (the alien's amplitude posterior over Lyne et al. 2010)",
       "expected": "5% outside the 95% interval and 1e-6 outside the range (the clock's pivot (m / R - 1) / s ~ N(0, 1)); the map is older than the fuel by about 6 to 11 years (clocks.md section 2: map epochs 1966.6 to 1972.2, launch 1977.7), 1 to 2 per cent of 1 sigma",
       "tolerance": "5% within 0.46 points (3 binomial standard errors); no misses of the range (0.02 expected); interpolation under 0.01 yr (under 1e-4 sigma)",
       "pass": true,
@@ -674,7 +674,16 @@
       "expected": "the 14 identities (Sagan et al. 1972)",
       "tolerance": "right pulsar on all 14 lines in the nominal and 500 seeded realizations; nominal odds against all other candidates combined at least 20 (Kass and Raftery 1995, strong evidence)",
       "pass": true,
-      "notes": "Pass 1: period (how sharply the candidate predicts the map number; Monte Carlo over the map's age drawn from the Arrival clock's own error model (identify.ageModel), braking index, Doppler and the candidate's timing noise on Pdot, the dating's own model) x direction from the observer x latitude where the tick resolves. Pass 2: from the anchors (pass-1 odds against all others at least 20), the shared age (pulsars only) and the map origin (leave-one-out for anchor lines); direction from that origin, plus a heavy-tailed distance factor from the map lengths (Student-t, 2 dof); candidates without a distance get the anchors' mean distance density. Pre-selection: direction within 5 deg and age range, widened by the candidate's timing-noise bound, overlapping the clock's range (each with two-sided tails of 1e-6). 500 seeds took 177 s."
+      "notes": "Pass 1: period (how sharply the candidate predicts the map number; Monte Carlo over the map's age drawn from the Arrival clock's own error model (identify.ageModel), braking index, Doppler and the candidate's timing noise on Pdot, the dating's own model) x direction from the observer x latitude where the tick resolves. Pass 2: from the anchors (pass-1 odds against all others at least 20), the shared age (pulsars only) and the map origin (leave-one-out for anchor lines); direction from that origin, plus a heavy-tailed distance factor from the map lengths (Student-t, 2 dof); candidates without a distance get the anchors' mean distance density. Pre-selection: direction within 5 deg and age range, widened by the candidate's timing-noise bound, overlapping the clock's range (each with two-sided tails of 1e-6). 500 seeds took 233 s."
+    },
+    {
+      "id": "identify.misspecified",
+      "claim": "The pulsar identification still gives the right pulsar on every map line when the real pulsars break its model: timing noise that switches between two states, a noise amplitude measured twice as badly as assumed, and old pulsars whose braking index runs outside the assumed range.",
+      "measured": "two-state switching timing noise (the model assumes Gaussian): 0 wrong of 2100 lines (rate under 1.4e-3 at 95%); weakest right line odds 10^1.7; noise amplitude measured twice as badly as assumed (truth sigma_ln 0.6, model 0.3): 0 wrong of 2100 lines (rate under 1.4e-3 at 95%); weakest right line odds 10^0.2; old braking index truly U[1, 5] (model U[2, 4]; pre-selection cut at 4): 0 wrong of 2100 lines (rate under 1.4e-3 at 95%); weakest right line odds 10^1.7; 6300 lines in all",
+      "expected": "the 14 identities (Sagan et al. 1972), as identify.epoch",
+      "tolerance": "right pulsar on all 14 lines in every realization; the rate bound is the exact binomial 95% upper limit given no errors",
+      "pass": true,
+      "notes": "Misspecification options of the projection (pulsarEpoch.ts ProjectOptions, as dating.epoch.misspecified uses); the identification itself unchanged. 150 seeds per case took 187 s in all."
     },
     {
       "id": "identify.today",
@@ -808,7 +817,7 @@
     {
       "id": "perf.enter",
       "claim": "Entering The Map, The Spot or The Trail never freezes the page: the epoch model's heavy parts (the identification, the trail, the spot's sweep table) are computed in a Worker behind the instrument's \"measuring\" state, so no main-thread task is longer than 100 ms from entering until the instrument is ready",
-      "measured": "map: longest task 70 ms, ready in 1144 ms; spot: longest task 0 ms, ready in 349 ms; trail: longest task 69 ms, ready in 1712 ms. GPU ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti Laptop GPU (0x00002F58) Direct3D11 vs_5_0 ps_5_0, D3D11); CPU Intel(R) Core(TM) Ultra 9 285H (16 threads)",
+      "measured": "map: longest task 80 ms, ready in 1316 ms; spot: longest task 0 ms, ready in 411 ms; trail: longest task 80 ms, ready in 2114 ms. GPU ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti Laptop GPU (0x00002F58) Direct3D11 vs_5_0 ps_5_0, D3D11); CPU Intel(R) Core(TM) Ultra 9 285H (16 threads)",
       "expected": "no long task over 100 ms at 1440 x 900 (spec M4 step 7e section 4; the RAIL model's 100 ms response budget)",
       "tolerance": "100 ms per task",
       "pass": true
@@ -824,7 +833,7 @@
     {
       "id": "pictures.aspect",
       "claim": "Procedure: the player sets the rows until the calibration circle is round; at the reference 355 rows it is, and any other row count squashes it into an ellipse by exactly 355 / rows.",
-      "measured": "355 rows: axis ratio 1.0005; 300 rows: 1.1840 (predicted 1.1839); 340 rows: 1.0443 (predicted 1.0446); 370 rows: 0.9598 (predicted 0.9599); 512 rows: 0.6935 (predicted 0.6937)",
+      "measured": "355 rows: axis ratio 1.0006; 300 rows: 1.1839 (predicted 1.1840); 340 rows: 1.0443 (predicted 1.0447); 370 rows: 0.9600 (predicted 0.9600); 512 rows: 0.6935 (predicted 0.6938)",
       "expected": "A circle (the reference decoder: 1.0002 at 355 rows); wrong row counts: 355 / rows",
       "tolerance": "1.00 +/- 0.01 (tools/ref-decoder/README.md section 7); wrong ratios within 1% of the geometric prediction",
       "pass": true,
@@ -832,17 +841,17 @@
     },
     {
       "id": "pictures.colour",
-      "claim": "Every one of the record's 20 colour pictures is three consecutive frames of one scene: the three line up edge for edge far better than with the frames round them, and stacked as three primaries they make one colour picture. Picks that are not a triple are refused.",
-      "measured": "20 of 20 accepted; edge likeness of the three over that with their neighbours, worst 1.67 (the solar spectrum, nearly featureless); L007 0.14/0.09; L013 0.92/0.14; L016 0.84/0.14; L028 0.78/0.18; L041 0.82/0.07; L044 0.90/0.12; L047 0.88/0.12; L058 0.90/0.18; L061 0.82/0.06; L065 0.75/0.03; L068 0.86/0.00; L071 0.84/0.02; R000 0.78/0.09; R007 0.89/0.04; R027 0.85/0.10; R040 0.79/0.03; R047 0.84/0.12; R052 0.88/0.02; R069 0.92/0.24; R073 0.59/0.08",
-      "expected": "The 20 triples of data/frames.json (colourRole R, G, B; Ozma book and the tape); neighbours that are not part of the triple",
-      "tolerance": "Accepted when the triple's smaller inner likeness exceeds the larger likeness with its outside neighbours (a ratio above 1); the likeness is the colour registration's own correlation peak (src/dsp/colour.ts)",
+      "claim": "Three consecutive frames are one colour picture when their edges line up better than any three frames that are not one picture ever do: the measurement finds 19 of the record's 20 colour pictures and refuses every other pick; the 20th, the nearly featureless solar spectrum, is accepted because the record's frame list says so, and the message says the measurement cannot confirm it.",
+      "measured": "132 windows that are not one picture: at most 0.236 (R068); 19 colour pictures with a scene: at least 0.588 (R073); the solar spectrum 0.144; threshold 0.412 (the gap's midpoint; Gaussian equal-error point 0.373, for comparison); the former relative rule let 6 non-pictures through",
+      "expected": "The 20 triples of data/frames.json (colourRole R, G, B; Ozma book and the tape) against the 132 other windows of three consecutive frames on one track",
+      "tolerance": "Accepted at a likeness of 0.412 or more: the midpoint of the measured gap (0.236 to 0.588), the line farthest from both groups; the likeness is the registration's correlation peak (src/dsp/colour.ts)",
       "pass": true,
-      "notes": "The order of the three is shown as probable (D-A08): red, green, blue, as every other reader of the tape uses; the record does not state it."
+      "notes": "The threshold is set from the same 152 windows it is tested on (the record holds no others), so this shows the gap exists, with 0.176 of margin either side, not a held-out error rate. The order of the three is shown as probable (D-A08): red, green, blue, as most readers assemble them (Barry, gourneau); amazing-rando's README says blue, green, red (teaching-frames.md \"Colour order\")."
     },
     {
       "id": "pictures.down",
       "claim": "Turned a quarter turn clockwise, the diagram of the two figures stands upright, as Barry's table says; every other turn is refused with what it would show, and pictures that came upright are not counted.",
-      "measured": "L039: 1 quarter turn accepted, 3 (Turned a quarter turn anticlockwise, peo...) and 2 refused; L012 anticlockwise accepted; 66 turned frames each accept exactly one turn",
+      "measured": "L039: 1 quarter turn accepted, 3 (Turned a quarter turn anticlockwise, peo...) and 2 refused; L012 (Jupiter) anticlockwise accepted without a word of people (Turned a quarter turn anticlockwise, the picture stands upri...); 66 turned frames each accept exactly one turn",
       "expected": "Barry's orientation table, read from his code (tools/ref-decoder/barry.py: 1 is the native frame turned 90 degrees clockwise, 2 anticlockwise); teaching-frames.md: for L039 the clockwise turn puts \"20 y\" upright",
       "tolerance": "exact",
       "pass": true
@@ -850,52 +859,70 @@
     {
       "id": "pictures.height",
       "claim": "The taller figure is 160 of their centimetres, 1.174 of the alien's reaches (the shorter 155, 1.137); a reading within half a centimetre is accepted, a misread unit or the other bar is refused.",
-      "measured": "taller 1.1738 reaches, shorter 1.1371; 1.17 and 1.14 reaches; 160 read as metres refused; the shorter bar alone refused",
+      "measured": "taller 1.1738 reaches, shorter 1.1371; 1.17 and 1.14 reaches; 160 read as metres refused; the shorter bar alone refused; 159 refused, shown as 1.166 reaches against 1.174 reaches",
       "expected": "teaching-frames.md L039: 155 cm and 160 cm; their cm = 1/21 of the hydrogen wavelength (units.ts); 1.37 m per reach (D-A22)",
       "tolerance": "half a centimetre in 160 (0.31%)",
       "pass": true
     },
     {
       "id": "pictures.home",
-      "claim": "Of the ten columns, the one whose mass and day are both one is the third world out from the star: home. One cell, the outermost distance, breaks the rising order of distances, and the order alone says it must be more than Neptune's.",
-      "measured": "home: column 3, place 3; Venus and the Sun refused; slip: column 9 distance accepted (This distance breaks the table's own order. The circles go outward from the star and every...); Neptune's distance and Pluto's day refused",
-      "expected": "teaching-frames.md: \"Earth's column is the column of ones: the third world is home\"; \"Pluto's column breaks the table's own pattern\"",
+      "claim": "Of the ten columns, the one whose mass and day are both one is the third world out from the star: home.",
+      "measured": "home: column 3, place 3; Venus and the Sun refused",
+      "expected": "teaching-frames.md: \"Earth's column is the column of ones: the third world is home\"",
       "tolerance": "exact",
       "pass": true
     },
     {
       "id": "pictures.interlace",
       "claim": "Without the interlace offset the long-pulse and short-pulse lines are shifted against each other (a comb on vertical edges); with it they line up.",
-      "measured": "even/odd shift 8.30 samples (384 kHz) without, 0.73 with",
-      "expected": "The reference decoder on the same 96 kHz slice: 8.379 without, 0.585 with (384 kHz decode: 8.83 and 1.31)",
+      "measured": "even/odd shift 8.379 samples (384 kHz) without, 0.585 with, over the cover's 512 lines",
+      "expected": "The reference decoder on the same 96 kHz slice over the same 512 lines: 8.379 without, 0.585 with (decoder.slant; 384 kHz decode: 8.83 and 1.31)",
       "tolerance": "Accepted while the shift is at most 1.03 samples, the interquartile range of the offset across frames (README section 6)",
-      "pass": true
+      "pass": true,
+      "notes": "Measured over the first 512 lines, the cover raster, which every frame carries in full (M5 science audit, finding 9): measured over the 536-line decode (D-A30) the comb read 8.30 and 0.73, because the flat lines after a 534 or 535-line raster entered the measurement."
     },
     {
       "id": "pictures.lineTime",
       "claim": "Free-running the decoder at the cover's line time holds the calibration picture upright; wrong line times slant it by e times the period per line, as the reference decoder measured.",
-      "measured": "cover's 8.3396 ms: slant -4.97 samples (384 kHz) per line, accepted; the start value 7.839 ms rejected; e 1%: -31.9 (ref -32.0), rejected; e 5%: -159.8 (ref -159.9), rejected; e 20%: -639.5 (ref -639.5), rejected",
+      "measured": "cover's 8.3396 ms: slant -4.98 samples (384 kHz) per line, accepted; the start value 7.839 ms rejected; e 1%: -32.0 (ref -32.0), rejected; e 5%: -159.9 (ref -159.9), rejected; e 20%: -639.5 (ref -639.5), rejected",
       "expected": "The reference decoder's free-running slants (data/decoder.json reference.freeRun, tools/ref-decoder/README.md); the tape runs 0.14 to 0.29% fast against the cover along the reel (README section 3)",
       "tolerance": "Accepted while |slant| <= 0.289% of the period (the most the tape runs fast against the cover, from every frame's fitted period) plus 3 sigma of the slope fit from wow and flutter (4.6 samples rms); wrong slants within 10% of the reference",
       "pass": true,
       "notes": "The spec asked for a threshold set by the wow and flutter rms (4.6 samples); that alone would reject the cover's own value (5.0 samples a line at L000), so the limit is the tape's documented speed error, which the cover value is inside by construction of the physics, not of the code."
     },
     {
+      "id": "pictures.numerals",
+      "claim": "Matching each of their ten digits to the count of dots beside it is accepted only when all ten are right; ten is written with two of them, one and none, so they count by place in tens. A swapped or missing digit is refused.",
+      "measured": "10 of 10 matched, base 10; two digits swapped refused (Not all: the mark beside the row of 6, set as 7; the mark be...); two of ten set refused",
+      "expected": "teaching-frames.md L002: dots one to six with binary and \"= decimal\", the digits 0 to 9 beside the counts, ten as \"1 0\"",
+      "tolerance": "exact",
+      "pass": true
+    },
+    {
       "id": "pictures.polarity",
       "claim": "Read with more signal as darker, the slide mounts at the edges of the frames come out dark, as a mount that lets no light through must; read the other way they glow.",
-      "measured": "mount darker than the centre on 76 of 78 left and 70 of 78 right frames (median margin 55 grey levels, worst -50 on L039); on the checker's frames (L000, L001, L002, L003, L004) 118, 93, 96, 104, 108",
+      "measured": "mount darker than the centre on 74 of 78 left and 69 of 78 right frames (median margin 49 grey levels, worst -82 on L039); on the checker's frames (L000, L001, L002, L003, L004) 111, 66, 66, 78, 103",
       "expected": "Polarity: more signal is darker (images-and-audio.md section 1: Barry, aizquier, gourneau)",
       "tolerance": "The cue must hold on at least 20 frames across both channels (spec); the checker accepts the reading that darkens the mount on most of its five frames",
       "pass": true,
-      "notes": "Mount = the outer 4 pixels of the 512 x 355 frame, chosen before measuring; 7 border widths and statistics tried while exploring held on 129 to 145 frames. Frames where it fails are pictures with bright content at the edges or dark centres (L039, the two figures, worst)."
+      "notes": "Mount = the outer 4 pixels of the 512 x 355 frame (the cover's raster, decoded on its own: measure.ts decodeCover), chosen before measuring; 7 border widths and statistics tried while exploring held on 129 to 145 frames. Frames where it fails are pictures with bright content at the edges or dark centres (L039, the two figures, worst). Over the 536-line decode (D-A30) the ring's right side fell in the flat lines after a 534 or 535-line raster and the margins moved (76 and 70 frames, checker frames 118, 93, 96, 104, 108): the cue is measured on the picture only (M5 science audit, finding 9)."
+    },
+    {
+      "id": "pictures.slip",
+      "claim": "One cell, the outermost distance, breaks the rising order of distances; the order alone says it must be more than Neptune's, and it is a slip in their table, not in the decoding.",
+      "measured": "column 9's distance accepted (This distance breaks the table's own order. The circles go outward from the star and every...); Neptune's distance (which fits the order) and Pluto's day (no rule for it) refused",
+      "expected": "teaching-frames.md: \"Pluto's column breaks the table's own pattern\"; its 591 read whole on the 536-line decode (decoder.ref.rightEdge)",
+      "tolerance": "exact",
+      "pass": true
     },
     {
       "id": "pictures.sync",
       "claim": "Locking every line to its own falling sync edge removes the line-start wobble a free-running decoder shows (the 1977 tape transport's wow and flutter).",
-      "measured": "free-running at the cover's line time: 8.92 samples rms (384 kHz) about the drift; at the tape's period 4.59; locked: 0.0000",
+      "measured": "over the cover's 512 lines of L000: free-running at the cover's line time 7.98 samples rms (384 kHz) about the drift; at the tape's period 4.57; locked: 0.0000",
       "expected": "Wow and flutter 4.6 samples rms (README section 3); a lock leaves no wobble above the edges' own jitter",
       "tolerance": "Locked wobble at most the 1.8-sample rms short-term edge jitter (README section 3, = 0.45 samples at 96 kHz); free-running wobble at the tape period within 25% of 4.6",
-      "pass": true
+      "pass": true,
+      "notes": "Measured over the first 512 lines (the cover raster; README section 3 measured the wow and flutter there). Over the 536-line decode (D-A30) the free-running wobble at the cover line time read 8.92, since a longer drift fit spans more of the tape wow (M5 science audit, finding 9)."
     },
     {
       "id": "pictures.units",
@@ -960,7 +987,7 @@
     {
       "id": "scene.encounter",
       "claim": "The encounter scene renders Voyager 1 under the computed sky at 60 frames per second at 1440 x 900, with every hotspot on the craft.",
-      "measured": "1.39 ms per frame (120 frames back to back, each waited for with a one-pixel read-back), live loop 4.2 ms; 8828 stars drawn; hotspots within 0.297 m of a model vertex",
+      "measured": "1.09 ms per frame (120 frames back to back, each waited for with a one-pixel read-back), live loop 17.7 ms; 8828 stars drawn; hotspots within 0.297 m of a model vertex",
       "expected": "under 16.7 ms (60 fps); each hotspot within its part radius of the model (tools/world/measure-hotspots.mjs)",
       "tolerance": "frame budget 16.7 ms on this PC (RTX 5070 Ti Laptop, headless Chrome); hotspot radius per part (hotspots.ts)",
       "pass": true
@@ -1166,12 +1193,12 @@
     },
     {
       "id": "teaching.planets",
-      "claim": "The table of circles, read in their units, agrees with today's Sun and planets except where 1977 had only estimates; the column of ones is the third world out; and one cell, the last distance, breaks the table's own rising order, which a reader can find from the table alone.",
-      "measured": "every well-measured cell within 4.8% (worst Mercury mass); 1977 estimates and the slip: Uranus diameter -7%, Uranus day -37%, Neptune diameter -10%, Pluto diameter 489%, Pluto distance -90%, Pluto mass 40809%, Pluto day -89%; home = column 3, 3rd from the star; slip: column 9's 591 x 10^6 km, which the order says must exceed 4498 x 10^6 km (today 5,906)",
-      "expected": "NASA Planetary and Sun Fact Sheets (values in the test, recalled, not fetched); teaching-frames.md: Uranus, Neptune and Pluto from 1977 estimates; Pluto's 591 breaks the order",
-      "tolerance": "5%: the senders' widest rounding (Mercury's mass written 1/19); marked cells are listed with their disagreement, not tested",
+      "claim": "The table of circles, read in their units, agrees cell by cell with today's Sun and planets to the precision each number is written, except eight stated discrepancies and the columns 1977 could only estimate; the column of ones is the third world out; and one cell, the last distance, breaks the table's own rising order, which a reader can find from the table alone.",
+      "measured": "17 of 25 cells outside the estimate columns agree within their written precision; 8 differ by more (stated): Mercury diameter 4840 -0.80% (written to 0.10%); Mercury mass 1/19 -4.83% (written to 2.63%); Mercury day 57 -2.81% (written to 0.88%); Venus diameter 12400 2.45% (written to 0.40%); Venus mass 82/100 0.61% (written to 0.61%); Jupiter diameter 142 x 10^3 -0.69% (written to 0.35%); Saturn distance 1428 -0.28% (written to 0.04%); Saturn day 43/100 -3.15% (written to 1.16%); 1977 estimates and the slip, not tested: Uranus diameter -6.9%, Uranus distance 0.2%, Uranus mass 0.4%, Uranus day -37.3%, Neptune diameter -9.9%, Neptune distance -0.4%, Neptune mass 0.3%, Neptune day -3.1%, Pluto diameter 489.2%, Pluto distance -90.0%, Pluto mass 40809.1%, Pluto day -89.0%; home = column 3, 3rd from the star; slip: column 9's 591 x 10^6 km, which the order says must exceed 4498 x 10^6 km (today 5,906)",
+      "expected": "NASA Planetary and Sun Fact Sheets, checked against the sheets on 2026-10-16 (metric planetary sheet updated 18 Mar 2025; Mars's distance 227.9 here, which the summary table rounds to 228.0); teaching-frames.md: Uranus, Neptune and Pluto from 1977 estimates; Pluto's 591 breaks the order",
+      "tolerance": "Each cell's own written precision: half a unit in its last written figure (trailing zeros of a whole number not counted), half the step of a decimal fraction, half a unit of a unit fraction's denominator (Mercury's 1/19: 2.6%); the cells beyond it must be exactly the stated eight",
       "pass": true,
-      "notes": "The table's values were read from our decode (research); a test cannot read today's values from the frame, so the comparison checks the reading, not the decoder."
+      "notes": "Mercury's mass written 1/19 is 4.8% low against today's 1/18.1, beyond the 2.6% its writing carries: a mis-rounding in the table. The other stated cells differ by 0.3% to 3.2%; their cause is UNVERIFIED. Two cells sit at the edge of their precision: the mass of Venus (0.613% against 0.610%, beyond) and the distance of Jupiter (0.0642% against 0.0643%, within). The numbers are compared as written (the senders meant our km; their hydrogen centimetre is 0.5% larger than ours, teaching.units). The table's values were read from our decode (research); the comparison checks the reading, not the decoder."
     },
     {
       "id": "teaching.regions",
@@ -1454,7 +1481,7 @@
     {
       "id": "voices.browser.agree",
       "claim": "In the browser, The Voices' analyses run in a Worker on the record's runtime audio (Opus) and reach the same verdicts as the reference on the lossless transfers.",
-      "measured": "frame levels within 0.101 dB on average; silent runs [[65,34,7],[107,74,32],[118,94,49],[130,100,66]]; 63 to 226 voices over the reasonable settings (reference 63 to 226); voicing agrees on 99.72% of frames, pitch median 0.151 cents apart (95% 0.66); crossing 17.11 kHz; the codec moves the greetings' long spectrum by 5.0 kHz +0.09 dB, 10.0 kHz +0.04 dB, 15.0 kHz +0.07 dB, 17.0 kHz +0.08 dB, 19.0 kHz +0.09 dB, 20.5 kHz -46.69 dB; octave 1199.30 cents from 409 notes; best comb 12; 9 calls 190.64 to 236.09 s; Worker ms {\"ozma-01/display\":124,\"ozma-02/display\":545,\"ozma-02/greetings\":5915,\"ozma-02/hearing\":1838,\"ozma-14/violin\":4221,\"ozma-03/calls\":5771,\"ozma-21/piano\":1891}",
+      "measured": "frame levels within 0.101 dB on average; silent runs [[65,34,7],[107,74,32],[118,94,49],[130,100,66]]; 63 to 226 voices over the reasonable settings (reference 63 to 226); voicing agrees on 99.72% of frames, pitch median 0.151 cents apart (95% 0.66); crossing 17.11 kHz; the codec moves the greetings' long spectrum by 5.0 kHz +0.09 dB, 10.0 kHz +0.04 dB, 15.0 kHz +0.07 dB, 17.0 kHz +0.08 dB, 19.0 kHz +0.09 dB, 20.5 kHz -46.69 dB; octave 1199.30 cents from 409 notes; best comb 12; 9 calls 190.64 to 236.09 s; Worker ms {\"ozma-01/display\":161,\"ozma-02/display\":1094,\"ozma-02/greetings\":9329,\"ozma-02/hearing\":2110,\"ozma-14/violin\":6241,\"ozma-03/calls\":8393,\"ozma-21/piano\":1829}",
       "expected": "the reference (data/voices.json): [[66,34,7],[105,72,31],[115,93,51],[130,100,66]]; 63 to 226; crossing 17.13 kHz; octave 1199.861 cents; comb 12; whale 190.64 to 236.09 s",
       "tolerance": "each verdict's own error bar: crossing inside the reference's 95% band 16.57 to 17.51 kHz; octave within 4.02 cents of 1200; the same comb; every call inside the whale stretch (1 s slack for the codec's onsets); at least two dozen voices. The frame levels, silent runs, voicing and pitch are reported, not judged: they show what the codec changes",
       "pass": true
@@ -1598,7 +1625,7 @@
     {
       "id": "voices.ts.pitch",
       "claim": "The browser's pitch tracker (YIN) follows the greetings and a single speaker exactly as the reference does.",
-      "measured": "greetings: voicing agrees on 100.000% of frames, pitch within 0.0e+0 cents, 0 frames on another dip; Waldheim: 100.000%, 0.0e+0 cents, 0 on another dip; speakers' ceiling 378.327 Hz; three passes in 20.0 s",
+      "measured": "greetings: voicing agrees on 100.000% of frames, pitch within 0.0e+0 cents, 0 frames on another dip; Waldheim: 100.000%, 0.0e+0 cents, 0 on another dip; speakers' ceiling 378.327 Hz; three passes in 36.8 s",
       "expected": "the reference's tracks (data/voices.json) and ceiling 378.33 Hz",
       "tolerance": "voicing on 99.9% of frames (a CMND within rounding of 0.1 may fall either side); pitch within 0.01 cents after the same 0.01 Hz rounding, except at most 5 frames that take another CMND dip (a value within rounding of a neighbour; about 1 in 5,000 voiced frames)",
       "pass": true
