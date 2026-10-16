@@ -20,4 +20,14 @@ for (const table of Array.from(doc.querySelectorAll('table'))) {
   table.replaceWith(wrap);
   wrap.appendChild(table);
 }
+// Anchors: each row of the deduction table (first column "#") gets the id row-N, so the codex can link to it.
+for (const table of Array.from(doc.querySelectorAll('table'))) {
+  if (table.querySelector('th')?.textContent?.trim() !== '#') continue;
+  for (const tr of Array.from(table.querySelectorAll('tbody tr'))) {
+    const n = tr.querySelector('td')?.textContent?.trim() ?? '';
+    if (/^\d+$/.test(n)) tr.id = `row-${n}`;
+  }
+}
 app.appendChild(doc);
+// The page is built after load, so the browser could not jump to a #row-N link by itself.
+if (/^#row-\d+$/.test(window.location.hash)) document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ block: 'center' });

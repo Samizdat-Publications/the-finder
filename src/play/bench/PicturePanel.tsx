@@ -2,10 +2,10 @@
 // turn the decoder's knobs (including wrong settings) to see what each one does. Every control dispatches
 // a command on the bus.
 
-import { dispatch, type Command } from '../game/bus';
-import { COVER_LINE_MS, LINE_MS_RANGE, REFERENCE_ROWS, ROWS_RANGE, TAPE_LINE_MS, lineTimePercentOff } from '../game/model';
-import { decoder as D } from '../game/state';
-import { FRAMES, frameEntry } from '../media/frames';
+import { dispatch, type Command } from '../../game/bus';
+import { COVER_LINE_MS, LINE_MS_RANGE, REFERENCE_ROWS, ROWS_RANGE, TAPE_LINE_MS, lineTimePercentOff } from '../../game/model';
+import { decoder as D } from '../../game/state';
+import { FRAMES, frameEntry } from '../../media/frames';
 import { PictureCanvas } from './PictureCanvas';
 import { Slider, Switch, fmtSigned } from './ui';
 

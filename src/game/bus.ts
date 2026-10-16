@@ -4,7 +4,12 @@
 // after the reason has also been written to the state's error field for the interface to show.
 
 import type { Direction } from '../record/groove';
+import type { Answer } from './deductions';
+import * as gameService from './gameService';
+import type { ChapterView } from './graph';
 import type { BenchParams } from './model';
+import { flushSave } from './save';
+import type { SettingCommand } from './settings';
 import * as decoderService from './decoderService';
 import * as turntableService from './turntableService';
 
@@ -21,7 +26,15 @@ export type Command =
   | ParamCommand
   | { type: 'decoder.reset' }
   | { type: 'decoder.run'; speed: 'record' | 'fast' }
-  | { type: 'decoder.composeColour'; image: number };
+  | { type: 'decoder.composeColour'; image: number }
+  | { type: 'chapter.enter'; chapter: ChapterView }
+  | { type: 'deduction.propose'; id: string; answer: Answer }
+  | { type: 'hint.request'; id: string }
+  | { type: 'codex.open'; id?: string }
+  | { type: 'codex.close' }
+  | SettingCommand
+  | { type: 'settings.panel'; open: boolean }
+  | { type: 'save.reset' };
 
 export async function dispatch(cmd: Command): Promise<void> {
   switch (cmd.type) {
@@ -48,6 +61,24 @@ export async function dispatch(cmd: Command): Promise<void> {
       return decoderService.run(cmd.speed);
     case 'decoder.composeColour':
       return decoderService.composeColour(cmd.image);
+    case 'chapter.enter':
+      return gameService.enterChapter(cmd.chapter);
+    case 'deduction.propose':
+      return gameService.propose(cmd.id, cmd.answer);
+    case 'hint.request':
+      return gameService.requestHint(cmd.id);
+    case 'codex.open':
+      return gameService.openCodex(cmd.id);
+    case 'codex.close':
+      return gameService.closeCodex();
+    case 'settings.set':
+      return gameService.setSetting(cmd.name, cmd.value);
+    case 'settings.panel':
+      return gameService.settingsPanel(cmd.open);
+    case 'save.reset':
+      gameService.resetSave();
+      flushSave();
+      return;
     default: {
       const never: never = cmd;
       throw new Error(`unknown command ${JSON.stringify(never)}`);

@@ -1,46 +1,47 @@
-// /play/: the instrument bench. The real turntable and the real picture decoder side by side. This is a
-// preview of the instruments, not the game. The test handle (window.__finder) is installed only in the dev
-// server or with ?harness=1.
+// /play/: the game. The alien shell (top bar, ring of chapters, workbench, codex, settings) over the deduction
+// graph. Saves go to localStorage. The test handle (window.__finder) is installed only in the dev server or
+// with ?harness=1; test checkers only when the test handle is on and the URL has ?testcheckers=1. The M2 instrument
+// bench lives at /play/bench/.
 
 import { render } from 'preact';
+import { effect } from '@preact/signals';
+import { installTestCheckers, testCheckersEnabled } from '../game/deductions';
+import { defaultSettings } from '../game/settings';
+import { loadFromStorage, startAutosave } from '../game/save';
+import { game } from '../game/state';
 import { harnessEnabled, installHarness } from '../harness/api';
 import { installBootErrors } from '../ui/boot';
+import { Shell } from '../ui/Shell';
 import '../ui/theme.css';
-import './play.css';
-import { PicturePanel } from './PicturePanel';
-import { TurntablePanel } from './TurntablePanel';
+import '../ui/shell.css';
+import '../ui/codex.css';
+import { startRouter } from './router';
 
 installBootErrors();
 
-function Bench() {
-  return (
-    <div class="bench">
-      <header class="bench-head">
-        <p class="note">
-          <a href="/">The Finder</a>
-        </p>
-        <h1>The instrument bench</h1>
-        <p class="note narrow-only">Best on a bigger screen: the two instruments sit side by side there.</p>
-      </header>
-      <div class="bench-grid">
-        <TurntablePanel />
-        <PicturePanel />
-      </div>
-      <footer class="bench-foot">
-        <p>
-          Preview build (M2): the instruments, not the game. The pictures are decoded live from the 1977 image master tape; the sound is the Ozma 2017
-          remaster.
-        </p>
-        <p>
-          <a href="/">Back to the start</a> | <a href="/checked/">How it's checked</a>
-        </p>
-      </footer>
-    </div>
-  );
+function storage(): Storage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null; // blocked storage: the game still plays, it just does not save
+  }
 }
 
-render(<Bench />, document.getElementById('app') as HTMLElement);
+const harness = harnessEnabled(window.location.search, import.meta.env.DEV);
+const store = storage();
 
-if (harnessEnabled(window.location.search, import.meta.env.DEV)) {
-  installHarness();
+// First run: honour the system's reduced-motion preference; a save, if there is one, overrides it.
+game.settings.value = defaultSettings(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+if (store) {
+  loadFromStorage(store);
+  startAutosave(store);
 }
+if (testCheckersEnabled(window.location.search, harness)) installTestCheckers();
+
+effect(() => {
+  document.documentElement.classList.toggle('calm', game.settings.value.reducedMotion);
+});
+startRouter();
+render(<Shell />, document.getElementById('app') as HTMLElement);
+
+if (harness) installHarness();

@@ -3,9 +3,9 @@
 // radius. Click or drag on it to choose where the needle drops; the drop happens when the pointer is released.
 
 import { useEffect, useMemo, useRef } from 'preact/hooks';
-import { R_INNER_MUSIC_MM, R_LEAD_IN_OUTER_MM, R_OUTER_MUSIC_MM } from '../record/groove';
-import { groove, timeline } from '../game/model';
-import { turntable as T } from '../game/state';
+import { R_INNER_MUSIC_MM, R_LEAD_IN_OUTER_MM, R_OUTER_MUSIC_MM } from '../../record/groove';
+import { groove, timeline } from '../../game/model';
+import { turntable as T } from '../../game/state';
 
 const DISC_R = 150;
 const LABEL_R = 36;

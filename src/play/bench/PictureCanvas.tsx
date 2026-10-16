@@ -3,8 +3,8 @@
 
 import { effect } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { cachedSamples } from '../game/decoderService';
-import { decoder as D, type Picture } from '../game/state';
+import { cachedSamples } from '../../game/decoderService';
+import { decoder as D, type Picture } from '../../game/state';
 
 const PLACEHOLDER = { w: 512, h: 355 };
 

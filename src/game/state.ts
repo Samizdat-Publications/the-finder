@@ -1,10 +1,13 @@
 // The bench's state, in Preact signals. Only the command bus handlers (bus.ts and the two services it
 // calls) and engine events write here; the interface only reads (rule 5, one command bus).
 
-import { signal } from '@preact/signals';
+import { computed, signal } from '@preact/signals';
 import type { Direction } from '../record/groove';
 import type { NeedleState } from '../record/engine';
+import { chapterStatus, type Attempt, type ChapterStatus } from './deductions';
+import { CHAPTERS, NODES, type ChapterView } from './graph';
 import { COVER_PERIOD_S, referenceBench, type BenchParams } from './model';
+import { defaultSettings, type Settings } from './settings';
 
 export type TurntableStatus = 'idle' | 'loading' | 'ready' | 'error';
 export type DecoderStatus = 'idle' | 'loading' | 'decoding' | 'revealing' | 'done' | 'error';
@@ -68,12 +71,63 @@ export const decoder = {
   sync: signal<SyncInfo | null>(null),
 };
 
+
+/** What the game remembers about one deduction. A node with no record is untouched. */
+export interface NodeRecord {
+  confirmed: boolean;
+  attempts: Attempt[];
+  /** Hint tiers revealed so far: 0 none, 1 nudge, 2 method, 3 answer. */
+  hints: number;
+}
+
+/** The game's state (the shell, the deduction graph, the settings). Only gameService.ts and save.ts write here. */
+export const game = {
+  records: signal<Record<string, NodeRecord>>({}),
+  chapter: signal<ChapterView>('hub'),
+  settings: signal<Settings>(defaultSettings()),
+  codexOpen: signal(false),
+  /** The codex entry to show first (a deduction id), when it was opened for one. */
+  codexFocus: signal<string | null>(null),
+  settingsOpen: signal(false),
+  /** The last refused command's reason, for the interface to show. */
+  error: signal<string | null>(null),
+};
+
+export const confirmedSet = computed<ReadonlySet<string>>(
+  () => new Set(Object.entries(game.records.value).filter(([, r]) => r.confirmed).map(([id]) => id)),
+);
+
+export const hintsUsed = computed(() => Object.values(game.records.value).reduce((n, r) => n + r.hints, 0));
+
+function gameSnapshot() {
+  const recs = game.records.value;
+  const confirmed = confirmedSet.value;
+  return {
+    chapter: game.chapter.value,
+    settings: { ...game.settings.value },
+    codexOpen: game.codexOpen.value,
+    codexFocus: game.codexFocus.value,
+    settingsOpen: game.settingsOpen.value,
+    error: game.error.value,
+    confirmed: [...confirmed],
+    hintsUsed: hintsUsed.value,
+    nodes: Object.fromEntries(
+      NODES.map((n) => {
+        const r = recs[n.id];
+        return [n.id, { confirmed: confirmed.has(n.id), attempts: r ? r.attempts.map((a) => ({ ...a })) : [], hints: r?.hints ?? 0 }];
+      }),
+    ) as Record<string, { confirmed: boolean; attempts: Attempt[]; hints: number }>,
+    chapterStatus: Object.fromEntries(CHAPTERS.map((c) => [c.id, chapterStatus(c.id, confirmed)])) as Record<string, ChapterStatus>,
+  };
+}
+
 /** A plain copy of the whole state (the harness API; tests read this, never the signals). */
 export function snapshot() {
   const n = turntable.needle.value;
   const p = decoder.picture.value;
   const c = decoder.colour.value;
   return {
+    game: gameSnapshot(),
     turntable: {
       side: turntable.side.value,
       status: turntable.status.value,

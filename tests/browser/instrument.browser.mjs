@@ -1,4 +1,4 @@
-// The instrument bench on /play/, driven only through the command bus (window.__finder, which the dev
+// The instrument bench on /play/bench/, driven only through the command bus (window.__finder, which the dev
 // server installs). Three things are checked against independent truth:
 //  1. The picture on the canvas is byte-for-byte the PictureDecoder output for the same slice and the
 //     reference settings (the decoder itself is held to the Python reference by decoder.frames), and the
@@ -11,7 +11,7 @@
 const CIRCLE_TOL = 0.01; // tools/ref-decoder/README.md section 7: a round circle is 1.00 +/- 0.01
 
 export default async function run({ page, baseUrl, record, assert, log }) {
-  await page.goto(`${baseUrl}/play/`, { waitUntil: 'load' });
+  await page.goto(`${baseUrl}/play/bench/`, { waitUntil: 'load' });
   await page.waitForFunction(() => Boolean(window.__finder), null, { timeout: 30_000 });
 
   // ---- 1. the reference picture on the canvas equals the decoder's own output ----

@@ -2,10 +2,10 @@
 // Every control dispatches a command on the bus; nothing here changes state any other way.
 
 import { useSignal } from '@preact/signals';
-import { dispatch, type Command } from '../game/bus';
-import { COVER_PERIOD_S, SPEED_RANGE_S, groove, radiusAtItemStart, timeline } from '../game/model';
-import { turntable as T } from '../game/state';
-import type { Region } from '../record/groove';
+import { dispatch, type Command } from '../../game/bus';
+import { COVER_PERIOD_S, SPEED_RANGE_S, groove, radiusAtItemStart, timeline } from '../../game/model';
+import { turntable as T } from '../../game/state';
+import type { Region } from '../../record/groove';
 import { Disc } from './Disc';
 import { Slider, Switch, fmtMB, fmtTime } from './ui';
 
