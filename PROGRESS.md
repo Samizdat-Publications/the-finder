@@ -138,10 +138,13 @@ and live-checked.
   hearing at least 17.1 kHz, an octave of 1199.3 cents cut into 12 equal steps, the whale song (D-A32);
   DSP in TypeScript matched to a Python reference and to the browser Worker.
 
+- **Edge (2026-10-16):** every browser test passes in the installed Edge, 21 of 21, audio included
+  (`FINDER_BROWSER=msedge node tools/harness/browser-tests.mjs`); the whole-game bot needed one retry (a
+  click timed out at 120 s). M6 is planned (`docs/plans/M6.md`).
+
 ## In flight
 
 - The M5 science audit (science-auditor, read-only).
-- Every browser test in the installed Edge (`FINDER_BROWSER=msedge node tools/harness/browser-tests.mjs`).
 
 ## Known issues and open questions
 
@@ -183,7 +186,6 @@ and live-checked.
 ## Next (exact)
 
 1. When the science audit reports: record it in `docs/reviews/` with a decision per finding; fix.
-2. Edge: record the result; fix anything Edge-only.
 3. A fresh whole-game capture for the blind critic (archive older inbox folders first); record its review.
 4. M5 gate: QA audit, PROGRESS and HANDOFF, `docs/plans/M6.md` (Portrait: the codex assembles into the
    senders' portrait and a final message, the critic's flat finish; Our Frame, the epilogue; hints and
