@@ -169,3 +169,49 @@ export function batemanChain(lambdas: readonly number[], n0: readonly number[], 
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------------------------
+// Half-life helpers shared by the clocks (clocks.ts, rtg.ts).
+
+export type HalfLifeSet = Partial<Record<NuclideId, number>>;
+
+export function lambdasOf(ids: readonly NuclideId[], hl?: HalfLifeSet): number[] {
+  return ids.map((id) => lambdaPerYear(id, hl));
+}
+
+export interface AgeInterval {
+  ageYears: number;
+  lo: number;
+  hi: number;
+}
+
+/** A half-life systematic: the total 1-sigma age shift (quadrature) and each nuclide's signed share. */
+export interface HalfLifeSystematic {
+  totalYears: number;
+  parts: Partial<Record<NuclideId, number>>;
+}
+
+/**
+ * Propagate 1-sigma half-life uncertainties into an age, linearly: for each nuclide the age is
+ * re-inverted with T + sigma and T - sigma, the signed share is half the difference, and the shares
+ * add in quadrature (the half-lives are independent measurements). Not a statistical interval: it is
+ * reported next to it.
+ */
+export function propagateHalfLives(
+  ageWith: (hl: HalfLifeSet) => number,
+  sigmas: Partial<Record<NuclideId, number>>,
+  base: HalfLifeSet = {},
+): HalfLifeSystematic {
+  const parts: Partial<Record<NuclideId, number>> = {};
+  let sum2 = 0;
+  for (const [id, sig] of Object.entries(sigmas) as [NuclideId, number][]) {
+    const T = base[id] ?? NUCLIDES[id].halfLifeYears;
+    const d = (ageWith({ ...base, [id]: T + sig }) - ageWith({ ...base, [id]: T - sig })) / 2;
+    parts[id] = d;
+    sum2 += d * d;
+  }
+  return { totalYears: Math.sqrt(sum2), parts };
+}
+
+export const sigmaOf = (ids: NuclideId[]): Partial<Record<NuclideId, number>> =>
+  Object.fromEntries(ids.map((id) => [id, NUCLIDES[id].halfLifeSigmaYears]));
