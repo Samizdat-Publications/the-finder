@@ -7,8 +7,8 @@
 // braces never occur in the game's English. The SI value is JavaScript's shortest round-trip form.
 // Pure: no DOM.
 
-import { JULIAN_YEAR_S, PARSEC_KM } from '../science/units';
-import { BEAT_S, HEFT_KG, REACH_M, UNIT_KEY, formatMeasured, formatPower, formatSI, toAlien, type Dim } from './units';
+import { JULIAN_YEAR_S } from '../science/units';
+import { BEAT_S, HEFT_KG, REACH_M, UNIT_KEY, formatMeasured, formatPower, formatSI, humanLength, toAlien, type Dim } from './units';
 
 /**
  * Quantities a message may carry: the readings' dimensions, plus four compound ones that appear only in
@@ -48,20 +48,11 @@ export function alienNumber(n: number, digits?: number): string {
 }
 
 const sigText = (x: number, digits: number): string => Number(x.toPrecision(digits)).toLocaleString('en-US', { maximumFractionDigits: 20 });
-/** Astronomical units per parsec (648,000 / pi; IAU 2012 and 2015). */
-const AU_PER_PC = 648_000 / Math.PI;
-
 /** The human reading for the gloss: an astronomer's units for the large ones (years, parsecs, AU), SI otherwise. */
 export function humanText(dim: MsgDim, si: number, digits?: number): string {
   const d = digits ?? 3;
   if (dim === 'time' && Math.abs(si) >= 100 * 86_400) return `${sigText(si / JULIAN_YEAR_S, Math.max(3, d))} years`;
-  if (dim === 'length') {
-    const pc = si / (PARSEC_KM * 1000);
-    if (Math.abs(pc) >= 0.01) return `${sigText(pc, Math.max(3, d))} pc`;
-    if (Math.abs(pc * AU_PER_PC) >= 0.1) return `${sigText(pc * AU_PER_PC, 3)} AU`;
-    // Kilometres grouped in thousands (formatSI writes "1080000 km").
-    if (Math.abs(si) >= 1e5) return `${sigText(si / 1000, d)} km`;
-  }
+  if (dim === 'length') return humanLength(si, d);
   if (isExtra(dim)) return `${sigText(si, d)} ${EXTRA[dim].si}`;
   return formatSI(dim, si);
 }

@@ -16,7 +16,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from '../../tools/harness/serve.mjs';
-import { renderedMessage } from './rendered.mjs';
+import { renderedMessage, renderedVerdict, showsVerdict } from './rendered.mjs';
 
 /** The 18 deductions of the slice (src/game/graph.ts), in the order the bot confirms them. */
 export const SLICE_IDS = [
@@ -286,7 +286,7 @@ async function rejectShown(page, assert, id, answer) {
   const line = page.locator(`[data-result="${id}"]`);
   if ((await line.count()) > 0) {
     assert(/^(0|false)$/.test((await line.getAttribute('data-ok')) ?? ''), `${id}: the instrument shows the rejection`);
-    assert(((await line.innerText()) ?? '').includes(shown.slice(0, 40)), `${id}: the instrument shows the computed result`);
+    assert(showsVerdict((await line.textContent()) ?? '', await renderedVerdict(page, r.last.message)), `${id}: the instrument shows the computed result (the verdict line, the rest folded)`);
   }
   return r.last.message;
 }

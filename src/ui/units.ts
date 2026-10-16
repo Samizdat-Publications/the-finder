@@ -4,7 +4,7 @@
 // interface already knows. Derived units follow from the base units by dimension. Numbers are written with
 // Arabic digits (the translation layer); with the human gloss on, SI follows in parentheses. Pure: no DOM.
 
-import { JULIAN_YEAR_S } from '../science/units';
+import { JULIAN_YEAR_S, PARSEC_KM } from '../science/units';
 
 /** One beat, s (game convention, D-A22): the alien's base unit of time. Exact. */
 export const BEAT_S = 0.871;
@@ -164,4 +164,28 @@ export function formatMeasured(x: number): string {
 
 export function quantity(dim: Dim, si: number): QuantityText {
   return { number: formatMeasured(toAlien(dim, si)), unitKey: UNIT_KEY[dim], unitGloss: UNIT_GLOSS[dim], si: formatSI(dim, si) };
+}
+
+/** Astronomical units per parsec (648,000 / pi; IAU 2012 and 2015). */
+const AU_PER_PC = 648_000 / Math.PI;
+const sigGrouped = (x: number, digits: number): string => Number(x.toPrecision(digits)).toLocaleString('en-US', { maximumFractionDigits: 20 });
+
+/** The human reading of a length in metres: parsecs from a hundredth of one, then AU, then km (grouped), else formatSI. */
+export function humanLength(si: number, digits = 3): string {
+  const pc = si / (PARSEC_KM * 1000);
+  if (Math.abs(pc) >= 0.01) return `${sigGrouped(pc, Math.max(3, digits))} pc`;
+  if (Math.abs(pc * AU_PER_PC) >= 0.1) return `${sigGrouped(pc * AU_PER_PC, 3)} AU`;
+  if (Math.abs(si) >= 1e5) return `${sigGrouped(si / 1000, digits)} km`;
+  return formatSI('length', si);
+}
+
+/**
+ * A length as a chart label writes it: the alien's reaches, and with the human gloss on the astronomer's
+ * reading in parentheses (parsecs). The charts take a distance in parsecs (the unit their data is in).
+ */
+export function lengthLabel(pc: number, humanGloss: boolean, digits = 3): string {
+  const si = pc * PARSEC_KM * 1000;
+  const n = toAlien('length', si);
+  const num = formatMeasured(Number(n.toPrecision(digits)));
+  return `${num} ${num === '1' ? UNIT_KEY.length : `${UNIT_KEY.length}es`}${humanGloss ? ` (${humanLength(si, digits)})` : ''}`;
 }

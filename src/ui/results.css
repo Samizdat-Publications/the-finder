@@ -13,6 +13,10 @@
 .headline .si { font: var(--fs-value) var(--font-mono); color: var(--text-dim); }
 .headline .hl-sentence { font-size: var(--fs-value); line-height: 1.4; color: var(--text); }
 
+/* A refused result: one line first (the verdict with its number), the rest folded beneath it. */
+.result .result-lead { margin: 0 0 0.15rem; font-size: var(--fs-value); line-height: 1.4; color: var(--text); font-weight: 600; }
+.result.bad .result-lead, .result.wrong .result-lead { color: var(--danger); }
+
 /* The working fold: a quiet summary line; open, it shows the message and the readings as before. */
 .working { margin-top: 0.3rem; font-size: var(--fs-label); }
 .working > summary { cursor: pointer; color: var(--text-dim); font: var(--fs-label)/1.6 var(--font-mono); letter-spacing: 0.04em; list-style-position: inside; width: fit-content; }

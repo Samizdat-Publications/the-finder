@@ -178,14 +178,23 @@ const POINT_FRAG = /* glsl */ `
   varying float vAlpha;
   varying float vHollow;
   varying float vR;
+  uniform float uGlow;
   void main() {
     float d = length(gl_PointCoord - 0.5) * max(2.0, ceil(vR * 3.0));
     float a;
+    vec3 c = vColour;
     if (vHollow > 0.5) a = 1.0 - smoothstep(0.6, 1.4, abs(d - vR));
-    else a = 1.0 - smoothstep(vR * 0.55, vR, d) + 0.25 * exp(-d / vR);
+    else if (uGlow > 0.5) {
+      // A star: a bright core, a touch toward white, and a halo that keeps the star's own colour (so a warm
+      // star reads warm and a blue one blue), fading out inside the sprite.
+      float core = 1.0 - smoothstep(vR * 0.45, vR * 0.8, d);
+      float halo = 0.42 * exp(-d / (vR * 0.5)) * (1.0 - smoothstep(vR * 1.1, vR * 1.5, d));
+      a = core + halo;
+      c = mix(vColour, vec3(1.0), 0.12 * core);
+    } else a = 1.0 - smoothstep(vR * 0.55, vR, d) + 0.25 * exp(-d / vR);
     a = clamp(a, 0.0, 1.0) * vAlpha;
     if (a < 0.01) discard;
-    gl_FragColor = vec4(vColour * a, a);
+    gl_FragColor = vec4(c * a, a);
   }
 `;
 
@@ -197,8 +206,8 @@ export interface PointSet {
   dispose(): void;
 }
 
-/** Additive points drawn in Galactic chart units; no depth test (charts are transparent overlays of light). */
-export function makePoints(posGal: Float32Array, colours: Float32Array, sizes: Float32Array, alphas: Float32Array, hollow?: Float32Array): PointSet {
+/** Additive points drawn in Galactic chart units; no depth test (charts are transparent overlays of light). `glow` draws filled points as stars with a coloured halo. */
+export function makePoints(posGal: Float32Array, colours: Float32Array, sizes: Float32Array, alphas: Float32Array, hollow?: Float32Array, glow = false): PointSet {
   const n = posGal.length / 3;
   const world = new Float32Array(3 * n);
   for (let i = 0; i < n; i++) {
@@ -213,7 +222,7 @@ export function makePoints(posGal: Float32Array, colours: Float32Array, sizes: F
   g.setAttribute('aAlpha', new THREE.BufferAttribute(alphas, 1));
   g.setAttribute('aHollow', new THREE.BufferAttribute(hollow ?? new Float32Array(n), 1));
   const m = new THREE.ShaderMaterial({
-    vertexShader: POINT_VERT, fragmentShader: POINT_FRAG, uniforms: { uPixelRatio: { value: 1 } },
+    vertexShader: POINT_VERT, fragmentShader: POINT_FRAG, uniforms: { uPixelRatio: { value: 1 }, uGlow: { value: glow ? 1 : 0 } },
     transparent: true, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending,
   });
   const points = new THREE.Points(g, m);
@@ -316,12 +325,12 @@ const lv = new THREE.Vector3();
  * Declutter the labels under root on screen (labelLayout.ts): every label sprite (userData.heightPx) is placed
  * at the first of its anchors (userData.anchors, default labelLayout's) clear of the labels placed before it
  * (by userData.keep, then userData.priority) and of the bright points; one that fits nowhere is hidden, unless
- * userData.keep. A label another rule hides (userData.suppressed) takes no part.
+ * userData.keep. A label another rule hides (userData.suppressed) takes no part; a glyph (userData.glyph) is not a label.
  */
 export function declutterLabels(root: THREE.Object3D, camera: THREE.Camera, w: number, h: number, bright: readonly BrightPoint[]): void {
   const sprites: THREE.Sprite[] = [];
   root.traverse((o) => {
-    if (o.userData.heightPx !== undefined) sprites.push(o as THREE.Sprite);
+    if (o.userData.heightPx !== undefined && o.userData.glyph !== true) sprites.push(o as THREE.Sprite);
   });
   const boxes: LabelBox[] = [];
   sprites.forEach((s, id) => {

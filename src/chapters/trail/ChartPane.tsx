@@ -7,7 +7,9 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { KM_S_TO_PC_PER_YEAR, scale, toGalacticCartesian, type Vec3 } from '../../science/astro';
 import { game } from '../../game/state';
+import { CRAFT_GLYPH_BOX, CRAFT_GLYPH_PATH } from '../../world/chartGlyphs';
 import { mountNeighbourhood, type NeighbourhoodHandle } from '../../world/neighbourhood';
+import { chartLength } from '../shared/chartLabels';
 import type { EpochModel } from '../shared/epochModel';
 import { distText } from './format';
 import { homeId, relativeState, rulerReading, starById, starName } from './physics';
@@ -67,6 +69,7 @@ export function ChartPane(p: { m: EpochModel }) {
       trail: m.trailRows(),
       reducedMotion: game.settings.value.reducedMotion,
       nameOf: (s) => starName(s.star),
+      lengthLabel: chartLength,
       onPick: (pk) => onPick(m, pk?.star.star.id ?? null),
     });
     handle = h;
@@ -78,6 +81,12 @@ export function ChartPane(p: { m: EpochModel }) {
     });
     return h;
   };
+
+  // the distance labels follow the human gloss
+  const gloss = game.settings.value.humanGloss;
+  useEffect(() => {
+    if (ready) handle?.relabel();
+  }, [gloss, ready]);
 
   // tint every star by its angle (after trail.origin)
   const tint = tintAll.value;
@@ -132,7 +141,11 @@ export function ChartPane(p: { m: EpochModel }) {
       <svg class="tr-overlay" aria-hidden="true">
         {ov.track && <line class="tr-track" x1={ov.track.from[0]} y1={ov.track.from[1]} x2={ov.track.to[0]} y2={ov.track.to[1]} />}
         {ov.craft && ov.star && <line class="tr-sep" x1={ov.craft[0]} y1={ov.craft[1]} x2={ov.star[0]} y2={ov.star[1]} />}
-        {ov.craft && <circle class="tr-craftdot" cx={ov.craft[0]} cy={ov.craft[1]} r={5} />}
+        {ov.craft && (
+          <g class="tr-craftglyph" transform={`translate(${ov.craft[0] - CRAFT_GLYPH_BOX * 0.7} ${ov.craft[1] - CRAFT_GLYPH_BOX * 0.7}) scale(1.4)`}>
+            <path d={CRAFT_GLYPH_PATH} />
+          </g>
+        )}
         {ov.ruler && (
           <g class="tr-ruler">
             <line x1={ov.ruler.a[0]} y1={ov.ruler.a[1]} x2={ov.ruler.b[0]} y2={ov.ruler.b[1]} />

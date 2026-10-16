@@ -11,7 +11,7 @@
 // the Sun by about 0.045 pc per km/s, so their depth is uncertain.
 
 import { KM_S_TO_PC_PER_YEAR, angleBetweenDeg, cross, norm, scale, sub, toGalacticCartesian, type Vec3 } from '../science/astro';
-import { absMagV, discoveryState, findHomeStar, starStateAt, type DiscoveryState } from '../science/epoch';
+import { absMagV, apparentMagnitude, discoveryState, findHomeStar, starStateAt, type DiscoveryState } from '../science/epoch';
 import { trailCensus, type TrailEntry } from '../science/kinematics';
 import type { ScenarioData, StarCatalogue, StarRecord } from '../science/types';
 import { bvToSrgb } from './skyModel';
@@ -26,6 +26,17 @@ export const NEIGHBOURHOOD_RADIUS_PC = 10;
  */
 export function absMagToRadiusPx(absMag: number): number {
   return Math.min(10, Math.max(1.6, 1.6 + 0.45 * (16 - absMag)));
+}
+
+/**
+ * Point size from apparent V magnitude as the craft sees the star, CSS px (a display choice, M5 step 0c): the
+ * brighter in the craft's sky, the bigger, 1.9 px at magnitude 12.5 and fainter, 0.45 px more per magnitude
+ * brighter, capped at 9.5 px (the Sun at -0.8 is 8.0 px, a magnitude-6 star 4.8 px). Monotonic: brighter is
+ * never smaller. The encounter scene sizes its sprites from the same apparent magnitudes (skyModel.magToSprite)
+ * on a naked-eye scale; a chart stretches the range so the faint neighbours stay visible.
+ */
+export function appMagToRadiusPx(appMag: number): number {
+  return Math.min(9.5, Math.max(1.9, 1.9 + 0.45 * (12.5 - appMag)));
 }
 
 export interface ChartStar {
@@ -43,7 +54,10 @@ export interface ChartStar {
   depthPcPerKmS: number;
   isSun: boolean;
   isHome: boolean;
+  /** sRGB from B-V exactly as the encounter scene colours its stars (skyModel.bvToSrgb, D-A21). */
   colour: [number, number, number];
+  /** Apparent V magnitude as seen from the craft (epoch.apparentMagnitude). */
+  appMag: number;
   radiusPx: number;
 }
 
@@ -77,6 +91,7 @@ export function computeNeighbourhood(scenario: ScenarioData, cat: StarCatalogue,
     const rel = sub(st.posPc, craft);
     const d = norm(rel);
     if (d > radiusPc) continue;
+    const appMag = apparentMagnitude(absMagV(star), d);
     stars.push({
       star,
       label: starLabel(star),
@@ -89,7 +104,8 @@ export function computeNeighbourhood(scenario: ScenarioData, cat: StarCatalogue,
       isSun: star.id === 0,
       isHome: star.id === homeId,
       colour: bvToSrgb(star.ci),
-      radiusPx: absMagToRadiusPx(absMagV(star)),
+      appMag,
+      radiusPx: appMagToRadiusPx(appMag),
     });
   }
   stars.sort((a, b) => a.star.id - b.star.id);

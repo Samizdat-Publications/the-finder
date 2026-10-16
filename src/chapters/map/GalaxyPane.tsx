@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { confirmedSet, game } from '../../game/state';
 import { wrapDeg } from '../../science/pulsars';
 import { mountGalaxy, type GalaxyHandle, type GalaxyInfo } from '../../world/galaxy';
+import { chartLength } from '../shared/chartLabels';
 import { ensureParts } from '../shared/epochModel';
 import { Dial } from './Dial';
 import { assign, assignments, model, origin, rotationDeg, scalePc, selectedLine, START_ROTATION_DEG } from './state';
@@ -53,6 +54,7 @@ export function GalaxyPane() {
       pulsars: m.alien,
       observer: m.measured,
       reducedMotion: game.settings.value.reducedMotion,
+      lengthLabel: chartLength,
       onPick: (p) => {
         const line = selectedLine.value;
         if (p && line !== null) assign(line, p.jname);
@@ -73,6 +75,12 @@ export function GalaxyPane() {
       .catch(() => undefined);
     return g;
   };
+
+  // The distance labels follow the human gloss.
+  const gloss = game.settings.value.humanGloss;
+  useEffect(() => {
+    if (info) handle.current?.relabel();
+  }, [gloss, info]);
 
   // Redraw the overlay whenever the map is turned, moved or scaled, or a line gets a pulsar.
   const rot = rotationDeg.value;

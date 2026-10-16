@@ -27,7 +27,7 @@ const TEXT: Record<MapNodeId, { how: string; button: string }> = {
     button: 'Propose these pulsars for every line',
   },
   'map.motion': {
-    how: 'The old lines\' ages disagree. Drag the axis across the sky until, beside it, the ages fall on one straight line.',
+    how: 'The old lines\' ages disagree. Drag the axis across the sky until its cost falls inside the cut: then the ages fall on one straight line (the working shows them).',
     button: 'Propose this axis',
   },
   'map.region': {

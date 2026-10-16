@@ -28,6 +28,8 @@ export interface GalaxyOptions {
   reducedMotion?: boolean;
   /** Label of the alien's star (default 'Gliese 445'). */
   homeLabel?: string;
+  /** How a distance in parsecs is written on a label (the chapter's: the alien's units, the human gloss on request); default parsecs. */
+  lengthLabel?: (pc: number, digits?: number) => string;
   onHover?: (p: PickedPulsar | null) => void;
   onPick?: (p: PickedPulsar | null) => void;
 }
@@ -67,6 +69,8 @@ export interface GalaxyHandle {
   getView(): ChartView;
   setView(v: Partial<ChartView>): void;
   setReducedMotion(on: boolean): void;
+  /** Writes the distance labels again (after the human gloss is switched). */
+  relabel(): void;
   frameStats(): { meanIntervalMs: number; frames: number };
   benchmark(frames: number): number;
   dispose(): void;
@@ -107,6 +111,8 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
   let model: GalaxyModel | null = null;
   let disposed = false;
   let highlighted: string | null = null;
+  const lenText = (pc: number, digits = 3): string => (opts.lengthLabel ? opts.lengthLabel(pc, digits) : `${pc.toFixed(pc < 10 ? 2 : 0)} pc`);
+  let gcLabel: THREE.Sprite | null = null;
   // Every point set's pixel-ratio uniform follows the renderer's.
   const sets = new Set<PointSet>();
   const track = (ps: PointSet): PointSet => {
@@ -136,6 +142,16 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
   );
   core.scene.add(root);
 
+  /** The Galactic centre's label: its distance and error in the chart's length text. */
+  const placeGcLabel = (m: GalaxyModel): void => {
+    if (gcLabel) disposeTree(gcLabel);
+    const gc = m.gc.posKpc;
+    gcLabel = makeLabel(`Galactic centre, ${lenText(m.gc.distKpc * 1000)} +/- ${lenText(m.gc.sigmaKpc * 1000, 2)} (modern)`, '#ffe9b8');
+    gcLabel.position.set(gc[0], gc[2], -gc[1]);
+    gcLabel.userData.keep = true;
+    root.add(gcLabel);
+  };
+
   const ready = (async (): Promise<GalaxyInfo> => {
     const { pulsars, observer } = await loadInputs(opts);
     if (disposed) throw new Error('galaxy chart disposed while loading');
@@ -160,13 +176,11 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
     // The centre and the alien's star.
     const marks = track(makePoints(new Float32Array([...gc, 0, 0, 0]), new Float32Array([1, 0.92, 0.7, 0.6, 1, 0.75]), new Float32Array([9, 6]), new Float32Array([1, 1])));
     root.add(marks.points);
-    const gcLabel = makeLabel(`Galactic centre, ${m.gc.distKpc.toFixed(2)} +/- ${m.gc.sigmaKpc.toFixed(2)} kpc (modern)`, '#ffe9b8');
-    gcLabel.position.set(gc[0], gc[2], -gc[1]);
-    gcLabel.userData.keep = true;
+    placeGcLabel(m);
     const homeLabel = makeLabel(opts.homeLabel ?? 'Gliese 445', '#a8ffd0');
     homeLabel.userData.keep = true;
     homeLabel.userData.priority = 2;
-    root.add(gcLabel, homeLabel);
+    root.add(homeLabel);
     return { decimalYear: m.decimalYear, counts: m.counts, gc: m.gc };
   })();
   ready.catch(() => undefined);
@@ -322,7 +336,7 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
       const fill = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x6fe0ff, transparent: true, opacity: 0.14, side: THREE.DoubleSide, depthTest: false, depthWrite: false }));
       fill.frustumCulled = false;
       g.add(fill, makePolyline(outline, 0x8fe8ff, 0.9, true));
-      const label = makeLabel(`map origin, 95% region: ${(2 * region.semiAxesPc[0]).toFixed(0)} by ${(2 * region.semiAxesPc[1]).toFixed(0)} pc`, '#bff3ff', 12);
+      const label = makeLabel(`map origin, 95% region: ${lenText(2 * region.semiAxesPc[0], 2)} by ${lenText(2 * region.semiAxesPc[1], 2)}`, '#bff3ff', 12);
       const top = outline[Math.round(outline.length / 4)]!;
       label.position.set(top[0], top[2], -top[1]);
       label.userData.edge = outline[0];
@@ -341,6 +355,10 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
     },
     getView: () => ({ ...cam.view, target: [...cam.view.target] }),
     setView: (v) => cam.set(v),
+    relabel() {
+      if (model) placeGcLabel(model);
+      if (regionShown) this.showRegion(regionShown);
+    },
     setReducedMotion(on) {
       cam.reducedMotion = on;
     },

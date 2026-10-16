@@ -2,7 +2,7 @@
 // ten with a superscript exponent, never e-notation.
 
 import { describe, expect, it } from 'vitest';
-import { formatMeasured, formatNumber, formatPower, quantity, quantityText, superscript } from './units';
+import { formatMeasured, formatNumber, formatPower, humanLength, lengthLabel, quantity, quantityText, superscript } from './units';
 
 describe('powers of ten in the interface', () => {
   it('superscript writes integers, negatives included', () => {
@@ -39,5 +39,21 @@ describe('powers of ten in the interface', () => {
     expect(off).toBe('4.133 beat');
     expect(off).not.toContain('(');
     expect(on).toBe('4.133 beat (3.6 s)');
+  });
+});
+
+describe('chart labels follow the human-gloss rule (M5 step 0c)', () => {
+  it('a distance in parsecs reads in reaches with the gloss off and gains its parsec reading with it on', () => {
+    const off = lengthLabel(0.75, false);
+    expect(off).toBe('1.69 × 10¹⁶ reaches');
+    expect(off).not.toMatch(/\bpc\b|\bAU\b|\bkm\b/);
+    expect(lengthLabel(0.75, true)).toBe(`${off} (0.75 pc)`);
+  });
+
+  it('the human reading steps from parsecs to AU to km to SI', () => {
+    expect(humanLength(3.0857e16 * 8180)).toMatch(/pc$/);
+    expect(humanLength(3.0857e16 * 0.004)).toMatch(/AU$/);
+    expect(humanLength(2e8)).toBe('200,000 km');
+    expect(humanLength(5)).toBe('5 m');
   });
 });

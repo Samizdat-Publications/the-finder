@@ -1,7 +1,9 @@
 // A staged moment (M4 step 7e): a short full-screen beat for a big discovery. It dims the instrument, shows the
 // instrument's own visual as the backdrop (src/chapters/moments.ts), one large number in the alien's units with
 // its glyph label, one sentence, and a caption line naming the sound that plays (the cue's own caption), then
-// returns. Skippable: the Continue button, a click anywhere, Escape or any key. Reduced motion: a still, no
+// returns. The screen is opaque: the instrument's visual fills the upper part and the text stands on a plain
+// dark strip of its own (nothing shows under the sentence). With the human gloss on, the SI reading sits under
+// the number; with it off, the moment's comparison in the alien's own units, where the readings hold one. Skippable: the Continue button, a click anywhere, Escape or any key. Reduced motion: a still, no
 // camera moves. It reads game state only; the command bus never sees it, so the game state is unchanged by it.
 
 import { useEffect, useState } from 'preact/hooks';
@@ -46,12 +48,13 @@ function Body(p: { id: MomentId; n: number }) {
   const calm = game.settings.value.reducedMotion;
   const gloss = game.settings.value.humanGloss;
   const q = a ? def.quantity(a, m) : null;
+  const compare = a && def.compare ? def.compare(a) : [];
   const cue = captionFor(confirmationCue([p.id]).kind);
   const key = q ? unitKeyOf(q.dim) : null;
   const num = q ? alienNumber(q.si / unitSize(q.dim), q.digits) : null;
   return (
     <>
-      <div class="moment-backdrop" aria-hidden="false">
+      <div class="moment-backdrop">
         {(def.parts === null || m) && <def.Backdrop m={m} reducedMotion={calm} />}
       </div>
       <div class="moment-text">
@@ -64,13 +67,27 @@ function Body(p: { id: MomentId; n: number }) {
                 <GlyphSvg k={key} height={30} class="unit" />
                 <span class="gloss">{num === '1' ? key : pluralKey(key)}</span>
               </span>
-              {gloss && q && <span class="si">({humanText(q.dim, q.si, q.digits)})</span>}
             </>
           ) : (
             <span class="mn measuring">measuring</span>
           )}
         </p>
+        {gloss && q && (
+          <p class="moment-si" data-moment-si="">
+            {humanText(q.dim, q.si, q.digits)}
+          </p>
+        )}
         <p class="moment-sentence">{a ? def.sentence(a, m) : ''}</p>
+        {!gloss && compare.length > 0 && (
+          <dl class="moment-compare" data-moment-compare="">
+            {compare.map((c) => (
+              <div key={c.label}>
+                <dt>{c.label}</dt>
+                <dd>{c.text}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
         {game.settings.value.soundCaptions && cue && <p class="moment-caption">[{cue}]</p>}
       </div>
       <button

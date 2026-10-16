@@ -7,7 +7,8 @@ import { recordCheck } from '../../tests/support/record';
 import { angleBetweenDeg, galacticToIcrsCartesian, norm, sub } from '../science/astro';
 import { discoveryState, homeObserver, starStateAt } from '../science/epoch';
 import { trail } from '../science/kinematics';
-import { NEIGHBOURHOOD_RADIUS_PC, absMagToRadiusPx, angleTint, computeNeighbourhood, trailGeometry } from './neighbourhoodModel';
+import { NEIGHBOURHOOD_RADIUS_PC, absMagToRadiusPx, angleTint, appMagToRadiusPx, computeNeighbourhood, trailGeometry } from './neighbourhoodModel';
+import { bvToSrgb } from './skyModel';
 
 const scenario = loadScenario();
 const stars = loadStars();
@@ -86,5 +87,16 @@ describe('neighbourhood chart model', () => {
     for (let m = 20; m > -2; m -= 0.25) expect(absMagToRadiusPx(m - 0.25)).toBeGreaterThanOrEqual(absMagToRadiusPx(m));
     const warmth = (a: number): number => angleTint(a)[0] - angleTint(a)[2];
     for (let a = 0; a < 180; a += 5) expect(warmth(a + 5)).toBeLessThanOrEqual(warmth(a) + 1e-12);
+  });
+
+  it('chart stars are coloured from B-V exactly as the encounter scene colours them (D-A21) and sized by apparent brightness (M5 step 0c)', () => {
+    for (const s of model.stars) expect(s.colour).toEqual(bvToSrgb(s.star.ci));
+    // The size follows the craft's apparent magnitude, never the absolute one: brighter in the craft's sky is never smaller.
+    for (let m = 20; m > -2; m -= 0.25) expect(appMagToRadiusPx(m - 0.25)).toBeGreaterThanOrEqual(appMagToRadiusPx(m));
+    const byApp = [...model.stars].sort((a, b) => a.appMag - b.appMag);
+    for (let i = 1; i < byApp.length; i++) expect(byApp[i]!.radiusPx).toBeLessThanOrEqual(byApp[i - 1]!.radiusPx + 1e-12);
+    // The Sun is the brightest of the warm-white stars in this sky and is drawn bigger than a faint red dwarf.
+    const faint = byApp[byApp.length - 1]!;
+    expect(model.stars[model.sunIndex]!.radiusPx).toBeGreaterThan(faint.radiusPx);
   });
 });

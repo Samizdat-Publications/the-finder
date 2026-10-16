@@ -17,6 +17,7 @@ import {
   ChartCamera, attachInput, createChartRenderer, declutterLabels, disposeTree, galToWorld, makeLabel, makePoints, makePolyline, makeSegments, nearestOnScreen, projectGal, sizeLabels,
   type BrightPoint, type ChartView, type PointSet, type ScreenPoint,
 } from './chartControls';
+import { makeCraftGlyph, makeHomeMark } from './chartGlyphs';
 import { NEIGHBOURHOOD_RADIUS_PC, angleTint, computeNeighbourhood, trailGeometry, type ChartStar, type NeighbourhoodModel, type TrailGeometry } from './neighbourhoodModel';
 
 export interface NeighbourhoodOptions {
@@ -30,6 +31,8 @@ export interface NeighbourhoodOptions {
   reducedMotion?: boolean;
   /** How stars are named on the chart (default: the catalogue's name). */
   nameOf?: (s: ChartStar) => string;
+  /** How a distance in parsecs is written on a label (the chapter's: the alien's units, the human gloss on request); default parsecs. */
+  lengthLabel?: (pc: number, digits?: number) => string;
   onHover?: (p: PickedStar | null) => void;
   onPick?: (p: PickedStar | null) => void;
 }
@@ -67,6 +70,8 @@ export interface NeighbourhoodHandle {
   getView(): ChartView;
   setView(v: Partial<ChartView>): void;
   setReducedMotion(on: boolean): void;
+  /** Writes the distance labels again (after the human gloss is switched). */
+  relabel(): void;
   frameStats(): { meanIntervalMs: number; frames: number };
   benchmark(frames: number): number;
   dispose(): void;
@@ -126,6 +131,7 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
     g.add(track(makePoints(new Float32Array([...tip, ...tip]), new Float32Array([...rgb, ...rgb]), new Float32Array([2.6, 5]), new Float32Array([1, 0.8]), new Float32Array([0, 1]))).points);
     return g;
   };
+  const lenText = (pc: number): string => (opts.lengthLabel ? opts.lengthLabel(pc) : `${pc.toFixed(2)} pc`);
   const nameOf = (s: ChartStar): string => (opts.nameOf ? opts.nameOf(s) : s.label);
   const labelAt = (text: string, p: Vec3, colour: string, h = 13): THREE.Sprite => {
     const l = makeLabel(text, colour, h);
@@ -156,14 +162,18 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
       alphas[i] = 1;
       hollow[i] = s.fullVelocity ? 0 : 1;
     });
-    starSet = track(makePoints(positions, baseColours.slice(), sizes, alphas, hollow));
+    starSet = track(makePoints(positions, baseColours.slice(), sizes, alphas, hollow, true));
     root.add(starSet.points);
 
     // The craft (origin) and its velocity relative to the alien's star.
     const home = m.stars[m.homeIndex]!;
     const craftVelHome = toGalacticCartesian(sub(m.disc.craft.velKmS, home.icrsVelKmS));
     const vlen = Math.hypot(...craftVelHome);
-    root.add(track(makePoints(new Float32Array([0, 0, 0]), new Float32Array([0.7, 1, 0.95]), new Float32Array([5]), new Float32Array([1]))).points);
+    // The craft is a small craft glyph, and your star carries a reticle, so neither is lost among the field.
+    root.add(makeCraftGlyph());
+    const homeMark = makeHomeMark();
+    galToWorld(home.posPc, homeMark.position);
+    root.add(homeMark);
     root.add(arrow([0, 0, 0], scale(craftVelHome, 1 / vlen), VEL_ARROW_PC, 0x9ff0d8, [0.62, 0.94, 0.85]));
     // The craft's label above its point and the home star's below: the two are a fraction of a parsec apart.
     const craftLabel = labelAt('the craft', [0, 0, 0], '#c8fff0');
@@ -222,7 +232,7 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
     const g = new THREE.Group();
     ringSet = track(makePoints(new Float32Array(s.posPc), new Float32Array([1, 1, 1]), new Float32Array([s.radiusPx + 5]), new Float32Array([0.9]), new Float32Array([1])));
     const note = s.fullVelocity ? '' : ' (no radial velocity: depth uncertain)';
-    const hl = labelAt(`${nameOf(s)}, ${s.distFromCraftPc.toFixed(2)} pc${note}`, s.posPc, '#ffffff');
+    const hl = labelAt(`${nameOf(s)}, ${lenText(s.distFromCraftPc)}${note}`, s.posPc, '#ffffff');
     hl.userData.priority = 5;
     g.add(ringSet.points, hl);
     root.add(g);
@@ -323,6 +333,11 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
     },
     getView: () => ({ ...cam.view, target: [...cam.view.target] }),
     setView: (v) => cam.set(v),
+    relabel() {
+      const id = highlighted;
+      highlighted = null;
+      setHighlight(id);
+    },
     setReducedMotion(on) {
       cam.reducedMotion = on;
     },

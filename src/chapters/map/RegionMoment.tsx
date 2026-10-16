@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'preact/hooks';
 import type { Answer } from '../../game/deductions';
 import { game } from '../../game/state';
 import { mountGalaxy } from '../../world/galaxy';
+import { chartLength } from '../shared/chartLabels';
 import type { EpochModel } from '../shared/epochModel';
 
 /** The accepted answer of a confirmed deduction, as an object. */
@@ -22,7 +23,7 @@ export function RegionBackdrop(p: { m: EpochModel | null; reducedMotion: boolean
     const m = p.m;
     const el = canvas.current;
     if (!m || !el) return;
-    const g = mountGalaxy(el, { seed: m.seed, pulsars: m.alien, observer: m.measured, reducedMotion: p.reducedMotion });
+    const g = mountGalaxy(el, { seed: m.seed, pulsars: m.alien, observer: m.measured, reducedMotion: p.reducedMotion, lengthLabel: chartLength });
     let live = true;
     void g.ready
       .then(async (info) => {

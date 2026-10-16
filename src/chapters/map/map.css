@@ -65,6 +65,9 @@
 .map-row input[type='range'] { flex: 1; accent-color: var(--cyan); min-width: 10rem; }
 .map-plot { position: relative; min-width: 0; height: 12rem; }
 .map-plot svg { display: block; touch-action: none; }
+.map-plot-note { position: absolute; top: 0.1rem; right: 0.5rem; z-index: 1; font-size: var(--fs-label); color: var(--text-dim); text-shadow: 0 0 4px rgba(8, 7, 26, 0.95), 0 0 2px rgba(8, 7, 26, 0.95); pointer-events: none; }
+.map-clock .map-plot-note { top: -1.55rem; right: 8rem; }
+.map-clockctl input[type='range'] { flex: 1 1 8rem; min-width: 6rem; }
 .map-plot-label { font-size: 13px; fill: var(--text-dim); font-family: var(--font-sans); paint-order: stroke; stroke: rgba(8, 7, 26, 0.92); stroke-width: 3px; stroke-linejoin: round; }
 .map-plot-label.gold { fill: var(--gold); }
 .map-axis { stroke: var(--text-dim); stroke-width: 1; }
@@ -86,6 +89,13 @@
 .map-fitline { stroke: var(--violet); stroke-width: 1.5; }
 .map-sidept { fill: var(--cyan); }
 .map-skyread { gap: 0.25rem 0.5rem; }
+/* The motion step: one control (the sky map) and one result (the cost and its verdict) side by side. */
+.map-skymain { display: grid; grid-template-columns: minmax(0, 1fr) minmax(12rem, 15rem); gap: 0.2rem 0.9rem; align-items: center; }
+.map-result { display: grid; gap: 0.2rem; align-content: center; }
+.map-cost { font: 600 clamp(1.5rem, 2.2vw, 2rem)/1.1 var(--font-mono); color: var(--cyan); }
+.map-result[data-decides='inside'] .map-cost { color: var(--gold); }
+.map-verdict { font-size: var(--fs-label); color: var(--text-dim); line-height: 1.35; }
+.map-verdict.inside { color: var(--gold); }
 .map-nudge { padding: 0.15rem 0.45rem; min-height: 1.9rem; font-size: var(--fs-label); }
 .map-legend { margin: 0; line-height: 1.45; }
 .map-toolpanel:not(.folded) .map-toolfold { font-size: var(--fs-label); }
@@ -120,24 +130,33 @@
   .map-charttools { order: -1; border-top: 0; border-bottom: 1px solid var(--line); }
   .map-chart canvas { height: auto; flex: 1 1 0; }
   .map-toolpanel {
-    position: absolute; left: 0.6rem; right: 0.6rem; bottom: 0.6rem; z-index: 2; max-height: 52%; overflow-y: auto; overscroll-behavior: contain;
+    position: absolute; left: 0.6rem; right: 0.6rem; bottom: 0.6rem; z-index: 2; max-height: 34%; overflow-y: auto; overscroll-behavior: contain;
     padding: 0.35rem 0.6rem 0.5rem; background: rgba(8, 7, 26, 0.88); border: 1px solid var(--line); border-radius: 8px; backdrop-filter: blur(3px);
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.45);
   }
   .map-toolpanel.folded { left: auto; max-height: none; overflow: visible; padding: 0.3rem; }
-  .map-toolhead { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.25rem; }
+  .map-toolhead { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.1rem; }
+  .map-toolpanel:not(.folded) .map-toolfold { min-height: 1.6rem; padding: 0.1rem 0.5rem; }
   .map-toolpanel.folded .map-toolhead { margin: 0; }
   .map-toolpanel .map-tool { padding: 0; background: none; border: 0; }
+  /* The motion step's panel is short (never over a third of the chart): its name and Fold button overlay the
+     panel's top corners, over the sky map's empty margins, instead of taking a row of their own. */
+  .map-toolpanel[data-tool-panel='map.motion']:not(.folded) { padding-top: 0.4rem; }
+  .map-toolpanel[data-tool-panel='map.motion']:not(.folded) .map-toolhead { position: absolute; top: 0.3rem; left: 0.6rem; right: 0.6rem; margin: 0; z-index: 1; pointer-events: none; align-items: flex-start; justify-content: flex-end; }
+  .map-toolpanel[data-tool-panel='map.motion']:not(.folded) .map-toolhead > * { pointer-events: auto; }
+  .map-toolpanel[data-tool-panel='map.motion']:not(.folded) .map-toolhead .map-k { display: none; }
+  .map-toolpanel[data-tool-panel='map.motion']:not(.folded) .map-toolfold { min-height: 1.6rem; padding: 0.1rem 0.5rem; }
   .map-plot { height: clamp(7rem, 17vh, 10rem); }
-  .map-plane { height: clamp(8.5rem, 23vh, 13rem); }
+  .map-clock .map-plot { height: clamp(5rem, 11.5vh, 9rem); }
+  .map-plane { height: clamp(6.5rem, 16vh, 11rem); }
   /* The sky ages: the two plots on top, the readouts in two columns under them. */
-  .map-skyctl { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 0.25rem 0.9rem; align-items: start; }
-  .map-skyctl .map-decides, .map-skyctl .map-legend { grid-column: 2; }
-  .map-skyctl > .map-row:not(.map-decides) { grid-column: 1; }
-  .map-skyctl .map-decides { grid-row: 1 / span 2; }
   .map-skyctl .map-nudge { min-height: 1.75rem; padding: 0.05rem 0.38rem; }
+  .map-skymain .map-sky { height: clamp(6rem, 14vh, 9.5rem); }
   .map-toolpanel .map-originrow { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.6fr); }
-  .map-toolpanel .map-originread { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 0.9rem; }
+  .map-toolpanel .map-originread { grid-template-columns: minmax(0, 1fr); gap: 0.2rem; }
+  .map-toolpanel .map-originread > div { display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.6rem; }
+  .map-toolpanel .map-originread .map-originnudges { display: flex; gap: 0.3rem; margin-left: auto; }
+  .map-toolpanel .map-originread .map-nudge { min-height: 1.6rem; padding: 0.05rem 0.4rem; }
   .map-cover { flex: none; }
   .map-cover-svg { height: clamp(7.5rem, 22vh, 13rem); }
   .map-steps { flex: 1 1 0; overflow-y: auto; overscroll-behavior: contain; padding-right: 0.2rem; }

@@ -49,7 +49,7 @@ async function runSize(page, baseUrl, { w, h, calm, dir, shots, assert, log }) {
   await page.evaluate(
     ([key, ids, seed, calm]) => {
       const nodes = Object.fromEntries(ids.map((id) => [id, { confirmed: true, attempts: [], hints: 0 }]));
-      localStorage.setItem(key, JSON.stringify({ version: 1, nodes, chapter: 'hub', settings: { humanGloss: false, masterVolume: 0, reducedMotion: calm, soundCaptions: true }, seed }));
+      localStorage.setItem(key, JSON.stringify({ version: 1, nodes, chapter: 'hub', settings: { humanGloss: !calm, masterVolume: 0, reducedMotion: calm, soundCaptions: true }, seed }));
     },
     [SAVE_KEY, BEFORE, SEED, calm],
   );
@@ -85,13 +85,31 @@ async function runSize(page, baseUrl, { w, h, calm, dir, shots, assert, log }) {
       number: document.querySelector('[data-moment-number]')?.getAttribute('data-moment-number') ?? '',
       sentence: document.querySelector('.moment-sentence')?.textContent ?? '',
       caption: document.querySelector('.moment-caption')?.textContent ?? '',
+      label: document.querySelector('.moment-label .gloss')?.textContent ?? '',
+      si: document.querySelector('[data-moment-si]')?.textContent?.trim() ?? null,
+      compare: document.querySelector('[data-moment-compare]')?.textContent?.trim() ?? null,
+      bg: getComputedStyle(document.querySelector('.moment')).backgroundColor,
+      backdropBottom: document.querySelector('.moment-backdrop').getBoundingClientRect().bottom,
+      textTop: document.querySelector('.moment-text').getBoundingClientRect().top,
     }));
     assert(look.number.length > 0 && look.sentence.length > 10, `${label} ${id}: a number and a sentence (${look.number} / ${look.sentence})`);
+    // M5 step 0c: an opaque screen, nothing of the visual under the text, the SI reading under the number with the
+    // human gloss on, and with it off a comparison in the alien's units where the readings hold one.
+    assert(/^rgb\((\d+, ){2}\d+\)$/.test(look.bg) || /, 1\)$/.test(look.bg), `${label} ${id}: the moment's screen is opaque (${look.bg})`);
+    assert(look.backdropBottom <= look.textTop + 1, `${label} ${id}: the visual ends above the text strip (${look.backdropBottom} <= ${look.textTop})`);
+    if (calm) {
+      assert(look.si === null, `${label} ${id}: no SI reading with the human gloss off`);
+      if (['map.region', 'trail.origin', 'trail.when'].includes(id)) assert(look.compare && look.compare.length > 10, `${label} ${id}: a comparison in the alien's units (${look.compare})`);
+    } else {
+      assert(look.si && /\d/.test(look.si), `${label} ${id}: the SI reading under the number with the human gloss on (${look.si})`);
+      assert(look.compare === null, `${label} ${id}: no comparison with the human gloss on`);
+    }
+    if (id === 'trail.origin') assert(look.label === 'distance behind it', `${label} ${id}: the label reads as plain English (${look.label})`);
     assert(look.caption.startsWith('['), `${label} ${id}: the sound's caption line (${look.caption})`);
     assert(look.still === calm && look.timer === !calm, `${label} ${id}: reduced motion ${calm ? 'is a still' : 'off: animated, with its timer'}`);
     const file = `${label}_moment-${id.replace('.', '-')}.png`;
     await page.screenshot({ path: join(dir, file) });
-    shots.push({ file, size: label, id, shows: MOMENT_SHOWS[id], number: look.number, sentence: look.sentence, caption: look.caption });
+    shots.push({ file, size: label, id, shows: MOMENT_SHOWS[id], number: look.number, si: look.si, compare: look.compare, sentence: look.sentence, caption: look.caption });
     const before = await state();
     const how = ENDS[id];
     if (how === 'click') await page.mouse.click(Math.round(w * 0.5), Math.round(h * 0.3));
@@ -121,7 +139,7 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   const shots = [];
   const r1 = await runSize(page, baseUrl, { w: 1440, h: 900, calm: false, dir, shots, assert, log });
   const r2 = await runSize(page, baseUrl, { w: 1366, h: 768, calm: true, dir, shots, assert, log });
-  writeFileSync(join(dir, 'manifest.json'), JSON.stringify({ made: new Date().toISOString(), note: 'The five staged moments (M4 step 7e), each just after its deduction was confirmed; 1366x768 with reduced motion (a still).', shots }, null, 2));
+  writeFileSync(join(dir, 'manifest.json'), JSON.stringify({ made: new Date().toISOString(), note: 'The five staged moments (M4 step 7e), each just after its deduction was confirmed; 1440x900 with the human gloss on (the SI reading under the number); 1366x768 with reduced motion (a still) and the gloss off (a comparison in the alien\'s units).', shots }, null, 2));
   log(`captures: ${dir}`);
   record({
     id: 'ui.moments',

@@ -6,7 +6,9 @@
 // are rough (they can be off several times), so they guide only loosely. Once found, the region is drawn.
 
 import { useMemo } from 'preact/hooks';
-import { confirmedSet } from '../../game/state';
+import { confirmedSet, game } from '../../game/state';
+import { Working } from '../../ui/ResultView';
+import { lengthLabel } from '../../ui/units';
 import { insideRegion } from '../../science/triangulation';
 import { regionOutline } from '../../world/galaxyModel';
 import { bearingResiduals, lengthMisfit, mapPoints } from './mapMath';
@@ -22,6 +24,7 @@ export function OriginPlane() {
   const o = origin.value;
   const sc = scalePc.value;
   const found = confirmedSet.value.has('map.region');
+  const gloss = game.settings.value.humanGloss;
   const age = m ? m.motionFit().ageYears : 0;
   const stars = useMemo(() => {
     if (!m) return [];
@@ -99,30 +102,37 @@ export function OriginPlane() {
             </svg>
           )}
         </div>
-        <dl class="map-originread">
-          <div><dt>map's origin</dt><dd data-origin-reading="">{o[0].toFixed(1)}, {o[1].toFixed(1)} pc</dd></div>
-          <div class="map-row">
-            {([[-1, 0, 'x -1'], [1, 0, 'x +1'], [0, -1, 'y -1'], [0, 1, 'y +1']] as const).map(([dx, dy, t]) => (
-              <button key={t} type="button" class="btn small map-nudge" onClick={() => nudge(dx, dy)}>{t}</button>
-            ))}
-          </div>
-          <div><dt>lines against their pulsars, after the best turn</dt><dd>{here.rmsDeg.toFixed(2)} deg rms (turn {here.alphaDeg.toFixed(2)} deg)</dd></div>
-          {sc !== null && lengths && (
-            <>
-              <div>
-                <dt><label for="map-scale">scale: one centre line is {Math.round(sc).toLocaleString('en-US')} pc</label></dt>
-                <dd><input id="map-scale" type="range" min={Math.log(500)} max={Math.log(30_000)} step={0.005} value={Math.log(sc)} onInput={(e) => (scalePc.value = Math.exp(Number((e.currentTarget as HTMLInputElement).value)))} /></dd>
-              </div>
-              <div><dt>lengths against distances (rough: a guide only)</dt><dd>off {lengths.rmsFactor.toFixed(1)} times rms, {lengths.worstFactor.toFixed(1)} at worst</dd></div>
-            </>
-          )}
-          {region && (
-            <div data-region-stars={inside}>
-              <dt>the region, 95%</dt>
-              <dd>{(2 * region.semiAxesPc[0]).toFixed(0)} by {(2 * region.semiAxesPc[1]).toFixed(0)} pc, {inside} stars inside then</dd>
+        <div class="map-originside">
+          <dl class="map-originread">
+            <div class="map-originpos">
+              <dt>map's origin</dt>
+              <dd data-origin-reading="">{o[0].toFixed(1)}, {o[1].toFixed(1)} pc</dd>
+              <dd class="map-originnudges">
+                {([[-1, 0, 'x -1'], [1, 0, 'x +1'], [0, -1, 'y -1'], [0, 1, 'y +1']] as const).map(([dx, dy, t]) => (
+                  <button key={t} type="button" class="btn small map-nudge" onClick={() => nudge(dx, dy)}>{t}</button>
+                ))}
+              </dd>
             </div>
+            <div><dt>lines against their pulsars, after the best turn</dt><dd>{here.rmsDeg.toFixed(2)} deg rms (turn {here.alphaDeg.toFixed(2)} deg)</dd></div>
+            {region && (
+              <div data-region-stars={inside}>
+                <dt>the region, 95%</dt>
+                <dd>{lengthLabel(2 * region.semiAxesPc[0], gloss, 2)} by {lengthLabel(2 * region.semiAxesPc[1], gloss, 2)}, {inside} stars inside then</dd>
+              </div>
+            )}
+          </dl>
+          {sc !== null && lengths && (
+            <Working label="show the scale">
+              <dl class="map-originread">
+                <div>
+                  <dt><label for="map-scale">scale: one centre line is {lengthLabel(sc, gloss)}</label></dt>
+                  <dd><input id="map-scale" type="range" min={Math.log(500)} max={Math.log(30_000)} step={0.005} value={Math.log(sc)} onInput={(e) => (scalePc.value = Math.exp(Number((e.currentTarget as HTMLInputElement).value)))} /></dd>
+                </div>
+                <div><dt>lengths against distances (rough: a guide only)</dt><dd>off {lengths.rmsFactor.toFixed(1)} times rms, {lengths.worstFactor.toFixed(1)} at worst</dd></div>
+              </dl>
+            </Working>
           )}
-        </dl>
+        </div>
       </div>
     </section>
   );

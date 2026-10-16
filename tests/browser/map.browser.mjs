@@ -120,6 +120,18 @@ export async function playMap(page, { assert, log, label = '', shot, review = fa
     const { epochModel } = await import('/src/chapters/shared/epochModel.ts');
     window.__mapTest = { m: epochModel(window.__finder.state().game.seed), mm: await import('/src/chapters/map/mapMath.ts') };
   });
+  // The step's tool panel floats over the chart's lower part: its share of the chart's height (M5 step 0c: never over a third).
+  const panelShare = () =>
+    page.evaluate(() => {
+      const tp = document.querySelector('.map-toolpanel:not(.folded)');
+      const cv = document.querySelector('.map-chart canvas');
+      return tp && cv ? tp.getBoundingClientRect().height / cv.getBoundingClientRect().height : null;
+    });
+  const assertPanelCap = async (step) => {
+    const share = await panelShare();
+    log(`[${label}] ${step}: tool panel covers ${share === null ? 'n/a' : `${(share * 100).toFixed(1)}%`} of the chart`);
+    assert(share !== null && share <= 1 / 3 + 0.004, `${step}: the tool panel covers no more than a third of the chart (${share})`);
+  };
   const selectLine = (n) => page.click(`[data-line-button="${n}"]`);
   const clickPulsar = async (jname) => {
     const p = await page.evaluate(async (j) => {
@@ -218,6 +230,7 @@ export async function playMap(page, { assert, log, label = '', shot, review = fa
   await page.waitForSelector('[data-sky-plot]');
   await frameNear();
   await shot('ages-before-axis', 'Ages across the sky: the old lines\' own-frame ages placed where their pulsars lie, coloured older or younger than their median; beside them the ages against the axis (still at the pole) scatter widely.');
+  await assertPanelCap('map.motion');
   const decides = async () => page.evaluate(() => {
     const d = document.querySelector('.map-skyages').dataset;
     return { d2: Number(d.axisChi2), cut: Number(d.axisCut) };
@@ -244,6 +257,8 @@ export async function playMap(page, { assert, log, label = '', shot, review = fa
     const d = document.querySelector('.map-skyages').dataset;
     return { l: Number(d.axisL), b: Number(d.axisB) };
   });
+  // The nudges are the working (M5 step 0c): open it, as a player would, before using them.
+  if ((await page.locator('.map-skyages details.working[open]').count()) === 0) await page.click('.map-skyages details.working > summary');
   const press = (t) => page.click(`button.map-nudge:text-is("${t}")`);
   for (let i = 0; i < 60; i++) {
     const n = await axisNow();

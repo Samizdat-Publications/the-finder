@@ -56,6 +56,7 @@ export function SpinClock() {
   return (
     <section class="map-tool map-clock" aria-label="The spin-down clock" data-clock-years={t}>
       <div class="map-plot" ref={ref}>
+        <span class="map-plot-note">{agreeing.length ? `at the map's number: line ${agreeing.join(', ')}` : rows.length ? "no matched pulsar at the map's number" : 'match a line to run its pulsar here'}</span>
         {w > 0 && (
           <svg width={w} height={h} role="img" aria-label="Each matched pulsar's period against time, as a share of today's difference from the map's number">
             <line x1={X(-CLOCK_SPAN_YEARS)} x2={X(CLOCK_SPAN_YEARS)} y1={Y(0)} y2={Y(0)} class="map-axis-gold" />
@@ -77,7 +78,8 @@ export function SpinClock() {
           </svg>
         )}
       </div>
-      <div class="map-row">
+      <div class="map-row map-clockctl">
+        {[-1000, -100].map((d) => <button key={d} type="button" class="btn small" onClick={() => nudge(d)}>{d === -1000 ? '«' : '‹'}</button>)}
         <label class="map-k" for="map-clock">time, in beats</label>
         <input
           id="map-clock"
@@ -89,12 +91,8 @@ export function SpinClock() {
           data-clock=""
           onInput={(e) => (clockYears.value = Number((e.currentTarget as HTMLInputElement).value))}
         />
-      </div>
-      <div class="map-row">
-        {[-1000, -100].map((d) => <button key={d} type="button" class="btn small" onClick={() => nudge(d)}>{d === -1000 ? '«' : '‹'}</button>)}
-        <output class="map-v" data-clock-reading="">{when}</output>
         {[100, 1000].map((d) => <button key={d} type="button" class="btn small" onClick={() => nudge(d)}>{d === 1000 ? '»' : '›'}</button>)}
-        <span class="map-k">{agreeing.length ? `at the map's number: line ${agreeing.join(', ')}` : rows.length ? 'no matched pulsar at the map\'s number' : 'match a line to run its pulsar here'}</span>
+        <output class="map-v" data-clock-reading="">{when}</output>
       </div>
     </section>
   );

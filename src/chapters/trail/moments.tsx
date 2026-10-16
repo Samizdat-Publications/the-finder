@@ -14,6 +14,7 @@ import { brightestStars, starStateAt } from '../../science/epoch';
 import type { PulsarAge } from '../../science/pulsarAge';
 import { mountNeighbourhood } from '../../world/neighbourhood';
 import { bvToSrgb } from '../../world/skyModel';
+import { chartLength } from '../shared/chartLabels';
 import type { EpochModel } from '../shared/epochModel';
 import { beatTicks, linear, useSize } from '../map/plot';
 import { agesInFrame, judgedLines } from './frames';
@@ -32,7 +33,7 @@ export function OriginBackdrop(p: { m: EpochModel | null; reducedMotion: boolean
     const row = originRow(m);
     const h = mountNeighbourhood(el, {
       seed: m.seed, scenario: m.inputs.scenario, stars: m.inputs.stars, trail: m.trailRows(), reducedMotion: p.reducedMotion,
-      nameOf: (s) => starName(s.star),
+      nameOf: (s) => starName(s.star), lengthLabel: chartLength,
     });
     let live = true;
     void h.ready

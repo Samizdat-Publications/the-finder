@@ -1,15 +1,17 @@
-/* Staged moments (M4 step 7e): the instrument dims, its own visual fills the screen, one large number and one
-   sentence. Reduced motion (.calm or .moment.still): a still, nothing moves. */
+/* Staged moments (M4 step 7e, M5 step 0c): an opaque screen (nothing of the instrument shows through). The
+   instrument's own visual fills the upper part; the number and the sentence stand on a plain dark strip below it,
+   so no point or line runs under the text. Reduced motion (.calm or .moment.still): a still, nothing moves. */
 .moment {
   position: fixed; inset: 0; z-index: 60; cursor: pointer; overflow: hidden;
-  background: rgba(4, 3, 14, 0.975);
+  background: #04030e;
+  display: grid; grid-template-rows: minmax(0, 1fr) auto;
 }
 :root:not(.calm) .moment:not(.still) { animation: momentin 0.45s ease-out; }
 @keyframes momentin { from { opacity: 0; } }
-.moment-backdrop { position: absolute; inset: 0; display: grid; place-items: center; }
+.moment-backdrop { position: relative; min-height: 0; overflow: hidden; display: grid; place-items: center; background: #04030e; }
 .moment-backdrop::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(0deg, rgba(4, 3, 14, 0.9) 0%, rgba(4, 3, 14, 0.25) 34%, transparent 55%);
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 14%; pointer-events: none;
+  background: linear-gradient(0deg, #04030e 0%, transparent 100%);
 }
 .moment-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .moment-chart { position: absolute; inset: 0; }
@@ -19,9 +21,11 @@
 @keyframes drawpath { to { stroke-dashoffset: 0; } }
 
 .moment-text {
-  position: absolute; left: clamp(1.25rem, 5vw, 4.5rem); bottom: clamp(1.5rem, 7vh, 4.5rem); right: 12rem;
-  display: grid; gap: 0.5rem; max-width: 48rem; pointer-events: none;
+  position: relative; z-index: 1; background: #04030e;
+  padding: 0.4rem 12rem clamp(1.25rem, 4.5vh, 3rem) clamp(1.25rem, 5vw, 4.5rem);
+  display: grid; gap: 0.4rem; align-content: start; pointer-events: none;
 }
+.moment-text > * { max-width: 48rem; }
 :root:not(.calm) .moment:not(.still) .moment-text { animation: momenttext 0.9s ease-out 0.35s both; }
 @keyframes momenttext { from { opacity: 0; transform: translateY(0.8rem); } }
 .moment-label .glyph { color: var(--violet); }
@@ -31,15 +35,19 @@
 .moment-num .mn.measuring { font-size: clamp(1.4rem, 3vw, 2rem); color: var(--text-dim); text-shadow: none; }
 .moment-num .mu { display: inline-flex; flex-direction: column; gap: 0.15rem; }
 .moment-num .mu .gloss { font-size: var(--fs-value); }
-.moment-num .si { font: var(--fs-value) var(--font-mono); color: var(--text-dim); }
+.moment-si { margin: -0.2rem 0 0; font: var(--fs-value) var(--font-mono); color: var(--text-dim); }
+.moment-compare { margin: 0.1rem 0 0; display: grid; gap: 0.15rem; }
+.moment-compare div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.7rem; }
+.moment-compare dt { font: var(--fs-label) var(--font-sans); color: var(--text-dim); }
+.moment-compare dd { margin: 0; font: var(--fs-value) var(--font-mono); color: var(--violet); }
 .moment-sentence { margin: 0; font-size: clamp(1.05rem, 1.6vw, 1.35rem); line-height: 1.4; color: var(--text); max-width: 40rem; }
 .moment-caption { margin: 0.2rem 0 0; font: var(--fs-label) var(--font-mono); color: var(--text-dim); }
-.moment-skip { position: absolute; right: clamp(1.25rem, 4vw, 3rem); bottom: clamp(1.5rem, 7vh, 4.5rem); background: rgba(8, 7, 26, 0.85); }
+.moment-skip { position: absolute; z-index: 2; right: clamp(1.25rem, 4vw, 3rem); bottom: clamp(1.5rem, 7vh, 4.5rem); background: rgba(8, 7, 26, 0.85); }
 .moment-timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--violet); opacity: 0.6; transform-origin: left; animation: momenttimer linear forwards; }
 @keyframes momenttimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
 /* The Spot's moment: the cover under the low lamp, the spot glowing faintly where the counts rose. */
-.moment-cover { position: relative; width: min(86vh, 70vw); }
+.moment-cover { position: relative; width: min(58vh, 70vw); }
 .moment-cover .covertools { display: none; }
 .moment-cover .coverviewer { cursor: pointer; background: none; border: 0; }
 .moment-spotglow {
@@ -50,7 +58,7 @@
 @keyframes spotglow { 50% { opacity: 0.5; } }
 
 /* The neighbour's moment: the alien's sky. */
-.moment-sky, .moment-ages { position: absolute; inset: 0 0 26vh 0; }
+.moment-sky, .moment-ages { position: absolute; inset: 0; }
 .moment-sky svg, .moment-ages svg { display: block; }
 .sky-edge { fill: rgba(8, 7, 26, 0.6); stroke: var(--line); stroke-width: 1.2; }
 .sky-plane { stroke: rgba(155, 123, 255, 0.35); stroke-width: 1; stroke-dasharray: 4 6; }
@@ -73,5 +81,5 @@
 .calm .ages-band, .calm .ages-line, .moment.still .ages-band, .moment.still .ages-line { transition: none; }
 
 @media (max-width: 640px) {
-  .moment-text { right: 1.25rem; bottom: 5.5rem; }
+  .moment-text { padding-right: 1.25rem; padding-bottom: 5.5rem; }
 }

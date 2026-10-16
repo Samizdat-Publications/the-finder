@@ -1,8 +1,9 @@
 // The one result area every chapter uses (M4 step 7e). A confirmed result leads with its headline (the key
 // quantity large in the alien's units, its glyph label above, one plain sentence: headline.ts and the chapter's
 // table); the checker's full message and the readings sit under a "show working" fold, closed by default and
-// remembered in the player's settings (showWorking, set through the command bus). A refused result keeps its
-// message in view, because it teaches, with its readings folded. A new result is brought into view inside its
+// remembered in the player's settings (showWorking, set through the command bus). A refused result leads with
+// one line, the message's own opening with its key number (src/ui/verdict.ts); the rest of the message and the
+// readings fold beneath it. A new result is brought into view inside its
 // own scrolling column (never the page). The wrappers keep each chapter's class names and data attributes.
 
 import type { ComponentChildren } from 'preact';
@@ -16,6 +17,7 @@ import { alienNumber, humanText, pluralKey, renderMessage, unitKeyOf, unitSize }
 import { PastLabel } from './pastProposal';
 import { send } from './send';
 import { formatNumber } from './units';
+import { splitVerdict } from './verdict';
 
 /** The nearest ancestor that scrolls vertically on its own. */
 function scroller(el: HTMLElement): HTMLElement | null {
@@ -148,6 +150,8 @@ export function ResultView(p: ResultViewProps) {
   }, [n]);
   const gloss = game.settings.value.humanGloss;
   const head = a.ok ? headlineOf(HEADLINES[p.id], a) : null;
+  const text = renderMessage(a.message, gloss);
+  const verdict = a.ok ? null : splitVerdict(text);
   return (
     <div
       ref={ref}
@@ -160,15 +164,18 @@ export function ResultView(p: ResultViewProps) {
       {p.past && <PastLabel />}
       {head ? (
         <HeadlineBlock id={p.id} h={head} />
+      ) : verdict ? (
+        <p class="result-lead" data-lead="">{verdict.lead}</p>
       ) : (
         <>
-          {p.verdictClass && <p class={p.verdictClass}>{a.ok ? 'This holds.' : 'This does not hold.'}</p>}
-          <p class="result-msg">{renderMessage(a.message, gloss)}</p>
+          {p.verdictClass && <p class={p.verdictClass}>This holds.</p>}
+          <p class="result-msg">{text}</p>
         </>
       )}
-      {(head || a.result.length > 0 || (a.ok && p.codex)) && (
+      {(head || verdict?.rest || a.result.length > 0 || (a.ok && p.codex)) && (
         <Working>
-          {head && <p class="result-msg">{renderMessage(a.message, gloss)}</p>}
+          {head && <p class="result-msg">{text}</p>}
+          {verdict?.rest && <p class="result-msg">{verdict.rest}</p>}
           <Readings result={a.result} style={p.readings} listClass={p.readingsClass} />
           {a.ok && p.codex && (
             <button type="button" class="btn small" onClick={() => send({ type: 'codex.open', id: p.id })}>
