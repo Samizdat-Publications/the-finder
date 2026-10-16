@@ -180,6 +180,20 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
   image-tape` resumes a partial download and refuses a file whose MD5 differs.
 - **The Pioneer plaque SVG lives at** `https://upload.wikimedia.org/wikipedia/commons/0/02/Pioneer_plaque.svg`
   (M1.md's guessed b/b5 path is wrong); `tools/sources.json` has the right one.
+- **Chrome's `decodeAudioData` scales 16-bit samples asymmetrically** (positives divided by 32767,
+  negatives by 32768): exact integers need `restoreInt16` in `src/media/frames.ts`. Anything that wants
+  exact 16-bit samples in the browser needs the same.
+- **The Bash tool turns `\\n` inside heredocs into real newlines** (seen in session 2): for scripts with
+  escapes, use the Write tool (or Edit) rather than a heredoc.
+- **Browser tests** live in `tests/browser/*.browser.mjs` and run through
+  `node tools/harness/browser-tests.mjs [filter]` against the Vite dev server, so a test can
+  `await import('/src/...')` inside `page.evaluate`. They are step 4 of `npm run check`.
+- **`npm run check` clears `harness/out/checks/`** at the start: two helpers running it at once can wipe
+  each other's records; rerun at the end. It also rewrites `docs/HOW_ITS_CHECKED.md` and
+  `docs/checks/results.json` (tracked): commit them after a full green run.
+- **Python check ids are `decoder.ref.*`** (the reference decoder); the browser decoder's are `decoder.*`.
+- **Firefox and WebKit are not installed for Playwright** here (only the installed Chrome works); do not
+  download browsers without a reason logged in DECISIONS.
 - **Recovering a stopped helper's spec:** its prompt is the first user message in
   `~/.claude/projects/C--Users-stewa-Documents-Claude-Golden-Record/<session>/subagents/agent-<id>.jsonl`.
   Save specs into `docs/plans/` before launching long helpers so a session switch never loses them.
