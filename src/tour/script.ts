@@ -454,7 +454,7 @@ export const STOPS: readonly Stop[] = [
     id: 'map.periods', part: 'map', kind: 'do', chapter: 'map', node: 'map.periods',
     title: 'Lines and lighthouses',
     look: 'The long line without a number points to the centre of the galaxy. Each other line points to a pulsar, and its number is how fast that pulsar spins.',
-    todo: '1. Turn the dial until **long line to the centre** reads 0. 2. Click a line number on the cover map on the right. 3. On the galaxy chart, click the pulsar that lies along that line and ticks at nearly its rate (the line panel shows the match odds). 4. Press **Propose: this line is this pulsar**.',
+    todo: '1. Turn the dial until **long line to the centre** reads 0. 2. Click a line number on the cover map (the gold starburst in the middle). 3. On the galaxy chart on the left, click the pulsar that lies along that line and ticks at nearly its rate (the line panel shows the match odds). 4. Press **Propose: this line is this pulsar**.',
     why: 'The numbers are **spin periods of pulsars**. The map is a set of cosmic lighthouses, each with its own unmistakable flash rate.',
   },
   {

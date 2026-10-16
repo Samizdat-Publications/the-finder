@@ -33,6 +33,9 @@
 .tr-dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.25rem 0.8rem; margin: 0 0 0.55rem; font-size: var(--fs-label); }
 .tr-dl dt { color: var(--text-dim); }
 .tr-dl dd { margin: 0; font-family: var(--font-mono); font-size: var(--fs-value); color: var(--cyan); text-align: right; overflow-wrap: anywhere; }
+/* Narrow columns (the tour's guide takes the notebook's place, and the human gloss doubles a value's length): label above value. */
+.trinst .tr-dl { grid-template-columns: minmax(0, 1fr); gap: 0.1rem; }
+.trinst .tr-dl dd { text-align: left; margin-bottom: 0.35rem; overflow-wrap: normal; }
 .tr-verdict { color: var(--text); }
 .tr-empty { color: var(--text-dim); }
 .tr-row { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; margin: 0.2rem 0 0.5rem; }

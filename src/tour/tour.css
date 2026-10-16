@@ -27,7 +27,7 @@
 .g-dot:disabled { cursor: default; opacity: 0.55; }
 .g-dot:not(:disabled):hover { box-shadow: 0 0 0 3px rgba(79, 240, 196, 0.35); }
 
-.g-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0.9rem 1rem 1rem; display: grid; gap: 0.9rem; align-content: start; }
+.g-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12px); mask-image: linear-gradient(to bottom, transparent 0, #000 12px); overscroll-behavior: contain; padding: 0.9rem 1rem 1rem; display: grid; gap: 0.9rem; align-content: start; }
 .g-title { margin: 0; font-size: 1.3rem; line-height: 1.25; color: var(--text); }
 .g-label { margin: 0 0 0.35rem; font: 700 var(--fs-label) var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
 .g-text p { margin: 0 0 0.7em; }
@@ -51,7 +51,7 @@
 
 /* What we just learned, the real story, talk about it */
 .g-after { display: grid; gap: 0.9rem; border-radius: 10px; transition: box-shadow 0.4s; }
-.g-after.fresh { box-shadow: 0 0 0 3px rgba(155, 123, 255, 0.55), 0 0 22px rgba(155, 123, 255, 0.35); }
+.g-after.fresh { padding: 0.6rem; margin: 0 -0.6rem; box-shadow: 0 0 0 3px rgba(155, 123, 255, 0.55), 0 0 22px rgba(155, 123, 255, 0.35); }
 .g-learned .g-label { color: var(--violet); }
 .g-story { padding: 0.8rem 0.9rem; background: var(--tour-quote-bg); border-left: 4px solid var(--gold); border-radius: 4px 10px 10px 4px; }
 .g-story .g-label { color: var(--gold); }
