@@ -53,3 +53,7 @@ plus 0.01 deg.
 transcription of the Voyager diagram, the integers equal Sagan, Salzman Sagan and Drake (1972) Table 1,
 angles agree with catalogue longitudes within 3 deg, and r and |z| reproduce the research
 digitization within 0.001 R0.
+
+`build_teaching.py` builds `data/teaching.json` from our own decode of the teaching pictures (see
+`data/README.md`, teaching.json): the regions are found by ink on the reference frames, the values are the
+cited readings of `docs/research/teaching-frames.md`.

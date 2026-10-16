@@ -21,7 +21,11 @@ import { Scope } from './Scope';
 import { keepThumb, trackWatching } from './seen';
 import { ensureSignal, ensureSignals, getSignal, signalsLoaded } from './signal';
 import { resumeSettings } from './start';
+import { trackAlbum } from './album';
+import { OpenView, WorkTabs } from './WorkArea';
+import { view } from './workState';
 import './pictures.css';
+import './album.css';
 
 const plate = picturesPlate(svgText);
 
@@ -72,6 +76,7 @@ export function PicturesInstrument() {
 
   useEffect(() => {
     trackWatching();
+    trackAlbum();
     void init().catch(() => undefined);
     void ensureSignals(POLARITY_FRAMES).catch(() => undefined);
   }, []);
@@ -96,10 +101,13 @@ export function PicturesInstrument() {
   const sig = getSignal(frame);
   const ready = Boolean(getSignal(CIRCLE_FRAME)) && D.picture.value !== null;
   return (
-    <div class="picinst" data-pictures-ready={ready ? 'true' : 'false'} data-frame={frame}>
+    <div class="picinst" data-pictures-ready={ready ? 'true' : 'false'} data-frame={frame} data-view={view.value}>
       <div class="pic-main">
-        <PictureView />
-        <Scope sig={sig} />
+        <div class="pic-stage">
+          <WorkTabs />
+          {view.value === 'decoder' ? <PictureView /> : <OpenView />}
+        </div>
+        {view.value === 'decoder' && <Scope sig={sig} />}
         <div class="pic-lower">
           {circleDone && (
             <p class="pic-they" role="status">

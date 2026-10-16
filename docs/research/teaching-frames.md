@@ -109,6 +109,27 @@ detector recovered only 1 of 66 turned frames, and 14 published reproductions ar
 (value 1) the clockwise turn puts "20 y" upright and runs "155 cm" along the figure's height. The game's
 "down" deduction is a judgement by the player (people stand, water lies flat) checked against this table.
 
+## Measured on our decode (M5 step 3)
+
+Added by the step 3 builder; each fact is computed by a test, not read by eye.
+
+- **Regions.** `data/teaching.json` (`tools/data/build_teaching.py`) holds 86 regions on the 536 x 355
+  decode, each the box round the ink inside a coarse window of the frame's visible layout. Every region
+  holds at least 98% of that ink on the browser's 96 kHz decode of the same frame and at least 3% of its
+  area dark (blank card: 1%). Check `teaching.regions`.
+- **L002's dots,** counted as ink blobs on the decode: 1, 2, 3, 4, 5 and 6 in the six dot rows, as read.
+  The digit cell of each row holds one character, and the row of ten two (the senders' zero is its second).
+- **Their units against ours,** through hydrogen (t, L and one H-1 atom of 1.007825 u): their second
+  0.99971 s, their centimetre 1.00505 cm (the picture rounds the 21.106 cm wave to 21), their gram
+  1.0041 g, their e 6.025 x 10^24 kg (Earth 5.972 x 10^24). Check `teaching.units`.
+- **The slip, from the table alone:** the longest rising run of the distances leaves out only Pluto's
+  591; read like the others it falls inside the fifth world's distance (Jupiter's 778), and the order
+  needs more than Neptune's 4498 (today about 5,906). Check `teaching.planets`.
+- **Colour triples:** the three frames of every one of the 20 triples are more alike, edge for edge (the
+  colour registration's correlation peak), than either is with the frame outside the triple; the
+  weakest margin is the solar spectrum (0.14 against 0.09), the rest 3.8 times or more. The Earth
+  triple's mean levels run 100, 72, 46 (first brightest). Check `pictures.colour`.
+
 ## Sources
 
 - Our decode: `build/ref/frames/` (M1 reference decoder; `docs/research/images-and-audio.md`).

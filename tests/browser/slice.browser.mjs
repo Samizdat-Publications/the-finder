@@ -446,7 +446,9 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   assert(missing.length === 0, `all 18 slice deductions confirmed (missing: ${missing.join(', ')})`);
   assert(res.confirmed.length === 18, `exactly 18 confirmed (${res.confirmed.length})`);
   assert(res.entries === 18, `the codex holds 18 entries (${res.entries})`);
-  for (const c of ['arrival', 'key', 'player', 'pictures']) assert(res.chapterStatus[c] === 'done', `${c} is done`);
+  for (const c of ['arrival', 'key', 'player']) assert(res.chapterStatus[c] === 'done', `${c} is done`);
+  // The Pictures goes on past the slice since M5 (the album and the teaching pictures), so it is open, not done.
+  assert(['done', 'open'].includes(res.chapterStatus.pictures), `pictures is open or done (got ${res.chapterStatus.pictures})`);
   log(`right path: ${res.confirmed.length} confirmed, codex ${res.entries} entries, ${sliceS.toFixed(1)} s (${Object.entries(res.timing).map(([k, v]) => `${k} ${(v / 1000).toFixed(1)} s`).join(', ')}); first sound ${res.firstSoundS.toFixed(1)} s after the drop; frames ${res.framesMs.join(', ')} ms`);
   log(`${review.shots.length} screenshots in ${review.dir}`);
   record({

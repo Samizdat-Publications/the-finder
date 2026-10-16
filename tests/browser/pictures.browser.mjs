@@ -1,12 +1,14 @@
 // The Pictures on /play/, played through window.__finder only (the same command bus the interface uses): from
 // the free-running start, each deduction's wrong setting once (rejected with its measured result), then the
 // right one, to the round calibration circle; then three of the following frames developed at record speed
-// and confirmed. The save starts with The Key and the turntable speed confirmed (The Pictures needs them).
+// and confirmed; then the rest of the side fills the album and the eight teaching deductions are played on their
+// views (tests/browser/album.browser.mjs playPicturesM5; its own test plays each one wrong first). The save starts with The Key and the turntable speed confirmed (The Pictures needs them).
 // Captures at 1440 x 900 go to harness/out/pictures-captures/. Console errors fail the test (the harness).
 // Id: chapter.pictures.
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from '../../tools/harness/serve.mjs';
+import { playPicturesM5 } from './album.browser.mjs';
 
 const SAVE_KEY = 'finder.save.v1';
 const OUT = join(ROOT, 'harness', 'out', 'pictures-captures');
@@ -159,6 +161,10 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   assert(ff.ok, `three frames developed (${ff.message})`);
   await shot('8-seen', '.pic-seen');
   await shot('9-notebook', '[data-panel="pictures.firstFrames"]');
+
+  // ---- the pictures complete (M5): the album and the teaching pictures, right answers through the views ----
+  const m5 = await playPicturesM5(page, { assert, log });
+  log(`M5 pictures: ${m5.played.length} proposals in ${(m5.ms / 1000).toFixed(0)} s (the album in ${(m5.developMs / 1000).toFixed(1)} s)`);
   const g = (await state()).game;
   assert(g.chapterStatus.pictures === 'done', 'The Pictures is done');
 

@@ -13,6 +13,7 @@ import { send } from '../../ui/send';
 import { LastReading, PanelHead } from '../key/parts';
 import { FIRST_FRAMES, FRAMES_TO_WATCH, sliceInfo, type PictureNodeId } from './checkers';
 import { thumbs, watched } from './seen';
+import { NotebookM5 } from './NotebookM5';
 
 /** The answer each deduction proposes, from the knobs as they stand. */
 export function answerFor(id: PictureNodeId): Answer {
@@ -162,6 +163,7 @@ export function Notebook() {
       <Panel id="pictures.aspect" />
       <Panel id="pictures.circle" />
       <Panel id="pictures.firstFrames">{confirmed.has('pictures.circle') && <FollowingFrames />}</Panel>
+      <NotebookM5 />
     </div>
   );
 }

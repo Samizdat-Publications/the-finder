@@ -81,3 +81,14 @@ export function glyphWord(key: string): GlyphWord {
   for (let i = 0; i < n; i++) glyphs.push(glyph(rng.fork(`g${i}`)));
   return { key, glyphs, width: n * GLYPH_W + (n - 1) * GLYPH_GAP };
 }
+
+/**
+ * The Finder's own numerals, nought to nine (M5: "give the alien script a job"): one glyph each, made by the same
+ * generator as the glyph words, seeded by "numeral:<n>", so the alien writes counts in its own script. Each is a
+ * single glyph in the GLYPH_W x GLYPH_H box. They are a game convention like the glyph words: nothing in the
+ * record depends on their shapes. The test (src/game/glyphs.test.ts style) holds them distinct and in their box.
+ */
+export function numeralGlyph(n: number): Glyph {
+  if (!Number.isInteger(n) || n < 0 || n > 9) throw new Error(`a numeral is a digit from 0 to 9, got ${n}`);
+  return glyph(createRng(`numeral:${n}`));
+}
