@@ -14,6 +14,7 @@ do not redo it. Anything marked "could not confirm" is open and may need a `scou
 | `galaxy-constants.md` | The galaxy chart's display constants, checked on 2026-10-15: the distance to the Galactic centre (GRAVITY 2021, 8.275 kpc), the direction of Sgr A* (Reid and Brunthaler 2004, J2000), and the 30 ms millisecond-pulsar convention |
 | `teaching-frames.md` | The teaching frames for M5, read from our own decode on 2026-10-16: the numerals (L002), the hydrogen units (L003), the planets table (L004, L005; the last column cut at our decode's right edge), the heights 155 and 160 cm (L039), ages and masses (L050), the colour order's weak evidence, Barry's orientation table |
 | `voices.md` | The Voices for M5, researched 2026-10-16 with measurements on the Ozma transfers: the greetings (55 by NASA, but silence segmentation gives 7 to 130 depending on settings), the Sounds of Earth order, the recorded band (no cutoff; most energy below about 8 kHz), pitch methods and interval targets |
+| `epilogue.md` | Our Frame's facts for M6, read 2026-10-16: the instruments still running on both Voyagers (NASA, 2026-04-17 and 2026-08-04), the run-out inscription and its source, NASA's one-light-day time (10:16:07 UTC from Earth) beside ours, the real Gliese 445 pass, the map's 1970/1971 epoch |
 | `data/` | The agents' derived data and calculation scripts (reference only; scripts may point at old scratch paths) |
 
 ## Cross-report corrections (read these)
