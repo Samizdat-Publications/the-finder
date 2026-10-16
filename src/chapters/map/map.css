@@ -88,6 +88,10 @@
 .map-skyread { gap: 0.25rem 0.5rem; }
 .map-nudge { padding: 0.15rem 0.45rem; min-height: 1.9rem; font-size: var(--fs-label); }
 .map-legend { margin: 0; }
+.map-decides-bar .track { fill: var(--line); }
+.map-decides-bar .fill { fill: var(--text-dim); }
+.map-decides-bar .fill.inside { fill: var(--cyan); }
+.map-decides-bar .cut { stroke: var(--gold); stroke-width: 2; }
 .map-legend .older { color: var(--heat); }
 .map-legend .younger { color: var(--cold); }
 .map-originrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.7rem; }

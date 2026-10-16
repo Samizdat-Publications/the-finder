@@ -3,7 +3,12 @@
 // cached, the map's identification, its ages in the alien's frame and in the Sun's rest frame, the motion
 // fit, the origin region and the craft's trail. Everything comes from the science core on the data files
 // (rule 1), seeded by the playthrough's seed (rule 6), with the same calls and draw counts as the science
-// tests (pulsarAge, pulsarIdentify, triangulation and kinematics tests), so the game shows what is checked.
+// tests (pulsarAge, pulsarIdentify, triangulation and kinematics tests), so the game shows what is checked,
+// except in two places: the origin region moves the map back by the motion fit's age (fitAgeAndVelocity,
+// the age The Map dates from the pulsars alone), where triangulation.test.ts (triangulation.epoch) uses the
+// reframed combination of the old lines (combineAges); and the trail is measured from the alien's measured
+// observer (drawObserver, with the seed `<seed>/trail`), where kinematics.test.ts uses the true one
+// (homeObserver). The two ages agree within their errors (epochModel.test.ts).
 //
 // The browser loads the large data files on demand: loadEpochModel() resolves once they are in, and the
 // checkers call epochModel(), which throws until then, so the bus refuses a proposal instead of recording

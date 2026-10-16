@@ -35,6 +35,18 @@ export interface SpotModel {
   session: CountingSession;
 }
 
+/**
+ * The cover plate's diameter, mm: a 12-inch disc, the cover SVG's viewBox side (public/media/cover/cover.svg,
+ * 0 0 304.8 304.8; data/spot.json meta), the same size SpotInstrument's onPlate reads from the parsed cover.
+ */
+export const PLATE_MM = 304.8;
+
+/** The farthest any point of the round plate lies from the spot's centre, mm: centre offset plus the radius, rounded up. */
+export function plateReachMm(): number {
+  const [cx, cy] = SPOT.centreMm;
+  return Math.ceil(Math.hypot(cx - PLATE_MM / 2, cy - PLATE_MM / 2) + PLATE_MM / 2);
+}
+
 let shared: { yearsAfterLaunch: number; state: UraniumSpotState; sweep: SweepModel } | null = null;
 
 /** The seed-independent part: the epoch, the spot's chain then, and the sweep table (built once, about 0.3 s). */
@@ -44,7 +56,7 @@ function sharedPart(): NonNullable<typeof shared> {
     const stars: StarCatalogue = { meta: {}, near: (starsJson as unknown as { near: StarRecord[] }).near, sky: [] };
     const yearsAfterLaunch = discoveryState(scenario, stars).yearsAfterLaunch;
     const state = uraniumSpotState(yearsAfterLaunch);
-    const sweep = buildSweepModel(spotAlphaBq(state), { spotRadiusMm: SPOT.radiusMm, standoffMm: SWEEP_STANDOFF_MM, detectorRadiusMm: DETECTOR_RADIUS_MM }, { maxMm: 300 });
+    const sweep = buildSweepModel(spotAlphaBq(state), { spotRadiusMm: SPOT.radiusMm, standoffMm: SWEEP_STANDOFF_MM, detectorRadiusMm: DETECTOR_RADIUS_MM }, { maxMm: plateReachMm() });
     shared = { yearsAfterLaunch, state, sweep };
   }
   return shared;

@@ -2,12 +2,18 @@
 // longitude and latitude, the centre in the middle, longitude growing to the left), coloured by how much
 // older or younger each is than their median. Drag the axis anywhere on the sky; beside it, each age against
 // x = (P / Pdot) cos(angle to the axis), the amount a motion along the axis moves that age, with the straight
-// line through them and its scatter live (mapMath.ts axisLineFit).
+// line through them and its scatter live (mapMath.ts axisLineFit). The side plot is a first-order guide (it
+// leaves out the Shklovskii term, so its best axis can sit a few degrees from the checker's); the number that
+// decides, the axis's chi-square from the velocity fitted to every old line at once (pulsarAge.ts
+// axisDeltaChi2, the checker's own measure), shows live beside it against its 95% cut (M4 science audit
+// finding 3).
 
 import { useMemo } from 'preact/hooks';
 import { game } from '../../game/state';
+import { axisDeltaChi2 } from '../../science/pulsarAge';
+import { CHI2_2DOF_95 } from '../../science/triangulation';
 import { JULIAN_YEAR_S } from '../../science/units';
-import { axisLineFit, skyAges, type SkyAge } from './mapMath';
+import { axisFromGalactic, axisLineFit, skyAges, type SkyAge } from './mapMath';
 import { beatTicks, linear, qty, useSize } from './plot';
 import { axis, model } from './state';
 
@@ -107,6 +113,29 @@ function SidePlot(p: { pts: SkyAge[]; xs: number[]; slope: number; intercept: nu
   );
 }
 
+/**
+ * The number that decides map.motion, live: the axis's chi-square from the fitted velocity on a bar whose
+ * scale runs to four times the 95% cut (a display choice), with the cut drawn; inside the cut the bar is lit.
+ */
+function Decides(p: { d2: number }) {
+  const max = 4 * CHI2_2DOF_95;
+  const W = 240;
+  const x = (v: number): number => (Math.min(v, max) / max) * W;
+  const inside = p.d2 <= CHI2_2DOF_95;
+  return (
+    <div class="map-row map-skyread map-decides" data-decides={inside ? 'inside' : 'outside'}>
+      <span class="map-k">the number that decides: chi-square of this axis from the velocity fitted to every old line</span>
+      <output class="map-v" data-axis-chi2-reading="">{p.d2 < 100 ? p.d2.toFixed(2) : p.d2.toExponential(1)}</output>
+      <svg class="map-decides-bar" width={W} height={18} role="img" aria-label={`chi-square ${p.d2.toFixed(2)} against the 95% cut ${CHI2_2DOF_95.toFixed(2)}`}>
+        <rect x={0} y={5} width={W} height={8} class="track" />
+        <rect x={0} y={5} width={x(p.d2)} height={8} class={inside ? 'fill inside' : 'fill'} />
+        <line x1={x(CHI2_2DOF_95)} x2={x(CHI2_2DOF_95)} y1={0} y2={18} class="cut" />
+      </svg>
+      <span class="map-k">95% cut {CHI2_2DOF_95.toFixed(2)} (two angles){inside ? ': inside' : ''}</span>
+    </div>
+  );
+}
+
 export function SkyAges() {
   const m = model.value;
   const a = axis.value;
@@ -117,12 +146,13 @@ export function SkyAges() {
   const median = usedAges[usedAges.length >> 1] as number;
   const spread = Math.max(...usedAges.map((x) => Math.abs(x - median)));
   const fit = axisLineFit(pts, a.lDeg, a.bDeg);
+  const d2 = axisDeltaChi2(m.motionFit(), axisFromGalactic(a.lDeg, a.bDeg));
   const nudge = (dl: number, db: number): void => {
     axis.value = { lDeg: Math.round(((((a.lDeg + dl) % 360) + 360) % 360) * 100) / 100, bDeg: Math.round(Math.max(-90, Math.min(90, a.bDeg + db)) * 100) / 100 };
   };
   const left = pts.filter((q) => !q.used);
   return (
-    <section class="map-tool map-skyages" aria-label="Ages across the sky" data-axis-l={a.lDeg} data-axis-b={a.bDeg} data-rms-years={fit.rmsYears.toFixed(1)} data-misfit={fit.chi2.toFixed(3)}>
+    <section class="map-tool map-skyages" aria-label="Ages across the sky" data-axis-l={a.lDeg} data-axis-b={a.bDeg} data-rms-years={fit.rmsYears.toFixed(1)} data-misfit={fit.chi2.toFixed(3)} data-axis-chi2={d2.toFixed(4)} data-axis-cut={CHI2_2DOF_95}>
       <div class="map-skyrow">
         <SkyPlot pts={pts} median={median} spread={spread} />
         <SidePlot pts={pts} xs={fit.xs} slope={fit.slope} intercept={fit.intercept} />
@@ -142,6 +172,7 @@ export function SkyAges() {
         <span class="map-k">speed along the axis</span>
         <output class="map-v">{qty('speed', fit.speedKmS * 1000, gloss)}</output>
       </div>
+      <Decides d2={d2} />
       <p class="map-k map-legend">
         <span class="older">older than the median</span> <span class="younger">younger</span>
         {left.length > 0 && ` · hollow: line ${left.map((q) => q.order).join(', ')}, a number too rough to date (left out)`}

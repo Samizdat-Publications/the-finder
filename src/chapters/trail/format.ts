@@ -37,6 +37,17 @@ export function yearsText(years: number, gloss: boolean, digits?: number): strin
   return `${alien('time', years * JULIAN_YEAR_S, digits)}${gloss ? ` (${fmtYears(years)} years)` : ''}`;
 }
 
+/**
+ * Significant figures that resolve a time to a tenth of an interval's width, so an estimate and both ends of
+ * its interval read apart (three at least, the shared default). Computed from the largest value and the width.
+ */
+export function figuresFor(largestYears: number, widthYears: number): number {
+  const n = Math.abs(largestYears) * beatsPerYear();
+  const step = (Math.abs(widthYears) * beatsPerYear()) / 10;
+  if (!(n > 0) || !(step > 0)) return 3;
+  return Math.max(3, Math.floor(Math.log10(n)) - Math.floor(Math.log10(step)) + 1);
+}
+
 /** Beats in a year: the alien's count of a time given in years. */
 export const beatsPerYear = (): number => toAlien('time', JULIAN_YEAR_S);
 

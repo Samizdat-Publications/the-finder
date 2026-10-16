@@ -3,7 +3,9 @@ import { loadScenario, loadStars } from '../../tests/support/data';
 import { recordCheck } from '../../tests/support/record';
 import { discoveryState, homeObserver, launchYear } from './epoch';
 import type { StarRecord } from './types';
-import { TRAIL_CONSISTENT_SIGMA, choleskyPsd, minAngleNoRv, trail, trailCensus, type TrailEntry } from './kinematics';
+import { TRAIL_NULL_QUANTILE, choleskyPsd, minAngleNoRv, trail, trailCensus, trailConsistent, type TrailEntry } from './kinematics';
+import { drawObserver } from './pulsarEpoch';
+import { createRng } from './random';
 
 const scenario = loadScenario();
 const stars = loadStars();
@@ -65,27 +67,98 @@ describe('kinematics: The Trail', () => {
     expect(under[0]!.star.id).toBe(0);
   });
 
-  it('with simulated measurement errors the Sun stays consistent with zero and every other star is excluded', () => {
+  it('measured with errors, the Sun passes the 95% cut of a truly radial motion and every other star is far outside it', () => {
     const sun = rows.find((e) => e.star.id === 0)!;
     const others = rows.filter((e) => e.star.id !== 0 && e.star.id !== observer.starId);
-    const margins = others.map((e) => ({ e, z: e.angleDeg / e.angleSigmaDeg })).sort((a, b) => a.z - b.z);
+    const margins = others.map((e) => ({ e, x: e.measuredAngleDeg / e.nullAngle95Deg })).sort((a, b) => a.x - b.x);
     const worst = margins[0]!;
-    const sunZ = sun.angleDeg / sun.angleSigmaDeg;
-    // 2 sigma and 5 sigma: the spec's thresholds (step4c spec, "trail.uniqueWithErrors"); 2 is TRAIL_CONSISTENT_SIGMA.
-    const pass = sunZ <= TRAIL_CONSISTENT_SIGMA && worst.z > 5;
+    // The cut is the null distribution's 95th percentile (kinematics.ts, WHAT THE ALIEN SEES); every other
+    // star must be refused, here by a factor of at least 5 (the margin the old 5-sigma rule asked for).
+    const pass = trailConsistent(sun) && others.every((e) => !trailConsistent(e)) && worst.x > 5;
     recordCheck({
       id: 'trail.uniqueWithErrors',
-      claim: 'Even with realistic measurement errors, only the Sun fits: its angle is consistent with zero and every other star is ruled out.',
-      measured: `Sun ${sun.angleDeg.toFixed(4)} +/- ${sun.angleSigmaDeg.toFixed(4)} deg (${sunZ.toFixed(2)} sigma); smallest other margin ${label(worst.e)} ${worst.e.angleDeg.toFixed(2)} +/- ${worst.e.angleSigmaDeg.toFixed(3)} deg (${worst.z.toFixed(0)} sigma)`,
-      expected: 'Sun within 2 sigma of zero; every other star more than 5 sigma from zero',
-      tolerance: `sigma from ${OPTS.draws} seeded simulated measurements per star (seed "${OPTS.seed}")`,
+      claim: 'Even with realistic measurement errors, only the Sun fits: its measured angle lies inside the 95% range of angles a star the craft truly flew from would show, and every other star lies far outside its own.',
+      measured: `Sun measured ${sun.measuredAngleDeg.toFixed(3)} deg against a 95% cut of ${sun.nullAngle95Deg.toFixed(3)} deg (one-dimensional rms ${sun.angleRmsDeg.toFixed(3)} deg); the closest other star, ${label(worst.e)}, measured ${worst.e.measuredAngleDeg.toFixed(2)} deg against a cut of ${worst.e.nullAngle95Deg.toFixed(3)} deg (${worst.x.toFixed(0)} times the cut); ${others.length} other stars, all refused`,
+      expected: 'The Sun inside its 95% cut; every other star outside its own by more than 5 times (the scenario: the craft was launched from the Sun)',
+      tolerance: `The cut is the ${TRAIL_NULL_QUANTILE * 100}th percentile of ${OPTS.draws} seeded angles with the star's relative velocity made exactly radial at the measured speed (seed "${OPTS.seed}"); its calibration is trail.originCoverage`,
       pass,
-      notes: 'Measurement model (kinematics.ts): every star measured with Gaia DR3\'s precision for Gliese 445 (radial velocity 0.15 km/s; parallax distance error growing with distance squared), aimed along the alien\'s line of sight; the craft\'s own state is exact. A model, labelled as one.',
+      notes: "Measurement model (kinematics.ts): every star measured with Gaia DR3's precision for Gliese 445 (radial velocity 0.15 km/s; parallax distance error growing with distance squared), aimed along the alien's line of sight; the craft's own state is exact; the alien sees one seeded measurement. The angle's error is two-dimensional, so a 2-sigma cut on a one-dimensional spread would be an 84% cut; the percentile is used instead (M4 science audit finding 2). A model, labelled as one.",
     });
-    expect(TRAIL_CONSISTENT_SIGMA).toBe(2);
-    expect(sunZ).toBeLessThanOrEqual(TRAIL_CONSISTENT_SIGMA);
-    expect(worst.z).toBeGreaterThan(5);
+    expect(pass).toBe(true);
   });
+
+  it('over 1,000 seeded measurements the Sun is accepted about 95% of the time and the measured interval holds the travel time about 95% of the time', () => {
+    // Each trial redraws the alien's own measured state (drawObserver, as the epoch model does) and the
+    // Sun's measured row; the truth is the catalogue's exact distance over speed, which the science test
+    // trail.age puts within a year of the time since launch.
+    const N = 1000;
+    const sunStar = stars.near.find((s) => s.id === 0)!;
+    let accepted = 0;
+    let covered = 0;
+    const widths: number[] = [];
+    for (let r = 0; r < N; r++) {
+      const obs = drawObserver(observer, createRng(`trail.coverage/${r}`).fork('measure/observer'));
+      const row = trail(d.craft, { meta: {}, near: [sunStar], sky: [] }, obs, { maxDistPc: OPTS.maxDistPc, draws: OPTS.draws, seed: `trail.coverage/${r}/trail` })[0]!;
+      if (trailConsistent(row)) accepted++;
+      const [lo, hi] = row.measuredDistOverSpeedInterval95;
+      if (lo <= row.distOverSpeedYears && row.distOverSpeedYears <= hi) covered++;
+      widths.push(hi - lo);
+    }
+    widths.sort((a, b) => a - b);
+    // Three binomial standard errors of a 95% rate over 1,000 trials: 3 sqrt(0.95 x 0.05 / 1000) = 0.0207.
+    const tol = 3 * Math.sqrt((0.95 * 0.05) / N);
+    const passO = Math.abs(accepted / N - 0.95) <= tol;
+    const passA = Math.abs(covered / N - 0.95) <= tol;
+    console.log(`[trail.coverage] Sun accepted ${accepted} of ${N}; measured interval holds the exact distance over speed ${covered} of ${N}; median width ${widths[N >> 1]!.toFixed(0)} yr`);
+    recordCheck({
+      id: 'trail.originCoverage',
+      claim: "The Trail's cut is calibrated: when the alien measures the star the craft truly flew from, its measured angle passes the 95% cut about 95% of the time.",
+      measured: `the Sun accepted in ${accepted} of ${N} seeded measurements (${((accepted / N) * 100).toFixed(1)}%)`,
+      expected: "95% (the null distribution's 95th percentile, by construction)",
+      tolerance: `3 binomial standard errors (${(tol * 100).toFixed(2)} points)`,
+      pass: passO,
+      notes: 'In the rest, about 1 seed in 20, the truth is refused: an honest 95% test does that. Seeds: trail.coverage/0 to /999.',
+    });
+    recordCheck({
+      id: 'trail.ageCoverage',
+      claim: "The measured distance-over-speed interval, built around the alien's one measurement, holds the true travel time about 95% of the time.",
+      measured: `${covered} of ${N} (${((covered / N) * 100).toFixed(1)}%); median width ${widths[N >> 1]!.toFixed(0)} years`,
+      expected: "The catalogue's exact distance over speed (within a year of the time since launch, trail.age)",
+      tolerance: `3 binomial standard errors (${(tol * 100).toFixed(2)} points) of 95%`,
+      pass: passA,
+      notes: 'Basic bootstrap: 2,000 draws about the measured state, interval 2 m - q97.5 to 2 m - q2.5 (kinematics.ts).',
+    });
+    expect(passO).toBe(true);
+    expect(passA).toBe(true);
+  }, 120_000);
+
+  it('over 100 seeded measurements every other star within 10 pc is refused every time', () => {
+    // 400 draws per star per trial fix the 95th percentile to a few per cent, far inside the margins here.
+    const N = 100;
+    let worst = { x: Infinity, name: '', seed: -1 };
+    let refusedAll = true;
+    let tested = 0;
+    for (let r = 0; r < N; r++) {
+      const obs = drawObserver(observer, createRng(`trail.others/${r}`).fork('measure/observer'));
+      for (const e of trail(d.craft, stars, obs, { maxDistPc: OPTS.maxDistPc, draws: 400, seed: `trail.others/${r}/trail` })) {
+        if (e.star.id === 0 || e.star.id === observer.starId) continue;
+        tested++;
+        if (trailConsistent(e)) refusedAll = false;
+        const x = e.measuredAngleDeg / e.nullAngle95Deg;
+        if (x < worst.x) worst = { x, name: label(e), seed: r };
+      }
+    }
+    console.log(`[trail.others] ${tested} star measurements over ${N} seeds; smallest measured angle over its cut ${worst.x.toFixed(1)} (${worst.name}, seed ${worst.seed})`);
+    recordCheck({
+      id: 'trail.othersRefused',
+      claim: 'No other star within 10 parsecs of the craft is ever mistaken for its origin: in every seeded measurement each lies outside its 95% cut.',
+      measured: `${tested} star measurements over ${N} seeds, all refused; the closest, ${worst.name}, at ${worst.x.toFixed(1)} times its cut`,
+      expected: 'Every star other than the Sun refused in every seed (the scenario: the craft left the Sun)',
+      tolerance: 'Exact count (no star accepted); 400 draws per star per trial for the cut',
+      pass: refusedAll,
+    });
+    expect(refusedAll).toBe(true);
+  }, 120_000);
 
   it('stars without a radial velocity cannot mimic the Sun for any plausible radial velocity', () => {
     const sun = rows.find((e) => e.star.id === 0)!;
@@ -128,16 +201,17 @@ describe('kinematics: The Trail', () => {
   it('distance over speed for the Sun is the time since launch', () => {
     const sun = rows.find((e) => e.star.id === 0)!;
     const truth = d.decimalYear - launchYear(scenario);
-    const [lo, hi] = sun.distOverSpeedInterval95!;
+    const [lo, hi] = sun.measuredDistOverSpeedInterval95;
     // 1 year: the spec's tolerance; the model coasts from 2026 at 16.6048 km/s, and 172.06 AU / 16.6048 km/s
     // is 49.1 years, the craft's age today (voyager.md sections 4 and 5), so the residual is the early path.
+    // The measured interval holds the truth about 95% of the time (trail.ageCoverage); here, for this seed, it does.
     const pass = Math.abs(sun.distOverSpeedYears - truth) <= 1 && lo <= truth && truth <= hi;
     recordCheck({
       id: 'trail.age',
       claim: 'Distance divided by speed from the Sun gives the time since the craft left: a third clock.',
-      measured: `${sun.distOverSpeedYears.toFixed(1)} years exactly; measured 95% interval ${lo.toFixed(0)} to ${hi.toFixed(0)} years (sigma ${sun.distOverSpeedSigmaYears.toFixed(0)})`,
+      measured: `${sun.distOverSpeedYears.toFixed(1)} years from catalogue values; the alien's measurement ${sun.measuredDistOverSpeedYears.toFixed(0)} years, 95% ${lo.toFixed(0)} to ${hi.toFixed(0)} (sigma ${sun.distOverSpeedSigmaYears.toFixed(0)})`,
       expected: `${truth.toFixed(1)} years since launch (${scenario.craft.launchUtc}) at the epoch`,
-      tolerance: '1 year for the exact value (spec); the interval comes from the simulated measurements',
+      tolerance: '1 year for the exact value (spec); the interval is built around the measured value (calibrated by trail.ageCoverage)',
       pass,
       notes: 'The interval is set almost entirely by the 0.15 km/s radial-velocity error on the relative speed.',
     });

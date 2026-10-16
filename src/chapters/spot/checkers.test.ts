@@ -5,9 +5,10 @@ import { describe, expect, it } from 'vitest';
 import { recordCheck } from '../../../tests/support/record';
 import { DEFAULT_SEED } from '../../game/deductions';
 import { ageFromU234, testStartHypothesis } from '../../science/clocks';
-import { naturalStartRatio } from '../../science/spot';
+import { naturalStartRatio, sweepRate } from '../../science/spot';
 import { checkAge, checkFind, checkPurity } from './checkers';
-import { SPOT, spotModel } from './data';
+import { SPOT, spotModel, spotStream } from './data';
+import { SAMPLE_S } from './SweepPanel';
 import spotJson from '../../../data/spot.json';
 
 const SEEDS = [DEFAULT_SEED, 'spot-a', 'spot-b'];
@@ -71,6 +72,10 @@ describe('The Spot checkers', () => {
       check(ok.ok, `${seed}: a pure start confirms (${ok.message})`);
       const natural = checkPurity({ countingTimeS: DAY, startA234overA238: nat }, m);
       check(!natural.ok && /reject a start/.test(natural.message), `${seed}: natural uranium is rejected`);
+      // A refused start points to the counts' own fitted start and the range they accept (M4 science audit finding 6).
+      check(/own best start/.test(natural.message) && /accept starts from/.test(natural.message), `${seed}: the refusal points to the fitted start`);
+      const shown = ok.result.find((r) => r.key === 'starts these counts accept')?.value;
+      check(typeof shown === 'string' && /^0 to /.test(shown), `${seed}: the accepted range of starts is shown (${String(shown)})`);
       const tShort = firstTime(seed, (t) => {
         const c = m.session.countsAt(t);
         return testStartHypothesis(c, nat).pValue >= 0.05 && testStartHypothesis(c, 0).pValue >= 0.05;
@@ -80,7 +85,7 @@ describe('The Spot checkers', () => {
       check(!short.ok && short.message.startsWith('Count longer'), `${seed}: a ${tShort} s count cannot tell (${short.message})`);
       if (seed === DEFAULT_SEED) {
         const c = m.session.countsAt(DAY);
-        log.push(`purity at 1 day: pure p ${testStartHypothesis(c, 0).pValue.toFixed(3)}, natural p ${testStartHypothesis(c, nat).pValue.toExponential(1)}; too short at ${tShort} s`);
+        log.push(`purity at 1 day: pure p ${testStartHypothesis(c, 0).pValue.toFixed(3)}, natural p ${testStartHypothesis(c, nat).pValue.toExponential(1)}; starts accepted ${String(shown)}; too short at ${tShort} s`);
       }
     }
     const malformed = checkPurity('pure', spotModel(DEFAULT_SEED));
@@ -93,5 +98,42 @@ describe('The Spot checkers', () => {
       tolerance: 'exact (verdicts); the p < 0.05 threshold is the convention the spec names',
       pass,
     });
+  });
+});
+
+describe('the sweep readout, replayed', () => {
+  it("chapter.spot's 5.3 counts per second over the spot is the seeded noise of the default seed, not a bug", () => {
+    // The instrument samples the seed's sweep stream every 0.2 s (SweepPanel.tsx SAMPLE_S) and shows the counts of
+    // the last 15 samples over 3 s. Under a mean of 10 per sample a Poisson draw uses exactly one uniform
+    // (random.ts), so the stream's i-th sample over the spot's centre is fixed whatever came before it. Replay:
+    // every 15-sample window of the default seed's stream at the centre's rate (spot.ts sweepRate).
+    const m = spotModel(DEFAULT_SEED);
+    const perS = sweepRate(m.sweep, 0) + m.sweep.backgroundPerS;
+    const rng = spotStream(DEFAULT_SEED, 'sweep');
+    const n = Array.from({ length: 80 }, () => rng.poisson(perS * SAMPLE_S));
+    const windows = n.map((_, k) => (k >= 15 ? n.slice(k - 15, k).reduce((a, b) => a + b, 0) : null));
+    const shown = 5.333; // chapter.spot's reading over the spot (16 counts in 3 s), from the browser run's record
+    const hits = windows.map((w, k) => (w !== null && Math.abs(w / (15 * SAMPLE_S) - shown) < 0.001 ? k : null)).filter((k): k is number => k !== null);
+    // The bot dwells about 3.4 s far away, sweeps up for about 2 s, then 3.4 s over the spot: its window ends
+    // near sample 40 to 50 (17 + 10 + 17 samples at 0.2 s), where the replay must give the shown reading.
+    const plausible = hits.filter((k) => k >= 35 && k <= 55);
+    const mu = 15 * perS * SAMPLE_S;
+    let cdf = 0;
+    let term = Math.exp(-mu);
+    for (let k = 0; k < 16; k++) {
+      cdf += term;
+      term *= mu / (k + 1);
+    }
+    console.log(`sweep replay: model ${perS.toFixed(3)} /s over the centre (${mu.toFixed(2)} counts per window); 16-count windows end at samples ${hits.join(', ')}; P(16 or more) ${(1 - cdf).toFixed(4)}`);
+    recordCheck({
+      id: 'spot.sweepReplay',
+      claim: "The Spot's sweep readout is the seeded counting noise: the 5.3 counts per second a browser run showed over the spot, against the model's 2.9, is what the default seed's stream gives there.",
+      measured: `model ${perS.toFixed(3)} counts/s over the centre; the default seed's 15-sample windows give 16 counts (5.333/s) when they end at samples ${hits.join(', ')}; the chance of 16 or more in one window is ${((1 - cdf) * 100).toFixed(1)}%`,
+      expected: 'the browser reading (chapter.spot: 5.333 /s) reproduced by the stream at the bot\'s dwell (window ending near sample 40 to 50)',
+      tolerance: 'exact counts (one uniform per sample)',
+      pass: plausible.length > 0,
+      notes: 'The M4 science audit asked whether 5.3 against 2.9 was noise or a bug (finding 11): a high run of the seed\'s stream, not a bug.',
+    });
+    expect(plausible.length).toBeGreaterThan(0);
   });
 });

@@ -7,8 +7,8 @@
 // node) and in the chapter's notebook; then the right answer confirms. The wrong and right answers are worked
 // out in the page from the chapter's own model and helpers, as the Node tests do; no game state is written.
 //
-// One wrong result in the Node tests cannot be played: map.periods' "weak line" needs a model whose line 1
-// odds fall below the anchor rule, which no real seed of 40 tried has (map.test.ts); it is skipped and said so.
+// map.periods' "weak line" is a real one: an old line that is not a pass-1 anchor (B1929+10 on line 2 for the
+// seeds tried, map.test.ts); if a seed has none, it is skipped and said so.
 
 /** The arrival and key answers the slice bot proposes (tests/browser/slice.browser.mjs). */
 const KEY_PATH = [
@@ -31,7 +31,7 @@ export async function m4WrongPass(page, { assert, log, freshStart, baseUrl }) {
       [id, answer],
     );
   const played = [];
-  const skipped = ['map.periods: a weak line (needs a constructed model; no real seed has one)'];
+  const skipped = [];
   const wrong = async (id, answer, label, show) => {
     if (show) await show();
     const r = await propose(id, answer);
@@ -68,10 +68,11 @@ export async function m4WrongPass(page, { assert, log, freshStart, baseUrl }) {
     const m = epochModel(window.__finder.state().game.seed);
     const truth = Object.fromEntries(m.lines.map((l) => [String(l.order), l.jname]));
     const l1 = m.lines.find((l) => l.order === 1);
-    const runner = mm.matchOf(m, 1).runnerUp.entry.jname;
+    const runner = mm.matchOf(m, 1, 1).runnerUp.entry.jname;
+    const weak = m.lines.find((l) => !mm.isYoung(m.byJ.get(l.jname)) && !mm.isPass1Anchor(m, l.order));
     const crab = m.lines.find((l) => l.bname === 'B0531+21');
     const old = m.lines.filter((l) => !mm.isYoung(m.byJ.get(l.jname)));
-    const first = old[0];
+    const first = old.find((l) => mm.isPass1Anchor(m, l.order));
     const v = m.motionFit().velKmS;
     const c = A.cross(v, [0, 0, 1]);
     const perp = A.scale(c, 1 / A.norm(c));
@@ -82,6 +83,7 @@ export async function m4WrongPass(page, { assert, log, freshStart, baseUrl }) {
     return {
       periods: {
         runner: { line: 1, jname: runner },
+        weak: weak ? { line: weak.order, jname: weak.jname } : null,
         far: { line: 1, jname: m.lines.find((l) => l.order === 11).jname },
         young: { line: crab.order, jname: crab.jname },
         right: { line: first.order, jname: first.jname },
@@ -100,6 +102,8 @@ export async function m4WrongPass(page, { assert, log, freshStart, baseUrl }) {
     await page.waitForSelector(`[data-panel="${id}"]`);
   };
   await wrong('map.periods', mapA.periods.runner, 'the runner-up pulsar on line 1', step('map.periods'));
+  if (mapA.periods.weak) await wrong('map.periods', mapA.periods.weak, `line ${mapA.periods.weak.line}, not a pass-1 anchor (needs the map's age)`);
+  else skipped.push('map.periods: a line that is not a pass-1 anchor (this seed has none)');
   await wrong('map.periods', mapA.periods.far, "line 11's pulsar on line 1");
   await wrong('map.periods', mapA.periods.young, 'a young line first (the Crab)');
   await right('map.periods', mapA.periods.right);
@@ -158,7 +162,7 @@ export async function m4WrongPass(page, { assert, log, freshStart, baseUrl }) {
     // the star without a radial velocity nearest the machine (drawn hollow on the chart; as trail.browser.mjs)
     const E = await import('/src/science/epoch.ts');
     const noRv = E.nearestStars(m.inputs.stars, m.disc.craft.posPc, m.disc.decimalYear, 60, []).find((x) => !x.fullVelocity);
-    const [lo, hi] = origin.distOverSpeedInterval95;
+    const [lo, hi] = origin.measuredDistOverSpeedInterval95;
     const rs = P.regionStars(m);
     const sun = m.ages('sun').combined;
     return {

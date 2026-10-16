@@ -14,6 +14,9 @@ import { characteristicAgeYears } from './pulsars';
 import { createRng } from './random';
 import { CHI2_2DOF_95 } from './triangulation';
 
+/** Chi-square with 3 degrees of freedom, 95% point (tables; as pulsarAge.test.ts dating.epoch.velocityFit). */
+const CHI2_3DOF_95 = 7.815;
+
 const unit = (v: Vec3): Vec3 => scale(v, 1 / norm(v));
 /** Turn a about the unit axis k by deg (Rodrigues). */
 function turn(a: Vec3, k: Vec3, deg: number): Vec3 {
@@ -91,8 +94,50 @@ describe('axisDeltaChi2', () => {
       expected: 'Geometry: under an isotropic covariance the value is |v|^2 sin^2(angle) / sigma^2 and equals the Mahalanobis distance of the projected velocity; a brute-force minimum over the speed; the chi-square law with 2 degrees of freedom (95%)',
       tolerance: `Relative error under 1e-9 against geometry, under 1e-6 against a 0.01 km/s speed grid; coverage within 3 binomial standard errors (${(tol * 100).toFixed(2)} points) of 95%`,
       pass,
-      notes: `The covariance is the real fit's (velocity sigmas ${sig.map((x) => x.toFixed(1)).join(', ')} km/s, ICRS axes); the cut is the 2-degree-of-freedom 95% chi-square, ${CHI2_2DOF_95.toFixed(3)}, because an axis has two angles.`,
+      notes: `This calibrates the cut's formula against draws from the fit's own covariance; the full model, with the catalogue redrawn, is map.motionAxisFullModel. The covariance is the real fit's (velocity sigmas ${sig.map((x) => x.toFixed(1)).join(', ')} km/s, ICRS axes); the cut is the 2-degree-of-freedom 95% chi-square, ${CHI2_2DOF_95.toFixed(3)}, because an axis has two angles.`,
     });
     expect(pass).toBe(true);
   });
+});
+
+describe('axisDeltaChi2 on the full model', () => {
+  it('over 1,000 full projections the true axis and the true velocity pass their 95% cuts about 95% of the time', () => {
+    // Full model (M4 science audit finding 4): every trial redraws the alien's whole catalogue (projectPulsar:
+    // timing noise, braking index, measurement errors), refits, and tests the true velocity (the home star's
+    // motion relative to the Sun, epoch.ts) against the fit. The fit's covariance carries the Birge factor;
+    // dividing it back out gives the coverage before scaling, reported beside it.
+    const N = 1000;
+    const truthV = observer.velKmS as Vec3;
+    let axisIn = 0, velIn = 0, axisRaw = 0, velRaw = 0, scaled = 0;
+    for (let r = 0; r < N; r++) {
+      const fit = fitAgeAndVelocity(
+        cover.pulsarMap.lines
+          .map((line) => ({ line, entry: projectPulsar(byJ.get(line.jname)!, observer, { seed: `vfit/${r}` })! }))
+          .filter(({ entry }) => !entry.truth.young),
+      );
+      const raw: AgeVelocityFit = { ...fit, velCov: fit.velCov.map((row) => row.map((x) => x / fit.birge)) };
+      if (fit.birge > 1) scaled++;
+      if (axisDeltaChi2(fit, truthV) <= CHI2_2DOF_95) axisIn++;
+      if (velocityMahalanobis2(fit, truthV) <= CHI2_3DOF_95) velIn++;
+      if (axisDeltaChi2(raw, truthV) <= CHI2_2DOF_95) axisRaw++;
+      if (velocityMahalanobis2(raw, truthV) <= CHI2_3DOF_95) velRaw++;
+    }
+    const pct = (k: number): string => `${((k / N) * 100).toFixed(1)}%`;
+    // Three binomial standard errors of a 95% rate over 1,000 trials: 3 sqrt(0.95 x 0.05 / 1000) = 0.0207;
+    // and never above 98% (the spec's ceiling: an over-wide cut would hide wrong axes).
+    const tol = 3 * Math.sqrt((0.95 * 0.05) / N);
+    const ok = (k: number): boolean => Math.abs(k / N - 0.95) <= tol && k / N <= 0.98;
+    const pass = ok(axisIn) && ok(velIn);
+    console.log(`full model: axis ${pct(axisIn)} (unscaled ${pct(axisRaw)}), velocity ${pct(velIn)} (unscaled ${pct(velRaw)}); Birge factor above 1 in ${pct(scaled)}`);
+    recordCheck({
+      id: 'map.motionAxisFullModel',
+      claim: 'On the full model, with the alien\'s whole pulsar catalogue redrawn each time, The Map\'s 95% axis cut keeps the true direction of motion about 95% of the time, and the 95% velocity region keeps the true velocity about as often.',
+      measured: `${N} projections (seeds vfit/0 to vfit/${N - 1}): true axis inside the cut ${pct(axisIn)} (${pct(axisRaw)} without the Birge factor); true velocity inside the 3-dof region ${pct(velIn)} (${pct(velRaw)} without); the factor exceeded 1 in ${pct(scaled)} of fits`,
+      expected: 'The true velocity of Gliese 445 relative to the Sun (Gaia DR3, epoch.ts), independent of the pulsars; the chi-square laws (2 dof for an axis, 3 for a velocity) at 95%',
+      tolerance: `Within 3 binomial standard errors (${(tol * 100).toFixed(2)} points) of 95%, and at most 98%`,
+      pass,
+      notes: 'The covariance is multiplied by max(1, chi-square per dof), the Birge factor (pulsarAge.ts fitAgeAndVelocity); it moved both coverages toward 95% (M4 science audit finding 4), so it is kept.',
+    });
+    expect(pass).toBe(true);
+  }, 120_000);
 });

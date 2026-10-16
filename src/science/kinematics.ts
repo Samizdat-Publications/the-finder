@@ -26,20 +26,26 @@
 //     error relative to the observer.
 // Correlations between position and velocity errors are ignored (as the published Gaia
 // correlations are; see epoch.ts).
+//
+// WHAT THE ALIEN SEES (M4 science audit finding 2): the exact columns are catalogue truth, kept for the
+// science tests. The alien works from one seeded measurement of each star (a single draw of the model
+// above): the measured angle and distance over speed. It judges "flying straight away" against the null
+// distribution, the angles the same model produces when the star's relative velocity is made exactly
+// radial at the measured speed (built around the measured state, so it uses nothing the alien lacks): a
+// star passes when its measured angle is at most the null's 95th percentile. The error is effectively
+// two-dimensional (an angle from a direction), so a "2 sigma" cut on a one-dimensional spread is only an
+// 84% cut; the percentile is the honest one. The distance-over-speed interval is built around the
+// measured value from draws about the measured state (the basic bootstrap: 2 m - q97.5 to 2 m - q2.5).
 
 import { KM_S_TO_PC_PER_YEAR, add, angleBetweenDeg, cross, dot, norm, scale, sub, unitVector, type Vec3 } from './astro';
 import type { BodyState, Observer } from './epoch';
 import { starStateAt } from './epoch';
-import { createRng } from './random';
+import { createRng, type Rng } from './random';
 import { goldenMax, mean, sd } from './stats';
 import type { StarCatalogue, StarRecord } from './types';
 
-/**
- * A star is "consistent with the craft flying straight away from it" when its trail angle is at most this
- * many of its own sigma (angleDeg / angleSigmaDeg <= 2). The threshold of trail.uniqueWithErrors
- * (step4c spec; kinematics.test.ts); The Trail's checker uses the same.
- */
-export const TRAIL_CONSISTENT_SIGMA = 2;
+/** The share of the null distribution a star from which the craft truly flew stays inside: 95%. */
+export const TRAIL_NULL_QUANTILE = 0.95;
 
 /** Step of the radial-velocity grid in minAngleNoRv, km/s (kinematics.test.ts, trail.uniqueNoRv). */
 const NO_RV_GRID_KMS = 0.25;
@@ -89,6 +95,19 @@ export interface TrailEntry {
   distOverSpeedSigmaYears: number;
   /** 2.5th and 97.5th percentiles of the simulated distance-over-speed measurements, years. */
   distOverSpeedInterval95?: [number, number];
+  /** The alien's measurement: the angle from one seeded draw of the measurement model, deg. */
+  measuredAngleDeg: number;
+  /** The 95th percentile of the null distribution (relative velocity made exactly radial at the measured speed), deg. */
+  nullAngle95Deg: number;
+  /** One-dimensional rms of the angle under the null, deg: sqrt(mean(a^2) / 2), a per-axis spread of the direction. */
+  angleRmsDeg: number;
+  /** Distance over speed from the same measured draw, years. */
+  measuredDistOverSpeedYears: number;
+  /** 95% interval built around the measured value (basic bootstrap from draws about the measured state), years. */
+  measuredDistOverSpeedInterval95: [number, number];
+  /** The star's measured position (pc) and velocity (km/s) at the epoch, ICRS, relative to the Sun: the draw behind the measured columns. */
+  measuredPosPc: Vec3;
+  measuredVelKmS: Vec3;
 }
 
 type Mat3 = [Vec3, Vec3, Vec3];
@@ -167,7 +186,9 @@ export function trailCensus(craft: BodyState, stars: StarCatalogue, maxDistPc: n
  * For every star within maxDistPc of the craft with a full velocity: the angle between the craft's
  * velocity relative to the star and the direction from the star to the craft, and distance over
  * relative speed. Exact columns from catalogue values; sigma columns from `draws` seeded simulated
- * measurements (see the measurement model above). Sorted by exact angle, then id.
+ * measurements (see the measurement model above); the measured columns, the null's 95th percentile and
+ * the measured interval as described under WHAT THE ALIEN SEES, each from its own seeded fork per star
+ * (`measure/`, `null/`, `interval/`), `draws` draws each. Sorted by exact angle, then id.
  *
  * angleSigmaDeg is the larger of (a) the spread of the simulated angles and (b) the per-axis spread
  * of the simulated direction about the exact one, sqrt((mean(a_i^2) - a_0^2) / 2). Near zero the angle
@@ -188,6 +209,21 @@ export function trail(
   const losAxis = principalAxis(measPosCov);
   const root = createRng(opts.seed);
   const k = KM_S_TO_PC_PER_YEAR;
+  /** The measurement errors for a star at pos: Gaia's ellipsoids aimed along the line of sight, position error scaled by distance squared. */
+  const noiseAt = (pos: Vec3): ((rng: Rng) => { dp: Vec3; dv: Vec3 }) => {
+    const from = sub(pos, observer.posPc);
+    const dist = norm(from);
+    const R = rotationOnto(losAxis, scale(from, 1 / dist));
+    const ps = dist / measDist;
+    const posScale = ps * ps;
+    return (rng) => {
+      const zp: Vec3 = [rng.normal(), rng.normal(), rng.normal()];
+      const zv: Vec3 = [rng.normal(), rng.normal(), rng.normal()];
+      return { dp: scale(matVec(R, matVec(Lp, zp)), posScale), dv: matVec(R, matVec(Lv, zv)) };
+    };
+  };
+  const angleOf = (p: Vec3, v: Vec3): number => angleBetweenDeg(sub(craft.velKmS, v), sub(craft.posPc, p));
+  const dosOf = (p: Vec3, v: Vec3): number => norm(sub(craft.posPc, p)) / (norm(sub(craft.velKmS, v)) * k);
   const out: TrailEntry[] = [];
   for (const s of starsNear(craft, stars, opts.maxDistPc)) {
     if (!s.full) continue;
@@ -195,48 +231,78 @@ export function trail(
     const v0 = sub(craft.velKmS, s.velKmS);
     const angle0 = angleBetweenDeg(v0, d0);
     const dos0 = norm(d0) / (norm(v0) * k);
-    const fromObs = sub(s.posPc, observer.posPc);
-    const distObs = norm(fromObs);
+    const distObs = norm(sub(s.posPc, observer.posPc));
     const isObserver = s.star.id === observer.starId || distObs < 1e-9;
+    const base = { star: s.star, distPc: norm(d0), angleDeg: angle0, distOverSpeedYears: dos0 };
+    if (isObserver || opts.draws <= 1) {
+      // The observer's own star has no error relative to the observer: every measured column is exact.
+      out.push({
+        ...base, angleSigmaDeg: 0, distOverSpeedSigmaYears: 0, distOverSpeedInterval95: [dos0, dos0],
+        measuredAngleDeg: angle0, nullAngle95Deg: 0, angleRmsDeg: 0, measuredDistOverSpeedYears: dos0, measuredDistOverSpeedInterval95: [dos0, dos0],
+        measuredPosPc: s.posPc, measuredVelKmS: s.velKmS,
+      });
+      continue;
+    }
+    // (1) The spread about the catalogue truth (the science tests' sigma columns).
+    const atTruth = noiseAt(s.posPc);
+    const rng = root.fork(`star-${s.star.id}`);
     const angles: number[] = [];
     const doss: number[] = [];
-    if (!isObserver && opts.draws > 1) {
-      const R = rotationOnto(losAxis, scale(fromObs, 1 / distObs));
-      const ps = distObs / measDist;
-      const posScale = ps * ps;
-      const rng = root.fork(`star-${s.star.id}`);
-      for (let i = 0; i < opts.draws; i++) {
-        const zp: Vec3 = [rng.normal(), rng.normal(), rng.normal()];
-        const zv: Vec3 = [rng.normal(), rng.normal(), rng.normal()];
-        const p = add(s.posPc, scale(matVec(R, matVec(Lp, zp)), posScale));
-        const v = add(s.velKmS, matVec(R, matVec(Lv, zv)));
-        const d = sub(craft.posPc, p);
-        const vr = sub(craft.velKmS, v);
-        angles.push(angleBetweenDeg(vr, d));
-        doss.push(norm(d) / (norm(vr) * k));
-      }
+    for (let i = 0; i < opts.draws; i++) {
+      const { dp, dv } = atTruth(rng);
+      const p = add(s.posPc, dp);
+      const v = add(s.velKmS, dv);
+      angles.push(angleOf(p, v));
+      doss.push(dosOf(p, v));
     }
-    let angleSigma = 0;
-    let dosSigma = 0;
-    let interval: [number, number] = [dos0, dos0];
-    if (angles.length > 1) {
-      const perAxis = Math.sqrt(Math.max(0, (mean(angles.map((a) => a * a)) - angle0 * angle0) / 2));
-      angleSigma = Math.max(sd(angles), perAxis);
-      dosSigma = sd(doss);
-      const sorted = doss.slice().sort((a, b) => a - b);
-      interval = [quantile(sorted, 0.025), quantile(sorted, 0.975)];
+    const perAxis = Math.sqrt(Math.max(0, (mean(angles.map((x) => x * x)) - angle0 * angle0) / 2));
+    const sortedDos = doss.slice().sort((x, y) => x - y);
+    // (2) The alien's one measurement of this star.
+    const m = atTruth(root.fork(`measure/star-${s.star.id}`));
+    const pM = add(s.posPc, m.dp);
+    const vM = add(s.velKmS, m.dv);
+    const angleM = angleOf(pM, vM);
+    const dosM = dosOf(pM, vM);
+    // (3) The null about the measured state: the same position, the relative velocity turned exactly radial
+    // (along star to craft) at the measured relative speed; the angles the model then produces.
+    const atMeas = noiseAt(pM);
+    const dM = sub(craft.posPc, pM);
+    const vNull = sub(craft.velKmS, scale(dM, norm(sub(craft.velKmS, vM)) / norm(dM)));
+    const nrng = root.fork(`null/star-${s.star.id}`);
+    const nulls: number[] = [];
+    for (let i = 0; i < opts.draws; i++) {
+      const { dp, dv } = atMeas(nrng);
+      nulls.push(angleOf(add(pM, dp), add(vNull, dv)));
     }
+    nulls.sort((x, y) => x - y);
+    // (4) Distance over speed about the measured state, for an interval around the measured value.
+    const irng = root.fork(`interval/star-${s.star.id}`);
+    const idos: number[] = [];
+    for (let i = 0; i < opts.draws; i++) {
+      const { dp, dv } = atMeas(irng);
+      idos.push(dosOf(add(pM, dp), add(vM, dv)));
+    }
+    idos.sort((x, y) => x - y);
     out.push({
-      star: s.star,
-      distPc: norm(d0),
-      angleDeg: angle0,
-      angleSigmaDeg: angleSigma,
-      distOverSpeedYears: dos0,
-      distOverSpeedSigmaYears: dosSigma,
-      distOverSpeedInterval95: interval,
+      ...base,
+      angleSigmaDeg: Math.max(sd(angles), perAxis),
+      distOverSpeedSigmaYears: sd(doss),
+      distOverSpeedInterval95: [quantile(sortedDos, 0.025), quantile(sortedDos, 0.975)],
+      measuredAngleDeg: angleM,
+      nullAngle95Deg: quantile(nulls, TRAIL_NULL_QUANTILE),
+      angleRmsDeg: Math.sqrt(mean(nulls.map((x) => x * x)) / 2),
+      measuredDistOverSpeedYears: dosM,
+      measuredDistOverSpeedInterval95: [2 * dosM - quantile(idos, 0.975), 2 * dosM - quantile(idos, 0.025)],
+      measuredPosPc: pM,
+      measuredVelKmS: vM,
     });
   }
   return out.sort((a, b) => a.angleDeg - b.angleDeg || a.star.id - b.star.id);
+}
+
+/** True when a row's measured angle is consistent with the craft flying straight away from its star (at most the null's 95th percentile). */
+export function trailConsistent(row: Pick<TrailEntry, 'measuredAngleDeg' | 'nullAngle95Deg'>): boolean {
+  return row.measuredAngleDeg <= row.nullAngle95Deg;
 }
 
 /** Unit eigenvector of the largest eigenvalue of a symmetric PSD 3x3 matrix (power iteration). */

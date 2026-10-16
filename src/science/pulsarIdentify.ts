@@ -123,6 +123,14 @@ export function periodLogLikelihood(e: AlienPulsar, line: CoverMapLine, opts: Id
 const logGauss = (x: number, s: number): number => -0.5 * (x / s) ** 2 - Math.log(s * Math.sqrt(2 * Math.PI));
 
 /**
+ * The pre-selection tolerances identifyAtEpoch uses (D-A16): a candidate's direction within 5 deg of the
+ * map angle (a generous box around the map's drawing accuracy, about 1 deg, plus 44,000 years of proper
+ * motion), a Doppler allowance of 1e-3 (relative speeds up to 300 km/s) and braking indices 0.9 to 4. The
+ * instrument (src/chapters/map/mapMath.ts) reuses them to say why a pulsar was not considered.
+ */
+export const PRESELECT = { directionTolDeg: 5, dopplerAllowance: 1e-3, nRange: [0.9, 4] as const } as const;
+
+/**
  * Identify every line: pre-select (direction within 5 deg, age range overlapping [t_lo, 2 t_hi] for
  * some n in [0.9, 4], Doppler 1e-3, map period to 1 LSB), score, and rank. sigma_theta and sigma_b are
  * the alien's own estimates: the rms of the best candidates' residuals, iterated from 1 deg until
@@ -133,10 +141,10 @@ export function identifyAtEpoch(lines: readonly CoverMapLine[], alien: readonly 
   const midAge = opts.backProjectYears ?? (tLo + 2 * tHi) / 2;
   const byJ = new Map(alien.map((a) => [a.jname, a]));
   const pre = identifyLines(lines, alien.map(alienCandidateView), {
-    directionTolDeg: 5,
-    dopplerAllowance: 1e-3,
+    directionTolDeg: PRESELECT.directionTolDeg,
+    dopplerAllowance: PRESELECT.dopplerAllowance,
     windowYears: [tLo, 2 * tHi],
-    nRange: [0.9, 4],
+    nRange: PRESELECT.nRange,
     mapHalfWidth: () => lsbHalfWidth(HYDROGEN_HZ),
     hz: HYDROGEN_HZ,
   });

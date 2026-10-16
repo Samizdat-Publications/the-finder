@@ -8,20 +8,21 @@ import { dot, galacticToIcrsCartesian, toGalacticCartesian, toSpherical, type Ve
 import { OLD_TAU_C_YEARS, type AlienPulsar } from '../../science/pulsarEpoch';
 import { identifyLines, characteristicAgeYears, elapsedFromSpin, lsbHalfWidth, mapPeriod, spinForward, wrapDeg } from '../../science/pulsars';
 import { alienCandidateView } from '../../science/pulsarAge';
-import { tickLatitudeDeg, type LineMatch } from '../../science/pulsarIdentify';
+import { ANCHOR_LOG10_MARGIN, PRESELECT, tickLatitudeDeg, type LineMatch } from '../../science/pulsarIdentify';
 import { insideRegion, mapPointsAtEpoch, type MapPoint } from '../../science/triangulation';
 import type { CoverMapLine } from '../../science/types';
 import { C_KM_S, HYDROGEN_HZ, JULIAN_YEAR_S } from '../../science/units';
 import type { EpochModel } from '../shared/epochModel';
 
 /**
- * The identification's pre-selection, as identifyAtEpoch (src/science/pulsarIdentify.ts) runs it: direction
- * within 5 deg of the map angle, a Doppler allowance of 1e-3 (relative speeds up to 300 km/s), braking
- * indices 0.9 to 4, the map period to one LSB, and an age window from the RTG clock [t_lo, 2 t_hi].
+ * The identification's pre-selection, the same constants identifyAtEpoch (src/science/pulsarIdentify.ts
+ * PRESELECT) runs with: direction within 5 deg of the map angle (the pre-selection's tolerance, not the
+ * map's accuracy), a Doppler allowance of 1e-3, braking indices 0.9 to 4, the map period to one LSB, and an
+ * age window from the RTG clock [t_lo, 2 t_hi].
  */
-export const PRESELECT_DIRECTION_DEG = 5;
-const PRESELECT_DOPPLER = 1e-3;
-const PRESELECT_N: readonly [number, number] = [0.9, 4];
+export const PRESELECT_DIRECTION_DEG = PRESELECT.directionTolDeg;
+const PRESELECT_DOPPLER = PRESELECT.dopplerAllowance;
+const PRESELECT_N = PRESELECT.nRange;
 
 /** Old or young by the characteristic age the alien measures now (the dating's own boundary, 300,000 yr). */
 export function isYoung(e: Pick<AlienPulsar, 'pObs' | 'pdotMeas'>): boolean {
@@ -34,10 +35,25 @@ export function lineOf(model: EpochModel, order: number): CoverMapLine {
   return l;
 }
 
-export function matchOf(model: EpochModel, order: number): LineMatch {
-  const m = model.identification().lines.find((x) => x.line.order === order);
+/**
+ * Which pass of the identification (D-A16, pulsarIdentify.ts) the instrument reads: pass 1 scores a line by
+ * period, direction and latitude alone; pass 2 adds the map's age and origin fitted from the pass-1 anchors.
+ * Before the map is dated (map.old) the alien knows only what pass 1 uses, so map.periods judges with it
+ * (M4 science audit finding 1).
+ */
+export type IdPass = 1 | 2;
+
+export function matchOf(model: EpochModel, order: number, pass: IdPass = 2): LineMatch {
+  const id = model.identification();
+  const m = (pass === 1 ? id.pass1 : id).lines.find((x) => x.line.order === order);
   if (!m) throw new Error(`The map has no line ${order}.`);
   return m;
+}
+
+/** A pass-1 anchor (pulsarIdentify.ts secondPass): best in pass 1 with odds of at least ANCHOR_LOG10_MARGIN (20 to 1) against every other candidate. */
+export function isPass1Anchor(model: EpochModel, order: number): boolean {
+  const lm = matchOf(model, order, 1);
+  return lm.best !== null && lm.log10Odds >= ANCHOR_LOG10_MARGIN;
 }
 
 /** A line is old when its most likely pulsar is old (the young lines need the map's age first). */
@@ -88,6 +104,8 @@ export interface CandidateReadout {
   /** The map's period and the pulsar's period now, s. */
   mapPeriodS: number;
   periodNowS: number;
+  /** Which identification pass scored it (1: period, direction and latitude; 2: also the map's age and origin). */
+  pass: IdPass;
   /** Map angle (plus the fitted rotation in pass 2) against the candidate's direction, deg. */
   dLonDeg: number;
   /** |b| minus the tick's latitude, deg; null when the tick does not resolve. */
@@ -100,16 +118,16 @@ export interface CandidateReadout {
   best: boolean;
 }
 
-/** What the instrument shows for a line and the pulsar the player put on it. */
-export function candidateReadout(model: EpochModel, order: number, jname: string): CandidateReadout {
+/** What the instrument shows for a line and the pulsar the player put on it, scored by the given pass. */
+export function candidateReadout(model: EpochModel, order: number, jname: string, pass: IdPass = 2): CandidateReadout {
   const line = lineOf(model, order);
   const e = model.byJ.get(jname);
   if (!e) throw new Error(`${jname} is not in your catalogue.`);
-  const lm = matchOf(model, order);
+  const lm = matchOf(model, order, pass);
   const scored = lm.ranked.find((c) => c.entry.jname === jname);
   const tick = tickLatitudeDeg(line);
   return {
-    order, jname, bname: e.bname,
+    order, jname, bname: e.bname, pass,
     mapPeriodS: mapPeriod(line, HYDROGEN_HZ),
     periodNowS: e.pObs,
     dLonDeg: scored ? scored.dLonDeg : wrapDeg(line.mapAngleDeg - e.lDeg),

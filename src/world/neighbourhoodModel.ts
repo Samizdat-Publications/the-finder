@@ -113,8 +113,11 @@ export interface TrailGeometry {
   relSpeedKmS: number;
   /** Unit vector from the star to the craft (Galactic axes). */
   awayDir: Vec3;
-  /** kinematics.trail's numbers, unchanged. */
+  /** kinematics.trail's numbers, unchanged (the drawn vectors are the catalogue's; the label shows the measurement). */
   angleDeg: number;
+  /** The alien's measured angle and its 95% cut (kinematics.ts, WHAT THE ALIEN SEES), deg. */
+  measuredAngleDeg: number;
+  nullAngle95Deg: number;
   angleSigmaDeg: number;
   distOverSpeedYears: number;
   /** Points of the arc between awayDir and relVelDir at the craft, radius arcPc (pc). */
@@ -154,6 +157,8 @@ export function trailGeometry(model: NeighbourhoodModel, entry: TrailEntry, arcP
     relSpeedKmS: norm(relVel),
     awayDir,
     angleDeg: entry.angleDeg,
+    measuredAngleDeg: entry.measuredAngleDeg,
+    nullAngle95Deg: entry.nullAngle95Deg,
     angleSigmaDeg: entry.angleSigmaDeg,
     distOverSpeedYears: entry.distOverSpeedYears,
     arc,

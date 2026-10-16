@@ -3,7 +3,7 @@
 // what it computed (PLAN.md "Principles from the kickoff"). Pure apart from the registry call in install.
 
 import { registerChecker, type CheckResult, type Checker, type Reading } from '../../game/deductions';
-import { ageFromU234, fitAgeAndPurity, testStartHypothesis, type AlphaCounts } from '../../science/clocks';
+import { acceptedStartRange, ageFromU234, fitAgeAndPurity, testStartHypothesis, type AlphaCounts } from '../../science/clocks';
 import { MAX_COUNT_S, clockAges, naturalStartRatio, sweepRate } from '../../science/spot';
 import { JULIAN_YEAR_S } from '../../science/units';
 import { formatPower, toAlien } from '../../ui/units';
@@ -30,7 +30,11 @@ const yearsS = (y: number): number => y * JULIAN_YEAR_S;
 /** A p-value in words: below 10^-12 it is written as a bound (the chi-square tail underflows toward 0). */
 const pText = (p: number): string => (p < 1e-12 ? `p below ${formatPower(1e-12, 1)}` : `p = ${sig(p, 2)}`);
 
-/** p-value threshold for "the counts reject this start" (the conventional 5%, as in the spec). */
+/**
+ * p-value threshold for "the counts reject this start" (the conventional 5%, as in the spec). For a truly pure
+ * start, on the boundary r0 = 0, the test is conservative: it refuses the truth 2.7% of the time over 1,000
+ * one-day counts (clocks.calibration.test.ts, clocks.uranium.purity05), not 5%.
+ */
 export const REJECT_P = 0.05;
 
 function malformed(answer: unknown, wants: string): CheckResult {
@@ -140,7 +144,11 @@ export function checkAge(answer: unknown, m: SpotModel): CheckResult {
 
 const clockText = (y: number | null): string => (y === null ? 'never reaches the measured ratio' : `${sig(y)} years`);
 
-/** spot.purity: { countingTimeS, startA234overA238 }. Right when the counts accept that start and reject natural uranium's. */
+/**
+ * spot.purity: { countingTimeS, startA234overA238 }. Right when the counts accept that start and reject natural
+ * uranium's. The result carries the range of starts the counts accept (clocks.ts acceptedStartRange): "pure"
+ * means almost none of natural uranium's uranium-234 at the start, not exactly none (M4 science audit finding 6).
+ */
 export function checkPurity(answer: unknown, m: SpotModel): CheckResult {
   const c = countsFor(answer, m);
   const r0 = num(answer, 'startA234overA238');
@@ -149,10 +157,13 @@ export function checkPurity(answer: unknown, m: SpotModel): CheckResult {
   const test = testStartHypothesis(c, r0);
   const natural = testStartHypothesis(c, nat);
   const clocks = clockAges(c, r0);
+  const range = acceptedStartRange(c, REJECT_P);
+  const rangeText = `${sig(range.lo, 2)} to ${sig(range.hi, 2)}`;
   const base: Reading[] = [
     { key: 'starting uranium-234 per uranium-238', value: r0 },
     { key: 'p-value, this start', value: Number(test.pValue.toPrecision(3)) },
     { key: 'p-value, ore in balance', value: Number(natural.pValue.toPrecision(3)) },
+    { key: 'starts these counts accept', value: rangeText },
     ...countsReadings(c),
   ];
   if (test.pValue < REJECT_P) {
@@ -161,7 +172,8 @@ export function checkPurity(answer: unknown, m: SpotModel): CheckResult {
       result: base,
       message:
         `The counts (${countsText(c)}) reject a start of ${sig(r0)}: the chance of counts this far off is ${pText(test.pValue)}. ` +
-        `From that start the uranium-234 clock ${clockText(clocks.u234Years)} and the thorium-230 clock ${clockText(clocks.th230Years)}: they disagree.`,
+        `From that start the uranium-234 clock ${clockText(clocks.u234Years)} and the thorium-230 clock ${clockText(clocks.th230Years)}: they disagree. ` +
+        `Fitted freely, the counts' own best start is ${sig(range.fitted, 2)} uranium-234 per uranium-238, and they accept starts from ${rangeText}.`,
     };
   }
   if (natural.pValue >= REJECT_P) {
@@ -177,14 +189,15 @@ export function checkPurity(answer: unknown, m: SpotModel): CheckResult {
   return {
     ok: true,
     result: [
-      ...base.slice(0, 3),
+      ...base.slice(0, 4),
       { key: 'fitted age', value: yearsS(fit.ageYears), dim: 'time' },
       ...(fit.determinable ? [{ key: 'fitted age low, 95%', value: yearsS(fit.lo), dim: 'time' as const }, { key: 'fitted age high, 95%', value: yearsS(fit.hi), dim: 'time' as const }] : []),
       ...countsReadings(c),
     ],
     message:
       `A start of ${sig(r0)} fits both clocks (${pText(test.pValue)}): uranium-234 says ${clockText(clocks.u234Years)}, thorium-230 ${clockText(clocks.th230Years)}. ` +
-      `Ore in balance (${sig(nat)}) is rejected by the same counts (${pText(natural.pValue)}). Fitting age and start together gives ${sig(fit.ageYears)} years.`,
+      `Ore in balance (${sig(nat)}) is rejected by the same counts (${pText(natural.pValue)}). The counts accept starts from ${rangeText} uranium-234 per uranium-238: ` +
+      `almost none of the uranium-234 natural uranium carries. Fitting age and start together gives ${sig(fit.ageYears)} years.`,
   };
 }
 

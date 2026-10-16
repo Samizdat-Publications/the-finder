@@ -30,6 +30,14 @@ background is a typical value, not a guaranteed specification. It barely matters
 Derived: the detector's background in the alpha window is 0.05 x 4.5 cm^2 = 0.225 counts per hour,
 6.25e-5 counts/s.
 
+**Where the background applies (M4 science audit finding 8; D-A24).** The figure is a shielded-laboratory
+one. The Finder sweeps and counts in its own shielded laboratory, with the record brought aboard (it is
+played on a turntable in The Player), in a vacuum chamber as alpha spectrometry always is, so the
+laboratory figure applies. An unshielded detector in interstellar space would see galactic cosmic-ray
+heavy nuclei depositing alpha-like energies: the auditor's order-of-magnitude estimate is about 1e-2
+counts per second in the alpha window, about 160 times the laboratory figure. **Unverified** (an estimate,
+not a measurement or a cited flux calculation); it is the reason the laboratory setting is stated.
+
 ## 3. Geometries (game choices, D-A24)
 
 - **Sweep:** the detector face parallel to the cover at a 5 mm stand-off, a close pass that clears the

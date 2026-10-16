@@ -6,13 +6,12 @@
 import { nodeStatus } from '../../game/deductions';
 import { confirmedSet, game } from '../../game/state';
 import { norm } from '../../science/astro';
-import { TRAIL_CONSISTENT_SIGMA } from '../../science/kinematics';
 import { send } from '../../ui/send';
 import { LastReading, PanelHead } from '../key/parts';
-import type { EpochModel } from '../shared/epochModel';
+import { TRAIL_MAX_DIST_PC, type EpochModel } from '../shared/epochModel';
 import { chartHandle } from './ChartPane';
-import { angleText, distText, speedText, yearsText } from './format';
-import { consistent, homeId, meeting, noRvBounds, relativeState, rowFor, rulerReading, separationAt, starById, starName } from './physics';
+import { angleText, distText, figuresFor, speedText, yearsText } from './format';
+import { consistent, cutRatio, homeId, meeting, noRvBounds, relativeState, rowFor, rulerReading, separationAt, starById, starName } from './physics';
 import { picked, rulerEnds, runYears, tintAll } from './state';
 
 const gloss = (): boolean => game.settings.value.humanGloss;
@@ -32,7 +31,13 @@ function Propose(p: { id: string; label: string; answer: () => unknown; disabled
   );
 }
 
-/** The trail readout of the picked star. */
+/** A measured distance over speed with its 95% interval, at the figures that tell the three apart. */
+function dosText(years: number, iv: [number, number], g: boolean): [string, string, string] {
+  const d = figuresFor(Math.max(years, iv[1]), iv[1] - iv[0]);
+  return [yearsText(years, g, d), yearsText(iv[0], g, d), yearsText(iv[1], g, d)];
+}
+
+/** The trail readout of the picked star: the alien's one measurement, judged against the 95% cut. */
 export function TrailTool(p: { m: EpochModel }) {
   const m = p.m;
   const id = picked.value;
@@ -51,14 +56,22 @@ export function TrailTool(p: { m: EpochModel }) {
             <p class="note">Your own star. The machine is passing it now, at its closest approach.</p>
           ) : row ? (
             <dl class="tr-dl">
-              <dt>Motion from straight away</dt>
-              <dd data-angle>{angleText(row.angleDeg, row.angleSigmaDeg)}</dd>
+              <dt>Motion from straight away, as you measure it</dt>
+              <dd data-angle={row.measuredAngleDeg} data-angle-cut={row.nullAngle95Deg}>{angleText(row.measuredAngleDeg)}</dd>
+              <dt>95% cut for a star it truly flew from</dt>
+              <dd>{angleText(row.nullAngle95Deg)}</dd>
+              <dt>Spread of the angle, rms per axis</dt>
+              <dd>{angleText(row.angleRmsDeg)}</dd>
               <dt>Distance from the machine</dt>
               <dd>{distText(row.distPc, g)}</dd>
               <dt>Speed relative to it</dt>
               <dd>{speedText(norm(relativeState(m, row.star).vKmS), g)}</dd>
-              <dt>Distance over speed</dt>
-              <dd>{yearsText(row.distOverSpeedYears, g, 4)}</dd>
+              <dt>Distance over speed, as you measure it</dt>
+              <dd data-dos={row.measuredDistOverSpeedYears}>{dosText(row.measuredDistOverSpeedYears, row.measuredDistOverSpeedInterval95, g)[0]}</dd>
+              <dt>95% from</dt>
+              <dd>{dosText(row.measuredDistOverSpeedYears, row.measuredDistOverSpeedInterval95, g)[1]}</dd>
+              <dt>to</dt>
+              <dd>{dosText(row.measuredDistOverSpeedYears, row.measuredDistOverSpeedInterval95, g)[2]}</dd>
             </dl>
           ) : (
             <NoRv m={m} id={star.id} />
@@ -66,7 +79,9 @@ export function TrailTool(p: { m: EpochModel }) {
           {row && star.rvFromPrimary && <p class="note">Its radial velocity is its companion's: it has none of its own in the catalogue.</p>}
           {row && id !== homeId(m) && (
             <p class="note tr-verdict">
-              {consistent(row) ? `Within ${TRAIL_CONSISTENT_SIGMA} of its measurement errors of straight away.` : `${(row.angleDeg / row.angleSigmaDeg).toFixed(0)} times its measurement error from straight away.`}
+              {consistent(row)
+                ? 'Inside the 95% cut: a star the machine truly flew from would show an angle this small or smaller 95% of the time.'
+                : `${cutRatio(row) < 10 ? cutRatio(row).toFixed(1) : cutRatio(row).toFixed(0)} times the 95% cut for a star it truly flew from.`}
             </p>
           )}
         </div>
@@ -102,7 +117,7 @@ function NoRv(p: { m: EpochModel; id: number }) {
         {b.map((x) => (
           <>
             <dt>Smallest possible angle, radial velocity up to {x.vmaxKmS} km/s</dt>
-            <dd>{x.angleDeg === null ? 'never within 10 pc' : angleText(x.angleDeg)}</dd>
+            <dd>{x.angleDeg === null ? `never within ${TRAIL_MAX_DIST_PC} pc` : angleText(x.angleDeg)}</dd>
           </>
         ))}
       </dl>

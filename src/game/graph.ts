@@ -330,17 +330,17 @@ const RAW_NODES: readonly Omit<NodeDef, 'question'>[] = [
     gloss: 'The uranium-234 grown inside the spot gives its age, with an error bar that shrinks the longer you count.',
     hints: [
       'Count what comes off it.',
-      'Separate the two kinds of uranium and count each; their ratio grows with time.',
+      'Count the alphas by their energy: each kind of uranium sends its own, and their ratio grows with time.',
       'Count long enough for a narrow error bar, then read the age from the ratio of uranium-234 to uranium-238.',
     ],
   },
   {
     id: 'spot.purity', chapter: 'spot', key: 'purity', checkedRow: 8, requires: ['spot.age'],
-    gloss: 'It started as pure uranium-238: the thorium-230 agrees, and natural uranium would not.',
+    gloss: 'It began as almost pure uranium-238, with almost none of the uranium-234 natural uranium carries: the thorium-230 agrees, and natural uranium would not.',
     hints: [
       'One clock assumes how it began. A second can check that.',
       'Count the thorium too.',
-      'With thorium-230 counted, test the two starting assumptions: only a pure start fits both clocks.',
+      'With thorium-230 counted, test the starting assumptions: only a start with almost no uranium-234 fits both clocks; natural uranium does not.',
     ],
   },
   {

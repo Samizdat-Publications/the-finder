@@ -68,26 +68,27 @@ export async function playTrail(page, { log, assert, shot, mapPlayable }) {
     const P = await import('/src/chapters/trail/physics.ts');
     const m = S.model.value;
     const origin = P.originRow(m);
-    const wrong = m.trailRows().find((r) => r.star.id !== 0 && r.star.id !== P.homeId(m) && r.angleSigmaDeg > 0);
+    const F = await import('/src/chapters/trail/format.ts');
+    const wrong = m.trailRows().find((r) => r.star.id !== 0 && r.star.id !== P.homeId(m) && r.nullAngle95Deg > 0);
     const E = await import('/src/science/epoch.ts');
     const near = E.nearestStars(m.inputs.stars, m.measured.posPc, m.disc.decimalYear, 3, [P.homeId(m)]);
     // the star without a radial velocity nearest the machine (drawn hollow on the chart)
     const hollow = E.nearestStars(m.inputs.stars, m.disc.craft.posPc, m.disc.decimalYear, 60, []).find((x) => !x.fullVelocity);
     return {
-      home: P.homeId(m), origin: origin.star.id, angle: origin.angleDeg, sigma: origin.angleSigmaDeg, interval: origin.distOverSpeedInterval95,
-      meet: P.meeting(m, origin.star).yearsAgo, wrong: wrong.star.id, wrongAngle: wrong.angleDeg, wrongName: P.starName(wrong.star),
+      home: P.homeId(m), origin: origin.star.id, angle: origin.measuredAngleDeg, cut: origin.nullAngle95Deg, interval: origin.measuredDistOverSpeedInterval95,
+      meet: P.meeting(m, origin.star).yearsAgo, wrong: wrong.star.id, wrongAngle: wrong.measuredAngleDeg, wrongAngleText: F.fmtDeg(wrong.measuredAngleDeg), wrongName: P.starName(wrong.star),
       ruler: P.rulerReading(m, origin.star), noRv: hollow.star.id, noRvName: P.starName(hollow.star), otherNear: near.find((x) => x.star.id !== origin.star.id).star.id, timings: { ...S.timings },
     };
   });
-  log(`model: origin ${ref.origin} at ${ref.angle.toFixed(4)} +/- ${ref.sigma.toFixed(4)} deg; meeting ${ref.meet.toFixed(0)} years; ruler ${ref.ruler.distPc.toFixed(4)} +/- ${ref.ruler.sigmaPc.toFixed(4)} pc; trailRows ${ref.timings.trailRows?.toFixed(0)} ms`);
+  log(`model: origin ${ref.origin} measured at ${ref.angle.toFixed(4)} deg (95% cut ${ref.cut.toFixed(4)}); meeting ${ref.meet.toFixed(0)} years; ruler ${ref.ruler.distPc.toFixed(4)} +/- ${ref.ruler.sigmaPc.toFixed(4)} pc; trailRows ${ref.timings.trailRows?.toFixed(0)} ms`);
   await shot('1-chart', 'The neighbourhood chart on entry: the stars within 10 pc of the machine, nothing picked.');
 
   // ---- trail.origin: a wrong star, then the Sun ----
   await clickStar(ref.wrong);
   assert((await page.locator(`[data-readout="${ref.wrong}"]`).count()) === 1, 'the wrong star is picked at its projected point');
   const o0 = await propose('trail.origin');
-  assert(!o0.ok && o0.message.includes(ref.wrongAngle.toFixed(ref.wrongAngle < 10 ? 2 : 1)), `a wrong star is rejected with its angle (${o0.message})`);
-  await shot('2-wrong-star-trail', `A wrong star's trail (${ref.wrongName}): the machine moves ${ref.wrongAngle.toFixed(2)} deg from straight away from it; the proposal is rejected with that angle.`);
+  assert(!o0.ok && o0.message.includes(ref.wrongAngleText), `a wrong star is rejected with its measured angle (${o0.message})`);
+  await shot('2-wrong-star-trail', `A wrong star's trail (${ref.wrongName}): the alien measures the machine moving ${ref.wrongAngle.toFixed(2)} deg from straight away from it; the proposal is rejected with that angle and its 95% cut.`);
   // a star without a radial velocity: drawn hollow; its readout gives the best angle any radial velocity allows
   await clickStar(ref.noRv);
   assert((await page.locator(`[data-readout="${ref.noRv}"] .tr-norv`).count()) === 1, 'a star without a radial velocity says so');
@@ -98,7 +99,7 @@ export async function playTrail(page, { log, assert, shot, mapPlayable }) {
   assert((await page.locator(`[data-readout="${ref.origin}"]`).count()) === 1, 'the Sun is picked at its projected point');
   const o1 = await propose('trail.origin');
   assert(o1.ok, `the Sun is accepted (${o1.message})`);
-  await shot('3-sun-trail', `The warm-white star's (the Sun's) trail: ${ref.angle.toFixed(4)} +/- ${ref.sigma.toFixed(4)} deg from straight away; trail.origin confirmed.`);
+  await shot('3-sun-trail', `The warm-white star's (the Sun's) trail: measured ${ref.angle.toFixed(3)} deg from straight away, inside the 95% cut of ${ref.cut.toFixed(3)} deg; trail.origin confirmed.`);
 
   // ---- trail.age: the run-back ----
   await tab('runback');
@@ -269,7 +270,7 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   record({
     id: 'chapter.trail',
     claim: 'The Trail plays in the browser through its instrument: a wrong star, a short run-back and a wrong distance are each rejected with their computed results; the warm-white star, the meeting and the ruler\'s distance confirm; with The Map built, the region view and the reframe confirm WHERE and WHEN.',
-    measured: `wrong star rejected (${r.ref.wrongName} ${r.ref.wrongAngle.toFixed(2)} deg); Sun ${r.ref.angle.toFixed(4)} +/- ${r.ref.sigma.toFixed(4)} deg accepted; meeting ${r.ref.meet.toFixed(0)} years accepted (95% ${r.ref.interval[0].toFixed(0)} to ${r.ref.interval[1].toFixed(0)}); ruler ${r.ref.ruler.distPc.toFixed(3)} +/- ${r.ref.ruler.sigmaPc.toFixed(3)} pc accepted; where and when: ${mapBuilt ? 'played' : 'skipped, map not built'}; ${perf.bench.toFixed(2)} ms per chart frame; longest measurement ${longest.toFixed(0)} ms`,
+    measured: `wrong star rejected (${r.ref.wrongName} ${r.ref.wrongAngle.toFixed(2)} deg); Sun measured ${r.ref.angle.toFixed(3)} deg (95% cut ${r.ref.cut.toFixed(3)}) accepted; meeting ${r.ref.meet.toFixed(0)} years accepted (95% ${r.ref.interval[0].toFixed(0)} to ${r.ref.interval[1].toFixed(0)}); ruler ${r.ref.ruler.distPc.toFixed(3)} +/- ${r.ref.ruler.sigmaPc.toFixed(3)} pc accepted; where and when: ${mapBuilt ? 'played' : 'skipped, map not built'}; ${perf.bench.toFixed(2)} ms per chart frame; longest measurement ${longest.toFixed(0)} ms`,
     expected: 'the same results as the Node checkers (trail.check.*); no console errors; no measurement over 1 s on the main thread (spec)',
     tolerance: 'exact (interface behaviour); 1 s for a blocking call',
     pass: true,

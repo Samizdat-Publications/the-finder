@@ -256,8 +256,10 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
       grp.add(arrow([0, 0, 0], g.relVelDir, VEL_ARROW_PC, 0xfff2c0, [1, 0.95, 0.75]));
       if (g.arc.length) grp.add(makePolyline(g.arc, 0xffffff, 0.9));
       const mid = g.arc[Math.floor(g.arc.length / 2)] ?? g.relVelDir;
-      const sig = g.angleSigmaDeg > 0 ? ` ± ${g.angleSigmaDeg < 0.1 ? g.angleSigmaDeg.toFixed(3) : g.angleSigmaDeg.toFixed(1)}` : '';
-      grp.add(labelAt(`${g.angleDeg < 1 ? g.angleDeg.toFixed(3) : g.angleDeg.toFixed(1)}${sig} deg`, scale(mid, 1.15), '#fff2c0', 14));
+      // The label is the alien's measurement and its 95% cut (M4 science audit finding 2); the drawn vectors are the catalogue's.
+      const f = (x: number): string => (x < 1 ? x.toFixed(3) : x.toFixed(1));
+      const cut = g.nullAngle95Deg > 0 ? ` (cut ${f(g.nullAngle95Deg)})` : '';
+      grp.add(labelAt(`${f(g.measuredAngleDeg)} deg${cut}`, scale(mid, 1.15), '#fff2c0', 14));
       root.add(grp);
       overlay.trail = grp;
       setHighlight(starId);

@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { recordCheck } from '../../tests/support/record';
 import {
-  ageFromTh230U234, ageFromU234, ageSolutions, fitAgeAndPurity, rtgState, simulateAlphaCounts, simulateRtgMeasurement,
+  acceptedStartRange, ageFromTh230U234, ageFromU234, ageSolutions, fitAgeAndPurity, rtgState, simulateAlphaCounts, simulateRtgMeasurement,
   testStartHypothesis, uraniumSpotState,
 } from './clocks';
 import { createRng } from './random';
+import { countingSession, naturalStartRatio } from './spot';
 
 // Coverage acceptance: with N = 1,000 trials the binomial standard error of a 95% coverage is
 // sqrt(0.95 x 0.05 / 1000) = 0.69%, so 93% to 97% is about +/- 3 standard errors (spec, M1 step 4).
@@ -160,6 +161,51 @@ describe('clocks: calibration of the uranium-spot clock', () => {
     expect(fit.hi).toBeGreaterThanOrEqual(44_000);
     expect(young.determinable).toBe(false);
   });
+});
+
+describe('clocks: the purity test at the game\'s 5% level', () => {
+  it('refuses a truly pure start at most about 5% of the time, and the accepted range of starts matches the test', () => {
+    // The Spot's own counting (spot.ts countingSession: the real detector's efficiency, hour quanta), one day,
+    // 1,000 seeded sessions of a truly pure spot 44,100 years old; the game refuses a start when p < 0.05
+    // (src/chapters/spot/checkers.ts REJECT_P). A pure start sits on the boundary r0 = 0, where the
+    // likelihood-ratio statistic follows a 50:50 mix of 0 and chi-square 1 (Chernoff 1954), so referring it
+    // to chi-square 1 refuses the truth about 2.5% of the time, not 5%: conservative.
+    const state = uraniumSpotState(44_100);
+    const DAY = 86_400;
+    const trials = 1000;
+    let refused = 0;
+    let naturalAccepted = 0;
+    const his: number[] = [];
+    let rangeOk = true;
+    for (let i = 0; i < trials; i++) {
+      const c = countingSession(state, createRng(`clocks.uranium.purity05/${i}`)).countsAt(DAY);
+      if (testStartHypothesis(c, 0).pValue < 0.05) refused++;
+      if (testStartHypothesis(c, naturalStartRatio()).pValue >= 0.05) naturalAccepted++;
+      if (i < 20) {
+        // The range's edges against the test itself: just inside accepted, just outside refused (1e-5 in r0).
+        const r = acceptedStartRange(c, 0.05);
+        his.push(r.hi);
+        rangeOk &&= testStartHypothesis(c, r.hi - 1e-5).pValue >= 0.05 && testStartHypothesis(c, r.hi + 1e-5).pValue < 0.05;
+        rangeOk &&= r.lo === 0 ? testStartHypothesis(c, 0).pValue >= 0.05 : testStartHypothesis(c, r.lo - 1e-5).pValue < 0.05;
+      }
+    }
+    const rate = refused / trials;
+    // Not anti-conservative: at most 5% plus 3 binomial standard errors (3 sqrt(0.05 x 0.95 / 1000) = 2.07 points).
+    const ceiling = 0.05 + 3 * Math.sqrt((0.05 * 0.95) / trials);
+    his.sort((a, b) => a - b);
+    const pass = rate <= ceiling && naturalAccepted === 0 && rangeOk;
+    console.log(`[purity05] pure start refused ${refused}/${trials}; natural accepted ${naturalAccepted}; accepted range upper edge (one day) median ${his[10]!.toFixed(4)}, ${his[0]!.toFixed(4)} to ${his[19]!.toFixed(4)}; natural ${naturalStartRatio().toFixed(4)}`);
+    recordCheck({
+      id: 'clocks.uranium.purity05',
+      claim: 'At the game\'s 5% level the purity test refuses a truly pure spot only rarely, never accepts natural uranium after a day\'s count, and the range of starts it accepts is computed exactly.',
+      measured: `pure start refused in ${refused} of ${trials} one-day counts (${(rate * 100).toFixed(1)}%); natural uranium (A234/A238 ${naturalStartRatio().toFixed(3)}) accepted in ${naturalAccepted}; accepted starts run from 0 up to ${his[0]!.toFixed(3)} to ${his[19]!.toFixed(3)} (median ${his[10]!.toFixed(3)}) over 20 sessions`,
+      expected: 'At most 5% refused (about 2.5% for a start on the boundary, Chernoff 1954); natural uranium never accepted; each range edge where the test\'s p-value crosses 0.05',
+      tolerance: `refusal rate at most ${(ceiling * 100).toFixed(1)}% (5% plus 3 binomial standard errors); edges to 1e-5 in the starting ratio`,
+      pass,
+      notes: 'The Spot\'s counting session (spot.ts countingSession, detector efficiency 0.0528), one day at 44,100 years; seeds clocks.uranium.purity05/0 to /999.',
+    });
+    expect(pass).toBe(true);
+  }, 120_000);
 });
 
 describe('clocks: calibration of the RTG clock', () => {

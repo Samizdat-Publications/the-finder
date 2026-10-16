@@ -8,6 +8,8 @@ import { loadCover, loadGlitches, loadPulsars, loadScenario, loadStars } from '.
 import { recordCheck } from '../../../tests/support/record';
 import { DEFAULT_SEED, type Answer, type CheckResult } from '../../game/deductions';
 import { norm, sub } from '../../science/astro';
+import { brightestStars, nearestStars } from '../../science/epoch';
+import { chiSquareSf } from '../../science/stats';
 import { starStateAt } from '../../science/epoch';
 import { datePulsar, velocityMahalanobis2 } from '../../science/pulsarAge';
 import { dateMapToday } from '../../science/pulsars';
@@ -16,7 +18,8 @@ import { SAGAN_HYDROGEN_HZ } from '../../science/units';
 import { EPOCH_DRAWS, TRAIL_MAX_DIST_PC, buildEpochModel, type EpochModel } from '../shared/epochModel';
 import { AGREE_CHI2_PER_DOF, RULER_SIGMAS, makeTrailCheckers } from './checkers';
 import { agesInFrame, judgedLines, observerRelativeTo, oldSpread } from './frames';
-import { consistentRows, homeId, meeting, nextBest, originRow, regionStars, rulerReading, separationAt, starById } from './physics';
+import { fmtDeg } from './format';
+import { consistent, consistentRows, homeId, meeting, nextBest, originRow, regionStars, rulerReading, separationAt, starById } from './physics';
 
 const inputs = { scenario: loadScenario(), stars: loadStars(), catalogue: loadPulsars(), cover: loadCover() };
 const SEEDS = [DEFAULT_SEED, 'trail-seed-2', 'trail-seed-3'];
@@ -47,12 +50,16 @@ function mapTruthYears(m: EpochModel, kept: { jname: string }[], weights: Map<st
 describe('The Trail: helpers', () => {
   it('the run-back meets the Sun at distance over speed, and the separation is smallest there', () => {
     const row = originRow(m0);
-    const meet = meeting(m0, row.star);
+    // The science on catalogue values: the meeting is the time since launch.
+    const meet = meeting(m0, row.star, 'catalogue');
     // At the meeting the separation is the miss distance, d sin(angle) (geometry), and the time is d cos(angle) / v.
     expect(meet.missPc).toBeCloseTo(row.distPc * Math.sin((row.angleDeg * Math.PI) / 180), 9);
     expect(meet.yearsAgo).toBeCloseTo(row.distOverSpeedYears * Math.cos((row.angleDeg * Math.PI) / 180), 6);
-    expect(separationAt(m0, row.star, 0)).toBeCloseTo(row.distPc, 9);
-    for (const dt of [-500, 500]) expect(separationAt(m0, row.star, meet.yearsAgo + dt)).toBeGreaterThan(meet.missPc);
+    expect(separationAt(m0, row.star, 0, 'catalogue')).toBeCloseTo(row.distPc, 9);
+    for (const dt of [-500, 500]) expect(separationAt(m0, row.star, meet.yearsAgo + dt, 'catalogue')).toBeGreaterThan(meet.missPc);
+    // The instrument runs back on the alien's measurement: the same geometry on the measured values.
+    const mm = meeting(m0, row.star);
+    expect(mm.yearsAgo).toBeCloseTo(row.measuredDistOverSpeedYears * Math.cos((row.measuredAngleDeg * Math.PI) / 180), 6);
     const pass = Math.abs(meet.yearsAgo - truthAge) <= 1 && meet.missPc < 1e-3;
     recordCheck({
       id: 'trail.runBack',
@@ -104,14 +111,23 @@ describe('The Trail: helpers', () => {
     // The ages snap together only in the origin star's frame (dating.epoch.reframe): there they agree within
     // their errors (chi-square per degree of freedom under 2, the 95% point for 9 to 11 dof is 1.8 to 1.9);
     // in the alien's own frame and the next-best star's they do not (more than 5, far beyond the 99.9% point).
-    const pass = sunS.chi2PerDof < AGREE_CHI2_PER_DOF && ownS.chi2PerDof > 5 && othS.chi2PerDof > 5;
+    // How many other frames would also fit (M4 science audit finding 10): every catalogue star with a distance
+    // and a radial velocity, its frame tested by the 3-component velocity agreement at 95% (chi-square 7.815)
+    // between the motion fitted from the pulsars alone and the alien's motion relative to that star.
+    const fit = m0.motionFit();
+    const scan = [...m0.inputs.stars.near, ...m0.inputs.stars.sky].filter((s) => s.distPc !== null && s.rvKmS !== null && s.id !== 0 && s.id !== homeId(m0));
+    const fits = scan.filter((s) => velocityMahalanobis2(fit, observerRelativeTo(m0, s).velKmS) <= 7.815);
+    const sunFits = velocityMahalanobis2(fit, observerRelativeTo(m0, sun).velKmS) <= 7.815;
+    console.log(`[trail.reframe] other frames that also fit at 95%: ${fits.length} of ${scan.length} (${fits.map((s) => s.name ?? s.gl ?? s.id).join(', ')})`);
+    const pass = sunS.chi2PerDof < AGREE_CHI2_PER_DOF && ownS.chi2PerDof > 5 && othS.chi2PerDof > 5 && sunFits && fits.length / scan.length < 0.01;
     recordCheck({
       id: 'trail.reframe',
-      claim: "The map's ages agree only in the frame of the star the machine came from: in the alien's own frame, or the frame of the next-best star, they scatter.",
-      measured: `old lines' chi-square per degree of freedom ${sunS.chi2PerDof.toFixed(2)} in the warm-white star's frame (spread ${sunS.spread.toFixed(0)} years), ${ownS.chi2PerDof.toFixed(1)} in the alien's own (${ownS.spread.toFixed(0)} years), ${othS.chi2PerDof.toFixed(1)} in ${other.name ?? other.gl ?? other.id}'s (${othS.spread.toFixed(0)} years)`,
-      expected: 'agreement within the errors only in the origin frame (dating.epoch.reframe, dating.epoch.noReframe)',
-      tolerance: `chi-square per dof under 2 in the origin frame, over 5 elsewhere; medians and sigmas of ${EPOCH_DRAWS} seeded draws per line (seed "${m0.seed}")`,
+      claim: "The map's ages agree in the frame of the star the machine came from, and in almost no other: in the alien's own frame, or the frame of the next-best star, they scatter, and of the catalogue's stars with radial velocities only a handful (under 1%) give a frame whose motion fits as well.",
+      measured: `old lines' chi-square per degree of freedom ${sunS.chi2PerDof.toFixed(2)} in the warm-white star's frame (spread ${sunS.spread.toFixed(0)} years), ${ownS.chi2PerDof.toFixed(1)} in the alien's own (${ownS.spread.toFixed(0)} years), ${othS.chi2PerDof.toFixed(1)} in ${other.name ?? other.gl ?? other.id}'s (${othS.spread.toFixed(0)} years); other frames that also fit at 95%: ${fits.length} of ${scan.length}`,
+      expected: 'agreement within the errors in the origin frame (dating.epoch.reframe, dating.epoch.noReframe); other frames that fit, under 1% of the catalogue',
+      tolerance: `chi-square per dof under 2 in the origin frame, over 5 elsewhere; medians and sigmas of ${EPOCH_DRAWS} seeded draws per line (seed "${m0.seed}"); frames counted by the 3-component velocity agreement at 95% (chi-square 7.815)`,
       pass,
+      notes: `Other frames that also fit at 95%: ${fits.length} of ${scan.length} catalogue stars with radial velocities (${fits.map((s) => s.name ?? s.gl ?? s.id).join(', ')}); the M4 science audit found 6 of 9,701 before the Birge factor widened the fit's covariance.`,
     });
     expect(pass).toBe(true);
   }, 60_000);
@@ -126,13 +142,18 @@ describe('The Trail: checkers', () => {
     const row = originRow(m);
     const age = run(seed, 'trail.age', { years: Math.round(meeting(m, row.star).yearsAgo) });
     expect(age.ok, age.message).toBe(true);
-    const [lo, hi] = row.distOverSpeedInterval95!;
-    expect(lo <= truthAge && truthAge <= hi).toBe(true); // the interval holds the time since launch
+    const [lo, hi] = row.measuredDistOverSpeedInterval95;
+    // The measured interval holds the time since launch for these seeds (about 95% of seeds do: trail.ageCoverage).
+    expect(lo <= truthAge && truthAge <= hi).toBe(true);
     const nb = run(seed, 'trail.neighbour', { distancePc: rulerReading(m, row.star).distPc });
     expect(nb.ok, nb.message).toBe(true);
-    // D-A15: the nearest catalogued star and the fifth-brightest in the alien's sky.
-    expect(nb.result.find((r) => r.key === 'rank by distance')?.value).toBe(1);
-    expect(nb.result.find((r) => r.key === 'rank by brightness')?.value).toBe(5);
+    // D-A15's ranks, computed here from the alien's true position (epoch.ts nearestStars and brightestStars at
+    // m.truth), not from the measured one the checker uses: the nearest catalogued star and the fifth-brightest.
+    const home = homeId(m);
+    const rankDist = nearestStars(m.inputs.stars, m.truth.posPc, m.disc.decimalYear, 20, [home]).findIndex((x) => x.star.id === row.star.id) + 1;
+    const rankBright = brightestStars(m.inputs.stars, m.truth.posPc, m.disc.decimalYear, 20, [home]).findIndex((x) => x.star.id === row.star.id) + 1;
+    expect(nb.result.find((r) => r.key === 'rank by distance')?.value).toBe(rankDist);
+    expect(nb.result.find((r) => r.key === 'rank by brightness')?.value).toBe(rankBright);
     const where = run(seed, 'trail.where', { starId: 0 });
     expect(where.ok, where.message).toBe(true);
     const sun = m.ages('sun').combined;
@@ -143,52 +164,56 @@ describe('The Trail: checkers', () => {
     if (seed === DEFAULT_SEED) {
       const r = rulerReading(m, row.star);
       const nx = nextBest(m);
-      const d2 = velocityMahalanobis2(m.motionFit(), m.measured.velKmS);
+      const rel = observerRelativeTo(m, row.star);
+      const d2 = velocityMahalanobis2(m.motionFit(), rel.velKmS);
+      const pMis = chiSquareSf(d2, 3);
       const inRegion = regionStars(m).filter((s) => s.inside).length;
+      const whereLevel = String(where.result.find((x) => x.key === 'region contour through it')?.value);
+      const others = SEEDS.map((sd) => consistentRows(models.get(sd)!).map((x) => x.star.id).join(','));
       console.log(`[trail] origin: ${origin.message}`);
-      console.log(`[trail] next: ${nx.row.star.name ?? nx.row.star.gl} ${nx.row.angleDeg.toFixed(3)} +/- ${nx.row.angleSigmaDeg.toFixed(3)} deg (${nx.sigmas.toFixed(0)} sigma)`);
+      console.log(`[trail] next: ${nx.row.star.name ?? nx.row.star.gl} measured ${nx.row.measuredAngleDeg.toFixed(3)} deg, cut ${nx.row.nullAngle95Deg.toFixed(3)} (${nx.cuts.toFixed(0)} times)`);
       console.log(`[trail] age: ${age.message}`);
       console.log(`[trail] neighbour: ${nb.message}`);
       console.log(`[trail] where: ${where.message}`);
       console.log(`[trail] when: ${when.message}`);
       recordCheck({
         id: 'trail.check.origin',
-        claim: 'In The Trail the player picks the star the machine flies straight away from; only the warm-white star (the Sun) is accepted, and every other star is ruled out with its computed angle.',
-        measured: `Sun ${row.angleDeg.toFixed(4)} +/- ${row.angleSigmaDeg.toFixed(4)} deg; next ${nx.row.star.name ?? nx.row.star.gl} ${nx.row.angleDeg.toFixed(2)} +/- ${nx.row.angleSigmaDeg.toFixed(3)} deg (${nx.sigmas.toFixed(0)} sigma); seeds ${SEEDS.join(', ')} all pick the Sun alone`,
-        expected: 'the Sun, the star Voyager 1 was launched from (scenario.json); trail.uniqueWithErrors',
-        tolerance: 'angle within 2 of its own sigma (TRAIL_CONSISTENT_SIGMA, kinematics.ts)',
-        pass: true,
+        claim: 'In The Trail the player picks the star the machine flies straight away from; the warm-white star (the Sun) is accepted when its measured angle lies inside the 95% cut for a star the machine truly flew from, and every other star is ruled out with its measured angle and cut.',
+        measured: `default seed: Sun measured ${row.measuredAngleDeg.toFixed(3)} deg against a cut of ${row.nullAngle95Deg.toFixed(3)} deg (rms ${row.angleRmsDeg.toFixed(3)} deg per axis); next ${nx.row.star.name ?? nx.row.star.gl} ${nx.row.measuredAngleDeg.toFixed(2)} deg against ${nx.row.nullAngle95Deg.toFixed(3)} (${nx.cuts.toFixed(0)} times its cut); stars inside the cut for seeds ${SEEDS.join(', ')}: ${others.join('; ')}`,
+        expected: 'the Sun, the star Voyager 1 was launched from (scenario.json), alone; trail.uniqueWithErrors, trail.originCoverage',
+        tolerance: 'the measured angle at most the 95th percentile of the null (a truly radial motion at the measured speed, kinematics.ts)',
+        pass: consistent(row) && row.star.id === 0 && others.every((x) => x === '0'),
       });
       recordCheck({
         id: 'trail.check.age',
-        claim: 'The run-back time the player proposes is accepted only inside the 95% interval of distance over speed, which holds the time since launch.',
-        measured: `distance over speed ${row.distOverSpeedYears.toFixed(0)} years, 95% ${lo.toFixed(0)} to ${hi.toFixed(0)}; meeting at ${meeting(m, row.star).yearsAgo.toFixed(0)}`,
-        expected: `${truthAge.toFixed(1)} years since launch (scenario.json)`,
-        tolerance: 'the 95% interval from 2,000 seeded simulated measurements (kinematics.ts)',
+        claim: "The run-back time the player proposes is accepted only inside the 95% interval of distance over speed built around the alien's measurement; that interval holds the time since launch about 95% of the time.",
+        measured: `measured distance over speed ${row.measuredDistOverSpeedYears.toFixed(0)} years, 95% ${lo.toFixed(0)} to ${hi.toFixed(0)}; meeting at ${meeting(m, row.star).yearsAgo.toFixed(0)}; the interval holds the time since launch for seeds ${SEEDS.join(', ')}`,
+        expected: `${truthAge.toFixed(1)} years since launch (scenario.json); coverage trail.ageCoverage`,
+        tolerance: 'the measured interval, basic bootstrap of 2,000 seeded draws about the measured state (kinematics.ts)',
         pass: lo <= truthAge && truthAge <= hi,
       });
       recordCheck({
         id: 'trail.check.neighbour',
         claim: "The ruler's distance to the origin star is accepted within two of its errors, and the result names the twist: it is the alien's nearest catalogued star and the fifth-brightest in its sky.",
-        measured: `${r.distPc.toFixed(4)} +/- ${r.sigmaPc.toFixed(4)} pc; rank by distance 1; rank by brightness 5 (${nb.result.find((x) => x.key === 'magnitude in your sky')?.value} mag)`,
-        expected: 'D-A15: nearest at 1.024 pc, fifth-brightest at magnitude -0.14 (epoch.neighbours, epoch.sunBrightness)',
+        measured: `${r.distPc.toFixed(4)} +/- ${r.sigmaPc.toFixed(4)} pc; rank by distance ${String(nb.result.find((x) => x.key === 'rank by distance')?.value)}; rank by brightness ${String(nb.result.find((x) => x.key === 'rank by brightness')?.value)} (${nb.result.find((x) => x.key === 'magnitude in your sky')?.value} mag)`,
+        expected: `D-A15: nearest at 1.024 pc, fifth-brightest at magnitude -0.14 (epoch.neighbours, epoch.sunBrightness); ranks from the alien's true position: ${rankDist} and ${rankBright}`,
         tolerance: `${RULER_SIGMAS} ruler sigmas; ranks exact`,
-        pass: true,
+        pass: nb.ok && rankDist === 1 && rankBright === 5 && Math.abs(r.distPc - norm(m.truth.posPc)) <= RULER_SIGMAS * r.sigmaPc,
       });
       recordCheck({
         id: 'trail.check.where',
         claim: "The star the machine came from lies inside the map's 95% origin region at the map epoch, one of many stars there; the checker accepts only that star.",
-        measured: `Sun inside (contour ${where.result.find((x) => x.key === 'region contour through it')?.value}); ${inRegion} near stars inside the region`,
+        measured: `Sun inside (contour ${whereLevel}); ${inRegion} near stars inside the region`,
         expected: 'the Sun inside the region (triangulation.epoch, HOW_ITS_CHECKED row 6)',
         tolerance: `the 95% ellipse, chi-square ${CHI2_2DOF_95.toFixed(3)} for two dimensions`,
-        pass: true,
+        pass: where.ok && inRegion > 1,
       });
       recordCheck({
         id: 'trail.check.when',
-        claim: "Proposed in the origin star's rest frame, the map's age is accepted inside the combined 95% interval, which holds the map's true age; the fitted motion agrees with the measured one.",
-        measured: `${sun.estimate.toFixed(0)} years (95% ${sun.lo.toFixed(0)} to ${sun.hi.toFixed(0)}); velocity agreement ${Math.sqrt(d2).toFixed(2)} sigma (Mahalanobis, 3 components)`,
+        claim: "Proposed in the origin star's rest frame, the map's age is accepted inside the combined 95% interval, which holds the map's true age; the motion fitted from the pulsars agrees with the alien's star's measured motion relative to the origin star.",
+        measured: `${sun.estimate.toFixed(0)} years (95% ${sun.lo.toFixed(0)} to ${sun.hi.toFixed(0)}); velocity mismatch chi-square ${d2.toFixed(2)} for 3 components, a mismatch at least this large ${(pMis * 100).toFixed(0)}% of the time`,
         expected: `${truth.toFixed(0)} years, the kept lines' own implied epochs today, weighted as combined (pulsarAge.test.ts truthYears)`,
-        tolerance: 'the combined 95% interval (dating.epoch.coverage calibrates it)',
+        tolerance: 'the combined 95% interval (dating.epoch.coverage calibrates it); the velocity agreement as a chi-square probability for 3 degrees of freedom',
         pass: sun.lo <= truth && truth <= sun.hi,
       });
     }
@@ -198,7 +223,8 @@ describe('The Trail: checkers', () => {
     const nx = nextBest(m0).row;
     const r = run(DEFAULT_SEED, 'trail.origin', { starId: nx.star.id });
     expect(r.ok).toBe(false);
-    expect(r.message).toContain(`${nx.angleDeg.toFixed(nx.angleDeg < 10 ? 2 : 1)}`);
+    expect(r.message).toContain(fmtDeg(nx.measuredAngleDeg));
+    expect(r.message).toContain(fmtDeg(nx.nullAngle95Deg));
     const far = m0.trailRows().find((x) => x.angleDeg > 30 && x.star.id !== homeId(m0))!;
     expect(run(DEFAULT_SEED, 'trail.origin', { starId: far.star.id }).ok).toBe(false);
   });
@@ -222,7 +248,7 @@ describe('The Trail: checkers', () => {
   });
 
   it('a run-back time outside the interval is rejected with the interval', () => {
-    const [lo, hi] = originRow(m0).distOverSpeedInterval95!;
+    const [lo, hi] = originRow(m0).measuredDistOverSpeedInterval95;
     for (const y of [lo - 2000, hi + 2000]) {
       const r = run(DEFAULT_SEED, 'trail.age', { years: y });
       expect(r.ok).toBe(false);

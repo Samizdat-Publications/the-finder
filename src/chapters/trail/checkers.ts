@@ -5,14 +5,14 @@
 
 import { registerChecker, type Answer, type CheckContext, type CheckResult, type Checker, type Reading } from '../../game/deductions';
 import { brightestStars, nearestStars } from '../../science/epoch';
-import { TRAIL_CONSISTENT_SIGMA } from '../../science/kinematics';
 import { velocityMahalanobis2 } from '../../science/pulsarAge';
+import { chiSquareSf } from '../../science/stats';
 import { insideRegion, regionLevel } from '../../science/triangulation';
 import { JULIAN_YEAR_S } from '../../science/units';
-import { epochModel, type EpochModel } from '../shared/epochModel';
-import { distText, fmtDeg, fmtPc, fmtYears } from './format';
-import { agesInFrame, judgedLines, oldSpread, type FrameId } from './frames';
-import { consistent, homeId, noRvBounds, originRow, regionStars, rowFor, rulerReading, starById, starName } from './physics';
+import { TRAIL_MAX_DIST_PC, epochModel, type EpochModel } from '../shared/epochModel';
+import { distText, figuresFor, fmtDeg, fmtPc, fmtYears, yearsText } from './format';
+import { agesInFrame, judgedLines, observerRelativeTo, oldSpread, type FrameId } from './frames';
+import { consistent, cutRatio, homeId, noRvBounds, originRow, regionStars, rowFor, rulerReading, starById, starName } from './physics';
 
 export const TRAIL_NODE_IDS = ['trail.origin', 'trail.age', 'trail.neighbour', 'trail.where', 'trail.when'] as const;
 export type TrailNodeId = (typeof TRAIL_NODE_IDS)[number];
@@ -35,6 +35,15 @@ export type ModelProvider = (seed: string) => EpochModel;
 // kilometres with fourteen digits (the message gives the parsecs) ----
 const time = (key: string, years: number): Reading => ({ key, value: years * JULIAN_YEAR_S, dim: 'time' });
 const length = (key: string, pc: number): Reading => ({ key, value: distText(pc, false) });
+/** An estimate and its 95% interval as readings, each with the figures that tell the three apart (format.ts figuresFor). */
+function interval(keys: [string, string, string], est: number, lo: number, hi: number): Reading[] {
+  const d = figuresFor(Math.max(Math.abs(est), Math.abs(lo), Math.abs(hi)), hi - lo);
+  return [
+    { key: keys[0], value: yearsText(est, false, d) },
+    { key: keys[1], value: yearsText(lo, false, d) },
+    { key: keys[2], value: yearsText(hi, false, d) },
+  ];
+}
 
 function obj(answer: Answer): Record<string, Answer> {
   if (answer === null || typeof answer !== 'object' || Array.isArray(answer)) throw new Error('Propose an object.');
@@ -69,7 +78,7 @@ export function checkOrigin(m: EpochModel, answer: Answer): CheckResult {
   if (!row) {
     if (star.rvKmS === null) {
       const b = noRvBounds(m, star);
-      const parts = b.map((x) => (x.angleDeg === null ? `no radial velocity up to ${x.vmaxKmS} km/s brings it within 10 pc` : `at best ${fmtDeg(x.angleDeg)} deg for any radial velocity up to ${x.vmaxKmS} km/s`));
+      const parts = b.map((x) => (x.angleDeg === null ? `no radial velocity up to ${x.vmaxKmS} km/s brings it within ${TRAIL_MAX_DIST_PC} pc` : `at best ${fmtDeg(x.angleDeg)} deg for any radial velocity up to ${x.vmaxKmS} km/s`));
       return {
         ok: false,
         result: [
@@ -79,40 +88,43 @@ export function checkOrigin(m: EpochModel, answer: Answer): CheckResult {
         message: `${name} has no measured radial velocity, so its motion along your line of sight is unknown and its trail cannot be drawn exactly. Even so, trying every radial velocity: ${parts.join('; ')}. The machine is not flying straight away from it.`,
       };
     }
-    throw new Error(`${name} is more than 10 pc from the machine: it is not on your chart.`);
+    throw new Error(`${name} is more than ${TRAIL_MAX_DIST_PC} pc from the machine: it is not on your chart.`);
   }
   const result: Reading[] = [
     { key: 'star', value: name },
-    { key: 'angle from straight away', value: `${fmtDeg(row.angleDeg)} ± ${fmtDeg(row.angleSigmaDeg)} deg` },
+    { key: 'measured angle from straight away', value: `${fmtDeg(row.measuredAngleDeg)} deg` },
+    { key: '95% cut for a star it flew from', value: `${fmtDeg(row.nullAngle95Deg)} deg` },
+    { key: 'rms of the angle per axis', value: `${fmtDeg(row.angleRmsDeg)} deg` },
     length('distance', row.distPc),
   ];
+  const cut = `a star it truly flew from would show at most ${fmtDeg(row.nullAngle95Deg)} deg 95% of the time (rms ${fmtDeg(row.angleRmsDeg)} deg per axis)`;
   if (consistent(row)) {
     return {
       ok: true,
       result,
-      message: `The machine flies straight away from ${name}: ${fmtDeg(row.angleDeg)} ± ${fmtDeg(row.angleSigmaDeg)} deg from the line out of it, within ${TRAIL_CONSISTENT_SIGMA} of its own measurement errors. It came from there, ${fmtPc(row.distPc)} pc behind it.`,
+      message: `The machine flies straight away from ${name}: you measure ${fmtDeg(row.measuredAngleDeg)} deg between its motion relative to ${name} and the line out of it, and ${cut}. It came from there, ${fmtPc(row.distPc)} pc behind it.`,
     };
   }
   return {
     ok: false,
     result,
-    message: `It moves at ${fmtDeg(row.angleDeg)} ± ${fmtDeg(row.angleSigmaDeg)} deg from straight away from ${name}: ${(row.angleDeg / row.angleSigmaDeg).toFixed(0)} times its measurement error. Something thrown from there would fly straight out of it.`,
+    message: `You measure ${fmtDeg(row.measuredAngleDeg)} deg between the machine's motion relative to ${name} and straight away from it; ${cut}: this is ${cutRatio(row) < 10 ? cutRatio(row).toFixed(1) : cutRatio(row).toFixed(0)} times that. Something thrown from there would fly straight out of it.`,
   };
 }
 
-/** trail.age: is this time inside the interval distance over speed allows? */
+/** trail.age: is this time inside the interval distance over speed allows, built around the alien's measurement? */
 export function checkAge(m: EpochModel, answer: Answer): CheckResult {
   const years = num(obj(answer), 'years', -1e9, 1e9);
   const row = originRow(m);
-  const [lo, hi] = row.distOverSpeedInterval95 ?? [row.distOverSpeedYears, row.distOverSpeedYears];
+  const [lo, hi] = row.measuredDistOverSpeedInterval95;
   const ok = years >= lo && years <= hi;
-  const result: Reading[] = [time('distance over speed', row.distOverSpeedYears), time('95% low', lo), time('95% high', hi)];
+  const result: Reading[] = interval(['distance over speed', '95% low', '95% high'], row.measuredDistOverSpeedYears, lo, hi);
   return {
     ok,
     result,
     message: ok
-      ? `Run back together, the machine and ${starName(row.star)} meet ${fmtYears(years)} years ago. Distance over speed gives ${fmtYears(row.distOverSpeedYears)} years (95%: ${fmtYears(lo)} to ${fmtYears(hi)}, set almost entirely by the error on the speed): a third clock.`
-      : `${fmtYears(years)} years is outside what the measurement allows: distance over speed gives ${fmtYears(row.distOverSpeedYears)} years, 95% between ${fmtYears(lo)} and ${fmtYears(hi)}. ${years < lo ? 'At that time they are still apart: run back further.' : 'By then they have passed each other: run back less far.'}`,
+      ? `Run back together, the machine and ${starName(row.star)} meet ${fmtYears(years)} years ago. You measure distance over speed as ${fmtYears(row.measuredDistOverSpeedYears)} years (95%: ${fmtYears(lo)} to ${fmtYears(hi)}, set almost entirely by the error on the speed): a third clock.`
+      : `${fmtYears(years)} years is outside what the measurement allows: you measure distance over speed as ${fmtYears(row.measuredDistOverSpeedYears)} years, 95% between ${fmtYears(lo)} and ${fmtYears(hi)}. ${years < lo ? 'At that time they are still apart: run back further.' : 'By then they have passed each other: run back less far.'}`,
   };
 }
 
@@ -215,13 +227,18 @@ export function checkWhen(m: EpochModel, answer: Answer): CheckResult {
   const sun = agesInFrame(m, origin.id === 0 ? 0 : origin.id, origin).combined;
   const fit = m.motionFit();
   const row = originRow(m);
-  const [tlo, thi] = row.distOverSpeedInterval95 ?? [row.distOverSpeedYears, row.distOverSpeedYears];
+  const [tlo, thi] = row.measuredDistOverSpeedInterval95;
   const inFrame = frame === null || frame === origin.id;
   const inside = years >= sun.lo && years <= sun.hi;
   const ok = inFrame && inside;
   const name = starName(origin);
   if (!ok) {
-    const result: Reading[] = [time('proposed', years), time(`map's age in ${name}'s frame, 95% low`, sun.lo), time('95% high', sun.hi)];
+    const d = figuresFor(Math.max(Math.abs(years), Math.abs(sun.lo), Math.abs(sun.hi)), sun.hi - sun.lo);
+    const result: Reading[] = [
+      { key: 'proposed', value: yearsText(years, false, d) },
+      { key: `map's age in ${name}'s frame, 95% low`, value: yearsText(sun.lo, false, d) },
+      { key: '95% high', value: yearsText(sun.hi, false, d) },
+    ];
     let msg = `In ${name}'s rest frame the old lines agree on ${fmtYears(sun.estimate)} years ago (95%: ${fmtYears(sun.lo)} to ${fmtYears(sun.hi)}); ${fmtYears(years)} is ${inside ? 'inside that' : 'outside that'}.`;
     if (!inFrame && frame !== null) {
       const fstar = frame === 'own' ? undefined : starById(m, frame);
@@ -238,21 +255,23 @@ export function checkWhen(m: EpochModel, answer: Answer): CheckResult {
     }
     return { ok: false, result, message: msg };
   }
-  const d2 = velocityMahalanobis2(fit, m.measured.velKmS);
-  const nSigma = Math.sqrt(d2);
+  // The cross-check in the origin star's frame: your star's measured motion relative to it (frames.ts
+  // observerRelativeTo) against the motion The Map fitted from the pulsars alone. For 3 components the chance of
+  // a mismatch at least this large is the chi-square survival function at the squared Mahalanobis distance.
+  const d2 = velocityMahalanobis2(fit, observerRelativeTo(m, origin).velKmS);
+  const p = chiSquareSf(d2, 3);
+  const pct = p >= 0.1 ? `${Math.round(p * 100)}%` : p >= 0.001 ? `${(p * 100).toPrecision(2)}%` : 'under 0.1%';
   return {
     ok: true,
     result: [
-      time("map's age", sun.estimate),
-      time('95% low', sun.lo),
-      time('95% high', sun.hi),
-      { key: 'velocity agreement', value: `within ${nSigma.toFixed(1)} sigma` },
-      time('travel time', row.distOverSpeedYears),
+      ...interval(["map's age", '95% low', '95% high'], sun.estimate, sun.lo, sun.hi),
+      { key: 'chance of a velocity mismatch this large', value: pct },
+      ...interval(['travel time', 'travel time 95% low', 'travel time 95% high'], row.measuredDistOverSpeedYears, tlo, thi),
     ],
     message:
       `In ${name}'s rest frame the old pulsars agree: the map was made ${fmtYears(sun.estimate)} years ago (95%: ${fmtYears(sun.lo)} to ${fmtYears(sun.hi)}). ` +
-      `Cross-check: the motion The Map fitted from the pulsars alone matches ${name}'s measured velocity relative to your star within ${nSigma.toFixed(1)} sigma, ` +
-      `and the machine has travelled ${fmtYears(row.distOverSpeedYears)} years (95%: ${fmtYears(tlo)} to ${fmtYears(thi)}). The map was made, and the machine sent, at about the same time.`,
+      `Cross-check: the motion The Map fitted from the pulsars alone matches your star's measured motion relative to ${name}; a mismatch at least this large would happen by chance ${pct} of the time (3 components). ` +
+      `And the machine has travelled ${fmtYears(row.measuredDistOverSpeedYears)} years (95%: ${fmtYears(tlo)} to ${fmtYears(thi)}). The map was made, and the machine sent, at about the same time.`,
   };
 }
 

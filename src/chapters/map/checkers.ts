@@ -13,7 +13,7 @@ import { HYDROGEN_HZ, JULIAN_YEAR_S, PARSEC_KM } from '../../science/units';
 import { epochModel, type EpochModel } from '../shared/epochModel';
 import {
   axisFromGalactic, axisLineFit, bearingResiduals, candidateReadout, galacticOf, isYoung, lengthMisfit, lineIsOld, lineOf, log10BestOver, mapPoints, matchOf,
-  skyAges, starsInRegion, type CandidateReadout,
+  PRESELECT_DIRECTION_DEG, skyAges, starsInRegion, type CandidateReadout,
 } from './mapMath';
 import { oddsText, timesText } from './odds';
 
@@ -60,22 +60,30 @@ function lineReadings(r: CandidateReadout): Reading[] {
 }
 
 const NOT_CONSIDERED: Record<'direction' | 'age', string> = {
-  direction: 'its direction is further from the line than the map allows (5 deg)',
-  age: 'no age the Arrival clock allows makes its period reach the map\'s number, for any braking index',
+  direction: `its direction is more than ${PRESELECT_DIRECTION_DEG} deg from the line, beyond the pre-selection's tolerance`,
+  age: "no age the Arrival clock allows makes its period reach the map's number, for any braking index",
 };
 
 function ppm(r: CandidateReadout): string {
   return `${sig(((r.periodNowS - r.mapPeriodS) / r.mapPeriodS) * 1e6)} parts per million`;
 }
 
-/** map.periods: one old line read as the period of the pulsar the player put on it. */
+/** What a line that is not a pass-1 anchor needs, said as the young lines say theirs. */
+const NEEDS_AGE = "By period, direction and latitude alone, all you can use before the map is dated, this line does not stand out; it will once the map's age and origin are known. Start with a line that stands out on its own.";
+
+/**
+ * map.periods: one old line read as the period of the pulsar the player put on it. Judged on pass 1 of the
+ * identification (period, direction and latitude; the map's age and origin are not known yet): accepted only
+ * for a pass-1 anchor, the line's best candidate with odds of at least 20 to 1 (ANCHOR_LOG10_MARGIN), and not
+ * young (M4 science audit finding 1).
+ */
 export function checkPeriods(model: EpochModel, answer: Answer): CheckResult {
   const a = obj(answer, 'a line and a pulsar');
   const o = order(a.line, model);
   const jname = pulsar(a.jname);
   if (!model.byJ.has(jname)) return { ok: false, result: [{ key: 'pulsar', value: jname }], message: `${jname} is not in your catalogue.` };
-  const r = candidateReadout(model, o, jname);
-  const lm = matchOf(model, o);
+  const r = candidateReadout(model, o, jname, 1);
+  const lm = matchOf(model, o, 1);
   const result = lineReadings(r);
   const young = r.young || !lineIsOld(model, o);
   if (r.notConsidered) {
@@ -85,15 +93,15 @@ export function checkPeriods(model: EpochModel, answer: Answer): CheckResult {
     return { ok: false, result, message: `${name(r)} slows quickly (it is young): its period changes too fast to match by period alone. It ticks at ${sig(r.periodNowS, 4)} s now against the map's ${sig(r.mapPeriodS, 4)} s; come back to this line once the map's age is known.` };
   }
   if (!r.best) {
-    return { ok: false, result, message: `${name(r)} fits line ${o} less well than another pulsar along it: it ticks at ${sig(r.periodNowS, 6)} s now (${ppm(r)} from the map's number), lies ${deg(Math.abs(r.dLonDeg))} from the line, and its odds against the other candidates are ${oddsText(r.log10Odds as number)}.` };
+    return { ok: false, result, message: `${name(r)} fits line ${o} less well than another pulsar along it: it ticks at ${sig(r.periodNowS, 6)} s now (${ppm(r)} from the map's number), lies ${deg(Math.abs(r.dLonDeg))} from the line, and its odds against the other candidates are ${oddsText(r.log10Odds as number)}. ${NEEDS_AGE}` };
   }
   if (lm.log10Odds < ANCHOR_LOG10_MARGIN) {
-    return { ok: false, result, message: `${name(r)} is the best fit to line ${o}, but not by enough: its odds against the other candidates are ${oddsText(lm.log10Odds)}, under the ${sig(10 ** ANCHOR_LOG10_MARGIN, 2)} to 1 that counts as strong evidence. Try a line that stands out more clearly.` };
+    return { ok: false, result, message: `${name(r)} is the best fit to line ${o}, but not by enough: its odds against the other candidates are ${oddsText(lm.log10Odds)}, under the ${sig(10 ** ANCHOR_LOG10_MARGIN, 2)} to 1 that counts as strong evidence. ${NEEDS_AGE}` };
   }
   return {
     ok: true,
     result,
-    message: `Line ${o}'s number is a period: ${name(r)}, ${deg(Math.abs(r.dLonDeg))} from the line, ticks at ${sig(r.periodNowS, 6)} s, ${ppm(r)} slower than the map's ${sig(r.mapPeriodS, 6)} s, and no other pulsar along the line comes close (odds ${oddsText(lm.log10Odds)}).`,
+    message: `Line ${o}'s number is a period: ${name(r)}, ${deg(Math.abs(r.dLonDeg))} from the line, ticks at ${sig(r.periodNowS, 6)} s, ${ppm(r)} slower than the map's ${sig(r.mapPeriodS, 6)} s, and by period, direction and latitude alone no other pulsar along the line comes close (odds ${oddsText(lm.log10Odds)}).`,
   };
 }
 

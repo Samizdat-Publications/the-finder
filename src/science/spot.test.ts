@@ -225,7 +225,7 @@ describe('the counting session', () => {
       measured:
         `${lines.map((l) => `${l.id} ${l.e.toFixed(4)} MeV`).join(', ')}; natural start A234/A238 = ${nat.toFixed(12)}; pure start read back: U-234 clock ${pure.u234Years!.toFixed(1)} y, Th-230 clock ${pure.th230Years!.toFixed(1)} y; ` +
         `natural start U-234 clock: ${natural.u234Years === null ? 'never' : natural.u234Years}; background in a line's energy band ${(bgPerLinePerS * 86400).toExponential(2)} counts/day against ${(th230PerS * 86400).toFixed(0)} Th-230 counts/day`,
-      expected: `alpha lines 4.198, 4.775, 4.687 MeV (clocks.md 4a); secular equilibrium gives an activity ratio of 1; the true age ${AGE} y`,
+      expected: `alpha lines 4.198, 4.775, 4.687 MeV (clocks.md 4a); the natural start is 1 by definition (secular equilibrium means equal activities), so that part checks the code computes the definition, not physics; the true age ${AGE} y`,
       tolerance: '1 keV on the lines (the mass-number approximation is good to about 0.1 keV); 1e-12 on the ratio; 1e-4 and 1e-3 on the clocks (counts rounded to integers of 1e9)',
       pass,
       notes: 'Each line\'s counts include its weaker companion (U-238 4.151, U-234 4.722, Th-230 4.621 MeV): the clocks need only how many alphas each nuclide gives. The background is ignored in the counter: it is under a ten-thousandth of the smallest line.',

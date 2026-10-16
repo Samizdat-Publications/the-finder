@@ -241,6 +241,13 @@ const LINES = ['U238', 'U234', 'Th230'] as const;
  * from the stream `rng` (the seed's spot/count), quantum by quantum. A count that ends inside a quantum keeps
  * each of that quantum's alphas whose arrival time (uniform within the quantum, from the sub-stream
  * `q<k>`) falls before the end: the exact Poisson process, so counting longer only ever adds counts.
+ *
+ * Caveat (M4 science audit finding 7): uranium and thorium separated chemically are counted as two sources,
+ * and each separation recovers only part of its element. A real laboratory adds yield tracers before the
+ * separation (uranium-232 for the uranium, thorium-229 for the thorium, whose own alpha lines tell how much
+ * came through) and corrects each line by its recovery. This model assumes the chemical yields are known
+ * exactly (both one), so the ratios carry counting statistics only; uranium-234 and uranium-238 themselves
+ * cannot be separated chemically and are told apart by their alpha energies.
  */
 export function countingSession(state: UraniumSpotState, rng: Rng, efficiency = countingEfficiency(), quantumS = COUNT_QUANTUM_S): CountingSession {
   const rates = LINES.map((id) => state.activityBq[id] * efficiency * quantumS);

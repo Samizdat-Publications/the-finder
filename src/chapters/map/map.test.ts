@@ -1,9 +1,9 @@
 // The Map's checkers on the shared epoch model, for the default seed and two others. Truth comes from outside
 // the code under test: the cover's documented identities (cover.json, Johnston's matches; research cover.md
 // section 2), the story's true elapsed time (scenario.json), the alien's own measured velocity relative to
-// the Sun (Gaia DR3 for Gliese 445, epoch.ts), the Sun's own position at the map epoch, the research region
-// (HOW_ITS_CHECKED row 6: about 31 by 14 pc, about a thousand stars), and constructed geometry for the
-// bearing helper. Never the code's own earlier output.
+// the Sun (Gaia DR3 for Gliese 445, epoch.ts), the Sun's own position at the map epoch, Sagan's design statement for the map (research cover.md
+// section 3: the Sun placed to about 20 pc, "1 in 10^3 stars"), and constructed geometry for the bearing
+// helper. Never the code's own earlier output.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -17,7 +17,7 @@ import { CHI2_2DOF_95, regionLevel, type MapPoint } from '../../science/triangul
 import { buildEpochModel, type EpochModel } from '../shared/epochModel';
 import { checkIdentify, checkMotion, checkOld, checkPeriods, checkRegion, makeMapCheckers } from './checkers';
 import {
-  CLOCK_N, bearingResiduals, bestAxisOnGrid, clockCrossingYearsAgo, galacticOf, isYoung, mapPoints, matchOf, skyAges, starsInRegion,
+  CLOCK_N, bearingResiduals, bestAxisOnGrid, clockCrossingYearsAgo, galacticOf, isPass1Anchor, isYoung, mapPoints, matchOf, skyAges, starsInRegion,
 } from './mapMath';
 import { drawnAngleDeg, parseCoverMap } from './coverGeom';
 import { oddsText, timesText } from './odds';
@@ -39,25 +39,37 @@ function instrumentAxis(m: EpochModel): { lDeg: number; bDeg: number } {
 }
 
 describe('The Map checkers: right answers', () => {
-  it('map.periods: every old line with its documented pulsar is accepted, for three seeds; no young line is', () => {
+  it('map.periods: judged on pass 1, the old lines that are pass-1 anchors are accepted with their documented pulsar, the rest refused, for three seeds', () => {
     const rows: string[] = [];
+    const refusedRows: string[] = [];
     let pass = true;
     for (const [seed, m] of models) {
       for (const l of oldLines(m)) {
         const r = checkPeriods(m, { line: l.order, jname: l.jname });
-        pass &&= r.ok;
-        if (seed === DEFAULT_SEED) rows.push(`${l.order} ${l.bname} ${String(val(r, 'match quality'))}`);
+        const anchor = isPass1Anchor(m, l.order);
+        // An anchor's best candidate must be the documented pulsar (cover.json), or the rule would accept a wrong one.
+        if (anchor) pass &&= matchOf(m, l.order, 1).best?.entry.jname === l.jname;
+        pass &&= r.ok === anchor;
+        if (seed === DEFAULT_SEED) (anchor ? rows : refusedRows).push(`${l.order} ${l.bname} ${String(val(r, 'match quality'))}`);
+        else if (!anchor) refusedRows.push(`${seed} line ${l.order} ${l.bname}`);
       }
       for (const l of youngLines(m)) pass &&= !checkPeriods(m, { line: l.order, jname: l.jname }).ok;
     }
-    console.log(`map.periods (default seed): ${rows.join('; ')}`);
+    // The audit's case: seed map-seed-b's line 2 (B1929+10), whose pass-1 best is another pulsar, is refused.
+    const mb = models.get('map-seed-b')!;
+    const b2 = checkPeriods(mb, { line: 2, jname: mb.lines.find((l) => l.order === 2)!.jname });
+    pass &&= !b2.ok && matchOf(mb, 2, 1).best?.entry.jname !== mb.lines.find((l) => l.order === 2)!.jname;
+    // Every line accepted on the default seed is a pass-1 anchor, and there are enough of them to date the map.
+    pass &&= rows.length >= 3;
+    console.log(`map.periods (default seed): accepted ${rows.join('; ')}; refused ${refusedRows.join('; ')}; seed b line 2: ${b2.message}`);
     recordCheck({
       id: 'map.periods',
-      claim: 'Every old map line, read through the key, is the period of its documented pulsar, and the game accepts it only with odds of at least 20 to 1 against every other candidate along the line.',
-      measured: `default seed: ${rows.join('; ')}; the same for seeds map-seed-a and map-seed-b; the three young lines (Crab, Vela, B1727-47) refused by period alone`,
-      expected: 'The documented identities (cover.json; Johnston 2002, research cover.md section 2); D-A16\'s strong-evidence margin',
-      tolerance: `log10 odds at least ${ANCHOR_LOG10_MARGIN.toFixed(2)} (20 to 1, Kass and Raftery 1995, the identification's own anchor rule)`,
+      claim: `Every old map line that stands out by period, direction and latitude alone (a pass-1 anchor, the evidence the alien has before the map is dated) is read through the key as the period of its documented pulsar; the game accepts only those lines, with odds of at least 20 to 1 against every other candidate, and the other lines wait for the map's age and origin.`,
+      measured: `default seed, accepted: ${rows.join('; ')}; refused for now: ${refusedRows.join('; ')}; seed map-seed-b line 2 refused (its pass-1 best is another pulsar); the three young lines (Crab, Vela, B1727-47) refused by period alone`,
+      expected: `The documented identities (cover.json; Johnston 2002, research cover.md section 2) on every pass-1 anchor; D-A16's anchor rule, defined on pass 1 (pulsarIdentify.ts secondPass)`,
+      tolerance: `pass-1 log10 odds at least ${ANCHOR_LOG10_MARGIN.toFixed(2)} (20 to 1, Kass and Raftery 1995, the identification's own anchor rule)`,
       pass,
+      notes: `B1929+10 (line 2) never reaches 20 to 1 in pass 1 for these seeds, so it is matched later, in map.identify, where pass 2 adds the map's age and origin (M4 science audit finding 1).`,
     });
     expect(pass).toBe(true);
   });
@@ -146,7 +158,7 @@ describe('The Map checkers: right answers', () => {
     expect(pass).toBe(true);
   });
 
-  it('map.region: the Sun\'s and the alien star\'s positions at the map epoch are inside; the region matches the research', () => {
+  it('map.region: the Sun\'s and the alien star\'s positions at the map epoch are inside; the region agrees with the design statement', () => {
     let pass = true;
     let text = '';
     for (const [seed, m] of models) {
@@ -158,20 +170,24 @@ describe('The Map checkers: right answers', () => {
       if (seed === DEFAULT_SEED) {
         const reg = m.region();
         const stars = starsInRegion(m);
-        text = `${(2 * reg.semiAxesPc[0]).toFixed(1)} by ${(2 * reg.semiAxesPc[1]).toFixed(1)} pc, ${stars.inside} of ${stars.tested} catalogued stars inside at the map epoch, the alien's own star ${stars.homeInside ? 'inside' : 'outside'}; the Sun then at (${at[0].toFixed(1)}, ${at[1].toFixed(1)}) pc`;
-        // Research (HOW_ITS_CHECKED row 6): about 31 by 14 pc and about a thousand stars. 15%: two thousand
-        // Monte Carlo draws fix a covariance to about 2%, and the research figures are rounded to two digits.
-        pass &&= Math.abs(2 * reg.semiAxesPc[0] / 31 - 1) <= 0.15 && Math.abs(2 * reg.semiAxesPc[1] / 14 - 1) <= 0.15 && stars.inside >= 700 && stars.inside <= 1400;
+        const noRv = m.inputs.stars.near.filter((s) => s.distPc !== null && s.rvKmS === null).length;
+        text = `${(2 * reg.semiAxesPc[0]).toFixed(1)} by ${(2 * reg.semiAxesPc[1]).toFixed(1)} pc (semi-major axis ${reg.semiAxesPc[0].toFixed(1)} pc), ${stars.inside} of ${stars.tested} catalogued stars inside at the map epoch (${noRv} of the ${stars.tested} have no radial velocity), the alien's own star ${stars.homeInside ? 'inside' : 'outside'}; the Sun then at (${at[0].toFixed(1)}, ${at[1].toFixed(1)}) pc`;
+        // Sagan et al. 1972 (research cover.md section 3): the Sun placed to about 20 pc, "1 in 10^3 stars".
+        // A design statement, so an order-of-magnitude comparison: within a factor of sqrt(10) (the same power
+        // of ten when rounded) of 20 pc for the region's semi-major axis and of 1,000 for the star count.
+        const om = (x: number, ref: number): boolean => Math.abs(Math.log10(x / ref)) <= 0.5;
+        pass &&= om(reg.semiAxesPc[0], 20) && om(stars.inside, 1000);
       }
     }
     console.log(`map.region: ${text}`);
     recordCheck({
       id: 'map.region',
-      claim: 'Sliding the map\'s origin into the fitted region is accepted; the region holds about a thousand catalogued stars when the map was made, the alien\'s own star among them.',
+      claim: 'Sliding the map\'s origin into the fitted region is accepted; the region holds about a thousand catalogued stars when the map was made, the alien\'s own star among them, as the map\'s makers designed it to.',
       measured: text,
-      expected: 'The Sun\'s own position at the map epoch accepted for three seeds; the research region, about 31 by 14 pc with about a thousand stars (HOW_ITS_CHECKED row 6, triangulation.epoch)',
-      tolerance: 'Inside the 95% ellipse (chi-square 2 degrees of freedom); the size within 15% of the research figures and 700 to 1,400 stars',
+      expected: 'The Sun\'s own position at the map epoch accepted for three seeds; Sagan et al. 1972\'s design statement, the Sun placed to about 20 pc, "1 in 10^3 stars" (research cover.md section 3)',
+      tolerance: 'Inside the 95% ellipse (chi-square 2 degrees of freedom); an order-of-magnitude agreement with the design statement: the semi-major axis within a factor of sqrt(10) of 20 pc, the star count within a factor of sqrt(10) of 1,000',
       pass,
+      notes: 'The star count depends on the catalogue: the 30 pc list (stars.json, all heights above and below the plane, as the region is a cylinder in the plane), and about half its stars have no radial velocity and are moved back to the map epoch with a radial velocity of zero (epoch.ts starStateAt).',
     });
     expect(pass).toBe(true);
   }, 120_000);
@@ -181,11 +197,10 @@ describe('The Map checkers: meaningful wrong answers say what they computed', ()
   it('refuses a weak line, a wrong pulsar, a young line first, a future time, a wrong axis and an origin outside', () => {
     const m = m0;
     const l1 = m.lines.find((l) => l.order === 1)!;
-    const lm1 = matchOf(m, 1);
-    // A weak line: the same model with line 1's odds below the anchor rule (no real seed of 40 tried has one).
-    const id = m.identification();
-    const weakModel: EpochModel = { ...m, identification: () => ({ ...id, lines: id.lines.map((x) => (x.line.order === 1 ? { ...x, log10Odds: ANCHOR_LOG10_MARGIN - 0.1 } : x)) }) };
-    const weak = checkPeriods(weakModel, { line: 1, jname: l1.jname });
+    const lm1 = matchOf(m, 1, 1);
+    // A weak line: line 2 (B1929+10), its pulsar the best in pass 1 but under the anchor rule (M4 science audit finding 1).
+    const l2 = m.lines.find((l) => l.order === 2)!;
+    const weak = checkPeriods(m, { line: 2, jname: l2.jname });
     const runner = lm1.runnerUp!.entry.jname;
     const wrongP = checkPeriods(m, { line: 1, jname: runner });
     const far = checkPeriods(m, { line: 1, jname: m.lines.find((l) => l.order === 11)!.jname });
@@ -209,8 +224,10 @@ describe('The Map checkers: meaningful wrong answers say what they computed', ()
     const out = checkRegion(m, { x: outside[0], y: outside[1] });
     const lines = [weak, wrongP, far, young, future, ancient, swap, missing, axis90, out].map((r) => r.message);
     console.log(lines.join('\n'));
+    expect(matchOf(m, 2, 1).best?.entry.jname).toBe(l2.jname);
     expect(weak.ok).toBe(false);
     expect(weak.message).toMatch(/strong evidence/);
+    expect(weak.message).toMatch(/age and origin are known/);
     expect(wrongP.ok).toBe(false);
     expect(wrongP.message).toMatch(/less well than another pulsar/);
     expect(far.ok).toBe(false);

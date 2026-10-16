@@ -136,7 +136,7 @@ export async function playMap(page, { assert, log, label = '', shot, review = fa
   });
   const lines = await page.evaluate(() => {
     const { m, mm } = window.__mapTest;
-    return m.lines.map((l) => ({ order: l.order, jname: l.jname, bname: l.bname, young: mm.isYoung(m.byJ.get(l.jname)) }));
+    return m.lines.map((l) => ({ order: l.order, jname: l.jname, bname: l.bname, young: mm.isYoung(m.byJ.get(l.jname)), anchor: mm.isPass1Anchor(m, l.order) }));
   });
 
   // ---- the unaligned map ----
@@ -160,7 +160,8 @@ export async function playMap(page, { assert, log, label = '', shot, review = fa
   await assignLine(crab.order, crab.jname);
   const p0 = await propose('map.periods');
   assert(!p0.ok && /too fast to match by period alone/.test(p0.message), `a young line is refused (${p0.message})`);
-  const firstOld = lines.filter((l) => !l.young).slice(0, 3);
+  // Old lines that stand out by period and direction alone (pass-1 anchors): map.periods accepts only these.
+  const firstOld = lines.filter((l) => !l.young && l.anchor).slice(0, 3);
   for (const l of firstOld) await assignLine(l.order, l.jname);
   await frameNear();
   await shot('three-lines-matched', `The map turned so its long line points at the Galactic centre; three old lines linked to their pulsars on the chart; the readout for line ${firstOld[2].order} shows the map's period, the pulsar's period now, the direction and latitude offsets and the match quality (its odds against every other pulsar along the line).`);
@@ -208,6 +209,12 @@ export async function playMap(page, { assert, log, label = '', shot, review = fa
   await page.waitForSelector('[data-sky-plot]');
   await frameNear();
   await shot('ages-before-axis', 'Ages across the sky: the old lines\' own-frame ages placed where their pulsars lie, coloured older or younger than their median; beside them the ages against the axis (still at the pole) scatter widely.');
+  const decides = async () => page.evaluate(() => {
+    const d = document.querySelector('.map-skyages').dataset;
+    return { d2: Number(d.axisChi2), cut: Number(d.axisCut) };
+  });
+  const atPole = await decides();
+  assert(atPole.d2 > atPole.cut, `the number that decides is shown outside the cut at the starting axis (${atPole.d2} > ${atPole.cut})`);
   const m0 = await propose('map.motion');
   assert(!m0.ok, `the starting axis is refused (${m0.message})`);
   // The bot finds the axis as a player would: where the misfit beside the sky is smallest.
@@ -242,6 +249,8 @@ export async function playMap(page, { assert, log, label = '', shot, review = fa
   const rms = Number(await page.getAttribute('.map-skyages', 'data-rms-years'));
   await shot('ages-after-axis', `The axis dragged to l ${best.lDeg.toFixed(1)}, b ${best.bDeg.toFixed(1)} deg: beside the sky the ages now fall on one straight line (scatter about ${Math.round(rms)} years), its slope the speed along the axis.`);
   const finalAxis = await axisNow();
+  const atBest = await decides();
+  assert(atBest.d2 <= atBest.cut, `the number that decides is inside the cut where the ages line up (${atBest.d2} <= ${atBest.cut})`);
   const m1 = await propose('map.motion');
   assert(m1.ok, `the axis where the ages line up is accepted (${m1.message})`);
   log(`[${label}] map.motion: axis ${JSON.stringify(finalAxis)}, rms ${rms} yr; ${m1.message}`);

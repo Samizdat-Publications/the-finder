@@ -6,7 +6,7 @@
 
 import { KM_S_TO_PC_PER_YEAR, dot, norm, scale, sub, type Vec3 } from '../../science/astro';
 import { starStateAt } from '../../science/epoch';
-import { TRAIL_CONSISTENT_SIGMA, minAngleNoRv, type TrailEntry } from '../../science/kinematics';
+import { minAngleNoRv, trailConsistent, type TrailEntry } from '../../science/kinematics';
 import { insideRegion, regionLevel } from '../../science/triangulation';
 import type { StarRecord } from '../../science/types';
 import { TRAIL_MAX_DIST_PC, type EpochModel } from '../shared/epochModel';
@@ -51,9 +51,17 @@ export function rowFor(m: EpochModel, starId: number): TrailEntry | null {
   return m.trailRows().find((r) => r.star.id === starId) ?? null;
 }
 
-/** True when the craft's motion relative to the star is consistent with flying straight away from it. */
+/**
+ * True when the alien's measured angle for the star is consistent with flying straight away from it: at most
+ * the 95th percentile of the angles a truly radial motion would show (kinematics.ts trailConsistent).
+ */
 export function consistent(row: TrailEntry): boolean {
-  return row.angleDeg <= TRAIL_CONSISTENT_SIGMA * row.angleSigmaDeg;
+  return trailConsistent(row);
+}
+
+/** The measured angle as a multiple of the star's 95% cut (under 1: consistent). */
+export function cutRatio(row: TrailEntry): number {
+  return row.nullAngle95Deg > 0 ? row.measuredAngleDeg / row.nullAngle95Deg : Infinity;
 }
 
 /** Every trail row, other than the alien's own star, consistent with the craft flying straight away from it. */
@@ -62,38 +70,53 @@ export function consistentRows(m: EpochModel): TrailEntry[] {
   return m.trailRows().filter((r) => r.star.id !== home && consistent(r));
 }
 
-/** The star the craft came from: the one consistent row. Throws when the trail does not pick out exactly one. */
+/**
+ * The star the trail points back to: the row whose measured angle is smallest against its own 95% cut (the
+ * one consistent row when the trail picks one out). For about 1 seed in 20 even the true origin's measured
+ * angle lies beyond its cut (an honest 95% test; trail.originCoverage); the later tools still run back to
+ * this star, while trail.origin itself judges only by the cut.
+ */
 export function originRow(m: EpochModel): TrailEntry {
-  const rows = consistentRows(m);
-  if (rows.length !== 1) throw new Error(`the trail picks out ${rows.length} stars, not one`);
-  return rows[0] as TrailEntry;
+  const home = homeId(m);
+  let best: TrailEntry | null = null;
+  for (const r of m.trailRows()) if (r.star.id !== home && (best === null || cutRatio(r) < cutRatio(best))) best = r;
+  if (!best) throw new Error('the trail has no stars');
+  return best;
 }
 
-/** The smallest other angle in units of its own sigma (how firmly every other star is ruled out). */
-export function nextBest(m: EpochModel): { row: TrailEntry; sigmas: number } {
+/** The other star closest to passing: the smallest measured angle against its own 95% cut (how firmly every other star is ruled out). */
+export function nextBest(m: EpochModel): { row: TrailEntry; cuts: number } {
   const home = homeId(m);
   const origin = originRow(m).star.id;
-  const others = m.trailRows().filter((r) => r.star.id !== home && r.star.id !== origin && r.angleSigmaDeg > 0);
+  const others = m.trailRows().filter((r) => r.star.id !== home && r.star.id !== origin && r.nullAngle95Deg > 0);
   let best = others[0] as TrailEntry;
-  for (const r of others) if (r.angleDeg / r.angleSigmaDeg < best.angleDeg / best.angleSigmaDeg) best = r;
-  return { row: best, sigmas: best.angleDeg / best.angleSigmaDeg };
+  for (const r of others) if (cutRatio(r) < cutRatio(best)) best = r;
+  return { row: best, cuts: cutRatio(best) };
 }
 
+/**
+ * Where the numbers come from: 'measured' (the default, what the instrument shows) takes a charted star's
+ * position and velocity from the alien's one measurement (its trail row; kinematics.ts WHAT THE ALIEN SEES);
+ * 'catalogue' takes the catalogue's exact values (the science tests).
+ */
+export type Source = 'measured' | 'catalogue';
+
 /** The craft's velocity relative to a star, and the craft's position relative to it, at the epoch (ICRS, km/s and pc). */
-export function relativeState(m: EpochModel, star: StarRecord): { dPc: Vec3; vKmS: Vec3 } {
-  const st = starStateAt(star, m.disc.decimalYear);
+export function relativeState(m: EpochModel, star: StarRecord, source: Source = 'measured'): { dPc: Vec3; vKmS: Vec3 } {
+  const row = source === 'measured' ? rowFor(m, star.id) : null;
+  const st = row ? { posPc: row.measuredPosPc, velKmS: row.measuredVelKmS } : starStateAt(star, m.disc.decimalYear);
   return { dPc: sub(m.disc.craft.posPc, st.posPc), vKmS: sub(m.disc.craft.velKmS, st.velKmS) };
 }
 
 /** Separation of the craft from a star, pc, when both are run back yearsAgo along their straight lines. */
-export function separationAt(m: EpochModel, star: StarRecord, yearsAgo: number): number {
-  const { dPc, vKmS } = relativeState(m, star);
+export function separationAt(m: EpochModel, star: StarRecord, yearsAgo: number, source: Source = 'measured'): number {
+  const { dPc, vKmS } = relativeState(m, star, source);
   return norm(sub(dPc, scale(vKmS, KM_S_TO_PC_PER_YEAR * yearsAgo)));
 }
 
 /** The run-back's meeting: the time of closest approach, years ago, and the separation then, pc. */
-export function meeting(m: EpochModel, star: StarRecord): { yearsAgo: number; missPc: number } {
-  const { dPc, vKmS } = relativeState(m, star);
+export function meeting(m: EpochModel, star: StarRecord, source: Source = 'measured'): { yearsAgo: number; missPc: number } {
+  const { dPc, vKmS } = relativeState(m, star, source);
   const v = scale(vKmS, KM_S_TO_PC_PER_YEAR);
   const t = dot(dPc, v) / dot(v, v);
   return { yearsAgo: t, missPc: norm(sub(dPc, scale(v, t))) };

@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { loadCover, loadPulsars, loadScenario, loadStars } from '../../../tests/support/data';
 import { DEFAULT_SEED } from '../../game/deductions';
+import { trailConsistent } from '../../science/kinematics';
 import { velocityMahalanobis2 } from '../../science/pulsarAge';
 import { CHI2_2DOF_95, insideRegion } from '../../science/triangulation';
 import { buildEpochModel, epochModel, setEpochInputs } from './epochModel';
@@ -42,9 +43,9 @@ describe('the shared epoch model (default seed)', () => {
     expect(CHI2_2DOF_95).toBeCloseTo(5.991, 3);
   }, 60_000);
 
-  it('finds the Sun on the trail and nothing else within two sigma', () => {
+  it('finds the Sun on the trail and nothing else inside the 95% cut', () => {
     const rows = m.trailRows();
-    const consistent = rows.filter((e) => e.angleDeg <= 2 * e.angleSigmaDeg && e.star.id !== m.truth.starId);
+    const consistent = rows.filter((e) => trailConsistent(e) && e.star.id !== m.truth.starId);
     expect(consistent.map((e) => e.star.id)).toEqual([0]);
   }, 60_000);
 

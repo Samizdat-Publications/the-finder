@@ -249,7 +249,10 @@ export interface AgeVelocityFit {
   velCov: number[][];
   used: string[];
   dropped: string[];
+  /** Chi-square of the final fit, before scaling, for used.length - 4 degrees of freedom. */
   chi2: number;
+  /** The Birge factor applied to the covariance: max(1, chi-square per degree of freedom). */
+  birge: number;
 }
 
 interface FitPoint { entry: AlienPulsar; line: CoverMapLine; sigma: number }
@@ -387,14 +390,23 @@ export function fitAgeAndVelocity(entries: readonly { entry: AlienPulsar; line: 
     pts = pts.filter((_, j) => j !== worst.i);
   }
   const f = gaussNewton(pts, hz);
+  // Birge scaling (Birge 1932; the Particle Data Group's scale factor): when the fit's chi-square per degree
+  // of freedom exceeds 1 the per-pulsar sigmas understate the scatter, so the covariance is multiplied by
+  // max(1, chi-square / dof) (each sigma by its square root). Applied to the reported covariance only (the
+  // outlier test above uses the unscaled one). Full-model coverage, 1,000 projections (pulsarAgeAxis.test.ts,
+  // map.motionAxisFullModel): axis cut 93.7% before, 96.0% after; 3-dof velocity region 92.9% before, 95.9%
+  // after (M4 science audit finding 4; docs/reviews/2026-10-16-M4-science-audit.md).
+  const dof = pts.length - 4;
+  const birge = dof > 0 ? Math.max(1, f.chi2 / dof) : 1;
   return {
     ageYears: f.theta[0] as number,
-    ageSigma: Math.sqrt(f.cov[0]![0] as number),
+    ageSigma: Math.sqrt((f.cov[0]![0] as number) * birge),
     velKmS: [f.theta[1] as number, f.theta[2] as number, f.theta[3] as number],
-    velCov: [1, 2, 3].map((i) => [1, 2, 3].map((j) => f.cov[i]![j] as number)),
+    velCov: [1, 2, 3].map((i) => [1, 2, 3].map((j) => (f.cov[i]![j] as number) * birge)),
     used: pts.map((p) => p.entry.jname),
     dropped,
     chi2: f.chi2,
+    birge,
   };
 }
 

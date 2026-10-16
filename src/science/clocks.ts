@@ -211,10 +211,44 @@ export function fitAgeAndPurity(counts: AlphaCounts, conf = 0.95): PurityFit {
 export function testStartHypothesis(counts: AlphaCounts, initialA234overA238: number): { statistic: number; pValue: number; ageYears: number } {
   const c = countsVector(counts);
   const full = gridMax((t) => profileR0(c, lineModel(t)), AGE_GRID);
+  return startTest(c, full.f, initialA234overA238);
+}
+
+/** The likelihood-ratio test of one fixed start against an already maximised free fit (testStartHypothesis's second half). */
+function startTest(c: readonly number[], fullF: number, r0: number): { statistic: number; pValue: number; ageYears: number } {
   const fixed = gridMax((t) => {
     const m = lineModel(t);
-    return multinomialLogLik(c, m.a.map((ai, i) => ai + initialA234overA238 * (m.b[i] as number)));
+    return multinomialLogLik(c, m.a.map((ai, i) => ai + r0 * (m.b[i] as number)));
   }, AGE_GRID);
-  const stat = Math.max(0, 2 * (full.f - fixed.f));
+  const stat = Math.max(0, 2 * (fullF - fixed.f));
   return { statistic: stat, pValue: chiSquareSf(stat, 1), ageYears: fixed.x };
+}
+
+/**
+ * The starting ratios A234/A238 the counts accept: every r0 >= 0 whose testStartHypothesis p-value is at
+ * least pMin, as an interval [lo, hi] (the p-value falls away on both sides of the fitted start). Edges by
+ * bisection to 1e-6 in r0 on the same likelihoods testStartHypothesis uses, so a start inside is accepted by
+ * it and one outside refused.
+ */
+export function acceptedStartRange(counts: AlphaCounts, pMin: number): { lo: number; hi: number; fitted: number } {
+  const c = countsVector(counts);
+  const full = gridMax((t) => profileR0(c, lineModel(t)), AGE_GRID);
+  const p = (r: number): number => startTest(c, full.f, r).pValue;
+  const fitted = fitAgeAndPurity(counts).initialA234overA238;
+  const edge = (a: number, b: number): number => {
+    // a accepted, b refused; bisect to 1e-6.
+    let inside = a;
+    let outside = b;
+    while (Math.abs(outside - inside) > 1e-6) {
+      const mid = (inside + outside) / 2;
+      if (p(mid) >= pMin) inside = mid;
+      else outside = mid;
+    }
+    return inside;
+  };
+  if (p(fitted) < pMin) return { lo: NaN, hi: NaN, fitted }; // nothing accepted (not met for real counts; guarded)
+  const lo = p(0) >= pMin ? 0 : edge(fitted, 0);
+  let far = Math.max(2 * fitted, 0.01);
+  while (p(far) >= pMin && far < 1e3) far *= 2;
+  return { lo, hi: edge(fitted, far), fitted };
 }
