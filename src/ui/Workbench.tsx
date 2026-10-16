@@ -42,7 +42,7 @@ function NodeRow(p: { node: NodeDef }) {
   return (
     <li class={`node ${status}`} data-node={p.node.id} data-status={status}>
       <div class="nodehead">
-        <GlyphLabel k={p.node.key} gloss={p.node.gloss} height={26} />
+        <GlyphLabel k={p.node.key} gloss={status === 'confirmed' ? p.node.gloss : p.node.question} height={26} />
         <span class={`chip ${status}`}>{STATUS_TEXT[status]}</span>
       </div>
       {missing.length > 0 && (
@@ -51,7 +51,7 @@ function NodeRow(p: { node: NodeDef }) {
           {missing.map((id, i) => (
             <span key={id}>
               {i > 0 && ', '}
-              {nodeDef(id)?.key ?? id}
+              {nodeDef(id)?.question ?? id}
             </span>
           ))}
         </p>

@@ -30,6 +30,10 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   assert((await page.locator('[data-node="arrival.purpose"]').getAttribute('data-status')) === 'open', 'arrival.purpose is open');
   assert((await page.locator('[data-node="arrival.heat"]').getAttribute('data-status')) === 'locked', 'arrival.heat is locked');
 
+  const openText = await page.locator('[data-node="arrival.purpose"]').innerText();
+  assert(openText.includes('What is this machine for?') && !/send across distance/.test(openText), 'an open node shows its question, not its conclusion');
+  assert(!/made, not mined/.test(await page.locator('[data-node="arrival.madeNotMined"]').innerText()), 'a locked node does not leak its conclusion');
+
   // ---- 3. a wrong answer is remembered and shown; the right one confirms and opens The Key ----
   const wrong = await page.evaluate(async () => {
     await window.__finder.dispatch({ type: 'deduction.propose', id: 'arrival.purpose', answer: 'a telescope' });

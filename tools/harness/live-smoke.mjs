@@ -1,4 +1,4 @@
-// Live smoke test of a deployed build: opens /play/?harness=1 on the given site in installed Chrome,
+// Live smoke test of a deployed build: opens /play/bench/?harness=1 on the given site in installed Chrome,
 // decodes L000 and R072 through the command bus, composes image 12 in colour, loads side 1 and drops the
 // needle on music 7, then screenshots each state into review/inbox/live-<timestamp>/. Fails on any
 // console error. Usage: node tools/harness/live-smoke.mjs [https://the-finder.stewartgregerson.workers.dev]
@@ -12,7 +12,7 @@ const out = join(ROOT, 'review', 'inbox', `live-${new Date().toISOString().repla
 mkdirSync(out, { recursive: true });
 
 const browser = await launchChrome();
-const { page, errors, context } = await openPage(browser, `${base}/play/?harness=1`);
+const { page, errors, context } = await openPage(browser, `${base}/play/bench/?harness=1`);
 page.setDefaultTimeout(120_000);
 const shots = [];
 const shot = async (name) => {

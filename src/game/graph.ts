@@ -38,7 +38,9 @@ export interface NodeDef {
   chapter: ChapterId;
   /** English key for the glyph label. */
   key: string;
-  /** Plain English statement of the deduction. */
+  /** What the alien is trying to find out, as a question that does not give the answer. Shown while the node is open or locked. */
+  question: string;
+  /** Plain English statement of the conclusion. Shown only once the node is confirmed, and in the codex. */
   gloss: string;
   requires: string[];
   /** The row of the deduction table in How it's checked (docs/HOW_ITS_CHECKED.md). */
@@ -66,7 +68,28 @@ export const CHAPTERS: readonly ChapterDef[] = [
   { id: 'epilogue', title: 'Our Frame', gloss: 'Where the machines are now.', requires: ['pictures.firstFrames'], built: false },
 ];
 
-export const NODES: readonly NodeDef[] = [
+const QUESTIONS: Record<string, string> = {
+  'arrival.purpose': 'What is this machine for?',
+  'arrival.heat': 'What warms the three cylinders?',
+  'arrival.madeNotMined': 'Was this fuel mined, or made?',
+  'arrival.fuelAge': 'How old is the heat source?',
+  'key.binary': 'What do the two kinds of stroke mean?',
+  'key.unit': 'What is the unit?',
+  'key.timesNotLengths': "Are the cover's numbers times, or lengths?",
+  'player.speed': 'How fast does the disc turn?',
+  'player.start': 'Where does the needle start?',
+  'player.direction': 'Which way does it turn?',
+  'player.firstSound': 'What does it sound like?',
+  'pictures.lineTime': 'How long is one line of the picture?',
+  'pictures.sync': 'Where does each line begin?',
+  'pictures.interlace': 'Why do the edges look jagged?',
+  'pictures.polarity': 'Is the picture the right way round in brightness?',
+  'pictures.aspect': 'What shape is the picture?',
+  'pictures.circle': 'Does the calibration figure come out true?',
+  'pictures.firstFrames': 'Do the same settings read the next pictures?',
+};
+
+const RAW_NODES: readonly Omit<NodeDef, 'question'>[] = [
   // ---- arrival ----
   {
     id: 'arrival.purpose', chapter: 'arrival', key: 'purpose', checkedRow: 1, requires: [],
@@ -234,6 +257,8 @@ export const NODES: readonly NodeDef[] = [
     ],
   },
 ];
+
+export const NODES: readonly NodeDef[] = RAW_NODES.map((n) => ({ ...n, question: QUESTIONS[n.id] ?? '' }));
 
 const nodeById = new Map(NODES.map((n) => [n.id, n]));
 const chapterById = new Map(CHAPTERS.map((c) => [c.id, c]));

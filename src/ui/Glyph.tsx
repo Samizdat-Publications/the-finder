@@ -28,7 +28,7 @@ export function GlyphSvg(p: { k: string; height?: number; class?: string }) {
       width={((w.width + 6) / (GLYPH_H + 6)) * h}
       height={h}
       role="img"
-      aria-label={`alien word for ${p.k}`}
+      aria-label="alien glyph word"
       fill="none"
       stroke="currentColor"
       stroke-width="2.2"

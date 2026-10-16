@@ -69,6 +69,41 @@ describe('the graph data', () => {
   });
 });
 
+describe('no spoilers', () => {
+  // Distinctive words of each conclusion that its question must not contain.
+  const AVOID: Record<string, string[]> = {
+    'arrival.purpose': ['send', 'sense', 'built'],
+    'arrival.heat': ['source', 'long time'],
+    'arrival.madeNotMined': ['uranium', 'isotope', 'made not mined', 'uranium-238'],
+    'arrival.fuelAge': ['thorium', 'ratio', 'decay'],
+    'key.binary': ['binary', 'digit', 'bar', 'dash'],
+    'key.unit': ['spin-flip', 'hydrogen', 'transition'],
+    'key.timesNotLengths': ['absurd'],
+    'player.speed': ['seconds', 'written'],
+    'player.start': ['outer', 'edge', 'inward'],
+    'player.direction': ['groove', 'inward', 'backward'],
+    'player.firstSound': ['first sound'],
+    'pictures.lineTime': ['cover gives', 'ms'],
+    'pictures.sync': ['sync', 'pulse'],
+    'pictures.interlace': ['stagger', 'interlace'],
+    'pictures.polarity': ['negative', 'darker'],
+    'pictures.aspect': ['rows', 'lines'],
+    'pictures.circle': ['round', 'circle'],
+    'pictures.firstFrames': ['following', 'develop'],
+  };
+  it('every node has a question that gives away neither its conclusion nor its key terms', () => {
+    for (const n of NODES) {
+      const q = n.question.toLowerCase();
+      expect(q.endsWith('?'), `${n.id} question`).toBe(true);
+      expect(q.includes(n.gloss.toLowerCase().slice(0, 25)), `${n.id} repeats its conclusion`).toBe(false);
+      expect(n.question).not.toBe(n.gloss);
+      const words = AVOID[n.id];
+      expect(words, `${n.id} needs an avoid list`).toBeDefined();
+      for (const w of words ?? []) expect(q.includes(w), `${n.id}: question contains "${w}"`).toBe(false);
+    }
+  });
+});
+
 describe('gating (D-A06)', () => {
   it('opens arrival first, the key after arrival.purpose, then player and pictures after times-not-lengths', async () => {
     expect(chapterOpen('arrival', confirmedSet.value)).toBe(true);

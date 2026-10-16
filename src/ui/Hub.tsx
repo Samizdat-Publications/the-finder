@@ -17,8 +17,8 @@ function angle(i: number): number {
 /** The text that says what a locked chapter is waiting for. */
 function needs(id: string): string {
   const first = chapterDef(id)?.requires[0];
-  const gloss = first ? nodeDef(first)?.gloss : undefined;
-  return gloss ? `Opens after: ${gloss}` : '';
+  const question = first ? nodeDef(first)?.question : undefined;
+  return question ? `Opens after you answer: ${question}` : '';
 }
 
 export function Hub() {

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const PAGES = ['index.html', 'play/index.html', 'checked/index.html'];
+const PAGES = ['index.html', 'play/index.html', 'play/bench/index.html', 'checked/index.html'];
 const read = (f: string): string => readFileSync(join(ROOT, f), 'utf8');
 
 describe('site skeleton', () => {
@@ -32,7 +32,7 @@ describe('site skeleton', () => {
     expect(w.main).toBeUndefined();
   });
 
-  it('vite.config.ts lists the three page inputs', () => {
+  it('vite.config.ts lists every page input', () => {
     const cfg = read('vite.config.ts');
     for (const page of PAGES) expect(cfg).toContain(`./${page}`);
     expect(cfg).toContain('rolldownOptions');
