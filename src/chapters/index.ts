@@ -2,4 +2,6 @@
 // exactly one import line here: './<chapter>/index'. Order does not matter.
 import './key/index';
 import './arrival/index';
+import './pictures/index';
+import './player/index';
 export {};

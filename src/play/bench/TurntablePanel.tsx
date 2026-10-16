@@ -1,7 +1,8 @@
 // The turntable panel: the record, where to drop the needle, speed, direction, what is playing.
 // Every control dispatches a command on the bus; nothing here changes state any other way.
 
-import { useSignal } from '@preact/signals';
+import { useSignal, useSignalEffect } from '@preact/signals';
+import { useRef } from 'preact/hooks';
 import { dispatch, type Command } from '../../game/bus';
 import { COVER_PERIOD_S, SPEED_RANGE_S, groove, radiusAtItemStart, timeline } from '../../game/model';
 import { turntable as T } from '../../game/state';
@@ -23,6 +24,18 @@ function send(cmd: Command): void {
 
 export function TurntablePanel() {
   const target = useSignal(radiusAtItemStart(1, 'ozma-11', 1));
+  // A needle dropped through the bus (a bot, another panel) moves the chosen radius too, so the readout and the
+  // dashed ring follow it. A drop is the needle coming down, or its radius jumping more than the groove could
+  // carry it between two position updates (0.5 mm against about 0.1 mm per turn).
+  const lastNeedle = useRef<{ down: boolean; r: number | null }>({ down: false, r: null });
+  useSignalEffect(() => {
+    const n = T.needle.value;
+    const down = n?.down === true;
+    const r = down ? (n?.radiusMm ?? null) : null;
+    const prev = lastNeedle.current;
+    if (r !== null && (!prev.down || prev.r === null || Math.abs(r - prev.r) > 0.5)) target.value = r;
+    lastNeedle.current = { down, r };
+  });
   const side = T.side.value;
   const needle = T.needle.value;
   const speed = T.secondsPerTurn.value;

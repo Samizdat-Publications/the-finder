@@ -185,7 +185,7 @@ const RAW_NODES: readonly Omit<NodeDef, 'question'>[] = [
   },
   {
     id: 'player.firstSound', chapter: 'player', key: 'first sound', checkedRow: 11, requires: ['player.start', 'player.direction'],
-    gloss: 'The first sound comes off the disc.',
+    gloss: 'The first sound is a picture, sent line by line.',
     hints: [
       'Drop the needle where the groove begins and listen.',
       'With the speed, the start and the direction all right, the disc plays. A wrong one gives pitch and tempo shifts, silence or backward sound.',

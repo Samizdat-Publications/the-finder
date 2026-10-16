@@ -1,0 +1,55 @@
+/* The Pictures: the developing picture large and gold (decoded from the human artifact), the alien instruments
+   (scope, knobs, notebook) in cyan and violet around it. */
+.picinst { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 1.1rem; align-items: start; margin-bottom: 1.25rem; }
+.pic-main { display: grid; gap: 0.8rem; min-width: 0; }
+.pic-side { display: grid; gap: 0.9rem; min-width: 0; }
+.pic-side .coverviewer { aspect-ratio: 1 / 1; height: auto; }
+
+.pic-view { width: 100%; }
+.pic-frame {
+  position: relative; margin: 0 auto; background: var(--bg-sunk); border: 1px solid rgba(232, 182, 74, 0.45);
+  border-radius: 4px; box-shadow: 0 0 0 4px rgba(8, 7, 26, 0.9), 0 0 32px rgba(232, 182, 74, 0.12); overflow: hidden;
+}
+.pic-frame canvas { display: block; image-rendering: pixelated; }
+.pic-beam { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: rgba(255, 240, 200, 0.85); box-shadow: 0 0 10px rgba(232, 182, 74, 0.9); pointer-events: none; }
+.pic-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-dim); font-size: 0.9rem; }
+.pic-caption { margin: 0.35rem 0 0; font-size: 0.8rem; color: var(--text-dim); min-height: 1.3em; }
+.pic-they { margin: 0; text-align: center; font-size: 1.5rem; letter-spacing: 0.08em; color: var(--gold); text-shadow: 0 0 18px rgba(232, 182, 74, 0.5); }
+.pic-caption-sound { margin: 0; text-align: center; font-size: 0.85rem; color: var(--violet); font-style: italic; }
+
+.pic-scope { margin: 0; padding: 0.6rem 0.7rem; background: linear-gradient(180deg, rgba(20, 18, 46, 0.92), rgba(8, 7, 26, 0.92)); border: 1px solid var(--line); border-radius: 8px; }
+.pic-scope canvas { display: block; width: 100%; height: 200px; border-radius: 4px; }
+.pic-scope figcaption { margin: 0.4rem 0 0; font-size: 0.8rem; }
+.pic-dim { color: var(--text-dim); font-size: 0.85em; }
+
+.pic-knobs { display: grid; gap: 0.65rem; padding: 0.9rem 1rem; background: linear-gradient(180deg, rgba(20, 18, 46, 0.92), rgba(8, 7, 26, 0.92)); border: 1px solid var(--line); border-radius: 8px; }
+.pic-knob { display: grid; gap: 0.3rem; }
+.pic-knob label { display: flex; justify-content: space-between; gap: 0.6rem; font-size: 0.85rem; }
+.pic-knob output { font-family: var(--font-mono); color: var(--cyan); }
+.pic-knob input[type='range'] { width: 100%; accent-color: var(--cyan); }
+.pic-klabel { font-size: 0.85rem; }
+.pic-row { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+.pic-num { width: 8.5rem; font-family: var(--font-mono); font-size: 0.85rem; color: var(--cyan); background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 4px; padding: 0.2rem 0.4rem; }
+.pic-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.pic-seg button { font: inherit; font-size: 0.82rem; color: var(--text-dim); background: var(--bg-sunk); border: 0; padding: 0.3rem 0.7rem; cursor: pointer; }
+.pic-seg button + button { border-left: 1px solid var(--line); }
+.pic-seg button.on { color: var(--bg); background: var(--cyan); }
+.pic-run { margin-top: 0.2rem; }
+
+.pic-notebook { display: grid; gap: 0.6rem; }
+.pic-panel { padding: 0.7rem 0.9rem; }
+.pic-panel.locked { opacity: 0.5; padding: 0.45rem 0.9rem; }
+.pic-panel.locked .khead { margin-bottom: 0; }
+.pic-panel .note { font-size: 0.84rem; margin: 0 0 0.5rem; }
+.pic-follow { margin: 0.2rem 0 0.5rem; }
+.pic-frame-btn.seen { border-color: var(--gold); color: var(--gold); }
+
+.pic-seen { padding: 0.6rem 0.8rem; border: 1px solid rgba(232, 182, 74, 0.35); border-radius: 8px; background: rgba(232, 182, 74, 0.04); }
+.pic-h { margin: 0 0 0.5rem; font-size: 0.85rem; font-weight: 400; color: var(--gold); }
+.pic-seen ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.pic-seen li { display: grid; gap: 0.2rem; font-size: 0.72rem; color: var(--gold); font-family: var(--font-mono); }
+.pic-seen img { width: 128px; height: auto; border: 1px solid rgba(232, 182, 74, 0.4); border-radius: 3px; image-rendering: auto; }
+
+@media (max-width: 900px) {
+  .picinst { grid-template-columns: minmax(0, 1fr); }
+}
