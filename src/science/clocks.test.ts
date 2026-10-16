@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { recordCheck } from '../../tests/support/record';
 import { batemanChain, rtgInitialAtoms, rtgPuAtomFractions, rtgState, uraniumSpotState } from './clocks';
-import { RA226_PROGENY_HEAT_MEV, lambdaPerYear, type NuclideId } from './nuclides';
+import { NUCLIDES, RA226_PROGENY_HEAT_MEV, lambdaPerYear, type NuclideId } from './nuclides';
+import { AVOGADRO } from './units';
 
 // Research numbers: docs/research/clocks.md 4a (uranium spot) and 4b (RTG), computed by
 // docs/research/data/clocks/radio.py with LNHB half-lives. Unless stated, tolerances are the
@@ -129,6 +130,7 @@ describe('clocks: RTG fuel (clocks.md 4b)', () => {
       notes:
         `PuO2 molar mass ${init.puo2MolarMassG.toFixed(2)} g/mol. Non-238 plutonium (20 at.%) split as Cassini fuel: atom fractions ` +
         `Pu-239 ${f.Pu239.toFixed(4)}, Pu-240 ${f.Pu240.toFixed(4)}, Pu-241 ${f.Pu241.toFixed(5)}, Pu-242 ${f.Pu242.toFixed(5)} (an assumption). ` +
+        'The Pu-239, Pu-240, Pu-242, U-235, U-236 and Np-237 amounts below rest on that Cassini split and on no uranium impurity in the fuel. ' +
         `At 44,000 y per spacecraft: Pu-239 ${s44.massKg.Pu239.toFixed(3)} kg, Pu-240 ${(s44.massKg.Pu240 * 1000).toFixed(2)} g, ` +
         `Pu-242 ${(s44.massKg.Pu242 * 1000).toFixed(1)} g, Pu-241 none, U-235 ${s44.massKg.U235.toFixed(2)} kg, U-236 ${s44.massKg.U236.toFixed(3)} kg, Np-237 ${(s44.massKg.Np237 * 1000).toFixed(0)} g.`,
     });
@@ -155,24 +157,34 @@ describe('clocks: RTG fuel (clocks.md 4b)', () => {
     expect(bad.map((b) => b[0])).toEqual([]);
   });
 
-  it('leaves a few watts of heat at 44,000 years', () => {
-    const w = s44.heatW;
-    const pass = w > 3 && w < 20; // research estimate about 8 W; the spec asks only for 3 to 20 W
-    const share = (ids: NuclideId[]): number => ids.reduce((s, id) => s + s44.activityBq[id], 0);
+  it('matches the design heat at launch and leaves a few watts at 44,000 years', () => {
+    // Independent check at t = 0: LA-5202 design, 24 spheres x 100 W thermal = 2,400 W per MHW-RTG
+    // (clocks.md 4b). The design figure is a nominal round 100 W per sphere, so allow 2%.
+    const perRtg0 = rtgState(0).heatW / 3;
+    const launchOk = rel(perRtg0, 2400) < 0.02;
+    const h = s44.heatRangeW;
+    const share = (ids: NuclideId[]): number => ids.reduce((acc, id) => acc + s44.activityBq[id], 0);
     recordCheck({
       id: 'clocks.rtg.heat',
-      claim: 'Forty-four thousand years on, the three heat sources together still give off a few watts.',
-      measured: `${w.toFixed(2)} W per spacecraft (launch: ${rtgState(0).heatW.toFixed(0)} W)`,
-      expected: 'clocks.md 4b estimates about 8 W per spacecraft, radon retained',
-      tolerance: 'between 3 and 20 W (order-of-magnitude check of an estimate)',
-      pass,
+      claim:
+        `Each heat source started at about 2,400 W; 44,000 years on, the three together still give off ${h.low.toFixed(1)} to ${h.high.toFixed(1)} W, ` +
+        'depending on whether radon stays in the fuel.',
+      measured:
+        `launch ${perRtg0.toFixed(0)} W per RTG; at 44,000 y ${h.low.toFixed(2)} to ${h.high.toFixed(2)} W per spacecraft ` +
+        `(radon progeny ${s44.radonProgenyHeatW.toFixed(2)} W, Pu-239 ${s44.pu239HeatW.toFixed(2)} W)`,
+      expected: 'design 2,400 W thermal per MHW-RTG at launch (LA-5202: 24 spheres of 100 W); clocks.md 4b estimates about 8 W at 40,000 y, radon retained',
+      tolerance: '2% at launch (nominal design figure); the 44,000-year range is reported, not tested against an independent value',
+      pass: launchOk,
       notes:
-        'Energy model: alpha decays deposit their full Q value; Pu-241 its mean beta energy; each Ra-226 decay adds its progeny chain to ' +
-        `Pb-206 in secular equilibrium with radon retained (${RA226_PROGENY_HEAT_MEV.toFixed(2)} MeV, NNDC; gammas counted, an upper bound by about 1.7 MeV per chain). ` +
+        'Range assumptions: high = radon retained, so the Ra-226 progeny (Rn-222 to Pb-206, ' +
+        `${RA226_PROGENY_HEAT_MEV.toFixed(2)} MeV per decay, NNDC; gammas counted, an upper bound by about 1.7 MeV) add their heat; low = radon escapes. ` +
+        `About ${s44.pu239HeatW.toFixed(1)} W comes from Pu-239, which rests on the Cassini split of the non-238 plutonium (an assumption). ` +
+        'Alpha decays deposit their full Q value; Pu-241 its mean beta energy. ' +
         `Activities at 44,000 y: U-234 ${(s44.activityBq.U234 / 1e12).toFixed(2)} TBq, Th-230 ${(s44.activityBq.Th230 / 1e12).toFixed(2)} TBq, ` +
         `Ra-226 ${(s44.activityBq.Ra226 / 1e12).toFixed(2)} TBq, Pu-239 ${(s44.activityBq.Pu239 / 1e12).toFixed(2)} TBq, others ${(share(['U235', 'U236', 'Np237', 'Pu240', 'Pu242', 'U238']) / 1e12).toFixed(3)} TBq.`,
     });
-    expect(pass).toBe(true);
+    expect(launchOk).toBe(true);
+    expect(h.low).toBeLessThan(h.high);
   });
 
   it('shows the uranium-234 has no uranium-238 parent', () => {
@@ -180,14 +192,27 @@ describe('clocks: RTG fuel (clocks.md 4b)', () => {
     // Natural uranium in secular equilibrium: U-234/U-238 atoms = T(U-234)/T(U-238) = 5.49e-5
     // (research: 5.5e-5), i.e. U-238/U-234 = 18,200.
     const natural = lambdaPerYear('U238') / lambdaPerYear('U234');
-    const pass = r < 1e-3 && rel(natural, 5.5e-5) < 0.01;
+    const orders = Math.log10(1 / natural / r);
+    // Robustness: suppose the fuel carried U-238 impurity equal to 1% of the initial plutonium mass
+    // (U-238 barely decays in 44,000 y: 7e-6 of it).
+    const puMassG = Object.entries(init.atoms).reduce((acc, [id, n]) => acc + (n * NUCLIDES[id as NuclideId].massU) / AVOGADRO, 0);
+    const contamAtoms = ((0.01 * puMassG) / NUCLIDES.U238.massU) * AVOGADRO;
+    const rContam = (s44.atoms.U238 + contamAtoms) / s44.atoms.U234;
+    const ordersContam = Math.log10(1 / natural / rContam);
+    // Pass: below 1e-3 as found, and even with 1% contamination still over 4 orders under natural.
+    const pass = r < 1e-3 && rel(natural, 5.5e-5) < 0.01 && ordersContam > 4;
     recordCheck({
       id: 'clocks.rtg.parent',
       claim: 'The heat source holds uranium-234 with almost no uranium-238, so it was not natural uranium: it came from something heavier, made on purpose.',
-      measured: `U-238/U-234 atom ratio ${r.toExponential(2)} at 44,000 y (the little U-238 comes from Pu-242)`,
+      measured:
+        `U-238/U-234 atom ratio ${r.toExponential(2)} at 44,000 y, ${orders.toFixed(1)} orders of magnitude under natural uranium; ` +
+        `with U-238 impurity of 1% of the plutonium mass it would be ${rContam.toExponential(2)}, still ${ordersContam.toFixed(1)} orders under`,
       expected: `natural uranium has U-234/U-238 = ${natural.toExponential(2)}, i.e. U-238/U-234 about ${(1 / natural).toFixed(0)}`,
-      tolerance: 'U-238/U-234 below 1e-3, seven orders of magnitude under natural uranium',
+      tolerance: 'U-238/U-234 below 1e-3; with 1% U-238 contamination still more than 4 orders under natural uranium',
       pass,
+      notes:
+        'The 1.7e-4 readout (U-238 grown from Pu-242) depends on the Cassini isotopic split assumed for the non-238 plutonium and on ' +
+        'no uranium impurity in the fuel; the deduction does not, as the contamination case shows.',
     });
     expect(pass).toBe(true);
   });

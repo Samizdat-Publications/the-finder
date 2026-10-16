@@ -6,7 +6,7 @@ import type { Rng } from './random';
 import { bisectRoot, chiSquareSf, gridMax, logGrid, normalQuantile, wilsonInterval } from './stats';
 import { AVOGADRO, BQ_PER_MICROCURIE, JULIAN_YEAR_S, MEV_J } from './units';
 import {
-  CHENG2013_HALF_LIVES, NUCLIDES, OXYGEN_G_PER_MOL, RA226_PROGENY_HEAT_MEV, batemanChain, lambdaPerYear, type NuclideId,
+  CHENG2013_HALF_LIVES, CHENG2013_SIGMA_2, NUCLIDES, OXYGEN_G_PER_MOL, RA226_PROGENY_HEAT_MEV, batemanChain, lambdaPerYear, type NuclideId,
 } from './nuclides';
 
 /** The general linear-chain Bateman solver lives in nuclides.ts (file size); re-exported here. */
@@ -91,22 +91,66 @@ export interface AgeInterval {
   hi: number;
 }
 
+/** A half-life systematic: the total 1-sigma age shift (quadrature) and each nuclide's signed share. */
+export interface HalfLifeSystematic {
+  totalYears: number;
+  parts: Partial<Record<NuclideId, number>>;
+}
+
+/**
+ * Propagate 1-sigma half-life uncertainties into an age, linearly: for each nuclide the age is
+ * re-inverted with T + sigma and T - sigma, the signed share is half the difference, and the shares
+ * add in quadrature (the half-lives are independent measurements). Not a statistical interval: it is
+ * reported next to it.
+ */
+export function propagateHalfLives(
+  ageWith: (hl: HalfLifeSet) => number,
+  sigmas: Partial<Record<NuclideId, number>>,
+  base: HalfLifeSet = {},
+): HalfLifeSystematic {
+  const parts: Partial<Record<NuclideId, number>> = {};
+  let sum2 = 0;
+  for (const [id, sig] of Object.entries(sigmas) as [NuclideId, number][]) {
+    const T = base[id] ?? NUCLIDES[id].halfLifeYears;
+    const d = (ageWith({ ...base, [id]: T + sig }) - ageWith({ ...base, [id]: T - sig })) / 2;
+    parts[id] = d;
+    sum2 += d * d;
+  }
+  return { totalYears: Math.sqrt(sum2), parts };
+}
+
+const sigmaOf = (ids: NuclideId[]): Partial<Record<NuclideId, number>> =>
+  Object.fromEntries(ids.map((id) => [id, NUCLIDES[id].halfLifeSigmaYears]));
+
 /**
  * Age from U-234 ingrowth assuming a pure U-238 start. Conditional on the total of the two uranium
  * lines, the U-234 count is binomial with p = R / (1 + R), R = A234/A238; the Wilson score interval
  * for p is mapped through the monotonic two-member Bateman ratio
  * R(t) = l2 / (l2 - l1) (1 - exp(-(l2 - l1) t)).
  */
-export function ageFromU234(counts: AlphaCounts, conf = 0.95, halfLives?: HalfLifeSet): AgeInterval & { ratio: number } {
-  const l1 = lambdaPerYear('U238', halfLives);
-  const l2 = lambdaPerYear('U234', halfLives);
-  const d = l2 - l1;
-  const tOf = (R: number): number => (R * d >= l2 ? Infinity : -Math.log1p((-R * d) / l2) / d);
+export function ageFromU234(
+  counts: AlphaCounts,
+  conf = 0.95,
+  halfLives?: HalfLifeSet,
+): AgeInterval & { ratio: number; halfLifeSystematic: HalfLifeSystematic } {
+  const tOfWith = (hl: HalfLifeSet | undefined, R: number): number => {
+    const l1 = lambdaPerYear('U238', hl);
+    const l2 = lambdaPerYear('U234', hl);
+    const d = l2 - l1;
+    return R * d >= l2 ? Infinity : -Math.log1p((-R * d) / l2) / d;
+  };
   const n = counts.u238 + counts.u234;
   const w = wilsonInterval(counts.u234, n, conf);
   const toR = (p: number): number => (p >= 1 ? Infinity : p / (1 - p));
   const R = counts.u238 > 0 ? counts.u234 / counts.u238 : Infinity;
-  return { ageYears: tOf(R), lo: tOf(toR(w.lo)), hi: tOf(toR(w.hi)), ratio: R };
+  return {
+    ageYears: tOfWith(halfLives, R),
+    lo: tOfWith(halfLives, toR(w.lo)),
+    hi: tOfWith(halfLives, toR(w.hi)),
+    ratio: R,
+    // LNHB 1-sigma half-lives of U-234 and U-238 (nuclides.ts), propagated at the central ratio.
+    halfLifeSystematic: propagateHalfLives((hl) => tOfWith(hl, R), sigmaOf(['U234', 'U238']), halfLives ?? {}),
+  };
 }
 
 // --- three-line likelihood: unknown age and initial A234/A238 (r0) ---------------------------------
@@ -260,8 +304,19 @@ export interface RtgState {
     th230OverU234Activity: number; th230OverU234Atoms: number; ra226OverTh230Atoms: number;
     u234OverPu238Atoms: number; u238OverU234Atoms: number;
   };
-  /** Decay heat per spacecraft, W: alpha Q values, Pu-241 mean beta, Ra-226 progeny in equilibrium. */
+  /**
+   * Decay heat per spacecraft, W: alpha Q values, Pu-241 mean beta, Ra-226 progeny in equilibrium
+   * with radon retained (the top of heatRangeW).
+   */
   heatW: number;
+  /**
+   * Heat range, W. high: radon retained, so the Ra-226 progeny add their 28 MeV per decay. low: radon
+   * escapes, progeny heat lost. Both depend on the Cassini split of the non-238 plutonium, which sets
+   * the Pu-239 share (pu239HeatW).
+   */
+  heatRangeW: { low: number; high: number };
+  radonProgenyHeatW: number;
+  pu239HeatW: number;
 }
 
 export function rtgState(tYears: number, halfLives?: HalfLifeSet): RtgState {
@@ -281,7 +336,8 @@ export function rtgState(tYears: number, halfLives?: HalfLifeSet): RtgState {
   }
   // Progeny of Ra-226 assumed in secular equilibrium (true after about a century; before that the
   // Ra-226 activity is under 1e-6 of the total, so the overestimate is negligible).
-  heatMeVPerS += activityBq.Ra226 * RA226_PROGENY_HEAT_MEV;
+  const progenyMeVPerS = activityBq.Ra226 * RA226_PROGENY_HEAT_MEV;
+  heatMeVPerS += progenyMeVPerS;
   return {
     tYears,
     atoms,
@@ -295,6 +351,9 @@ export function rtgState(tYears: number, halfLives?: HalfLifeSet): RtgState {
       u238OverU234Atoms: atoms.U238 / atoms.U234,
     },
     heatW: heatMeVPerS * MEV_J,
+    heatRangeW: { low: (heatMeVPerS - progenyMeVPerS) * MEV_J, high: heatMeVPerS * MEV_J },
+    radonProgenyHeatW: progenyMeVPerS * MEV_J,
+    pu239HeatW: activityBq.Pu239 * NUCLIDES.Pu239.depositedMeV * MEV_J,
   };
 }
 
@@ -344,21 +403,39 @@ function invertRatio(r: (t: number) => number, target: number): number {
 /**
  * Age from the Th-230/U-234 atom ratio, Pu-238 parent, pure start. The measured ratio is m = R (1 + s z),
  * so R lies in [m / (1 + z s), m / (1 - z s)] with probability conf exactly; mapped through R(t).
- * The half-life systematic is reported separately by re-inverting with the Cheng et al. 2013 set.
+ * Reported separately, next to that statistical interval: the half-life systematic, propagating the
+ * LNHB 1-sigma uncertainties of U-234, Th-230 and Pu-238 (and, as an alternative, the Cheng et al.
+ * 2013 set with its 1-sigma, half the quoted 2-sigma). The difference between the LNHB and Cheng
+ * central ages is only a cross-check.
  */
-export function ageFromTh230U234(m: RtgMeasurement, conf = 0.95): AgeInterval & { ageChengYears: number; halfLifeSystematicYears: number } {
+export function ageFromTh230U234(
+  m: RtgMeasurement,
+  conf = 0.95,
+): AgeInterval & {
+  halfLifeSystematic: HalfLifeSystematic;
+  halfLifeSystematicYears: number;
+  halfLifeSystematicCheng: HalfLifeSystematic;
+  ageChengYears: number;
+  chengCrossCheckYears: number;
+} {
   const z = normalQuantile(1 - (1 - conf) / 2);
+  const ageWith = (hl: HalfLifeSet): number => invertRatio((t) => chainRatios('pu238', t, hl)[0], m.th230OverU234);
   const r = (t: number): number => chainRatios('pu238', t)[0];
-  const rC = (t: number): number => chainRatios('pu238', t, CHENG2013_HALF_LIVES)[0];
   const s = m.relativePrecision;
-  const age = invertRatio(r, m.th230OverU234);
-  const ageCheng = invertRatio(rC, m.th230OverU234);
+  const age = ageWith({});
+  const ageCheng = ageWith(CHENG2013_HALF_LIVES);
+  const lnhb = propagateHalfLives(ageWith, sigmaOf(['U234', 'Th230', 'Pu238']));
+  const chengSig = Object.fromEntries(Object.entries(CHENG2013_SIGMA_2).map(([k, v]) => [k, (v as number) / 2]));
+  const cheng = propagateHalfLives(ageWith, chengSig, CHENG2013_HALF_LIVES);
   return {
     ageYears: age,
     lo: invertRatio(r, m.th230OverU234 / (1 + z * s)),
     hi: z * s >= 1 ? Infinity : invertRatio(r, m.th230OverU234 / (1 - z * s)),
+    halfLifeSystematic: lnhb,
+    halfLifeSystematicYears: lnhb.totalYears,
+    halfLifeSystematicCheng: cheng,
     ageChengYears: ageCheng,
-    halfLifeSystematicYears: ageCheng - age,
+    chengCrossCheckYears: ageCheng - age,
   };
 }
 

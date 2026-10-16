@@ -9,6 +9,8 @@ import { createRng } from './random';
 // Coverage acceptance: with N = 1,000 trials the binomial standard error of a 95% coverage is
 // sqrt(0.95 x 0.05 / 1000) = 0.69%, so 93% to 97% is about +/- 3 standard errors (spec, M1 step 4).
 const N = 1000;
+const rel = (a: number, b: number): number => Math.abs(a / b - 1);
+const fmt = (y: number): string => (Math.abs(y) >= 10 ? y.toFixed(0) : y.toFixed(2));
 const ACCEPT = { lo: 0.93, hi: 0.97 };
 
 function coverage(trial: (i: number) => boolean): number {
@@ -35,6 +37,9 @@ describe('clocks: calibration of the uranium-spot clock', () => {
       });
       widths.sort((x, y) => x - y);
       const median = widths[Math.floor(widths.length / 2)] as number;
+      const sys = ageFromU234({
+        u238: state.activityBq.U238, u234: state.activityBq.U234, th230: 0, countingTimeS: 1, efficiency: 1,
+      }).halfLifeSystematic;
       const pass = cov >= ACCEPT.lo && cov <= ACCEPT.hi;
       recordCheck({
         id: c.id,
@@ -43,7 +48,9 @@ describe('clocks: calibration of the uranium-spot clock', () => {
         expected: '95% (Wilson score interval on the U-234 fraction, mapped through the Bateman ratio)',
         tolerance: '93% to 97% (3 binomial standard errors for 1,000 trials)',
         pass,
-        notes: 'Pure U-238 start assumed; uranium and thorium separated before counting; same efficiency for every line.',
+        notes:
+          'Pure U-238 start assumed; uranium and thorium separated before counting; same efficiency for every line. ' +
+          `Separate half-life systematic (1 sigma, LNHB): +/- ${fmt(sys.totalYears)} y (U-234 ${fmt(sys.parts.U234 ?? 0)} y, U-238 ${(sys.parts.U238 ?? 0).toExponential(1)} y).`,
       });
       expect(cov).toBeGreaterThanOrEqual(ACCEPT.lo);
       expect(cov).toBeLessThanOrEqual(ACCEPT.hi);
@@ -94,26 +101,36 @@ describe('clocks: calibration of the RTG clock', () => {
     const state = rtgState(t);
     const rng = createRng('clocks.rtg.coverage');
     const halfWidths: number[] = [];
-    let syst = 0;
     const cov = coverage((i) => {
       const m = simulateRtgMeasurement(state, { relativePrecision: 0.01 }, rng.fork(`trial${i}`));
       const a = ageFromTh230U234(m);
       halfWidths.push((a.hi - a.lo) / 2);
-      syst = a.halfLifeSystematicYears;
       return a.lo <= t && t <= a.hi;
     });
-    const pass = cov >= ACCEPT.lo && cov <= ACCEPT.hi;
+    // Half-life systematic at the true ratio (noise-free measurement).
+    const exact = ageFromTh230U234({ th230OverU234: state.ratios.th230OverU234Atoms, ra226OverTh230: 0, u238OverU234: 0, relativePrecision: 0.01 });
+    const sys = exact.halfLifeSystematic;
+    const sysC = exact.halfLifeSystematicCheng;
+    // Science audit (2026-10-15) computed independently about 137 y (LNHB: U-234 +131.5, Th-230 -38.7)
+    // and about 29 y (Cheng 2013) at 44,100 y; allow 10% for "about" and the 100-year epoch difference.
+    const sysOk = rel(sys.totalYears, 137) < 0.1 && rel(sysC.totalYears, 29) < 0.1;
+    const pass = cov >= ACCEPT.lo && cov <= ACCEPT.hi && sysOk;
     recordCheck({
       id: 'clocks.rtg.coverage',
       claim: 'The thorium clock in the heat source, measured to 1%, gives an age range that contains the true age 95% of the time.',
-      measured: `coverage ${(cov * 100).toFixed(1)}% over ${N} seeded trials; typical 95% half-width ${(halfWidths[0] as number).toFixed(0)} years`,
-      expected: '95%',
-      tolerance: '93% to 97% (3 binomial standard errors for 1,000 trials)',
+      measured:
+        `coverage ${(cov * 100).toFixed(1)}% over ${N} seeded trials; typical 95% statistical half-width ${(halfWidths[0] as number).toFixed(0)} years; ` +
+        `separate half-life systematic +/- ${sys.totalYears.toFixed(0)} years (1 sigma, LNHB)`,
+      expected: '95% coverage; half-life systematic about 137 y (LNHB) and 29 y (Cheng 2013), science audit',
+      tolerance: '93% to 97% (3 binomial standard errors for 1,000 trials); systematic within 10% of the audit value',
       pass,
       notes:
-        `Half-life systematic (LNHB to Cheng et al. 2013 set) on the atom ratio: ${syst.toFixed(1)} years. The research's 103 years is for ` +
-        'the activity ratio; on the atom ratio the U-234 and Th-230 shifts nearly cancel.',
+        `Half-life systematic, 1 sigma, propagated per nuclide: LNHB U-234 ${(sys.parts.U234 ?? 0).toFixed(1)} y, Th-230 ${(sys.parts.Th230 ?? 0).toFixed(1)} y, ` +
+        `Pu-238 ${(sys.parts.Pu238 ?? 0).toFixed(2)} y, total ${sys.totalYears.toFixed(1)} y; with the Cheng et al. 2013 set (1 sigma = half their 2 sigma) ` +
+        `${sysC.totalYears.toFixed(1)} y. Cross-check only: the LNHB and Cheng central ages differ by ${exact.chengCrossCheckYears.toFixed(1)} y, because on ` +
+        "the atom ratio the U-234 and Th-230 shifts nearly cancel (the research's 103 y is for the activity ratio).",
     });
+    expect(sysOk).toBe(true);
     expect(cov).toBeGreaterThanOrEqual(ACCEPT.lo);
     expect(cov).toBeLessThanOrEqual(ACCEPT.hi);
   });
