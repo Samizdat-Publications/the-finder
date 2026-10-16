@@ -112,6 +112,10 @@ HYG, 2016.0 for Gaia DR3).
 
 - `rvKmS`: HYG stores 0.0 when no radial velocity is known, so 0.0 is stored as null (a true value of
   exactly 0.0 at HYG's 0.1 km/s resolution would be lost).
+- Companions: a star without a radial velocity whose system primary (HYG `comp_primary`) has one takes
+  the primary's; near stars so filled carry `rvFromPrimary: true` (187 of them, Sirius B and Procyon B
+  among them). A bound companion moves with its system to within its orbital speed (a few km/s), far
+  below the trail's tens of km/s. Systems whose primary has none (GJ 1245 A and B) stay null.
 - Stars with `astrometrySource: "gaia-dr3"` (Gliese 445) also carry `gaiaDr3SourceId`, `parallaxMas`
   and the Gaia 1-sigma errors `parallaxErrMas`, `pmraErrMasYr`, `pmdecErrMasYr`, `rvErrKmS`; `distPc`
   = 1000 / parallax. HYG has no errors, so these fields are absent on HYG rows.

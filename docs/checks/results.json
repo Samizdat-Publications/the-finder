@@ -105,7 +105,7 @@
     {
       "id": "chart.neighbourhood",
       "claim": "The neighbourhood chart shows the stars the trail table counts, where the epoch model puts them, and the trail it draws for a star makes exactly the angle the kinematics computes.",
-      "measured": "313 stars within 10 pc of the craft (105 without a radial velocity, drawn as uncertain in depth); drawn angles: Sun 0.004 +/- 0.202 deg; Gl 445 90.000 +/- 0.000 deg; Ross 248 51.775 +/- 0.058 deg; Rigil Kentaurus 40.070 +/- 0.441 deg; largest difference 1.4e-14 deg",
+      "measured": "315 stars within 10 pc of the craft (85 without a radial velocity, drawn as uncertain in depth); drawn angles: Sun 0.004 +/- 0.202 deg; Gl 445 90.000 +/- 0.000 deg; Ross 248 51.775 +/- 0.058 deg; Rigil Kentaurus 40.070 +/- 0.441 deg; largest difference 1.4e-14 deg",
       "expected": "kinematics.trailCensus counts, epoch.ts starStateAt positions, kinematics.trail angleDeg",
       "tolerance": "1e-9 deg on angles and 1e-12 pc on positions (double rounding of a rotation)",
       "pass": true
@@ -384,7 +384,7 @@
       "expected": "The Python reference decoder's 96 kHz decodes of the same slices (build/ref96, tools/ref-decoder)",
       "tolerance": "SSIM at least 0.98 per frame (scikit-image defaults); for scale, the reference's own 96 vs 384 kHz decodes differ by SSIM 0.970 at worst",
       "pass": true,
-      "notes": "Node decode time 115 ms per frame including WAV and PNG reading."
+      "notes": "Node decode time 114 ms per frame including WAV and PNG reading."
     },
     {
       "id": "decoder.ref.aspectIndependent",
@@ -507,7 +507,7 @@
       "expected": "Rank 1 to 3 (PLAN.md \"The story frame\"); the story figure about 1.06 pc (3.45 ly) is from Wikipedia's Gliese 445 article (voyager.md section 5)",
       "tolerance": "rank <= 3; distance error propagated from the Gaia DR3 errors of Gliese 445 (1 sigma)",
       "pass": true,
-      "notes": "HYG v4.2 within 30 pc is incomplete for faint M dwarfs. 2155 of 3933 stars within 30 pc have no radial velocity and are moved with v_r = 0, so each is uncertain by |v_r| x 44 kyr (about 1.4 pc at 30 km/s); 19 of them could come closer to Gliese 445 than the Sun for some |v_r| <= 150 km/s (with the |v_r| each would need: GJ 1245A 64 km/s, GJ 1245B 64 km/s, Gl 244B 64 km/s, HYG 82472 66 km/s, HYG 82473 76 km/s, HYG 102708 90 km/s, GJ 3522 103 km/s, HYG 83352 108 km/s, HYG 85345 115 km/s, GJ 1230A 122 km/s, GJ 1230B 122 km/s, HYG 58735 123 km/s, GJ 3379 125 km/s, GJ 4053 126 km/s, GJ 3991 126 km/s, GJ 4063 136 km/s, Gl 300 140 km/s, GJ 3323 145 km/s, GJ 3454 146 km/s). The DR3 distance differs from the older 1.06 pc figure by 0.036 pc, many times its Gaia DR3 uncertainty of 0.0016 pc; see epoch.neighbourDistance."
+      "notes": "HYG v4.2 within 30 pc is incomplete for faint M dwarfs. 1968 of 3933 stars within 30 pc have no radial velocity and are moved with v_r = 0, so each is uncertain by |v_r| x 44 kyr (about 1.4 pc at 30 km/s); 18 of them could come closer to Gliese 445 than the Sun for some |v_r| <= 150 km/s (with the |v_r| each would need: GJ 1245A 64 km/s, GJ 1245B 64 km/s, HYG 82472 66 km/s, HYG 82473 76 km/s, HYG 102708 90 km/s, GJ 3522 103 km/s, HYG 83352 108 km/s, HYG 85345 115 km/s, GJ 1230A 122 km/s, GJ 1230B 122 km/s, HYG 58735 123 km/s, GJ 3379 125 km/s, GJ 4053 126 km/s, GJ 3991 126 km/s, GJ 4063 136 km/s, Gl 300 140 km/s, GJ 3323 145 km/s, GJ 3454 146 km/s). The DR3 distance differs from the older 1.06 pc figure by 0.036 pc, many times its Gaia DR3 uncertainty of 0.0016 pc; see epoch.neighbourDistance."
     },
     {
       "id": "epoch.pulsars.geometry",
@@ -534,7 +534,7 @@
       "expected": "Rank 1 to 10 (PLAN.md \"The story frame\")",
       "tolerance": "rank <= 10; magnitudes from HYG absolute V magnitudes (the Sun 4.81, Willmer 2018, in place of the HYG value 4.85) and distances at the epoch, no extinction",
       "pass": true,
-      "notes": "Includes the naked-eye sky list (mag <= 6.5 from Earth) moved to the epoch; 206 sky stars without a distance are skipped (all fainter than mag 3.3 from Earth). Double stars are listed per component. HYG v4.2 within 30 pc is incomplete for faint M dwarfs. 2155 of 3933 stars within 30 pc have no radial velocity and are moved with v_r = 0, so each is uncertain by |v_r| x 44 kyr (about 1.4 pc at 30 km/s); 19 of them could come closer to Gliese 445 than the Sun for some |v_r| <= 150 km/s (with the |v_r| each would need: GJ 1245A 64 km/s, GJ 1245B 64 km/s, Gl 244B 64 km/s, HYG 82472 66 km/s, HYG 82473 76 km/s, HYG 102708 90 km/s, GJ 3522 103 km/s, HYG 83352 108 km/s, HYG 85345 115 km/s, GJ 1230A 122 km/s, GJ 1230B 122 km/s, HYG 58735 123 km/s, GJ 3379 125 km/s, GJ 4053 126 km/s, GJ 3991 126 km/s, GJ 4063 136 km/s, Gl 300 140 km/s, GJ 3323 145 km/s, GJ 3454 146 km/s)."
+      "notes": "Includes the naked-eye sky list (mag <= 6.5 from Earth) moved to the epoch; 206 sky stars without a distance are skipped (all fainter than mag 3.3 from Earth). Double stars are listed per component. HYG v4.2 within 30 pc is incomplete for faint M dwarfs. 1968 of 3933 stars within 30 pc have no radial velocity and are moved with v_r = 0, so each is uncertain by |v_r| x 44 kyr (about 1.4 pc at 30 km/s); 18 of them could come closer to Gliese 445 than the Sun for some |v_r| <= 150 km/s (with the |v_r| each would need: GJ 1245A 64 km/s, GJ 1245B 64 km/s, HYG 82472 66 km/s, HYG 82473 76 km/s, HYG 102708 90 km/s, GJ 3522 103 km/s, HYG 83352 108 km/s, HYG 85345 115 km/s, GJ 1230A 122 km/s, GJ 1230B 122 km/s, HYG 58735 123 km/s, GJ 3379 125 km/s, GJ 4053 126 km/s, GJ 3991 126 km/s, GJ 4063 136 km/s, Gl 300 140 km/s, GJ 3323 145 km/s, GJ 3454 146 km/s)."
     },
     {
       "id": "game.glyphs",
@@ -842,7 +842,7 @@
     {
       "id": "trail.unique",
       "claim": "Of all catalogued stars within 10 parsecs of the craft, exactly one, the Sun, has the craft flying straight away from it.",
-      "measured": "Sun 0.0043 deg; next smallest Ran 8.58 deg; 313 stars within 10 pc, 105 without a radial velocity excluded",
+      "measured": "Sun 0.0043 deg; next smallest Ran 8.58 deg; 315 stars within 10 pc, 85 without a radial velocity excluded",
       "expected": "One star under 0.1 deg, the Sun (PLAN.md chapter 4)",
       "tolerance": "0.1 deg (M1.md step 4)",
       "pass": true,
@@ -850,8 +850,8 @@
     },
     {
       "id": "trail.uniqueNoRv",
-      "claim": "Of 1642 stars tested in total, the 1434 with no measured radial velocity that could lie within 10 parsecs of the craft (the other 208 have full velocities) cannot fake the Sun's straight-away signature for any radial velocity up to 300 km/s.",
-      "measured": "smallest possible angle 2.17 deg for |v_r| <= 100 km/s (GJ 3379 at 86.7 km/s); 0.86 deg for |v_r| <= 300 km/s (HYG 27535 at -300.0 km/s, 201 sigma from zero by its own simulated measurement); tested 1434 stars without and 208 with radial velocities",
+      "claim": "Of 1520 stars tested in total, the 1290 with no measured radial velocity that could lie within 10 parsecs of the craft (the other 230 have full velocities) cannot fake the Sun's straight-away signature for any radial velocity up to 300 km/s.",
+      "measured": "smallest possible angle 2.17 deg for |v_r| <= 100 km/s (GJ 3379 at 86.7 km/s); 0.86 deg for |v_r| <= 300 km/s (HYG 27535 at -300.0 km/s, 201 sigma from zero by its own simulated measurement); tested 1290 stars without and 230 with radial velocities",
       "expected": "above the Sun's angle plus 5 sigma (1.02 deg) for |v_r| <= 100 km/s; more than 5 of its own sigma for |v_r| <= 300 km/s",
       "tolerance": "radial velocities scanned on a 0.25 km/s grid with golden-section refinement; only values that put the star within 10 pc of the craft count",
       "pass": true
