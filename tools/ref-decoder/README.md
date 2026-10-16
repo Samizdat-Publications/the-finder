@@ -172,46 +172,37 @@ frames. (The 1992 CD-ROM images were 512 x 384; Barry used 540 x 364, about 7.4 
 (images 3, 4, 5, 14, 15, 32, 37, 39, 40: definitions, DNA, the male and female figures, family ages,
 continental drift, Earth's structure) were registered against NASA's clean gallery copies (640 x 480
 GIFs; tests only), after turning our frames upright with Barry's table: ORB features and a seeded RANSAC
-affine fit to start, then the six affine parameters refined to maximise the normalised
-cross-correlation. Overlays: `build/ref/geometry_check/`. From the metric of each fitted map, in our
-native axes:
+affine fit to start (or, for the featureless calibration circle, a start from the fitted ring's centre
+and mean radius: no rotation, no shear), then the six affine parameters refined to maximise the
+normalised cross-correlation. Chosen settings: blur 1.2 px before the correlation, matches with a final
+correlation under 0.4 rejected (none were), at least 8 matches for the feature start. Overlays:
+`build/ref/geometry_check/`. From the metric of each fitted map, in our native axes:
 
-| Measure | Median | Mean | Image-to-image std | Std error | Range |
+| Measure (9 images) | Mean | Std error | Median | Image-to-image std | Range |
 |---|---|---|---|---|---|
-| x/y scale (1 = our aspect agrees) | 0.9915 | 0.9908 | 0.0098 | 0.0033 | 0.972 to 1.004 |
-| Shear (cosine of the true angle between our axes) | -0.0138 | -0.0140 | 0.0025 | 0.0008 | -0.018 to -0.011 |
+| Aspect offset (x/y scale - 1) | **-0.92%** | **0.33%** | -0.85% | 0.98% | -2.8% to +0.4% |
+| Shear (cosine of the true angle between our axes) | **-1.40%** | **0.08%** | -1.38% | 0.25% | -1.8% to -1.1% |
 
-- **Aspect.** The calibration circle, compared the same way with the gallery's own circle, gives x/y
-  1.0004. That is within the image-to-image scatter of the nine others (0.9 std from their median), so
-  the circle-defined aspect passes; the nine together lean 0.85% (about 3 rows) the other way, which is
-  2.6 standard errors, so a small aspect error cannot be ruled out. Each slide and scan has its own
-  geometry (the scatter is 3.5 rows).
-- **Shear.** Our frames are sheared by about 1.4% against all nine clean images, with a scatter of only
-  0.25%, and with the same sign in the two frames Barry rotates (L039, L052). A distortion in the
-  gallery scans would turn with those images and flip sign in our axes; it does not, so the shear is
-  fixed in the record's raster: in the 1977 camera and scan converter (content drifts about 0.1 sample
-  per line against the sync), or in our decode. The calibration circle does not reveal it: the gallery's
-  own calibration circle is elliptical too (minor/major 0.986 at 137 degrees), so the artwork (or its
-  copy) is not perfectly round, and our decoded circle against the gallery circle gives shear -0.0075.
-- **Decision: the decode is left unsheared.** The lead's rule was to fit a shear on the circle only if
-  the clean images showed none and ours did. The circle cannot be used (it disagrees in size and
-  sign: +0.0066 if the artwork were round), and fitting the decoder to clean published images would
-  make the record's own decoding depend on outside pictures. The measured shear is recorded here and in
-  `geometry_check.json` for the lead to decide on.
+The calibration circle itself, registered against the gallery's circle, gives x/y 0.9993 and shear
+-0.0072 (the ellipse fits give 1.0004 and -0.0075).
 
-**8. Orientation.** Native frames are as decoded (line 1 at the left, time downward). Nothing on the
-record says which way is up. `contact_upright.png` applies Barry's orientation table, as a labelled
-reference only: his code 1 is a quarter turn clockwise, code 2 anticlockwise (read from the loops that
-write his still images).
-
-**9. Colour.** The 20 colour images are three consecutive frames each (from
-`docs/research/data/images/image_list_116.txt`), assembled R, G, B in frame order: an inference
-(gourneau shows the record alone cannot prove the order; the decoded solar spectrum does come out blue,
-green, red from left to right). G and B are registered to R by cross-correlating their edge maps
-(gradient magnitude, so a spectrum whose bright band moves between separations is not "aligned"),
-within 6 pixels, to a tenth of a pixel. Shifts are recorded in `metrics.json`; they are all under
-1.7 px, typically G -0.2 rows and B -0.5 to -0.9 rows. The solar spectrum (image 8) has a weak edge
-correlation (0.14), so its registration is not meaningful.
+- **These are detections, not agreement.** The aspect offset is about 2.8 standard errors from zero
+  (our columns may be about 0.9%, 3 rows, too narrow against the clean copies) and the shear about 17.
+  The calibration circle, which sets our aspect, does not show either at this level.
+- **Why the check still passes.** The claim recorded (`decoder.ref.aspectIndependent`) is that the
+  remaining geometry error is invisible, with a **chosen perceptual threshold**: |aspect offset| and
+  |shear| each under 2% at their mean plus two standard errors (1.57% and 1.56%). A circle 2% out of
+  round still looks round in a 512-line picture. The threshold is a choice, labelled as one.
+- **The shear's origin is unresolved.** It has the same sign in the two frames Barry rotates (L039,
+  L052), which argues against a distortion of the gallery scans that would turn with those images. But
+  our own circle is a diagonal ellipse (minor/major 0.9934 at 137 degrees: shear +0.0066 if the artwork
+  is round), opposite in sign to the -0.0138 found against the clean images, and the gallery circle
+  (0.986 at 136.9 degrees) sits on the same diagonal, which fits a sheared gallery scan as well as an
+  elliptical artwork. Candidates: the 1977 camera and scan converter, the artwork or its copy, the
+  gallery scans, or our decode.
+- **The decode is left unsheared.** The circle cannot set a shear (it disagrees in size and sign), and
+  fitting the decoder to clean published images would make the record's decoding depend on outside
+  pictures. The measurement is in `build/ref/geometry_check.json` for the lead to decide on.
 
 ## Meaningful wrong results (for the M2 browser tests)
 
@@ -250,11 +241,13 @@ edge times agree to 0.6 samples (384 kHz) rms in the median frame, 1.0 at worst.
 ## Checks recorded for How it's checked
 
 `checks.py` records, through `tools/checkrecord.py`: `decoder.ref.circle` (procedure self-test, with the
-true ellipse ratio and tilt), `decoder.ref.slant` (slant-meter self-test), `decoder.ref.linePeriod` (L000 3197.42
-samples = 8.3266 ms against the research's independent 3197.4 samples, +/- 0.05; median 8.3204 ms; the
-cover's 8.3396 ms, so the tape runs 0.16% to 0.23% fast), `decoder.ref.frameStarts` (155 of 156 within one
-line of Barry's table, the exception explained), `decoder.ref.ssim96` (informational) and
-`decoder.ref.aspectIndependent` (the geometry check above).
+true ellipse ratio and tilt), `decoder.ref.slant` (slant-meter self-test), `decoder.ref.linePeriod`
+(gated only on the first frame: L000 3197.42 samples = 8.3266 ms against the research's independent
+3197.4 samples, +/- 0.05, the rounding of that value; reported as information: the median 8.3204 ms, the
+drift along the reel from 8.3277 to 8.3156 ms, and the cover's 8.3396 ms, so the tape runs 0.16% to
+0.23% fast), `decoder.ref.frameStarts` (155 of 156 within one line of Barry's table, the exception
+explained), `decoder.ref.ssim96` (informational) and `decoder.ref.aspectIndependent` (the geometry check
+above: errors detected, under the chosen 2% visibility threshold).
 
 ## Known limits
 

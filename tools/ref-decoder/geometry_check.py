@@ -49,12 +49,16 @@ PAIRS = [(1, "L000", "nasa-gr-001"), (3, "L002", "nasa-gr-003"), (4, "L003", "na
          (5, "L004", "nasa-gr-005"), (14, "L019", "nasa-gr-014"), (15, "L020", "nasa-gr-015"),
          (32, "L039", "nasa-gr-032"), (37, "L050", "nasa-gr-037"), (39, "L052", "nasa-gr-039"),
          (40, "L053", "nasa-gr-040")]
-# Blur (pixels, Gaussian sigma) applied to both images before the correlation. Chosen here: removes
+# Fewer ORB matches or RANSAC inliers than this: start from the fitted ring instead. A chosen setting.
+MIN_MATCHES = 8
+# Blur (pixels, Gaussian sigma) applied to both images before the correlation. A chosen setting: removes
 # the decode's line-to-line streaks and the GIF dithering without blurring away the line art.
 BLUR = 1.2
 # The clean images sit on a black canvas with a credit line; content = pixels in the bounding box of
 # the brightest region (card) shrunk by this margin (pixels). Chosen here.
 CONTENT_MARGIN = 6
+# Bright regions smaller than this fraction of the image are not card (credit text). A chosen setting.
+CARD_MIN_FRAC = 0.01
 # Seed for RANSAC (deterministic run).
 SEED = 20261015
 
@@ -66,8 +70,10 @@ def load_clean(path):
     if n == 0:
         raise ValueError("no card in " + path)
     sizes = ndimage.sum(card, lab, range(1, n + 1))
-    k = int(np.argmax(sizes)) + 1
-    ys, xs = np.nonzero(lab == k)
+    # the card may be split into several bright regions by its own line art (the circle's inside and
+    # outside): take every region larger than CARD_MIN_FRAC of the image (the credit line is far smaller)
+    keep = [i + 1 for i, sz in enumerate(sizes) if sz >= CARD_MIN_FRAC * g.size]
+    ys, xs = np.nonzero(np.isin(lab, keep))
     box = (ys.min() + CONTENT_MARGIN, ys.max() - CONTENT_MARGIN, xs.min() + CONTENT_MARGIN, xs.max() - CONTENT_MARGIN)
     return g, box
 
@@ -102,20 +108,42 @@ def register(ours, clean, box):
         orb.detect_and_extract(img)
         feats.append((orb.keypoints, orb.descriptors))
     m = match_descriptors(feats[1][1], feats[0][1], cross_check=True, max_ratio=0.85)
-    src = feats[1][0][m[:, 0]][:, ::-1] + [x0, y0]  # clean (x, y)
-    dst = feats[0][0][m[:, 1]][:, ::-1]  # ours (x, y)
-    model, inl = ransac((src, dst), AffineTransform, min_samples=3, residual_threshold=3.0,
-                        max_trials=5000, rng=SEED)
-    if model is None:
-        raise ValueError("RANSAC found no model")
-    M = model.params
+    start = "orb_ransac"
+    ninl = 0
+    model = None
+    if len(m) >= MIN_MATCHES:
+        src = feats[1][0][m[:, 0]][:, ::-1] + [x0, y0]  # clean (x, y)
+        dst = feats[0][0][m[:, 1]][:, ::-1]  # ours (x, y)
+        model, inl = ransac((src, dst), AffineTransform, min_samples=3, residual_threshold=3.0,
+                            max_trials=5000, rng=SEED)
+        if model is not None:
+            ninl = int(np.sum(inl))
+    if model is None or ninl < MIN_MATCHES:
+        # Featureless line art (the calibration circle): start from the fitted ring instead (centre and
+        # mean radius: translation and an isotropic scale; no rotation, no shear).
+        start = "ring_fit"
+        M = moment_start(ob, cb, box)
+    else:
+        M = model.params
     yy, xx = np.mgrid[y0:y1:2, x0:x1:2]
     ys, xs = yy.ravel().astype(float), xx.ravel().astype(float)
     p0 = [M[0, 0], M[0, 1], M[1, 0], M[1, 1], M[0, 2], M[1, 2]]
     res = optimize.minimize(ncc_cost, p0, args=(ob, cb, ys, xs), method="Powell",
                             options={"xtol": 1e-6, "ftol": 1e-7, "maxiter": 20000})
     a, b, c, d, tx, ty = res.x
-    return np.array([[a, b, tx], [c, d, ty]]), -float(res.fun), int(np.sum(inl)), -ncc_cost(p0, ob, cb, ys, xs)
+    return np.array([[a, b, tx], [c, d, ty]]), -float(res.fun), ninl, -ncc_cost(p0, ob, cb, ys, xs), start
+
+
+def moment_start(ob, cb, box):
+    """Clean -> ours affine (3x3) for a ring figure (the calibration circle): centres and mean radii of
+    ellipses fitted to the ring in each image (aspect.py). Isotropic scale, no rotation, no shear, so
+    the start carries none of the geometry being measured."""
+    y0, y1, x0, x1 = box
+    fo = aspect.fit_ellipse(aspect.ring_points(ob * 255.0))
+    fc = aspect.fit_ellipse(aspect.ring_points(cb[y0:y1, x0:x1] * 255.0))
+    k = (fo["a"] + fo["b"]) / (fc["a"] + fc["b"])
+    ccx, ccy = fc["xc"] + x0, fc["yc"] + y0
+    return np.array([[k, 0.0, fo["xc"] - k * ccx], [0.0, k, fo["yc"] - k * ccy], [0.0, 0.0, 1.0]])
 
 
 def upright_linear(k: int):
@@ -156,13 +184,13 @@ def main():
         k = barry.ORIENT_ROT90_K[B["orientation"][ch][int(fid[1:])]]
         up = np.rot90(native, k)
         try:
-            M, ncc, ninl, ncc0 = register(up, clean, box)
+            M, ncc, ninl, ncc0, start = register(up, clean, box)
         except ValueError as err:
             out.append({"image": num, "frame": fid, "error": str(err)})
             continue
         Q = upright_linear(k)  # native -> upright
         L_native = np.linalg.inv(Q) @ M[:, :2]  # clean -> native
-        rec = {"image": num, "frame": fid, "barry_rot90_k": k, "ncc": ncc, "ncc_start": ncc0,
+        rec = {"image": num, "frame": fid, "barry_rot90_k": k, "start": start, "ncc": ncc, "ncc_start": ncc0,
                "ransac_inliers": ninl, "clean_to_native": L_native.tolist()}
         out.append(rec)
         # overlay: clean warped into our upright frame (red) over our decode (grey)
@@ -196,7 +224,8 @@ def main():
         print(f"image {r['image']:3d} {r['frame']} (rot90 k={r['barry_rot90_k']:+d}): x/y {raw['x_over_y_scale']:.4f} "
               f"shear {raw['shear']:+.4f} (NCC {r['ncc']:.3f}); gallery circle removed: x/y "
               f"{corr['x_over_y_scale']:.4f} shear {corr['shear']:+.4f}")
-    good = [r for r in out if "error" not in r and r["ncc"] >= MIN_NCC]
+    good = [r for r in out if "error" not in r and r["ncc"] >= MIN_NCC and r["frame"] != "L000"]
+    circle_reg = next((r for r in out if r["frame"] == "L000"), None)
     xs_ = np.array([r["x_over_y_scale"] for r in good])
     sh_ = np.array([r["shear"] for r in good])
     # our circle against the gallery's circle (both fitted the same way): the circle's own geometry
@@ -213,6 +242,7 @@ def main():
         "x_over_y_scale": stats(xs_),
         "shear": stats(sh_),
         "circle_vs_gallery_circle": circ_vs,
+        "circle_registration": circle_reg,
         "our_circle": {"minor_over_major": ours_circle["axes_ratio_minor_major"], "tilt_deg": ours_circle["theta_deg"],
                        "hx_over_hy": ours_circle["axis_ratio"], "geometry_if_artwork_round": ours_from_circle},
         "gallery_circle": {"hx_over_hy": clean_circle["axis_ratio"], "minor_over_major": clean_circle["axes_ratio_minor_major"],
@@ -233,7 +263,7 @@ def main():
           f"gallery circle {clean_circle['axes_ratio_minor_major']:.4f} at {clean_circle['theta_deg']:.1f} deg")
 
 
-# Registrations with a final NCC below this are not used (a failed match). Chosen here: the decode's
+# Registrations with a final NCC below this are not used (a failed match). A chosen setting: the decode's
 # streaks keep good matches of line art near 0.42 to 0.55 (overlays checked by eye).
 MIN_NCC = 0.4
 
