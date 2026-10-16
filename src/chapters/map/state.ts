@@ -31,6 +31,8 @@ export const axis = signal<{ lDeg: number; bDeg: number }>({ lDeg: 0, bDeg: 90 }
 export const origin = signal<[number, number]>([0, 0]);
 /** The map's scale, pc per centre-line length (null: the Galactic centre's distance, set when the chart is ready). */
 export const scalePc = signal<number | null>(null);
+/** The step's tool panel over the chart, folded away to see the whole chart (view state, like a scroll position). */
+export const toolFolded = signal<boolean>(false);
 /** Which deduction's tools are on the bench. */
 export const stage = signal<MapNodeId>('map.periods');
 

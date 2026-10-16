@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { confirmedSet, game } from '../../game/state';
 import { wrapDeg } from '../../science/pulsars';
 import { mountGalaxy, type GalaxyHandle, type GalaxyInfo } from '../../world/galaxy';
+import { ensureParts } from '../shared/epochModel';
 import { Dial } from './Dial';
 import { assign, assignments, model, origin, rotationDeg, scalePc, selectedLine, START_ROTATION_DEG } from './state';
 
@@ -30,6 +31,23 @@ export function GalaxyPane() {
   useEffect(() => {
     const el = canvas.current;
     if (!m || !el) return;
+    // The WebGL chart starts in a task of its own, after the instrument has drawn (no long task on entering).
+    let g: GalaxyHandle | null = null;
+    let live = true;
+    const start = window.setTimeout(() => {
+      if (live) g = mount(el, m);
+    }, 0);
+    return () => {
+      live = false;
+      window.clearTimeout(start);
+      if (!g) return;
+      if (window.__mapChart === g) delete window.__mapChart;
+      g.dispose();
+      handle.current = null;
+    };
+  }, [m]);
+
+  const mount = (el: HTMLCanvasElement, m: NonNullable<typeof model.value>): GalaxyHandle => {
     const g = mountGalaxy(el, {
       seed: m.seed,
       pulsars: m.alien,
@@ -42,10 +60,9 @@ export function GalaxyPane() {
     });
     handle.current = g;
     if (window.__finder) window.__mapChart = g;
-    let live = true;
     g.ready
       .then((i) => {
-        if (!live) return;
+        if (handle.current !== g) return;
         if (scalePc.value === null) scalePc.value = i.gc.distKpc * 1000;
         // A returning player whose lines are matched gets the map back turned the way it was confirmed.
         if (confirmed.has('map.periods') && rotationDeg.value === START_ROTATION_DEG) rotationDeg.value = i.gc.lDeg;
@@ -54,13 +71,8 @@ export function GalaxyPane() {
         void g.frame({ pointKpc: [0, 0, 0] }, { distKpc: 7, durationS: 0.01 });
       })
       .catch(() => undefined);
-    return () => {
-      live = false;
-      if (window.__mapChart === g) delete window.__mapChart;
-      g.dispose();
-      handle.current = null;
-    };
-  }, [m]);
+    return g;
+  };
 
   // Redraw the overlay whenever the map is turned, moved or scaled, or a line gets a pulsar.
   const rot = rotationDeg.value;
@@ -77,7 +89,18 @@ export function GalaxyPane() {
   useEffect(() => {
     const g = handle.current;
     if (!g || !info || !m) return;
-    g.showRegion(regionShown ? m.region() : null);
+    if (!regionShown) {
+      g.showRegion(null);
+      return;
+    }
+    // The region comes from the epoch Worker (a returning player may not have it yet): draw it once it is in.
+    let live = true;
+    void ensureParts(m, ['region'])
+      .then(() => live && handle.current === g && g.showRegion(m.region()))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
   }, [info, regionShown]);
 
   const toCentre = info && m ? wrapDeg(rot + m.inputs.cover.pulsarMap.gcLine.angleDeg - info.gc.lDeg) : null;

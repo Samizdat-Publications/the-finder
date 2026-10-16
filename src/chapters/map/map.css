@@ -87,7 +87,9 @@
 .map-sidept { fill: var(--cyan); }
 .map-skyread { gap: 0.25rem 0.5rem; }
 .map-nudge { padding: 0.15rem 0.45rem; min-height: 1.9rem; font-size: var(--fs-label); }
-.map-legend { margin: 0; }
+.map-legend { margin: 0; line-height: 1.45; }
+.map-toolpanel:not(.folded) .map-toolfold { font-size: var(--fs-label); }
+.map-skyctl { display: grid; gap: 0.35rem; }
 .map-decides-bar .track { fill: var(--line); }
 .map-decides-bar .fill { fill: var(--text-dim); }
 .map-decides-bar .fill.inside { fill: var(--cyan); }
@@ -111,11 +113,31 @@
    scroll in their own box. */
 @media (min-width: 1000px) and (min-height: 620px) {
   .mapinst { height: 100%; margin: 0; grid-template-columns: minmax(0, 1.5fr) minmax(19rem, 1fr); align-items: stretch; }
+  /* The chart keeps the whole left column (M4 step 7e): its tools sit on top, the step's tool panel floats over
+     its lower part and folds away. */
+  .map-left { position: relative; }
   .map-chart { flex: 1 1 0; }
+  .map-charttools { order: -1; border-top: 0; border-bottom: 1px solid var(--line); }
   .map-chart canvas { height: auto; flex: 1 1 0; }
-  .map-tool { flex: none; }
-  .map-plot { height: clamp(8.5rem, 24vh, 13rem); }
-  .map-plane { height: clamp(10rem, 30vh, 15rem); }
+  .map-toolpanel {
+    position: absolute; left: 0.6rem; right: 0.6rem; bottom: 0.6rem; z-index: 2; max-height: 52%; overflow-y: auto; overscroll-behavior: contain;
+    padding: 0.35rem 0.6rem 0.5rem; background: rgba(8, 7, 26, 0.88); border: 1px solid var(--line); border-radius: 8px; backdrop-filter: blur(3px);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.45);
+  }
+  .map-toolpanel.folded { left: auto; max-height: none; overflow: visible; padding: 0.3rem; }
+  .map-toolhead { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.25rem; }
+  .map-toolpanel.folded .map-toolhead { margin: 0; }
+  .map-toolpanel .map-tool { padding: 0; background: none; border: 0; }
+  .map-plot { height: clamp(7rem, 17vh, 10rem); }
+  .map-plane { height: clamp(8.5rem, 23vh, 13rem); }
+  /* The sky ages: the two plots on top, the readouts in two columns under them. */
+  .map-skyctl { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 0.25rem 0.9rem; align-items: start; }
+  .map-skyctl .map-decides, .map-skyctl .map-legend { grid-column: 2; }
+  .map-skyctl > .map-row:not(.map-decides) { grid-column: 1; }
+  .map-skyctl .map-decides { grid-row: 1 / span 2; }
+  .map-skyctl .map-nudge { min-height: 1.75rem; padding: 0.05rem 0.38rem; }
+  .map-toolpanel .map-originrow { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.6fr); }
+  .map-toolpanel .map-originread { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 0.9rem; }
   .map-cover { flex: none; }
   .map-cover-svg { height: clamp(7.5rem, 22vh, 13rem); }
   .map-steps { flex: 1 1 0; overflow-y: auto; overscroll-behavior: contain; padding-right: 0.2rem; }

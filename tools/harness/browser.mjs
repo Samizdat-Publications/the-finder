@@ -35,6 +35,11 @@ export async function openPage(browser, url, opts = {}) {
   });
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
   page.on('requestfailed', (r) => errors.push(`requestfailed: ${r.url().slice(0, 200)}`));
-  await page.goto(url, { waitUntil: 'load' });
+  try {
+    await page.goto(url, { waitUntil: 'load' });
+  } catch (e) {
+    await context.close();
+    throw e;
+  }
   return { page, errors, context };
 }

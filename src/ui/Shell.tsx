@@ -9,6 +9,8 @@ import { confirmedSet, game, hintsUsed } from '../game/state';
 import { Codex } from './Codex';
 import { GlyphLabel } from './Glyph';
 import { Hub } from './Hub';
+import { Moment } from './Moment';
+import { ScrollCues } from './scrollCue';
 import { notebookOpen, revealInside } from './notebook';
 import { SettingsPanel } from './SettingsPanel';
 import { Workbench } from './Workbench';
@@ -118,8 +120,11 @@ export function Shell() {
       <div class="notice" role="alert" aria-live="assertive">
         {notice && <span>{notice}</span>}
       </div>
+      {(game.codexOpen.value || game.settingsOpen.value) && <div class="drawer-scrim" aria-hidden="true" />}
       {game.codexOpen.value && <Codex />}
       {game.settingsOpen.value && <SettingsPanel />}
+      <Moment />
+      <ScrollCues />
     </div>
   );
 }

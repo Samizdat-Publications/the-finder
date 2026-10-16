@@ -8,8 +8,17 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from '../../tools/harness/serve.mjs';
+import { skipMoments } from './moments.mjs';
 
 const SAVE_KEY = 'finder.save.v1';
+/** What each staged moment's capture shows (tests/browser/moments.mjs). */
+export const MOMENT_SHOWS = {
+  "map.region": "The staged moment for where the map was drawn: the galaxy chart over the whole screen closing in on the origin region where the map's lines meet; the distance from the alien's star then, large, and one sentence.",
+  "spot.age": "The staged moment for the spot's age: the cover under a low raking lamp, the spot glowing faintly where the counts rose; the age large in beats, and one sentence.",
+  "trail.origin": "The staged moment for the star it came from: the neighbourhood chart, the machine's path drawn back from the craft to the warm-white star; the distance travelled, large.",
+  "trail.neighbour": "The staged moment for the neighbour: the alien's own sky, the brightest stars numbered, the warm-white star ringed as the fifth-brightest; its distance, large.",
+  "trail.when": "The staged moment for when the map was made: the old lines' ages sliding together onto one line in the warm-white star's frame; the map's age, large.",
+};
 const SEED = 'finder-1';
 const done = (ids) => Object.fromEntries(ids.map((id) => [id, { confirmed: true, attempts: [], hints: 0 }]));
 const stampNow = () => new Date().toISOString().replace(/[:]/g, '-').replace(/\.\d+Z$/, '');
@@ -275,6 +284,9 @@ export async function playMap(page, { assert, log, label = '', shot, review = fa
   await clickPlane(centre[0], centre[1]);
   const g1 = await propose('map.region');
   assert(g1.ok, `the origin slid into the region is accepted (${g1.message})`);
+  // The staged moment (M4 step 7e): captured, then skipped with its Continue button, as a player would.
+  const seen = await skipMoments(page, { shot: (id) => shot(`moment-${id}`, MOMENT_SHOWS[id] ?? id), settleMs: 4200 });
+  assert(seen.includes('map.region'), `the map.region moment shows once and is skipped (${seen.join(', ')})`);
   await page.waitForSelector('[data-region-stars]');
   await page.evaluate(async () => {
     await window.__mapChart.frame('region', { durationS: 0.01 });

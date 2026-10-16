@@ -9,6 +9,7 @@
 
 import * as THREE from 'three';
 import type { Vec3 } from '../science/astro';
+import { DEFAULT_ANCHORS, layoutLabels, type Anchor, type LabelBox } from './labelLayout';
 
 export function galToWorld(v: Vec3, out = new THREE.Vector3()): THREE.Vector3 {
   return out.set(v[0], v[2], -v[1]);
@@ -302,6 +303,55 @@ export function sizeLabels(root: THREE.Object3D, camera: THREE.PerspectiveCamera
     if (h === undefined) return;
     o.scale.set(h * k * (o.userData.aspect as number), h * k, 1);
   });
+}
+
+/** A bright point labels keep clear of: a Galactic point (chart units) and its radius on screen, px. */
+export interface BrightPoint {
+  at: Vec3;
+  rPx: number;
+}
+
+const lv = new THREE.Vector3();
+/**
+ * Declutter the labels under root on screen (labelLayout.ts): every label sprite (userData.heightPx) is placed
+ * at the first of its anchors (userData.anchors, default labelLayout's) clear of the labels placed before it
+ * (by userData.keep, then userData.priority) and of the bright points; one that fits nowhere is hidden, unless
+ * userData.keep. A label another rule hides (userData.suppressed) takes no part.
+ */
+export function declutterLabels(root: THREE.Object3D, camera: THREE.Camera, w: number, h: number, bright: readonly BrightPoint[]): void {
+  const sprites: THREE.Sprite[] = [];
+  root.traverse((o) => {
+    if (o.userData.heightPx !== undefined) sprites.push(o as THREE.Sprite);
+  });
+  const boxes: LabelBox[] = [];
+  sprites.forEach((s, id) => {
+    if (s.userData.suppressed === true || !s.parent?.visible) {
+      s.visible = false;
+      return;
+    }
+    s.getWorldPosition(lv).project(camera);
+    if (lv.z <= -1 || lv.z >= 1) {
+      s.visible = false;
+      return;
+    }
+    const hp = s.userData.heightPx as number;
+    boxes.push({
+      id, x: (lv.x * 0.5 + 0.5) * w, y: (-lv.y * 0.5 + 0.5) * h, w: hp * (s.userData.aspect as number), h: hp,
+      priority: (s.userData.priority as number | undefined) ?? 1, keep: s.userData.keep === true,
+      anchors: (s.userData.anchors as Anchor[] | undefined) ?? DEFAULT_ANCHORS,
+    });
+  });
+  const obstacles = bright.map((b) => {
+    const p = projectGal(b.at, camera, w, h);
+    return { x: p.x, y: p.y, r: b.rPx };
+  });
+  const placed = layoutLabels(boxes, obstacles);
+  for (const b of boxes) {
+    const s = sprites[b.id] as THREE.Sprite;
+    const a = placed.get(b.id) ?? null;
+    s.visible = a !== null;
+    if (a) s.center.set(a[0], a[1]);
+  }
 }
 
 export interface ChartRenderer {

@@ -254,7 +254,8 @@ describe('The Trail: checkers', () => {
     expect(edge.message).toMatch(/inside the 99\.9% contour, consistent, at the edge/);
     const beyond = checkWhere(placed(16), { starId: 0 });
     expect(beyond.ok).toBe(false);
-    expect(beyond.message).toMatch(/and the 99\.9% one/);
+    // Beyond 99.9% the contour reads as "beyond the 99.9% contour", never "100.000%" (M4 step 7e).
+    expect(beyond.message).toMatch(/beyond the 99\.9% contour/);
   });
 
   it('a nearby star at a large angle is rejected with its computed angle', () => {

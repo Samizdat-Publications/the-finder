@@ -6,6 +6,7 @@
 import { effect } from '@preact/signals';
 import { chapterDef, nodeDef, parseChapterHash, type ChapterView } from './graph';
 import { DEFAULT_SEED, type Answer, type Attempt, type Reading } from './deductions';
+import { PLAYTHROUGH_SEEDS, nextSeed } from './seeds';
 import { defaultSettings, normalizeSettings, type Settings } from './settings';
 import { game, type NodeRecord } from './state';
 
@@ -24,7 +25,15 @@ export interface SaveV1 {
   seed: string;
 }
 
-const cleanSeed = (raw: unknown): string => (typeof raw === 'string' && raw.length > 0 && raw.length <= 64 ? raw : DEFAULT_SEED);
+/**
+ * The save's seed: the default when it has none. A seed that is neither the default nor validated (a
+ * time-based seed from Start over before M4 step 7d, about 1.3% of which fail a check: D-A28) moves to the next
+ * validated seed (M4 step 7e). Deductions already confirmed stay confirmed with the readings they recorded.
+ */
+export function cleanSeed(raw: unknown, list: readonly string[] = PLAYTHROUGH_SEEDS): string {
+  if (typeof raw !== 'string' || raw.length === 0 || raw.length > 64) return DEFAULT_SEED;
+  return raw === DEFAULT_SEED || list.includes(raw) ? raw : nextSeed(raw, list);
+}
 
 const isObject = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 

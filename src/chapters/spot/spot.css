@@ -99,8 +99,6 @@
 .sp-readings .unitgloss { display: none; }
 /* A confirmed instrument folds to its heading, its gloss and its verdict (the full reading is in the codex). */
 .sp-panel.confirmed > :not(.sp-head):not(.sp-question):not(.sp-result) { display: none; }
-.sp-panel.confirmed .sp-readings, .sp-panel.confirmed .sp-result .btn { display: none; }
-.sp-panel.confirmed .sp-result p:not(.sp-verdict) { display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
 @media (max-width: 820px) {
   .spotinst { grid-template-columns: minmax(0, 1fr); }

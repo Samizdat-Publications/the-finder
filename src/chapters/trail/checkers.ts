@@ -3,6 +3,7 @@
 // origin region, the reframed ages) and reports what it computed, right or wrong. epochModel() throws until
 // the star catalogues are loaded, so the bus refuses a proposal then instead of recording it.
 
+import { CONTOUR_CAP, contourPct, onContour } from '../shared/contour';
 import { registerChecker, type Answer, type CheckContext, type CheckResult, type Checker, type Reading } from '../../game/deductions';
 import { brightestStars, nearestStars } from '../../science/epoch';
 import { velocityMahalanobis2 } from '../../science/pulsarAge';
@@ -205,7 +206,7 @@ export function checkWhere(m: EpochModel, answer: Answer): CheckResult {
   const result: Reading[] = [
     { key: 'star', value: name },
     { key: 'in the region', value: inside ? 'yes' : w.level === 'edge' ? 'at the edge, between the 95% and 99.9% contours' : 'no' },
-    { key: 'region contour through it', value: `${(level * 100).toFixed(1)}%` },
+    { key: 'region contour through it', value: contourPct(level) },
     { key: 'stars in the region', value: n },
   ];
   if (id === origin.id && inside) {
@@ -232,7 +233,7 @@ export function checkWhere(m: EpochModel, answer: Answer): CheckResult {
   return {
     ok: false,
     result,
-    message: `${name} lies outside the map's region at the map epoch: on the ${(level * 100).toFixed(level > 0.999 ? 3 : 1)}% contour, beyond the 95% one${w.level === 'beyond' ? ' and the 99.9% one' : ''}. The map was not drawn from there.`,
+    message: `${name} lies outside the map's region at the map epoch: ${onContour(level)}${level > CONTOUR_CAP ? '' : `, beyond the 95% one${w.level === 'beyond' ? ' and the 99.9% one' : ''}`}. The map was not drawn from there.`,
   };
 }
 

@@ -1,0 +1,77 @@
+/* Staged moments (M4 step 7e): the instrument dims, its own visual fills the screen, one large number and one
+   sentence. Reduced motion (.calm or .moment.still): a still, nothing moves. */
+.moment {
+  position: fixed; inset: 0; z-index: 60; cursor: pointer; overflow: hidden;
+  background: rgba(4, 3, 14, 0.975);
+}
+:root:not(.calm) .moment:not(.still) { animation: momentin 0.45s ease-out; }
+@keyframes momentin { from { opacity: 0; } }
+.moment-backdrop { position: absolute; inset: 0; display: grid; place-items: center; }
+.moment-backdrop::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(0deg, rgba(4, 3, 14, 0.9) 0%, rgba(4, 3, 14, 0.25) 34%, transparent 55%);
+}
+.moment-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.moment-chart { position: absolute; inset: 0; }
+.moment-path { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.moment-path line { stroke: var(--gold); stroke-width: 2.5; stroke-linecap: round; filter: drop-shadow(0 0 4px rgba(232, 182, 74, 0.8)); }
+.moment-path line.draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: drawpath 2.2s ease-in-out 0.3s forwards; }
+@keyframes drawpath { to { stroke-dashoffset: 0; } }
+
+.moment-text {
+  position: absolute; left: clamp(1.25rem, 5vw, 4.5rem); bottom: clamp(1.5rem, 7vh, 4.5rem); right: 12rem;
+  display: grid; gap: 0.5rem; max-width: 48rem; pointer-events: none;
+}
+:root:not(.calm) .moment:not(.still) .moment-text { animation: momenttext 0.9s ease-out 0.35s both; }
+@keyframes momenttext { from { opacity: 0; transform: translateY(0.8rem); } }
+.moment-label .glyph { color: var(--violet); }
+.moment-label .gloss { font-size: var(--fs-value); }
+.moment-num { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem 1rem; }
+.moment-num .mn { font: 600 clamp(2.6rem, 6.2vw, 4.8rem)/1 var(--font-mono); color: var(--cyan); text-shadow: 0 0 28px rgba(79, 240, 196, 0.35); letter-spacing: -0.02em; }
+.moment-num .mn.measuring { font-size: clamp(1.4rem, 3vw, 2rem); color: var(--text-dim); text-shadow: none; }
+.moment-num .mu { display: inline-flex; flex-direction: column; gap: 0.15rem; }
+.moment-num .mu .gloss { font-size: var(--fs-value); }
+.moment-num .si { font: var(--fs-value) var(--font-mono); color: var(--text-dim); }
+.moment-sentence { margin: 0; font-size: clamp(1.05rem, 1.6vw, 1.35rem); line-height: 1.4; color: var(--text); max-width: 40rem; }
+.moment-caption { margin: 0.2rem 0 0; font: var(--fs-label) var(--font-mono); color: var(--text-dim); }
+.moment-skip { position: absolute; right: clamp(1.25rem, 4vw, 3rem); bottom: clamp(1.5rem, 7vh, 4.5rem); background: rgba(8, 7, 26, 0.85); }
+.moment-timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--violet); opacity: 0.6; transform-origin: left; animation: momenttimer linear forwards; }
+@keyframes momenttimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* The Spot's moment: the cover under the low lamp, the spot glowing faintly where the counts rose. */
+.moment-cover { position: relative; width: min(86vh, 70vw); }
+.moment-cover .covertools { display: none; }
+.moment-cover .coverviewer { cursor: pointer; background: none; border: 0; }
+.moment-spotglow {
+  position: absolute; left: 0; top: 0; display: none; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(79, 240, 196, 0.38), rgba(79, 240, 196, 0.12) 60%, transparent);
+}
+:root:not(.calm) .moment:not(.still) .moment-spotglow { animation: spotglow 2.4s ease-in-out infinite; }
+@keyframes spotglow { 50% { opacity: 0.5; } }
+
+/* The neighbour's moment: the alien's sky. */
+.moment-sky, .moment-ages { position: absolute; inset: 0 0 26vh 0; }
+.moment-sky svg, .moment-ages svg { display: block; }
+.sky-edge { fill: rgba(8, 7, 26, 0.6); stroke: var(--line); stroke-width: 1.2; }
+.sky-plane { stroke: rgba(155, 123, 255, 0.35); stroke-width: 1; stroke-dasharray: 4 6; }
+.sky-rank { fill: var(--text-dim); font: 13px var(--font-mono); }
+.sky-target circle { fill: none; stroke: var(--gold); stroke-width: 2; filter: drop-shadow(0 0 6px rgba(232, 182, 74, 0.8)); }
+.sky-target text { fill: var(--gold); font: 600 15px var(--font-sans); paint-order: stroke; stroke: rgba(4, 3, 14, 0.9); stroke-width: 4px; }
+
+/* The map's age moment: the old lines' ages sliding onto one line. */
+.ages-row { transition: transform 2.4s cubic-bezier(0.6, 0, 0.2, 1); }
+.calm .ages-row, .moment.still .ages-row { transition: none; }
+.ages-dot { fill: var(--cyan); }
+.ages-ghost { fill: none; stroke: rgba(79, 240, 196, 0.45); stroke-width: 1.5; }
+.ages-axis { stroke: var(--line); stroke-width: 1; }
+.ages-tick, .ages-note, .sky-note { fill: var(--text-dim); font: 13px var(--font-sans); }
+.ages-note, .sky-note { font-size: 15px; }
+.ages-err { stroke: rgba(79, 240, 196, 0.6); stroke-width: 2; }
+.ages-band { fill: rgba(232, 182, 74, 0.14); opacity: 0; transition: opacity 0.8s ease 2.2s; }
+.ages-line { stroke: var(--gold); stroke-width: 2; opacity: 0; transition: opacity 0.8s ease 2.2s; }
+.ages-band.on, .ages-line.on { opacity: 1; }
+.calm .ages-band, .calm .ages-line, .moment.still .ages-band, .moment.still .ages-line { transition: none; }
+
+@media (max-width: 640px) {
+  .moment-text { right: 1.25rem; bottom: 5.5rem; }
+}

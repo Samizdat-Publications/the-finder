@@ -3,6 +3,7 @@
 // catalogue where it was then (starInMapPlane). The star the machine came from is ringed in gold; the player
 // clicks the star the map was drawn from and proposes it. Pure drawing of computed positions.
 
+import { onContour } from '../shared/contour';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { game } from '../../game/state';
 import { regionLevel } from '../../science/triangulation';
@@ -131,7 +132,7 @@ export function RegionTool(p: { m: EpochModel }) {
             <dt>From your star then</dt>
             <dd>{distText(Math.hypot(xy[0], xy[1]), g)}</dd>
             <dt>In the region</dt>
-            <dd>{level <= 0.95 ? `yes, on its ${(level * 100).toFixed(0)}% contour` : `no, on the ${(level * 100).toFixed(1)}% contour`}</dd>
+            <dd>{level <= 0.95 ? `yes, on its ${(level * 100).toFixed(0)}% contour` : `no, ${onContour(level)}`}</dd>
           </>
         )}
       </dl>

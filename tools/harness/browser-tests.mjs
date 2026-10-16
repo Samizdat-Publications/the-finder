@@ -53,7 +53,21 @@ const flaky = [];
 
 // One attempt of one test file in a fresh browser context. Returns null on a pass, or the error text.
 async function attempt(file, name) {
-  const { page, errors, context } = await openPage(browser, `${server.url}/`);
+  // The dev server occasionally drops the first connection of a page load (net::ERR_CONNECTION_RESET,
+  // seen in M4): open the page up to three times before calling it a failed attempt, and never let a
+  // failed open crash the whole run.
+  let opened = null;
+  let openError = '';
+  for (let i = 0; i < 3 && !opened; i++) {
+    try {
+      opened = await openPage(browser, `${server.url}/`);
+    } catch (e) {
+      openError = e instanceof Error ? e.message : String(e);
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+  }
+  if (!opened) return `could not open the page three times: ${openError}`;
+  const { page, errors, context } = opened;
   page.setDefaultTimeout(120_000);
   const log = (line) => console.log(`  [${name}] ${line}`);
   try {

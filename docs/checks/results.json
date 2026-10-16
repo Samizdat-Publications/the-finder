@@ -1,6 +1,6 @@
 {
   "generated": "2026-10-16",
-  "count": 142,
+  "count": 147,
   "checks": [
     {
       "id": "arrival.fuelAge",
@@ -40,7 +40,7 @@
     {
       "id": "bot.game",
       "claim": "A bot plays the whole game built so far from a fresh save (no seeded save) through the command bus and the instruments: the slice, then The Map, The Spot and The Trail. Every deduction confirms, the codex holds every entry, the ring finishes, nothing errors, and the new sound moments play once each at their moments.",
-      "measured": "31 of 31 confirmed; codex 31 entries; done: arrival, key, map, spot, trail, player, pictures; cues warm, twist, snap once each in play order; 92 s (slice 57 s, map 7 s, spot 19 s, trail 7 s, end 3 s); 22 frames",
+      "measured": "31 of 31 confirmed, each result with its headline; the five staged moments once each, skipped with their button, game state unchanged by each; codex 31 entries; done: arrival, key, map, spot, trail, player, pictures; cues warm, twist, snap once each in play order; 116 s (slice 57 s, map 13 s, spot 23 s, trail 21 s, end 3 s); 27 frames",
       "expected": "31 of 31 (src/game/graph.ts: 18 slice, 5 Map, 3 Spot, 5 Trail), 31 codex entries, every built chapter done, no console errors (PLAN.md How it's checked item 11)",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -48,7 +48,7 @@
     {
       "id": "bot.m4Wrong",
       "claim": "From a fresh save, every meaningful wrong result the M4 checkers distinguish (as their Node tests list them) is played once through the command bus, rejected, and its computed result shown on the instrument and in the notebook; then the right answer confirms.",
-      "measured": "27 wrong answers over 13 deductions, each with its own result (map.periods 4, map.old 2, map.identify 2, map.motion 1, map.region 1, spot.find 2, spot.age 2, spot.purity 2, trail.origin 3, trail.age 2, trail.neighbour 1, trail.where 2, trail.when 3); all 13 then confirmed; 5 s; not played: none",
+      "measured": "27 wrong answers over 13 deductions, each with its own result (map.periods 4, map.old 2, map.identify 2, map.motion 1, map.region 1, spot.find 2, spot.age 2, spot.purity 2, trail.origin 3, trail.age 2, trail.neighbour 1, trail.where 2, trail.when 3); all 13 then confirmed; 13 s; not played: none",
       "expected": "each wrong answer rejected with its result on the instrument and in the notebook (map.test.ts, spot checkers.test.ts, trail.test.ts)",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -64,7 +64,7 @@
     {
       "id": "bot.wrongAnswers",
       "claim": "From a fresh save, every wrong choice each slice checker offers is played once through the command bus, rejected, and its computed result shown in the notebook (and on the instrument where it has a result line); then the right answer confirms.",
-      "measured": "43 wrong answers over 18 deductions, all rejected and shown (arrival.purpose 3, arrival.heat 3, arrival.madeNotMined 1, arrival.fuelAge 3, key.binary 4, key.unit 4, key.timesNotLengths 1, player.speed 2, player.start 5, player.direction 1, player.firstSound 9, pictures.lineTime 1, pictures.sync 1, pictures.interlace 1, pictures.polarity 1, pictures.aspect 1, pictures.circle 1, pictures.firstFrames 1); all 18 then confirmed; 47 s",
+      "measured": "43 wrong answers over 18 deductions, all rejected and shown (arrival.purpose 3, arrival.heat 3, arrival.madeNotMined 1, arrival.fuelAge 3, key.binary 4, key.unit 4, key.timesNotLengths 1, player.speed 2, player.start 5, player.direction 1, player.firstSound 9, pictures.lineTime 1, pictures.sync 1, pictures.interlace 1, pictures.polarity 1, pictures.aspect 1, pictures.circle 1, pictures.firstFrames 1); all 18 then confirmed; 45 s",
       "expected": "each wrong answer rejected with its result shown; the arrival choices and hydrogen transitions read from the source; the player and picture wrong states one per distinct result",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -88,7 +88,7 @@
     {
       "id": "chapter.map",
       "claim": "The Map plays in the browser through its instrument: the dial aligns the map, lines are assigned by clicking pulsars on the chart, the clock dates the map, the axis is dragged on the sky and the origin slid on the plane; every wrong proposal is refused with what it computed.",
-      "measured": "periods: young line refused, line 1 accepted (match quality log10 87.9); old: future refused, 42268 years ago accepted; identify: one wrong line refused, all 14 accepted; motion: pole refused, l 141.7 b 39.2 accepted (scatter 516 yr); region: (20, -20) pc refused, (3.6, 3.4) accepted; frames 1440x900 4.2 ms mean, 1366x768 4.2 ms mean; longest main-thread task 408 ms; identification 165 ms, region 404 ms on the main thread",
+      "measured": "periods: young line refused, line 1 accepted (match quality log10 87.9); old: future refused, 42268 years ago accepted; identify: one wrong line refused, all 14 accepted; motion: pole refused, l 141.7 b 39.2 accepted (scatter 516 yr); region: (20, -20) pc refused, (3.6, 3.4) accepted; frames 1440x900 4.2 ms mean, 1366x768 4.2 ms mean; longest main-thread task 51 ms; identification 0 ms, region 0 ms on the main thread",
       "expected": "The same results as the Node checkers for the default seed (map.periods, map.old, map.identify, map.motion, map.region); no console errors",
       "tolerance": "As each checker; the spec allows a single blocking computation up to 1 s",
       "pass": true
@@ -104,7 +104,7 @@
     {
       "id": "chapter.player",
       "claim": "The Player plays in the browser: a wrong speed is heard shifted by exactly k, the run-out clicks once per turn, the label is silent, the wrong direction carries the groove outward and plays backward, and with all three right the first sound off side 1 is the picture signal, a pattern repeating every line.",
-      "measured": "3.47 s per turn: k 1.03745 on the engine and in the result, 0.636 semitones; run-out clicks every 2.4 s at 2.4 s per turn; ccw side time 1119.26 to 1117.79 s in 1.5 s; first sound every 8.3266 ms, confirmed 21.9 s after a drop at 147.5 mm; bench readout \"120.00 mm: the music\"",
+      "measured": "3.47 s per turn: k 1.03745 on the engine and in the result, 0.636 semitones; run-out clicks every 2.4 s at 2.4 s per turn; ccw side time 1119.26 to 1117.82 s in 1.5 s; first sound every 8.3266 ms, confirmed 21.9 s after a drop at 147.5 mm; bench readout \"120.00 mm: the music\"",
       "expected": "k = 3.59994 / 3.47 from the cover (cover.md 1b); one click per turn; the tape's 8.326 ms line period (images-and-audio.md section 1); the Node checkers' results",
       "tolerance": "k and semitones to 1e-9 (same arithmetic); line period within 0.001 ms (the research quotes it to that place)",
       "pass": true
@@ -120,7 +120,7 @@
     {
       "id": "chapter.trail",
       "claim": "The Trail plays in the browser through its instrument: a wrong star, a short run-back and a wrong distance are each rejected with their computed results; the warm-white star, the meeting and the ruler's distance confirm; with The Map built, the region view and the reframe confirm WHERE and WHEN.",
-      "measured": "wrong star rejected (Ran 8.47 deg); Sun measured 0.396 deg (95% cut 0.578) accepted; meeting 43636 years accepted (95% 42985 to 44303); ruler 1.026 +/- 0.002 pc accepted; where and when: played; 0.61 ms per chart frame; longest measurement 993 ms",
+      "measured": "wrong star rejected (Ran 8.68 deg); Sun measured 0.162 deg (95% cut 0.575) accepted; meeting 44293 years accepted (95% 43609 to 44975); ruler 1.024 +/- 0.002 pc accepted; where and when: played; 0.74 ms per chart frame; longest measurement 54 ms",
       "expected": "the same results as the Node checkers (trail.check.*); no console errors; no measurement over 1 s on the main thread (spec)",
       "tolerance": "exact (interface behaviour); 1 s for a blocking call",
       "pass": true
@@ -137,7 +137,7 @@
     {
       "id": "chart.galaxy.view",
       "claim": "On the galaxy chart, pointing at a pulsar picks that pulsar, and the chart draws at 60 frames per second at 1440 x 900.",
-      "measured": "14 of 14 map pulsars picked at their projected points; 4366 pulsars drawn; 1.08 ms per frame (120 frames, each waited for)",
+      "measured": "14 of 14 map pulsars picked at their projected points; 4366 pulsars drawn; 0.77 ms per frame (120 frames, each waited for)",
       "expected": "every map pulsar picked; under 16.7 ms per frame",
       "tolerance": "pick radius 12 CSS px; frame budget 16.7 ms on this PC (headless Chrome)",
       "pass": true
@@ -153,7 +153,7 @@
     {
       "id": "chart.neighbourhood.view",
       "claim": "On the neighbourhood chart, pointing at a star picks that star, and the trail drawn for it shows the kinematics' own angle.",
-      "measured": "Sun and Ross 248 picked at their projected points (2 of 2); Sun 0.0043 deg, Ross 248 51.78 deg drawn; 315 stars; 0.78 ms per frame",
+      "measured": "Sun and Ross 248 picked at their projected points (2 of 2); Sun 0.0043 deg, Ross 248 51.78 deg drawn; 315 stars; 0.76 ms per frame",
       "expected": "kinematics.trail recomputed in the page from the science modules (seed 'charts.dev'); under 16.7 ms per frame",
       "tolerance": "1e-9 deg (same computation); pick radius 12 CSS px; frame budget 16.7 ms",
       "pass": true
@@ -411,11 +411,11 @@
     {
       "id": "decoder.browser",
       "claim": "In the browser, the real path (FLAC fetched whole, decoded at 96 kHz, decoded in a Worker) gives the same pictures as the tested Node decode, fast enough to keep up with playback.",
-      "measured": "3 frames (L000, L019, R072): largest pixel difference 0 grey levels; Worker decode 43, 38, 36 ms",
+      "measured": "3 frames (L000, L019, R072): largest pixel difference 0 grey levels; Worker decode 44, 95, 68 ms",
       "expected": "The Node decode of the same slices by the same code (itself pixel-equal to the Python reference, decoder.frames)",
       "tolerance": "At most 1 grey level per pixel (spec; both run V8); under 250 ms per frame (spec target for this PC; a frame lasts 4.3 s of tape)",
       "pass": true,
-      "notes": "Installed Chrome via Playwright. Chrome's decodeAudioData returns positive 16-bit samples as w / 32767 (negatives as w / 32768); src/media/frames.ts restores the exact integers before decoding, without which up to 407 pixels per frame differed by 1 grey level. Fetch plus decodeAudioData took 15, 15, 15 ms per frame on the dev server."
+      "notes": "Installed Chrome via Playwright. Chrome's decodeAudioData returns positive 16-bit samples as w / 32767 (negatives as w / 32768); src/media/frames.ts restores the exact integers before decoding, without which up to 407 pixels per frame differed by 1 grey level. Fetch plus decodeAudioData took 12, 44, 29 ms per frame on the dev server."
     },
     {
       "id": "decoder.circle",
@@ -433,7 +433,7 @@
       "expected": "The Python reference decoder's 96 kHz decodes of the same slices (build/ref96, tools/ref-decoder)",
       "tolerance": "SSIM at least 0.98 per frame (scikit-image defaults); for scale, the reference's own 96 vs 384 kHz decodes differ by SSIM 0.970 at worst",
       "pass": true,
-      "notes": "Node decode time 135 ms per frame including WAV and PNG reading."
+      "notes": "Node decode time 126 ms per frame including WAV and PNG reading."
     },
     {
       "id": "decoder.ref.aspectIndependent",
@@ -602,6 +602,14 @@
       "pass": true
     },
     {
+      "id": "game.oldSaveSeed",
+      "claim": "A save made by Start over before the validated list (a time-based seed, about 1.3% of which fail a check) moves to the next validated seed when it loads; deductions it confirmed stay confirmed with the readings they recorded.",
+      "measured": "finder-1697000000000 loads as finder-2; the confirmed arrival.purpose and its reading kept, the refused attempt kept; a listed seed and the default seed unchanged",
+      "expected": "the first seed of data/seeds.json (nextSeed of a seed not in the list), records unchanged",
+      "tolerance": "exact",
+      "pass": true
+    },
+    {
       "id": "game.save",
       "claim": "The game saves every deduction, wrong attempt, hint and setting, loads them back exactly, migrates an old save, and start over clears the progress.",
       "measured": "round trip of confirmed nodes, attempts, hints, chapter and settings is exact; a version 0 save migrates (unknown ids dropped); damaged and newer-version saves are refused; autosave is debounced and flushes on request; save.reset writes an empty progress and keeps settings",
@@ -619,8 +627,8 @@
     },
     {
       "id": "game.startOverSeed",
-      "claim": "Start over takes the next seed from the validated list (data/seeds.json), cycling, never a seed made from the clock; an old save keeps its own seed.",
-      "measured": "three resets from the default seed gave finder-2, finder-3, finder-4; from the last of 1974 listed seeds the next is the first; an old save's time-based seed is kept",
+      "claim": "Start over takes the next seed from the validated list (data/seeds.json), cycling, never a seed made from the clock.",
+      "measured": "three resets from the default seed gave finder-2, finder-3, finder-4; from the last of 1974 listed seeds the next is the first",
       "expected": "the list order (tools/seeds/build-seeds.mjs tries finder-2, finder-3, ... in order)",
       "tolerance": "exact",
       "pass": true
@@ -764,6 +772,14 @@
       "pass": true
     },
     {
+      "id": "perf.enter",
+      "claim": "Entering The Map, The Spot or The Trail never freezes the page: the epoch model's heavy parts (the identification, the trail, the spot's sweep table) are computed in a Worker behind the instrument's \"measuring\" state, so no main-thread task is longer than 100 ms from entering until the instrument is ready",
+      "measured": "map: longest task 66 ms, ready in 1062 ms; spot: longest task 0 ms, ready in 411 ms; trail: longest task 0 ms, ready in 1658 ms. GPU ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti Laptop GPU (0x00002F58) Direct3D11 vs_5_0 ps_5_0, D3D11); CPU Intel(R) Core(TM) Ultra 9 285H (16 threads)",
+      "expected": "no long task over 100 ms at 1440 x 900 (spec M4 step 7e section 4; the RAIL model's 100 ms response budget)",
+      "tolerance": "100 ms per task",
+      "pass": true
+    },
+    {
       "id": "pictures.aspect",
       "claim": "Procedure: the player sets the rows until the calibration circle is round; at the reference 355 rows it is, and any other row count squashes it into an ellipse by exactly 355 / rows.",
       "measured": "355 rows: axis ratio 1.0006; 300 rows: 1.1839 (predicted 1.1840); 340 rows: 1.0443 (predicted 1.0447); 370 rows: 0.9600 (predicted 0.9600); 512 rows: 0.6935 (predicted 0.6938)",
@@ -861,7 +877,7 @@
     {
       "id": "scene.encounter",
       "claim": "The encounter scene renders Voyager 1 under the computed sky at 60 frames per second at 1440 x 900, with every hotspot on the craft.",
-      "measured": "0.66 ms per frame (120 frames back to back, each waited for with a one-pixel read-back), live loop 4.2 ms; 8828 stars drawn; hotspots within 0.297 m of a model vertex",
+      "measured": "1.01 ms per frame (120 frames back to back, each waited for with a one-pixel read-back), live loop 4.2 ms; 8828 stars drawn; hotspots within 0.297 m of a model vertex",
       "expected": "under 16.7 ms (60 fps); each hotspot within its part radius of the model (tools/world/measure-hotspots.mjs)",
       "tolerance": "frame budget 16.7 ms on this PC (RTX 5070 Ti Laptop, headless Chrome); hotspot radius per part (hotspots.ts)",
       "pass": true
@@ -1275,6 +1291,30 @@
       "measured": "k 1: 4 clicks every 3.59994 s, worst 0.7 samples off; k 1.5: 4 clicks every 2.39996 s, worst 0.8 samples off",
       "expected": "one click per turn, every T / k with T = 3.59994 s from the cover (cover.md 1b), the first one turn after the drop",
       "tolerance": "2 samples at 48 kHz (onset detection to the sample at each end)",
+      "pass": true
+    },
+    {
+      "id": "ui.headlines",
+      "claim": "Every confirmed result leads with a headline: each chapter names one reading (or message quantity) per deduction, the headline finds it in the checker's real confirmed result, the number is the checker's own, and the sentence under it carries no number",
+      "measured": "23 deductions confirmed in Node on the default seed, each with its headline (arrival.purpose: dish diameter = 3.66 SI length; arrival.heat: time away from every star = 12188858674.233114 SI time; arrival.madeNotMined: orders of magnitude apart = 8; arrival.fuelAge: age = 1386810507554.8916 SI time; key.binary: number round the disc = 5113380864; key.unit: one turn of the disc = 3.5999437890442922 SI time; key.timesNotLengths: smallest length over the craft = 148000; player.speed: turn time on the cover = 3.5999437890442922 SI time; player.start: needle radius = 0.14755000000000001 SI length; player.direction: groove carries the needle = inward; map.periods: match quality = about 10⁸⁸ to 1; map.old: years ago = 1333885909030.0837 SI time; map.identify: lines with their pulsar = 14; map.motion: your speed = 115906.95500425983 SI speed; map.region: stars inside then = 1007; spot.find: times the background = 46500; spot.age: age = 1392440633749.553 SI time; spot.purity: fitted age = 1400700676035.3213 SI time; trail.origin: star = the warm-white star; trail.age: distance over speed = 1372976024487.7686 SI time; trail.neighbour: distance from your star = 31569344554960052 SI length; trail.where: stars in the region = 1007; trail.when: map's age = 1390664945742.297 SI time); every built deduction has a table entry",
+      "expected": "a headline for every confirmed deduction (spec M4 step 7e section 1); The Pictures and player.firstSound are checked by bot.game in the browser",
+      "tolerance": "exact",
+      "pass": true
+    },
+    {
+      "id": "ui.moments",
+      "claim": "The five staged moments (where the map was drawn, the spot's age, the star it came from, the neighbour, when the map was made) each show once when their deduction is confirmed, with a number in the alien's units, one sentence and the sound's caption; each can be skipped by a click, Escape, any key or its button, or returns on its own; reduced motion makes it a still; the game state is unchanged by it",
+      "measured": "1440x900: map.region (click), spot.age (key), trail.origin (key), trail.neighbour (button), trail.when (timeout); 1366x768 (reduced motion, stills): map.region (button), spot.age (button), trail.origin (button), trail.neighbour (button), trail.when (button); each once, state unchanged, 10 captures",
+      "expected": "spec M4 step 7e section 2",
+      "tolerance": "exact (interface behaviour)",
+      "pass": true
+    },
+    {
+      "id": "ui.moments.logic",
+      "claim": "The five staged moments appear once each, when their deduction is confirmed (not when a save loads with it confirmed, not for other deductions), queue in play order when confirmed together, end by a key, a click, the button or their time, and leave the game state unchanged",
+      "measured": "moment log: spot.age:key, trail.origin:button, trail.neighbour:click, trail.when:timeout, map.region:key; game state identical before and after a moment",
+      "expected": "one moment per confirmation of map.region, spot.age, trail.origin, trail.neighbour, trail.when (spec M4 step 7e section 2)",
+      "tolerance": "exact",
       "pass": true
     },
     {

@@ -21,6 +21,13 @@ export interface ReliefOptions {
   ambient: number;
 }
 
+/**
+ * The raking lamp: low over the plate (10 deg) from the upper left, the angle The Key's lamp is lowered to for
+ * raking light (tests/browser/slice.browser.mjs, the key-cover-raking-light frame). The Spot opens with it (M4
+ * step 7e) so the cover's relief shows.
+ */
+export const RAKING_LAMP: Lamp = { azimuthDeg: 135, elevationDeg: 10 };
+
 export const DEFAULT_RELIEF: ReliefOptions = { blurPx: 1, wallSlope: 0.7, rgb: [232, 182, 74], ambient: 0.12 };
 
 /** One horizontal then one vertical box blur (radius r), in place on a copy. */

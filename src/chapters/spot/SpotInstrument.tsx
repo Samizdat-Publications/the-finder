@@ -10,7 +10,7 @@ import { DETECTOR_RADIUS_MM, sweepSampler } from '../../science/spot';
 import { alignOpenPanel } from '../../ui/notebook';
 import { coverModel } from '../shared/coverData';
 import { CoverViewer } from '../shared/CoverViewer';
-import type { Lamp } from '../shared/relief';
+import { RAKING_LAMP, type Lamp } from '../shared/relief';
 import { CounterPanel, MAX_YEARS } from './CounterPanel';
 import { offsetMm, spotModel, spotStream } from './data';
 import { lastAnswerNumber } from './parts';
@@ -38,7 +38,8 @@ export function SpotInstrument() {
   const seed = game.seed.value;
   const m = spotModel(seed);
   const confirmed = confirmedSet.value;
-  const [lamp, setLamp] = useState<Lamp>({ azimuthDeg: 135, elevationDeg: 80 });
+  // The lamp starts low (raking light), so the cover's relief shows (M4 step 7e).
+  const [lamp, setLamp] = useState<Lamp>(RAKING_LAMP);
   const [probe, setProbe] = useState<Pt | null>(null);
   const [mark, setMark] = useState<Pt | null>(() => {
     const x = lastAnswerNumber('spot.find', 'xMm');

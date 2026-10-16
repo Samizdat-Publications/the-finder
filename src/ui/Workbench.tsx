@@ -61,9 +61,12 @@ function NodeRow(p: { node: NodeDef }) {
       )}
       {status === 'open' && <HintBox node={p.node} />}
       {wrong.length > 0 && (
-        <details class="wrong">
+        // After confirmation the refused answers are a quiet tally (M4 step 7e), still opening the attempts.
+        <details class={`wrong${status === 'confirmed' ? ' quiet' : ''}`} data-wrong-tally={wrong.length}>
           <summary>
-            {wrong.length} answer{wrong.length === 1 ? '' : 's'} that did not hold
+            {status === 'confirmed'
+              ? `${wrong.length} earlier ${wrong.length === 1 ? 'try' : 'tries'}`
+              : `${wrong.length} answer${wrong.length === 1 ? '' : 's'} that did not hold`}
           </summary>
           <ul>
             {wrong.map((a, i) => (

@@ -97,7 +97,7 @@ describe('the save', () => {
     saveToStorage(storage);
     resetAll();
     loadFromStorage(storage);
-    expect(game.settings.value).toEqual({ humanGloss: false, masterVolume: 1, reducedMotion: true, soundCaptions: true });
+    expect(game.settings.value).toEqual({ humanGloss: false, masterVolume: 1, reducedMotion: true, soundCaptions: true, showWorking: false });
     expect(normalizeSettings({ humanGloss: 'maybe', masterVolume: 0.2 }).humanGloss).toBe(false);
   });
 

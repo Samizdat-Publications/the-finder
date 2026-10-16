@@ -1,13 +1,11 @@
 // The answer part of every Arrival panel: the deduction's question, its choices (from choices.ts), and the
 // latest result the checker gave, right or wrong. Proposing is a command on the bus (rule 5).
 
-import { useEffect, useRef } from 'preact/hooks';
 import { missingFor, nodeStatus, type Answer } from '../../game/deductions';
 import { nodeDef } from '../../game/graph';
 import { confirmedSet, game } from '../../game/state';
-import { Value } from '../../ui/Glyph';
-import { renderMessage } from '../../ui/message';
-import { PastLabel, isPastProposal } from '../../ui/pastProposal';
+import { isPastProposal } from '../../ui/pastProposal';
+import { ResultView } from '../../ui/ResultView';
 import { send } from '../../ui/send';
 import { CHOICES } from './choices';
 
@@ -35,42 +33,25 @@ export function Status(p: { id: string }) {
   return <p class="ar-question">{status === 'confirmed' ? def?.gloss : def?.question}</p>;
 }
 
-/** The checker's verdict on the latest attempt (or the latest with the given answer). */
+/** The checker's verdict on the latest attempt (or the latest with the given answer): the shared result view. */
 export function ResultLine(p: { id: string; answer?: string; current?: Answer }) {
   const all = game.records.value[p.id]?.attempts ?? [];
   const a = p.answer === undefined ? lastAttempt(p.id) : ([...all].reverse().find((x) => x.answer === p.answer) ?? null);
-  const ref = useRef<HTMLDivElement>(null);
-  const n = game.records.value[p.id]?.attempts.length ?? 0;
-  // A new verdict scrolls into view inside the panel (only the panel scrolls, never the page).
-  useEffect(() => {
-    const el = ref.current;
-    const box = el?.closest<HTMLElement>('.ar-panelwrap');
-    if (!el || !box || n === 0) return;
-    const over = el.getBoundingClientRect().bottom - box.getBoundingClientRect().bottom;
-    if (over > 0) box.scrollTop += over + 12;
-  }, [n]);
   if (!a) return null;
-  const past = isPastProposal(a, p.current);
   return (
-    <div ref={ref} class={`ar-result ${a.ok ? 'ok' : 'wrong'}${past ? ' is-past' : ''}`} data-result={p.id} data-ok={a.ok ? '1' : '0'} data-past={past ? '1' : '0'} role="status">
-      {past && <PastLabel />}
-      <p class="ar-verdict">{a.ok ? 'This holds.' : 'This does not hold.'}</p>
-      <p>{renderMessage(a.message, game.settings.value.humanGloss)}</p>
-      {a.ok && (
-        <ul class="ar-readings" aria-label="Readings written to the codex">
-          {a.result.map((r, i) => (
-            <li key={i}>
-              <span class="k">{r.key}</span> <Value reading={r} />
-            </li>
-          ))}
-        </ul>
-      )}
-      {a.ok && (
-        <button type="button" class="btn small" onClick={() => send({ type: 'codex.open', id: p.id })}>
-          Open it in the codex
-        </button>
-      )}
-    </div>
+    <ResultView
+      id={p.id}
+      attempt={a}
+      past={isPastProposal(a, p.current)}
+      cls="ar-result"
+      okCls="ok"
+      badCls="wrong"
+      okAttr={['1', '0']}
+      verdictClass="ar-verdict"
+      readings="list"
+      readingsClass="ar-readings"
+      codex
+    />
   );
 }
 

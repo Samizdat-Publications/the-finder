@@ -13,7 +13,8 @@
 // sound.m4.levels: the new cues and beds rendered offline exactly as the game plays them, at their levels.
 import { join } from 'node:path';
 import { ROOT } from '../../tools/harness/serve.mjs';
-import { playMap } from './map.browser.mjs';
+import { MOMENT_SHOWS, playMap } from './map.browser.mjs';
+import { MOMENT_IDS } from './moments.mjs';
 import { m4WrongPass } from './m4wrong.mjs';
 import { SLICE_IDS, freshStart, playSlice, reviewFolder, stamp } from './slice.browser.mjs';
 import { playSpot } from './spot.browser.mjs';
@@ -46,6 +47,11 @@ const FRAMES = {
   '5-ruler': ['trail-ruler', "The ruler from the alien's own star to the warm-white star, with the distance and its error.", 'Opened the ruler, measured to the wrong star first, cleared it, then measured from home to the warm-white star.'],
   '6-region': ['trail-region', "The region view: the map's origin region when the map was made, the stars near it then, and the warm-white star (gold ring) inside it, picked.", "Proposed the ruler's distance, opened the region view, tried another star inside the region (turned down), then picked the warm-white star."],
   '7-reframe-own': ['trail-reframe-own', "The reframe in the alien's own frame: the map's line ages scattered across tens of thousands of years.", 'Proposed the warm-white star as the place the map was drawn, then opened the reframe.'],
+  'moment-map.region': ['moment-map-region', MOMENT_SHOWS['map.region'], "Slid the map's origin into the region and proposed it; it was confirmed."],
+  'moment-spot.age': ['moment-spot-age', MOMENT_SHOWS['spot.age'], 'Proposed the age where the curve meets the measured ratio; it was confirmed.'],
+  'moment-trail.origin': ['moment-trail-origin', MOMENT_SHOWS['trail.origin'], 'Proposed the warm-white star as the star the machine flies away from; it was confirmed.'],
+  'moment-trail.neighbour': ['moment-trail-neighbour', MOMENT_SHOWS['trail.neighbour'], 'Measured from home to the warm-white star with the ruler and proposed the distance; it was confirmed.'],
+  'moment-trail.when': ['moment-trail-when', MOMENT_SHOWS['trail.when'], "Proposed the map's age read in the warm-white star's frame; it was confirmed."],
   '8-reframe-sun': ['trail-reframe-star', "The reframe in the warm-white star's frame: the old lines' ages snap together; the band of the combined age and the mark on it.", "Proposed an age read from home (turned down), tried another star's frame, then picked the warm-white star's frame and set the mark on the ages."],
 };
 
@@ -89,7 +95,7 @@ async function playGame(page, baseUrl, { assert, log }) {
   await page.waitForSelector('[data-result="trail.neighbour"][data-ok="true"]');
   await page.locator('[data-result="trail.neighbour"]').scrollIntoViewIfNeeded();
   await settle();
-  await extra('trail-neighbour-message', "The ruler's verdict: the warm-white star is the alien's nearest catalogued star and the fifth-brightest in its sky.", 'Proposed the age in the warm-white star\'s frame, then went back to the ruler to read what it said about that star.');
+  await extra('trail-neighbour-message', "The ruler's verdict, led by its headline: the distance from the alien's star to the warm-white star, large, with one sentence; the full working (nearest catalogued star, fifth-brightest in its sky) folded under 'show working'.", 'Proposed the age in the warm-white star\'s frame, then went back to the ruler to read what it said about that star.');
   mark('trail');
 
   // ---- the codex near the end, then the finished ring ----
@@ -106,11 +112,20 @@ async function playGame(page, baseUrl, { assert, log }) {
   await extra('ring-finished', 'The ring finished: every built chapter done, a slow glow running along the lit arcs.', 'Closed the codex and went back to the ring.');
   mark('end');
 
+  // Every confirmed result has its headline (the Pictures' and the Player's included, which Node cannot confirm),
+  // and each staged moment showed once and was skipped with its Continue button.
+  const heads = await page.evaluate(async () => {
+    const { HEADLINES } = await import('/src/chapters/headlines.ts');
+    const { headlineOf } = await import('/src/ui/headline.ts');
+    const nodes = window.__finder.state().game.nodes;
+    return Object.entries(nodes).filter(([, n]) => n.confirmed).map(([id, n]) => [id, headlineOf(HEADLINES[id], [...n.attempts].reverse().find((a) => a.ok))]);
+  });
+  const moments = await page.evaluate(async () => (await import('/src/ui/momentState.ts')).momentLog().map((e) => ({ id: e.id, ended: e.ended })));
   const g = await page.evaluate(async () => {
     const { CHAPTERS } = await import('/src/game/graph.ts');
     return { ...window.__finder.state().game, built: CHAPTERS.filter((c) => c.built).map((c) => c.id) };
   });
-  return { g, entries, cues: await cueLog(page), seconds: (Date.now() - t0) / 1000, lap, review, tr };
+  return { g, entries, cues: await cueLog(page), seconds: (Date.now() - t0) / 1000, lap, review, tr, heads, moments };
 }
 
 /** The M4 moments in the cue log: each once, each after the state change that makes it, in play order. */
@@ -203,12 +218,20 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   assert(res.entries === 31, `the codex holds 31 entries (${res.entries})`);
   for (const c of res.g.built) assert(res.g.chapterStatus[c] === 'done', `${c} is done`);
   checkCues(res.cues, assert);
+  const noHead = res.heads.filter(([, h]) => !h).map(([id]) => id);
+  assert(res.heads.length === 31 && noHead.length === 0, `every confirmed result has a headline (${res.heads.length} confirmed; without: ${noHead.join(', ') || 'none'})`);
+  for (const id of MOMENT_IDS) {
+    const seen = res.moments.filter((m) => m.id === id);
+    assert(seen.length === 1 && seen[0].ended === 'button', `the ${id} moment showed once and was skipped with its button (${JSON.stringify(seen)})`);
+  }
+  log(`headlines: ${res.heads.map(([id, h]) => `${id} ${h.label}`).join('; ')}`);
+  log(`moments: ${res.moments.map((m) => `${m.id} (${m.ended})`).join(', ')}`);
   for (const c of res.cues.filter((x) => x.kind !== 'tick')) log(`cue ${c.n}: ${c.kind}, ${c.chapter}${c.nodeId ? `, ${c.nodeId}` : ''}${c.caption ? `, "${c.caption}"` : ''}`);
   log(`bot.game: ${res.g.confirmed.length} confirmed, codex ${res.entries}, ${res.seconds.toFixed(0)} s (${Object.entries(res.lap).map(([k, v]) => `${k} ${v.toFixed(0)} s`).join(', ')}); ${res.review.shots.length} frames in ${res.review.dir}`);
   record({
     id: 'bot.game',
     claim: 'A bot plays the whole game built so far from a fresh save (no seeded save) through the command bus and the instruments: the slice, then The Map, The Spot and The Trail. Every deduction confirms, the codex holds every entry, the ring finishes, nothing errors, and the new sound moments play once each at their moments.',
-    measured: `${res.g.confirmed.length} of 31 confirmed; codex ${res.entries} entries; done: ${res.g.built.join(', ')}; cues warm, twist, snap once each in play order; ${res.seconds.toFixed(0)} s (${Object.entries(res.lap).map(([k, v]) => `${k} ${v.toFixed(0)} s`).join(', ')}); ${res.review.shots.length} frames`,
+    measured: `${res.g.confirmed.length} of 31 confirmed, each result with its headline; the five staged moments once each, skipped with their button, game state unchanged by each; codex ${res.entries} entries; done: ${res.g.built.join(', ')}; cues warm, twist, snap once each in play order; ${res.seconds.toFixed(0)} s (${Object.entries(res.lap).map(([k, v]) => `${k} ${v.toFixed(0)} s`).join(', ')}); ${res.review.shots.length} frames`,
     expected: '31 of 31 (src/game/graph.ts: 18 slice, 5 Map, 3 Spot, 5 Trail), 31 codex entries, every built chapter done, no console errors (PLAN.md How it\'s checked item 11)',
     tolerance: 'exact (interface behaviour)',
     pass: true,

@@ -46,6 +46,20 @@ export function ChartPane(p: { m: EpochModel }) {
     const c = canvas.current;
     if (!c) return;
     const m = p.m;
+    // The WebGL chart starts in a task of its own, after the instrument has drawn (M4 step 7e: no long task on entering).
+    let h: NeighbourhoodHandle | null = null;
+    const start = window.setTimeout(() => {
+      h = mount(c, m);
+    }, 0);
+    return () => {
+      window.clearTimeout(start);
+      if (!h) return;
+      h.dispose();
+      if (handle === h) handle = null;
+    };
+  }, [p.m]);
+
+  const mount = (c: HTMLCanvasElement, m: EpochModel): NeighbourhoodHandle => {
     const h = mountNeighbourhood(c, {
       seed: m.seed,
       scenario: m.inputs.scenario,
@@ -57,15 +71,13 @@ export function ChartPane(p: { m: EpochModel }) {
     });
     handle = h;
     void h.ready.then(() => {
+      if (handle !== h) return;
       setReady(true);
       if (picked.value !== null) h.showTrail(picked.value);
       if (tintAll.value) h.showAll(m.trailRows());
     });
-    return () => {
-      h.dispose();
-      if (handle === h) handle = null;
-    };
-  }, [p.m]);
+    return h;
+  };
 
   // tint every star by its angle (after trail.origin)
   const tint = tintAll.value;

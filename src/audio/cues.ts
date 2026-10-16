@@ -77,6 +77,21 @@ export const WARM_NODE = 'trail.origin';
 /** The neighbour twist: the hush, then the warm tone again, softer. */
 export const TWIST_NODE = 'trail.neighbour';
 
+/**
+ * The one cue a state change that confirms these deductions plays: the moments first (swell, hush, the Sun
+ * found, the neighbour twist), else a pluck in the first node's key. Shared with the staged moments, whose
+ * caption line names the sound that plays (src/ui/Moment.tsx).
+ */
+export function confirmationCue(added: readonly string[]): CueEvent {
+  const has = (id: string): boolean => added.includes(id);
+  if (has(SWELL_NODE)) return { kind: 'swell', chapter: 'pictures', nodeId: SWELL_NODE };
+  if (has(HUSH_NODE)) return { kind: 'hush', chapter: 'player', nodeId: HUSH_NODE };
+  if (has(WARM_NODE)) return { kind: 'warm', chapter: 'trail', nodeId: WARM_NODE };
+  if (has(TWIST_NODE)) return { kind: 'twist', chapter: 'trail', nodeId: TWIST_NODE };
+  const first = added[0] as string;
+  return { kind: 'pluck', chapter: nodeDef(first)?.chapter ?? 'hub', nodeId: first };
+}
+
 const LOG_CAP = 300;
 const log: CueLogEntry[] = [];
 let counter = 0;
@@ -141,17 +156,8 @@ export function startCues(opts: CuesOptions): Cues {
     if (!prev) return;
     const added = [...now_].filter((id) => !prev.has(id));
     if (added.length === 0) return;
-    // One cue per state change: the moments first (swell, hush, the Sun found, the neighbour twist), else a
-    // pluck in the first node's key.
-    const has = (id: string): boolean => added.includes(id);
-    if (has(SWELL_NODE)) fire({ kind: 'swell', chapter: 'pictures', nodeId: SWELL_NODE });
-    else if (has(HUSH_NODE)) fire({ kind: 'hush', chapter: 'player', nodeId: HUSH_NODE });
-    else if (has(WARM_NODE)) fire({ kind: 'warm', chapter: 'trail', nodeId: WARM_NODE });
-    else if (has(TWIST_NODE)) fire({ kind: 'twist', chapter: 'trail', nodeId: TWIST_NODE });
-    else {
-      const first = added[0] as string;
-      fire({ kind: 'pluck', chapter: chapterOf(first) ?? 'hub', nodeId: first });
-    }
+    // One cue per state change (confirmationCue).
+    fire(confirmationCue(added));
   });
 
   // ---- rejected answers: an attempt was added and it was not ok ----

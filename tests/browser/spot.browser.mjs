@@ -9,6 +9,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from '../../tools/harness/serve.mjs';
+import { MOMENT_SHOWS } from './map.browser.mjs';
+import { skipMoments } from './moments.mjs';
 
 const SAVE_KEY = 'finder.save.v1';
 const SPOT = JSON.parse(readFileSync(join(ROOT, 'data', 'spot.json'), 'utf8'));
@@ -148,6 +150,8 @@ export async function playSpot(page, { assert, log, shot, label = '' }) {
   await shot('count-long', `About a day of counting (${(tLong / 3600).toFixed(1)} h): thousands of alphas, the spectrum's three lines, a narrow ratio band, the age marker where the curve meets it, and a narrow 95% interval.`, 'Counted 10^5 more beats, set the marker where the curve meets the measured ratio.');
   await page.locator('[data-propose="spot.age"]').click();
   await page.waitForFunction(() => window.__finder.state().game.nodes['spot.age'].confirmed);
+  const seen = await skipMoments(page, { shot: (id) => shot(`moment-${id}`, MOMENT_SHOWS[id] ?? id, 'Proposed the age where the curve meets the ratio; it was confirmed.'), settleMs: 2500 });
+  assert(seen.includes('spot.age'), `the spot.age moment shows once and is skipped (${seen.join(', ')})`);
   await page.waitForTimeout(300);
   assert((await pastOf('spot.age')) === '0' && (await page.locator('[data-result="spot.age"] [data-past-label]').count()) === 0, 'a confirmed result is never marked as past');
   const ageRes = (await last('spot.age')).result;

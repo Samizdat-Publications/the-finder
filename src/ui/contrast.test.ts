@@ -60,7 +60,7 @@ describe('clue contrast (WCAG AA, 4.5:1)', () => {
     const known = new Set(Object.values(t));
     const files = [
       '../ui/shell.css', '../ui/codex.css', '../ui/captions.css', '../chapters/arrival/arrival.css', '../chapters/key/key.css',
-      '../chapters/player/player.css', '../chapters/pictures/pictures.css', '../chapters/shared/coverViewer.css',
+      '../chapters/player/player.css', '../chapters/pictures/pictures.css', '../chapters/shared/coverViewer.css', '../ui/results.css', '../ui/moment.css',
     ];
     const offenders: string[] = [];
     for (const f of files) {

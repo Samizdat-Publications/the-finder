@@ -13,8 +13,17 @@
 // The browser loads the large data files on demand: loadEpochModel() resolves once they are in, and the
 // checkers call epochModel(), which throws until then, so the bus refuses a proposal instead of recording
 // it (the Pictures pattern). Node tests call buildEpochModel() with tests/support/data.
+//
+// Off the main thread (M4 step 7e): in the browser the heavy parts (the projected catalogue, the
+// identification, the origin region with the ages and motion fit it rests on, the trail) are computed by the
+// same functions in a Worker (epochWorker.ts, epochCompute.ts) and handed to the model with prime(). Such a
+// model is built "deferred": a heavy getter that is not primed yet asks for the part and throws, so a
+// checker refuses (the bus records nothing) instead of freezing the page. The light parts (one line's age,
+// the ages in a frame, the motion fit, a star's accept cut) stay synchronous. Node builds compute everything
+// on first use, as before; structured clone keeps every number exact, so both give the same results.
 
 import { arrivalModel } from '../arrival/data';
+import { requestParts, workerAvailable } from './epochClient';
 import { KM_S_TO_PC_PER_YEAR, scale, sub, toGalacticCartesian } from '../../science/astro';
 import { ageFromTh230U234 } from '../../science/clocks';
 import { discoveryState, homeObserver, starStateAt, type DiscoveryState, type Observer } from '../../science/epoch';
@@ -73,7 +82,40 @@ export interface EpochModel {
   trailAcceptCut(starId: number): number;
   /** A star's in-plane position relative to the alien's star at the map epoch (elapsedYears before now), pc, as the alien measures it. */
   starInMapPlane(star: StarRecord, elapsedYears: number): [number, number];
+  /** True when a heavy part is computed (always, once used, in Node; once primed, in a deferred browser model). */
+  has(part: HeavyPart): boolean;
+  /** Hand the model parts computed elsewhere (the Worker): the same numbers its own getters would give. */
+  prime(pre: EpochPrecomputed): void;
 }
+
+/** The parts computed in the Worker in the browser (each over 100 ms on the main thread, M4 step 7e). */
+export type HeavyPart = 'identification' | 'region' | 'trail';
+
+/** Parts of a model computed elsewhere for the same inputs and seed. */
+export interface EpochPrecomputed {
+  alien?: AlienPulsar[];
+  identification?: EpochIdentificationResult;
+  agesOwn?: { perLine: PulsarAge[]; combined: CombinedAge };
+  motionFit?: AgeVelocityFit;
+  region?: OriginRegion;
+  trailRows?: TrailEntry[];
+}
+
+export interface BuildOptions {
+  /** Parts already computed (the Worker's), used instead of computing them. */
+  pre?: EpochPrecomputed;
+  /**
+   * Deferred (the browser): a heavy part that is not primed is asked for with this callback and the getter
+   * throws "still measuring", so the page never blocks on it.
+   */
+  request?: (part: HeavyPart) => void;
+}
+
+const MEASURING: Record<HeavyPart, string> = {
+  identification: 'how well each pulsar fits each line',
+  region: "where the map's lines meet",
+  trail: "every nearby star's motion",
+};
 
 function lineByOrder(lines: readonly CoverMapLine[], order: number): CoverMapLine {
   const l = lines.find((x) => x.order === order);
@@ -81,12 +123,19 @@ function lineByOrder(lines: readonly CoverMapLine[], order: number): CoverMapLin
   return l;
 }
 
-export function buildEpochModel(inputs: EpochInputs, seed: string): EpochModel {
+export function buildEpochModel(inputs: EpochInputs, seed: string, opts: BuildOptions = {}): EpochModel {
   const { scenario, stars, catalogue, cover } = inputs;
   const disc = discoveryState(scenario, stars);
   const truth = homeObserver(scenario, stars, disc.decimalYear);
   const measured = drawObserver(truth, createRng(seed).fork('measure/observer'));
-  const alien = projectCatalogue(catalogue, truth, { seed });
+  const alien = opts.pre?.alien ?? projectCatalogue(catalogue, truth, { seed });
+  const request = opts.request;
+  /** In a deferred model, a heavy part not primed yet: ask for it and refuse (the caller shows "measuring"). */
+  const need = (part: HeavyPart, have: unknown): void => {
+    if (have !== null || !request) return;
+    request(part);
+    throw new Error(`Still measuring ${MEASURING[part]}; try again in a moment.`);
+  };
   const byJ = new Map(alien.map((a) => [a.jname, a]));
   const lines = cover.pulsarMap.lines;
   const rtg = ageFromTh230U234(arrivalModel(seed).measurement);
@@ -118,6 +167,7 @@ export function buildEpochModel(inputs: EpochInputs, seed: string): EpochModel {
   const model: EpochModel = {
     seed, inputs, disc, truth, measured, alien, byJ, lines, rtgInterval,
     identification() {
+      need('identification', ident);
       ident ??= identifyAtEpoch(lines, alien, { seed, rtgInterval, draws: EPOCH_DRAWS });
       return ident;
     },
@@ -139,10 +189,12 @@ export function buildEpochModel(inputs: EpochInputs, seed: string): EpochModel {
       return fit;
     },
     region() {
+      need('region', region);
       region ??= originRegion(mapPointsAtEpoch(lines, lines.map((l) => entry(l.jname)), model.motionFit().ageYears), { draws: EPOCH_DRAWS, seed: `${seed}/region` });
       return region;
     },
     trailRows() {
+      need('trail', rows);
       rows ??= trail(disc.craft, stars, measured, { maxDistPc: TRAIL_MAX_DIST_PC, draws: TRAIL_DRAWS, seed: `${seed}/trail` });
       return rows;
     },
@@ -163,7 +215,18 @@ export function buildEpochModel(inputs: EpochInputs, seed: string): EpochModel {
       const g = toGalacticCartesian(sub(starThen, homeThen));
       return [g[0], g[1]];
     },
+    has(part) {
+      return (part === 'identification' ? ident : part === 'region' ? region : rows) !== null;
+    },
+    prime(pre) {
+      if (pre.identification) ident ??= pre.identification;
+      if (pre.agesOwn && !agesCache.has('own')) agesCache.set('own', pre.agesOwn);
+      if (pre.motionFit) fit ??= pre.motionFit;
+      if (pre.region) region ??= pre.region;
+      if (pre.trailRows) rows ??= pre.trailRows;
+    },
   };
+  if (opts.pre) model.prime(opts.pre);
   return model;
 }
 
@@ -172,8 +235,15 @@ export function buildEpochModel(inputs: EpochInputs, seed: string): EpochModel {
 let loaded: EpochInputs | null = null;
 let loading: Promise<EpochInputs> | null = null;
 let cached: EpochModel | null = null;
+const building = new Map<string, Promise<EpochModel>>();
+/** Set by setEpochInputs (Node tests and tools): everything computes here, synchronously, as before. */
+let local = false;
 
-async function loadInputs(): Promise<EpochInputs> {
+/** The browser computes the heavy parts in the Worker; Node (no Worker) and setEpochInputs compute them here. */
+const offloaded = (): boolean => !local && workerAvailable();
+
+/** The data files the model reads, parsed (the browser's dynamic imports; the Worker loads its own copy). */
+export async function loadInputs(): Promise<EpochInputs> {
   const [sc, st, sk, ps, cv] = await Promise.all([
     import('../../../data/scenario.json'),
     import('../../../data/stars.json'),
@@ -189,18 +259,66 @@ async function loadInputs(): Promise<EpochInputs> {
   };
 }
 
+/**
+ * Make sure a model holds these heavy parts: in a deferred (browser) model, from the Worker; otherwise by
+ * computing them here. Resolves, once they are in, with the milliseconds this thread spent on them (computing
+ * them here, or only copying them in from the Worker).
+ */
+export async function ensureParts(m: EpochModel, parts: readonly HeavyPart[]): Promise<number> {
+  const missing = parts.filter((p) => !m.has(p));
+  if (missing.length === 0) return 0;
+  if (!offloaded()) {
+    const t0 = performance.now();
+    for (const p of missing) {
+      if (p === 'identification') m.identification();
+      else if (p === 'region') m.region();
+      else m.trailRows();
+    }
+    return performance.now() - t0;
+  }
+  const pre = await requestParts(m.seed, missing);
+  const t0 = performance.now();
+  m.prime(pre);
+  return performance.now() - t0;
+}
+
 /** Loads the data files once and builds (or returns) the model for a seed. */
 export async function loadEpochModel(seed: string): Promise<EpochModel> {
+  // The Worker starts on its own copy of the catalogues while this thread parses its own.
+  const alien = offloaded() && cached?.seed !== seed ? requestParts(seed, ['alien']) : null;
   loading ??= loadInputs().then((i) => (loaded = i));
   const inputs = await loading;
-  if (cached?.seed !== seed) cached = buildEpochModel(inputs, seed);
-  return cached;
+  if (cached?.seed === seed) return cached;
+  if (!alien) {
+    cached = buildEpochModel(inputs, seed);
+    return cached;
+  }
+  let b = building.get(seed);
+  if (!b) {
+    b = alien.then(async (pre) => {
+      // Build in a task of its own, not in the one that received the catalogue (keeps each task short).
+      await new Promise((r) => setTimeout(r, 0));
+      if (cached?.seed === seed) return cached;
+      const m: EpochModel = buildEpochModel(inputs, seed, { pre, request: (part) => void ensureParts(m, [part]).catch(() => undefined) });
+      cached = m;
+      return m;
+    });
+    building.set(seed, b);
+    b.then(() => building.delete(seed), () => building.delete(seed));
+  }
+  return b;
 }
 
 /** The model for a seed, for the checkers. Throws until the data files are loaded (the bus then refuses the proposal). */
 export function epochModel(seed: string): EpochModel {
   if (!loaded) throw new Error('The star catalogues are still loading; try again in a moment.');
-  if (cached?.seed !== seed) cached = buildEpochModel(loaded, seed);
+  if (cached?.seed !== seed) {
+    if (offloaded()) {
+      void loadEpochModel(seed).catch(() => undefined);
+      throw new Error('The star catalogues are still loading; try again in a moment.');
+    }
+    cached = buildEpochModel(loaded, seed);
+  }
   return cached;
 }
 
@@ -209,4 +327,5 @@ export function setEpochInputs(inputs: EpochInputs): void {
   loaded = inputs;
   loading = Promise.resolve(inputs);
   cached = null;
+  local = true;
 }

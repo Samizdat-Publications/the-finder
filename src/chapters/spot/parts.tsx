@@ -6,9 +6,9 @@ import type { Answer } from '../../game/deductions';
 import { missingFor, nodeStatus } from '../../game/deductions';
 import { nodeDef } from '../../game/graph';
 import { confirmedSet, game } from '../../game/state';
-import { GlyphLabel, Value } from '../../ui/Glyph';
-import { renderMessage } from '../../ui/message';
-import { PastLabel, isPastProposal } from '../../ui/pastProposal';
+import { GlyphLabel } from '../../ui/Glyph';
+import { isPastProposal } from '../../ui/pastProposal';
+import { ResultView } from '../../ui/ResultView';
 import { send } from '../../ui/send';
 
 export function propose(id: string, answer: Answer): void {
@@ -56,30 +56,23 @@ export function Panel(p: { id: string; title: string; glyph: string; children: C
   );
 }
 
-/** The checker's verdict on the latest attempt. */
+/** The checker's verdict on the latest attempt: the shared result view. */
 export function Result(p: { id: string; current?: Answer }) {
   const a = lastAttempt(p.id);
   if (!a) return null;
-  const past = isPastProposal(a, p.current);
   return (
-    <div class={`sp-result ${a.ok ? 'ok' : 'wrong'}${past ? ' is-past' : ''}`} data-result={p.id} data-ok={a.ok ? '1' : '0'} data-past={past ? '1' : '0'} role="status">
-      {past && <PastLabel />}
-      <p class="sp-verdict">{a.ok ? 'This holds.' : 'This does not hold.'}</p>
-      <p>{renderMessage(a.message, game.settings.value.humanGloss)}</p>
-      {a.ok && (
-        <>
-          <ul class="sp-readings" aria-label="Readings written to the codex">
-            {a.result.map((r, i) => (
-              <li key={i}>
-                <span class="k">{r.key}</span> <Value reading={r} />
-              </li>
-            ))}
-          </ul>
-          <button type="button" class="btn small" onClick={() => send({ type: 'codex.open', id: p.id })}>
-            Open it in the codex
-          </button>
-        </>
-      )}
-    </div>
+    <ResultView
+      id={p.id}
+      attempt={a}
+      past={isPastProposal(a, p.current)}
+      cls="sp-result"
+      okCls="ok"
+      badCls="wrong"
+      okAttr={['1', '0']}
+      verdictClass="sp-verdict"
+      readings="list"
+      readingsClass="sp-readings"
+      codex
+    />
   );
 }

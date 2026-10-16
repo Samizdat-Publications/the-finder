@@ -68,6 +68,7 @@ export function SettingsPanel() {
       </div>
       <Toggle name="reducedMotion" label="Reduced motion" help="Hold the interface still: no pulses or slides." />
       <Toggle name="soundCaptions" label="Sound captions" help="Write out what each sound is." />
+      <Toggle name="showWorking" label="Show the working" help="Open every result with its full working (the message and the readings) under the headline." />
       <div class="setting col danger">
         <span class="lbl">Start over</span>
         <p class="help">Forget every deduction, hint and attempt, and return to the ring. Your settings stay.</p>

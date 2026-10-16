@@ -10,6 +10,8 @@ export interface Settings {
   reducedMotion: boolean;
   /** Captions for sounds. */
   soundCaptions: boolean;
+  /** Results open with their working (the full message and readings) unfolded under the headline (M4 step 7e). */
+  showWorking: boolean;
 }
 
 export type SettingName = keyof Settings;
@@ -18,7 +20,7 @@ export type SettingName = keyof Settings;
 export type SettingCommand = { [K in SettingName]: { type: 'settings.set'; name: K; value: Settings[K] } }[SettingName];
 
 export function defaultSettings(prefersReducedMotion = false): Settings {
-  return { humanGloss: false, masterVolume: 0.8, reducedMotion: prefersReducedMotion, soundCaptions: false };
+  return { humanGloss: false, masterVolume: 0.8, reducedMotion: prefersReducedMotion, soundCaptions: false, showWorking: false };
 }
 
 const clamp01 = (x: number): number => Math.min(1, Math.max(0, x));
@@ -32,7 +34,8 @@ export function coerceSetting<K extends SettingName>(name: K, value: unknown): S
     }
     case 'humanGloss':
     case 'reducedMotion':
-    case 'soundCaptions': {
+    case 'soundCaptions':
+    case 'showWorking': {
       if (typeof value !== 'boolean') throw new Error(`${name} must be true or false`);
       return value as Settings[K];
     }

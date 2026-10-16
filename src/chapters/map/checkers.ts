@@ -11,6 +11,7 @@ import { SSD72_SIG_FIGS, mapPeriod } from '../../science/pulsars';
 import { CHI2_2DOF_95, insideRegion, regionLevel } from '../../science/triangulation';
 import { HYDROGEN_HZ, JULIAN_YEAR_S, PARSEC_KM } from '../../science/units';
 import { q, rangeDigits } from '../../ui/message';
+import { onContour } from '../shared/contour';
 import { epochModel, type EpochModel } from '../shared/epochModel';
 import {
   axisFromGalactic, axisLineFit, bearingResiduals, candidateReadout, galacticOf, isYoung, lengthMisfit, lineIsOld, lineOf, log10BestOver, mapPoints, matchOf,
@@ -258,7 +259,7 @@ export function checkRegion(model: EpochModel, answer: Answer): CheckResult {
   ];
   if (!insideRegion(region, [x, y])) {
     const level = regionLevel(region, [x, y]);
-    return { ok: false, result, message: `From here the lines point at their pulsars with an rms error of ${deg(here.rmsDeg, 2)} (the best point manages ${deg(best.rmsDeg, 2)}): the point lies on the ${(level * 100).toFixed(level > 0.999 ? 3 : 1)}% contour of the origin's uncertainty, outside the 95% region.` };
+    return { ok: false, result, message: `From here the lines point at their pulsars with an rms error of ${deg(here.rmsDeg, 2)} (the best point manages ${deg(best.rmsDeg, 2)}): the point lies ${onContour(level)} of the origin's uncertainty, outside the 95% region.` };
   }
   const stars = starsInRegion(model);
   result.push(

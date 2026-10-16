@@ -9,8 +9,8 @@ import { discoveryState, homeObserver, type Observer } from '../science/epoch';
 import { projectCatalogue, type AlienPulsar } from '../science/pulsarEpoch';
 import { expandColumnar, type ColumnarStars, type CoverData, type PulsarCatalogue, type ScenarioData, type StarCatalogue, type StarRecord } from '../science/types';
 import {
-  ChartCamera, attachInput, createChartRenderer, disposeTree, makeLabel, makePoints, makePolyline, makeSegments, nearestOnScreen, projectGal, sizeLabels,
-  type ChartView, type PointSet, type ScreenPoint,
+  ChartCamera, attachInput, createChartRenderer, declutterLabels, disposeTree, makeLabel, makePoints, makePolyline, makeSegments, nearestOnScreen, projectGal, sizeLabels,
+  type BrightPoint, type ChartView, type PointSet, type ScreenPoint,
 } from './chartControls';
 import {
   buildGalaxy, mapRays, matchSegments, regionOutline, type ChartPulsar, type GalaxyModel, type MapRay, type MapTransform, type MatchSegment, type PulsarClass, type RegionEllipse,
@@ -120,14 +120,17 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
       cam.tick(dt);
       cam.apply(core.camera);
       sizeLabels(root, core.camera, core.size().h);
+      const { w, h } = core.size();
       // The region's label only when the region is big enough on screen to own it (30 px semi-axis).
       const lab = overlay.region?.userData.label as THREE.Sprite | undefined;
       if (lab && regionShown) {
-        const { w, h } = core.size();
         const c = projectGal([regionShown.centerPc[0] / 1000, regionShown.centerPc[1] / 1000, 0], core.camera, w, h);
         const e = projectGal(lab.userData.edge as Vec3, core.camera, w, h);
-        lab.visible = Math.hypot(e.x - c.x, e.y - c.y) > 30;
+        lab.userData.suppressed = Math.hypot(e.x - c.x, e.y - c.y) <= 30;
       }
+      // Labels clear of each other and of the bright marks (the centre, your star, a highlighted pulsar); the
+      // centre's and your star's labels are always kept (M4 step 7e).
+      if (model) declutterLabels(root, core.camera, w, h, brightMarks());
     },
     (_w, _h, pr) => sets.forEach((ps) => ps.setPixelRatio(pr)),
   );
@@ -159,11 +162,23 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
     root.add(marks.points);
     const gcLabel = makeLabel(`Galactic centre, ${m.gc.distKpc.toFixed(2)} +/- ${m.gc.sigmaKpc.toFixed(2)} kpc (modern)`, '#ffe9b8');
     gcLabel.position.set(gc[0], gc[2], -gc[1]);
+    gcLabel.userData.keep = true;
     const homeLabel = makeLabel(opts.homeLabel ?? 'Gliese 445', '#a8ffd0');
+    homeLabel.userData.keep = true;
+    homeLabel.userData.priority = 2;
     root.add(gcLabel, homeLabel);
     return { decimalYear: m.decimalYear, counts: m.counts, gc: m.gc };
   })();
   ready.catch(() => undefined);
+
+  /** The marks labels keep clear of: the centre, your star, and the highlighted pulsar. */
+  const brightMarks = (): BrightPoint[] => {
+    const out: BrightPoint[] = [{ at: [0, 0, 0], rPx: 7 }];
+    if (model) out.push({ at: model.gc.posKpc, rPx: 10 });
+    const p = highlighted && model ? model.pulsars.find((q) => q.jname === highlighted) : undefined;
+    if (p) out.push({ at: p.posKpc, rPx: 9 });
+    return out;
+  };
 
   const requireModel = (): GalaxyModel => {
     if (!model) throw new Error('galaxy chart not ready');
@@ -195,6 +210,7 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
     ringSet = ring;
     const label = makeLabel(p.bname ? `PSR ${p.bname} (${p.jname})` : `PSR ${p.jname}`, '#ffffff');
     label.position.set(p.posKpc[0], p.posKpc[2], -p.posKpc[1]);
+    label.userData.priority = 5;
     g.add(ring.points, label);
     root.add(g);
     overlay.highlight = g;
@@ -310,6 +326,7 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
       const top = outline[Math.round(outline.length / 4)]!;
       label.position.set(top[0], top[2], -top[1]);
       label.userData.edge = outline[0];
+      label.userData.priority = 3;
       g.userData.label = label;
       g.add(label);
       root.add(g);

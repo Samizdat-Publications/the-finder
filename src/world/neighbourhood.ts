@@ -14,8 +14,8 @@ import { homeObserver, type Observer } from '../science/epoch';
 import { trail, type TrailEntry } from '../science/kinematics';
 import { expandColumnar, type ColumnarStars, type ScenarioData, type StarCatalogue, type StarRecord } from '../science/types';
 import {
-  ChartCamera, attachInput, createChartRenderer, disposeTree, galToWorld, makeLabel, makePoints, makePolyline, makeSegments, nearestOnScreen, projectGal, sizeLabels,
-  type ChartView, type PointSet, type ScreenPoint,
+  ChartCamera, attachInput, createChartRenderer, declutterLabels, disposeTree, galToWorld, makeLabel, makePoints, makePolyline, makeSegments, nearestOnScreen, projectGal, sizeLabels,
+  type BrightPoint, type ChartView, type PointSet, type ScreenPoint,
 } from './chartControls';
 import { NEIGHBOURHOOD_RADIUS_PC, angleTint, computeNeighbourhood, trailGeometry, type ChartStar, type NeighbourhoodModel, type TrailGeometry } from './neighbourhoodModel';
 
@@ -106,6 +106,8 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
       cam.tick(dt);
       cam.apply(core.camera);
       sizeLabels(root, core.camera, core.size().h);
+      // Labels clear of each other and of the bright points (M4 step 7e: "the craft" sat over "Gl 445 (home)").
+      if (model) declutterLabels(root, core.camera, core.size().w, core.size().h, brightPoints());
     },
     (_w, _h, pr) => sets.forEach((ps) => ps.setPixelRatio(pr)),
   );
@@ -166,8 +168,14 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
     // The craft's label above its point and the home star's below: the two are a fraction of a parsec apart.
     const craftLabel = labelAt('the craft', [0, 0, 0], '#c8fff0');
     craftLabel.center.set(0, -0.15);
+    craftLabel.userData.keep = true;
+    craftLabel.userData.priority = 8;
+    craftLabel.userData.anchors = [[0, -0.15], [1, -0.15], [0, 0.5], [1, 0.5], [0, 1.15], [1, 1.15]];
     const homeLabel = labelAt(`${nameOf(home)} (home)`, home.posPc, '#a8ffd0');
     homeLabel.center.set(0, 1.15);
+    homeLabel.userData.keep = true;
+    homeLabel.userData.priority = 9;
+    homeLabel.userData.anchors = [[0, 1.15], [1, 1.15], [0, 0.5], [1, 0.5], [0, -0.15], [1, -0.15]];
     root.add(craftLabel, homeLabel);
     // A faint 10 pc reference circle in the Galactic plane through the craft.
     const ring: Vec3[] = [];
@@ -176,6 +184,15 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
     return { decimalYear: m.decimalYear, count: n, census: m.census };
   })();
   ready.catch(() => undefined);
+
+  /** The points labels keep clear of: the craft, your star, the highlighted star, and the bright stars. */
+  const brightPoints = (): BrightPoint[] => {
+    const m = model;
+    if (!m) return [];
+    const out: BrightPoint[] = [{ at: [0, 0, 0], rPx: 8 }];
+    for (const s of m.stars) if (s.radiusPx >= 3.5 || s.star.id === highlighted) out.push({ at: s.posPc, rPx: s.radiusPx + (s.star.id === highlighted ? 7 : 2) });
+    return out;
+  };
 
   const requireModel = (): NeighbourhoodModel => {
     if (!model) throw new Error('neighbourhood chart not ready');
@@ -205,7 +222,9 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
     const g = new THREE.Group();
     ringSet = track(makePoints(new Float32Array(s.posPc), new Float32Array([1, 1, 1]), new Float32Array([s.radiusPx + 5]), new Float32Array([0.9]), new Float32Array([1])));
     const note = s.fullVelocity ? '' : ' (no radial velocity: depth uncertain)';
-    g.add(ringSet.points, labelAt(`${nameOf(s)}, ${s.distFromCraftPc.toFixed(2)} pc${note}`, s.posPc, '#ffffff'));
+    const hl = labelAt(`${nameOf(s)}, ${s.distFromCraftPc.toFixed(2)} pc${note}`, s.posPc, '#ffffff');
+    hl.userData.priority = 5;
+    g.add(ringSet.points, hl);
     root.add(g);
     overlay.highlight = g;
   };
@@ -259,7 +278,9 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
       // The label is the alien's measurement and its 95% cut (M4 science audit finding 2); the drawn vectors are the catalogue's.
       const f = (x: number): string => (x < 1 ? x.toFixed(3) : x.toFixed(1));
       const cut = g.nullAngle95Deg > 0 ? ` (cut ${f(g.nullAngle95Deg)})` : '';
-      grp.add(labelAt(`${f(g.measuredAngleDeg)} deg${cut}`, scale(mid, 1.15), '#fff2c0', 14));
+      const angle = labelAt(`${f(g.measuredAngleDeg)} deg${cut}`, scale(mid, 1.15), '#fff2c0', 14);
+      angle.userData.priority = 6;
+      grp.add(angle);
       root.add(grp);
       overlay.trail = grp;
       setHighlight(starId);

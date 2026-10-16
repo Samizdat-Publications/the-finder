@@ -5,7 +5,7 @@
 
 import { signal } from '@preact/signals';
 import { weightedMean } from '../../science/stats';
-import { loadEpochModel, type EpochModel } from '../shared/epochModel';
+import { ensureParts, loadEpochModel, type EpochModel } from '../shared/epochModel';
 import { AGREE_CHI2_PER_DOF } from './checkers';
 import type { FrameAges, FrameId } from './frames';
 import { agesInFrame, judgedLines, oldSpread } from './frames';
@@ -64,20 +64,30 @@ export function yieldFrame(): Promise<void> {
   return new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
 }
 
-/** Timings of the long calls, ms (the browser test reads them). */
+/**
+ * Timings of the long calls, ms (the browser test reads them): the time this thread spent, computing a light
+ * part here or copying a heavy one in from the epoch Worker (M4 step 7e), not the Worker's own time.
+ */
 export const timings: Record<string, number> = {};
 
-async function timed<T>(label: string, what: string, f: () => T): Promise<T> {
+async function timed<T>(label: string, what: string, f: () => T | Promise<T>, spent?: (r: T) => number): Promise<T> {
   measuring.value = what;
   await yieldFrame();
   const t0 = performance.now();
+  let r: T | undefined;
   try {
-    return f();
+    r = await f();
+    return r;
   } finally {
-    timings[label] = Math.max(timings[label] ?? 0, performance.now() - t0); // the longest time this call took
+    const ms = r !== undefined && spent ? spent(r) : performance.now() - t0;
+    timings[label] = Math.max(timings[label] ?? 0, ms); // the longest time this call took
     measuring.value = null;
   }
 }
+
+/** A heavy part from the Worker, timed by what this thread spent on it. */
+const heavy = (m: EpochModel, part: 'trail' | 'region') => (): Promise<number> => ensureParts(m, [part]);
+const spentHere = (ms: number): number => ms;
 
 let loadingFor: string | null = null;
 
@@ -93,7 +103,7 @@ export async function ensureModel(seed: string): Promise<EpochModel> {
   try {
     measuring.value = 'Loading the star catalogues';
     const m = await loadEpochModel(seed);
-    await timed('trailRows', 'Measuring every nearby star\'s motion', () => m.trailRows());
+    await timed('trailRows', 'Measuring every nearby star\'s motion', heavy(m, 'trail'), spentHere);
     model.value = m;
     failure.value = null;
     return m;
@@ -108,8 +118,8 @@ export async function ensureModel(seed: string): Promise<EpochModel> {
 
 /** The map's origin region and the motion fit (computed once, behind the measuring state). */
 export async function ensureRegion(m: EpochModel): Promise<void> {
-  await timed('motionFit', 'Dating the map\'s lines', () => m.motionFit());
-  await timed('region', 'Fitting the map\'s origin region', () => m.region());
+  await timed('region', "Fitting the map's origin region", heavy(m, 'region'), spentHere);
+  await timed('motionFit', "Dating the map's lines", () => m.motionFit());
 }
 
 /** Read the map's ages in a frame (cached in frames.ts), behind the measuring state. */
@@ -126,6 +136,8 @@ export async function selectFrame(m: EpochModel, f: FrameId): Promise<void> {
 
 /** Everything the reframe needs before it draws: the motion fit, and the origin frame's ages (the plot's axis spans it). */
 export async function ensureReframe(m: EpochModel): Promise<void> {
+  // The motion fit rests on the region's ages (the Worker sends them together).
+  await timed('region', "Fitting the map's origin region", heavy(m, 'region'), spentHere);
   await timed('motionFit', 'Dating the map\'s lines', () => m.motionFit());
   await timed('ages:sun', 'Moving the pulsar rates into the warm-white star\'s frame', () => m.ages('sun'));
   await selectFrame(m, frame.value);

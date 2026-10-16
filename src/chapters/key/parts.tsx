@@ -6,9 +6,9 @@ import { useState } from 'preact/hooks';
 import { nodeStatus, type Answer } from '../../game/deductions';
 import { nodeDef } from '../../game/graph';
 import { confirmedSet, game } from '../../game/state';
-import { GlyphLabel, Value } from '../../ui/Glyph';
-import { renderMessage } from '../../ui/message';
-import { PastLabel, isPastProposal } from '../../ui/pastProposal';
+import { GlyphLabel } from '../../ui/Glyph';
+import { isPastProposal } from '../../ui/pastProposal';
+import { ResultView } from '../../ui/ResultView';
 import { send } from '../../ui/send';
 import type { StrokeKind } from '../shared/coverSvg';
 
@@ -77,26 +77,7 @@ export function LastReading(p: { id: string; current?: Answer }) {
   const last = rec?.attempts[rec.attempts.length - 1];
   if (!last) return null;
   const past = isPastProposal(last, p.current !== undefined ? p.current : choicePicks.value[p.id]);
-  return (
-    <div class={`kresult ${last.ok ? 'ok' : 'bad'}${past ? ' is-past' : ''}`} data-result={p.id} data-ok={String(last.ok)} data-past={past ? '1' : '0'} role="status">
-      {past && <PastLabel />}
-      <p>{renderMessage(last.message, game.settings.value.humanGloss)}</p>
-      {last.result.length > 0 && (
-        <dl class="kreadings">
-          {last.result.map((r, i) => (
-            <div key={i}>
-              <dt>
-                <GlyphLabel k={r.key} gloss={r.key} height={13} />
-              </dt>
-              <dd>
-                <Value reading={r} />
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )}
-    </div>
-  );
+  return <ResultView id={p.id} attempt={last} past={past} cls="kresult" okCls="ok" badCls="bad" okAttr={['true', 'false']} readings="dl" readingsClass="kreadings" codex />;
 }
 
 /** A string of strokes drawn small: a bar for "across", a dash for "along". */

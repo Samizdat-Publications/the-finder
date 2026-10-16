@@ -51,11 +51,9 @@
 .mapnums .tag { font-family: var(--font-sans); opacity: 0.85; margin-left: 0.3rem; }
 .ktable td .note, .ktable td p { font-family: var(--font-sans); }
 .ktable.tally td.sname { font-family: var(--font-sans); color: var(--text); white-space: nowrap; }
-/* A confirmed instrument folds to its heading and the gist of what it showed (the full reading is in the codex). */
+/* A confirmed instrument folds to its heading and its result's headline; the working opens under it (results.css). */
 .kpanel.confirmed > :not(.khead):not(.kresult) { display: none; }
 .kpanel.confirmed .kresult { margin-top: 0.3rem; }
-.kpanel.confirmed .kreadings { display: none; }
-.kpanel.confirmed .kresult p { margin: 0; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .linkbtn { font: inherit; font-size: var(--fs-label); color: var(--text-dim); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
 .linkbtn:hover { color: var(--danger); }
 .kscroll { overflow-x: auto; }

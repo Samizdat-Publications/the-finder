@@ -9,6 +9,7 @@
 //
 // map.periods' "weak line" is a real one: an old line that is not a pass-1 anchor (B1929+10 on line 2 for the
 // seeds tried, map.test.ts); if a seed has none, it is skipped and said so.
+import { MOMENT_IDS, skipMoments } from './moments.mjs';
 import { renderedMessage } from './rendered.mjs';
 
 /** The arrival and key answers the slice bot proposes (tests/browser/slice.browser.mjs). */
@@ -51,6 +52,8 @@ export async function m4WrongPass(page, { assert, log, freshStart, baseUrl }) {
   const right = async (id, answer) => {
     const r = await propose(id, answer);
     assert(r.confirmed, `${id}: the right answer confirms after the wrong ones (${r.last?.message})`);
+    // A staged moment follows; the bot skips it with its Continue button, as a player would.
+    if (MOMENT_IDS.includes(id)) assert((await skipMoments(page)).includes(id), `${id}: its moment shows and is skipped`);
   };
 
   // ---- Arrival's first deduction and The Key, through the bus (the slice bot's answers), on The Key's bench
@@ -64,10 +67,12 @@ export async function m4WrongPass(page, { assert, log, freshStart, baseUrl }) {
   await send({ type: 'chapter.enter', chapter: 'map' });
   await page.waitForSelector('.mapinst[data-map-phase="ready"]', { timeout: 120_000 });
   const mapA = await page.evaluate(async () => {
-    const { epochModel } = await import('/src/chapters/shared/epochModel.ts');
+    const { epochModel, ensureParts } = await import('/src/chapters/shared/epochModel.ts');
     const mm = await import('/src/chapters/map/mapMath.ts');
     const A = await import('/src/science/astro.ts');
     const m = epochModel(window.__finder.state().game.seed);
+    // The heavy parts come from the epoch Worker (M4 step 7e): wait for them before reading the model.
+    await ensureParts(m, ['identification', 'region', 'trail']);
     const truth = Object.fromEntries(m.lines.map((l) => [String(l.order), l.jname]));
     const l1 = m.lines.find((l) => l.order === 1);
     const runner = mm.matchOf(m, 1, 1).runnerUp.entry.jname;

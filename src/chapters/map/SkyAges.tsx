@@ -106,7 +106,8 @@ function SidePlot(p: { pts: SkyAge[]; xs: number[]; slope: number; intercept: nu
           {used.map((u) => (
             <circle key={u.q.order} cx={X(u.x)} cy={Y(u.q.age)} r={5} class={`map-sidept${u.q.used ? '' : ' left-out'}`} />
           ))}
-          <text x={w - pad.r} y={h - 8} class="map-plot-label" text-anchor="end">P / Pdot × cos(angle to the axis)</text>
+          <text x={w - pad.r} y={h - 8} class="map-plot-label" text-anchor="end">shift from your motion →</text>
+          <text x={pad.l + 4} y={pad.t + 14} class="map-plot-label">age, beats</text>
         </svg>
       )}
     </div>
@@ -124,7 +125,7 @@ function Decides(p: { d2: number }) {
   const inside = p.d2 <= CHI2_2DOF_95;
   return (
     <div class="map-row map-skyread map-decides" data-decides={inside ? 'inside' : 'outside'}>
-      <span class="map-k">the number that decides: chi-square of this axis from the velocity fitted to every old line</span>
+      <span class="map-k">decides: chi-square of this axis from the velocity fitted to every old line</span>
       <output class="map-v" data-axis-chi2-reading="">{p.d2 < 100 ? p.d2.toFixed(2) : p.d2.toExponential(1)}</output>
       <svg class="map-decides-bar" width={W} height={18} role="img" aria-label={`chi-square ${p.d2.toFixed(2)} against the 95% cut ${CHI2_2DOF_95.toFixed(2)}`}>
         <rect x={0} y={5} width={W} height={8} class="track" />
@@ -157,6 +158,7 @@ export function SkyAges() {
         <SkyPlot pts={pts} median={median} spread={spread} />
         <SidePlot pts={pts} xs={fit.xs} slope={fit.slope} intercept={fit.intercept} />
       </div>
+      <div class="map-skyctl">
       <div class="map-row map-skyread">
         <span class="map-k">axis</span>
         <output class="map-v" data-axis-reading="">l {a.lDeg.toFixed(2)}, b {a.bDeg.toFixed(2)} deg</output>
@@ -174,9 +176,10 @@ export function SkyAges() {
       </div>
       <Decides d2={d2} />
       <p class="map-k map-legend">
-        <span class="older">older than the median</span> <span class="younger">younger</span>
-        {left.length > 0 && ` · hollow: line ${left.map((q) => q.order).join(', ')}, a number too rough to date (left out)`}
+        Sky: <span class="older">orange older</span>, <span class="younger">blue younger</span> than the middle age
+        {left.length > 0 && `; hollow: line ${left.map((q) => q.order).join(', ')}, too rough to date, left out`}. Right: on the right axis the ages fall on one line.
       </p>
+      </div>
     </section>
   );
 }

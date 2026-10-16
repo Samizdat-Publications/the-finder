@@ -1,7 +1,8 @@
 // The playthrough seeds "Start over" takes (D-A28): data/seeds.json, built by tools/seeds/build-seeds.mjs, lists
 // the candidate seeds for which every seed-reading checker's right answer confirms, so no playthrough meets an
-// unpassable check. A first playthrough uses DEFAULT_SEED (verified by src/chapters/seedCheck.test.ts); old
-// saves keep whatever seed they carry. Pure: no DOM, no clock.
+// unpassable check. A first playthrough uses DEFAULT_SEED (verified by src/chapters/seedCheck.test.ts); an old
+// save whose seed is not validated moves to the next validated seed when it loads (save.ts cleanSeed, M4 step
+// 7e). Pure: no DOM, no clock.
 
 import seedsJson from '../../data/seeds.json';
 

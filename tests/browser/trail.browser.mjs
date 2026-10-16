@@ -10,6 +10,8 @@
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from '../../tools/harness/serve.mjs';
+import { MOMENT_SHOWS } from './map.browser.mjs';
+import { skipMoments } from './moments.mjs';
 import { renderedMessage } from './rendered.mjs';
 
 export const SAVE_KEY = 'finder.save.v1';
@@ -100,6 +102,11 @@ export async function playTrail(page, { log, assert, shot, mapPlayable }) {
   assert((await page.locator(`[data-readout="${ref.origin}"]`).count()) === 1, 'the Sun is picked at its projected point');
   const o1 = await propose('trail.origin');
   assert(o1.ok, `the Sun is accepted (${o1.message})`);
+  const moment = async (id, settleMs) => {
+    const seen = await skipMoments(page, { shot: (m) => shot(`moment-${m}`, MOMENT_SHOWS[m] ?? m), settleMs });
+    assert(seen.includes(id), `the ${id} moment shows once and is skipped (${seen.join(', ')})`);
+  };
+  await moment('trail.origin', 3800);
   await shot('3-sun-trail', `The warm-white star's (the Sun's) trail: measured ${ref.angle.toFixed(3)} deg from straight away, inside the 95% cut of ${ref.cut.toFixed(3)} deg; trail.origin confirmed.`);
 
   // ---- trail.age: the run-back ----
@@ -141,6 +148,7 @@ export async function playTrail(page, { log, assert, shot, mapPlayable }) {
   await shot('5b-ruler-past', "The ruler re-measured to the warm-white star: the earlier rejection, for the wrong star, is dimmed and labelled as your last proposal.");
   const n1 = await propose('trail.neighbour');
   assert(n1.ok && /nearest/.test(n1.message) && /5th-brightest/.test(n1.message), `the neighbour twist (${n1.message})`);
+  await moment('trail.neighbour', 1500);
   assert((await pastOf('trail.neighbour')) === '0' && (await page.locator('[data-result="trail.neighbour"] [data-past-label]').count()) === 0, 'a confirmed result is never marked as past');
 
   // ---- trail.where and trail.when: need The Map's region and motion ----
@@ -193,6 +201,7 @@ export async function playTrail(page, { log, assert, shot, mapPlayable }) {
     await shot('8-reframe-sun', "The reframe in the warm-white star's frame: the old lines' ages snap together; the combined age's band (shown after the first proposal) and the cursor on it.");
     const e1 = await propose('trail.when');
     assert(e1.ok, `the map's age in the Sun's frame (${e1.message})`);
+    await moment('trail.when', 3600);
     whenMsg = e1.message;
     const g = await page.evaluate(() => window.__finder.state().game);
     assert(g.chapterStatus.trail === 'done', 'The Trail is done');
@@ -232,6 +241,8 @@ async function confirmMapThroughBus(page, assert, log) {
     const S = await import('/src/chapters/trail/state.ts');
     const { toGalacticCartesian } = await import('/src/science/astro.ts');
     const m = S.model.value;
+    // The heavy parts come from the epoch Worker (M4 step 7e): wait for them, as the instruments do.
+    await (await import('/src/chapters/shared/epochModel.ts')).ensureParts(m, ['identification', 'region']);
     const id = m.identification();
     const own = m.ages('own').perLine;
     const old = id.lines.filter((l, i) => l.best && !own[i].young && Number.isFinite(l.log10Odds)).sort((a, b) => b.log10Odds - a.log10Odds)[0];
@@ -252,6 +263,9 @@ async function confirmMapThroughBus(page, assert, log) {
     const ok = await page.evaluate((id) => window.__finder.state().game.nodes[id]?.confirmed === true, id);
     assert(ok, `${id} confirmed through the bus with the model's right answer`);
   }
+  // map.region's staged moment follows: skip it with its Continue button, as a player would.
+  await skipMoments(page);
+
   log('The Map: five nodes confirmed through the bus');
 }
 

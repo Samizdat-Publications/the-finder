@@ -1,0 +1,43 @@
+/* Results (M4 step 7e): a confirmed result leads with its headline (the key quantity large, its glyph label
+   above, one plain sentence); the working (the full message and the readings) folds under it. Shared by every
+   chapter's result box (ar-result, kresult, sp-result). */
+.result .headline { display: grid; gap: 0.2rem; margin: 0.1rem 0 0.35rem; }
+.result .headline p { margin: 0; display: block; -webkit-line-clamp: unset; line-clamp: unset; overflow: visible; }
+.headline .hl-label .glyph { color: var(--violet); }
+.headline .hl-value { display: flex !important; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.6rem; line-height: 1.1; }
+.headline .hl-num { font: 600 clamp(1.6rem, 2.4vw, 2.15rem)/1.1 var(--font-mono); color: var(--cyan); letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.kresult.ok .headline .hl-num { color: var(--gold); }
+.headline .hl-num.hl-text { font: 600 clamp(1.15rem, 1.6vw, 1.45rem)/1.25 var(--font-sans); letter-spacing: 0; }
+.headline .hl-unit { display: inline-flex; flex-direction: column; gap: 0.1rem; align-items: flex-start; }
+.headline .hl-unit .gloss { font-size: var(--fs-label); }
+.headline .si { font: var(--fs-value) var(--font-mono); color: var(--text-dim); }
+.headline .hl-sentence { font-size: var(--fs-value); line-height: 1.4; color: var(--text); }
+
+/* The working fold: a quiet summary line; open, it shows the message and the readings as before. */
+.working { margin-top: 0.3rem; font-size: var(--fs-label); }
+.working > summary { cursor: pointer; color: var(--text-dim); font: var(--fs-label)/1.6 var(--font-mono); letter-spacing: 0.04em; list-style-position: inside; width: fit-content; }
+.working > summary:hover { color: var(--cyan); }
+.working-body { margin-top: 0.35rem; padding-top: 0.4rem; border-top: 1px dashed var(--line); }
+.working-body > p { margin: 0 0 0.45rem; }
+.working-body .btn { margin-top: 0.3rem; }
+
+/* Confirmed cards in the notebook: the earlier answers become a quiet tally that still opens them. */
+.wrong.quiet summary { color: var(--text-dim); }
+.wrong.quiet summary:hover { color: var(--cyan); }
+
+/* Scroll cues: where a column scrolls, a soft fade at the clipped edge and a small cue (src/ui/scrollCue.ts). */
+.scrolls-more { -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 2.2rem), transparent); mask-image: linear-gradient(180deg, #000 calc(100% - 2.2rem), transparent); }
+.scrolls-more.scrolls-back { -webkit-mask-image: linear-gradient(180deg, transparent, #000 1.6rem, #000 calc(100% - 2.2rem), transparent); mask-image: linear-gradient(180deg, transparent, #000 1.6rem, #000 calc(100% - 2.2rem), transparent); }
+.scrolls-back:not(.scrolls-more) { -webkit-mask-image: linear-gradient(180deg, transparent, #000 1.6rem); mask-image: linear-gradient(180deg, transparent, #000 1.6rem); }
+.scroll-cue {
+  position: fixed; z-index: 15; pointer-events: auto; cursor: pointer;
+  font: var(--fs-label)/1 var(--font-mono); color: var(--text-dim);
+  background: rgba(8, 7, 26, 0.95); border: 1px solid var(--line); border-radius: 99px; padding: 0.22rem 0.65rem;
+  transform: translate(-50%, -50%);
+}
+.scroll-cue:hover { color: var(--cyan); border-color: var(--cyan); }
+
+/* The codex drawer dims what it covers. */
+.drawer-scrim { position: fixed; inset: 0; z-index: 19; background: rgba(4, 3, 14, 0.62); pointer-events: none; }
+:root:not(.calm) .drawer-scrim { animation: scrimin 0.22s ease-out; }
+@keyframes scrimin { from { opacity: 0; } }

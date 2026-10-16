@@ -31,10 +31,10 @@ export function LinePanel() {
   const sel = selectedLine.value;
   const given = assignments.value;
   const gloss = game.settings.value.humanGloss;
-  if (!m || phase.value === 'loading' || sel === null) {
+  if (!m || phase.value !== 'ready' || sel === null) {
     return (
       <section class="map-tool map-line" aria-live="polite">
-        <p class="note">{m ? 'Choose a line to see how a pulsar fits it.' : 'Your catalogues are loading.'}</p>
+        <p class="note">{!m ? 'Your catalogues are loading.' : phase.value !== 'ready' ? 'Measuring how well each pulsar fits each line.' : 'Choose a line to see how a pulsar fits it.'}</p>
       </section>
     );
   }

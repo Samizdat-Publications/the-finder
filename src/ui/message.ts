@@ -39,7 +39,8 @@ export function pluralKey(key: string): string {
   return key.replace(/^(\w+)/, (w) => (/(ch|sh|s|x)$/.test(w) ? `${w}es` : `${w}s`));
 }
 
-function alienNumber(n: number, digits?: number): string {
+/** A number in the alien's units as messages write it: three figures from a million up, else grouped; `digits` figures when given. */
+export function alienNumber(n: number, digits?: number): string {
   if (digits === undefined) return formatMeasured(n);
   const a = Math.abs(n);
   if (a !== 0 && (a >= 1e6 || a < 1e-3)) return formatPower(n, digits);
@@ -65,14 +66,19 @@ export function humanText(dim: MsgDim, si: number, digits?: number): string {
   return formatSI(dim, si);
 }
 
-/** The alien's number and unit for a quantity, plural unless the number reads 1. */
 /** One alien unit of a message quantity, in SI. */
-function unitSize(dim: MsgDim): number {
+export function unitSize(dim: MsgDim): number {
   if (!isExtra(dim)) return 1 / toAlien(dim, 1);
   const [l, t, m] = EXTRA[dim].exp;
   return REACH_M ** l * BEAT_S ** t * HEFT_KG ** m;
 }
 
+/** The English key (and glyph label) of a message quantity's alien unit. */
+export function unitKeyOf(dim: MsgDim): string {
+  return isExtra(dim) ? EXTRA[dim].key : UNIT_KEY[dim];
+}
+
+/** The alien's number and unit for a quantity, plural unless the number reads 1. */
 export function alienText(dim: MsgDim, si: number, digits?: number): string {
   const key = isExtra(dim) ? EXTRA[dim].key : UNIT_KEY[dim];
   const n = alienNumber(si / unitSize(dim), digits);
@@ -104,6 +110,17 @@ export function rangeDigits(dim: MsgDim, largestSI: number, widthSI: number): nu
   const step = Math.abs(widthSI / unitSize(dim)) / 10;
   if (!(n > 0) || !(step > 0)) return 3;
   return Math.max(3, Math.floor(Math.log10(n)) - Math.floor(Math.log10(step)) + 1);
+}
+
+/** A message's quantity tokens, in order: what each one carries. */
+export function messageTokens(text: string): { dim: MsgDim; si: number; digits?: number }[] {
+  const out: { dim: MsgDim; si: number; digits?: number }[] = [];
+  for (const m of text.matchAll(TOKEN)) {
+    const si = Number(m[2]);
+    if (!DIMS.includes(m[1] as string) || !Number.isFinite(si)) continue;
+    out.push(m[3] === undefined ? { dim: m[1] as MsgDim, si } : { dim: m[1] as MsgDim, si, digits: Number(m[3]) });
+  }
+  return out;
 }
 
 /** How many quantity tokens a message holds. */
