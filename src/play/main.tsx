@@ -17,11 +17,24 @@ import '../ui/shell.css';
 import '../ui/codex.css';
 import '../ui/results.css';
 import '../ui/moment.css';
+import '../tour/tour.css';
+import { dispatch } from '../game/bus';
 import { startRouter } from './router';
 import '../chapters/index';
 import '../audio/start';
 
 installBootErrors();
+
+/** /play/?tour=1 (or /play/#tour) starts the guided tour once the save is loaded, then the parameter is removed. */
+function startTourFromUrl(): void {
+  const url = new URL(window.location.href);
+  const asked = url.searchParams.get('tour') === '1' || url.hash === '#tour';
+  if (!asked) return;
+  url.searchParams.delete('tour');
+  if (url.hash === '#tour') url.hash = '';
+  window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+  dispatch({ type: 'tour.start' }).catch(() => undefined); // a refusal is already in the shell's notice
+}
 
 function storage(): Storage | null {
   try {
@@ -46,6 +59,7 @@ effect(() => {
   document.documentElement.classList.toggle('calm', game.settings.value.reducedMotion);
 });
 startRouter();
+startTourFromUrl();
 render(<Shell />, document.getElementById('app') as HTMLElement);
 
 if (harness) installHarness();

@@ -8,6 +8,7 @@ import { DEFAULT_SEED, chapterStatus, type Attempt, type ChapterStatus } from '.
 import { CHAPTERS, NODES, type ChapterView } from './graph';
 import { COVER_PERIOD_S, referenceBench, type BenchParams } from './model';
 import { defaultSettings, type Settings } from './settings';
+import { TOUR_OFF, type TourState } from '../tour/progress';
 
 export type TurntableStatus = 'idle' | 'loading' | 'ready' | 'error';
 export type DecoderStatus = 'idle' | 'loading' | 'decoding' | 'revealing' | 'done' | 'error';
@@ -91,6 +92,8 @@ export const game = {
   /** The codex entry to show first (a deduction id), when it was opened for one. */
   codexFocus: signal<string | null>(null),
   settingsOpen: signal(false),
+  /** The guided tour (src/tour): whether it is on, the stop being shown and the furthest stop reached. Saved. */
+  tour: signal<TourState>({ ...TOUR_OFF }),
   /** The last refused command's reason, for the interface to show. */
   error: signal<string | null>(null),
 };
@@ -111,6 +114,7 @@ function gameSnapshot() {
     codexOpen: game.codexOpen.value,
     codexFocus: game.codexFocus.value,
     settingsOpen: game.settingsOpen.value,
+    tour: { ...game.tour.value },
     error: game.error.value,
     confirmed: [...confirmed],
     hintsUsed: hintsUsed.value,

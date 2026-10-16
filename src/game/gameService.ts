@@ -8,6 +8,8 @@ import { chapterDef, nodeDef, type ChapterView } from './graph';
 import { nextSeed } from './seeds';
 import { coerceSetting, defaultSettings, type SettingName, type Settings } from './settings';
 import { confirmedSet, game, type NodeRecord } from './state';
+import { TOUR_OFF, clampStep, startStep } from '../tour/progress';
+import { STOPS } from '../tour/script';
 
 let clock: () => number = () => Date.now();
 
@@ -92,6 +94,39 @@ export function settingsPanel(open: boolean): void {
   game.settingsOpen.value = open;
 }
 
+function closeDrawers(): void {
+  closeCodex();
+  game.settingsOpen.value = false;
+}
+
+/** Show a stop: enter its chapter when the game is elsewhere (a refusal leaves the tour where it was), close the drawers, raise `furthest`. */
+function showStop(step: number, on: boolean): void {
+  const i = clampStep(step);
+  const stop = STOPS[i];
+  if (stop && game.chapter.value !== stop.chapter) enterChapter(stop.chapter);
+  closeDrawers();
+  const t = game.tour.value;
+  game.tour.value = { on, step: i, furthest: Math.max(t.furthest, i) };
+}
+
+/** Turn the tour on at `step`, or where the player left off (see startStep). The tour always shows our units in brackets. */
+export function tourStart(step?: number): void {
+  const at = startStep(game.tour.value, confirmedSet.value, step);
+  showStop(at, true);
+  game.settings.value = { ...game.settings.value, humanGloss: true };
+}
+
+export function tourGoto(step: number): void {
+  showStop(step, game.tour.value.on);
+}
+
+/** Leave the tour (its step and furthest are kept) and go to the hub. */
+export function tourExit(): void {
+  game.tour.value = { ...game.tour.value, on: false };
+  closeDrawers();
+  enterChapter('hub');
+}
+
 /**
  * Start over: forget every deduction, hint and attempt, and go back to the hub. Settings stay as the player set
  * them. The new playthrough takes the next seed from the validated list (seeds.ts, data/seeds.json; D-A28), so
@@ -102,6 +137,7 @@ export function resetSave(): void {
   game.records.value = {};
   game.seed.value = nextSeed(game.seed.value);
   game.chapter.value = 'hub';
+  game.tour.value = { ...TOUR_OFF };
   game.codexOpen.value = false;
   game.codexFocus.value = null;
   game.settingsOpen.value = false;

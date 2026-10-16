@@ -148,7 +148,10 @@ and live-checked.
 
 ## In flight
 
-- Nothing running (paused). Resume with "Next (exact)" below.
+- **The guided tour (2026-10-16 evening, Stewart's note in docs/STEWART_FEEDBACK.md, D-A33):** the script
+  (`src/tour/script.ts`, every deduction in one order) and the live Voyager-now panel are in; the guide
+  panel and story cards (spec `docs/plans/tour_specs/T1-core.md`) and the "Do it for me" actions with the
+  tour bot (`T2-actions.md`) are being built by two helpers. M5's audit fixes (below) wait until after.
 
 ## Known issues and open questions
 

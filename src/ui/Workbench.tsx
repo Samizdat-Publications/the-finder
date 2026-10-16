@@ -6,6 +6,7 @@ import { HINT_TIER_NAMES, missingFor, nodeStatus, type NodeStatus } from '../gam
 import { instrumentFor } from '../chapters/registry';
 import { chapterDef, nodeDef, nodesOf, type ChapterId, type NodeDef } from '../game/graph';
 import { confirmedSet, game } from '../game/state';
+import { Guide } from '../tour/Guide';
 import { GlyphLabel } from './Glyph';
 import { renderMessage } from './message';
 import { notebookOpen } from './notebook';
@@ -85,18 +86,23 @@ export function Workbench(p: { chapter: ChapterId }) {
   const nodes = nodesOf(p.chapter);
   const confirmed = confirmedSet.value;
   const done = nodes.filter((n) => confirmed.has(n.id)).length;
-  const open = notebookOpen.value;
+  const touring = game.tour.value.on;
+  // With the tour on, the guide takes the notebook's column and the bench lays out as if the notebook were open.
+  const open = touring || notebookOpen.value;
   const Instrument = instrumentFor(p.chapter);
   return (
     <section class="bench-area" aria-label={def.title} data-chapter={p.chapter}>
       <header class="chaphead">
-        <button type="button" class="btn small" onClick={() => send({ type: 'chapter.enter', chapter: 'hub' })}>
-          Back to the ring
-        </button>
+        {!game.tour.value.on && (
+          <button type="button" class="btn small" onClick={() => send({ type: 'chapter.enter', chapter: 'hub' })}>
+            Back to the ring
+          </button>
+        )}
         <h1>
           <GlyphLabel k={def.title} gloss={def.title} height={30} />
         </h1>
         <p class="note">{def.gloss}</p>
+        {!touring && (
         <button
           type="button"
           class="btn small notebook-toggle"
@@ -107,8 +113,9 @@ export function Workbench(p: { chapter: ChapterId }) {
         >
           Notebook <b class="count">{done}/{nodes.length}</b>
         </button>
+        )}
       </header>
-      <div class="bench-body" data-notebook={open ? 'open' : 'closed'}>
+      <div class="bench-body" data-notebook={open ? 'open' : 'closed'} data-guide={touring ? 'on' : undefined}>
         <div class="bench-main">
           {Instrument ? (
             <Instrument chapter={p.chapter} />
@@ -121,13 +128,17 @@ export function Workbench(p: { chapter: ChapterId }) {
             </div>
           )}
         </div>
-        <aside class="notebook" id="notebook" aria-label="Notebook of deductions" hidden={!open}>
-          <ul class="nodes" aria-label="Deductions in this chapter">
-            {nodes.map((n) => (
-              <NodeRow key={n.id} node={n} />
-            ))}
-          </ul>
-        </aside>
+        {touring ? (
+          <Guide />
+        ) : (
+          <aside class="notebook" id="notebook" aria-label="Notebook of deductions" hidden={!open}>
+            <ul class="nodes" aria-label="Deductions in this chapter">
+              {nodes.map((n) => (
+                <NodeRow key={n.id} node={n} />
+              ))}
+            </ul>
+          </aside>
+        )}
       </div>
     </section>
   );

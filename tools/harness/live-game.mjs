@@ -16,7 +16,7 @@ const { page, errors, context } = await openPage(browser, `${base}/play/`);
 page.setDefaultTimeout(60_000);
 let failed = false;
 try {
-  await page.waitForSelector('text=Choose where to work.');
+  await page.waitForSelector('[data-tour-start]');
   await page.screenshot({ path: join(out, 'ring.png') });
   const leaked = await page.evaluate(() => 'window.__finder' in globalThis && Boolean(window.__finder));
   if (leaked) throw new Error('the harness handle is present on the plain game page');

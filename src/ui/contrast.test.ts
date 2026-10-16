@@ -60,7 +60,7 @@ describe('clue contrast (WCAG AA, 4.5:1)', () => {
     const known = new Set(Object.values(t));
     const files = [
       '../ui/shell.css', '../ui/codex.css', '../ui/captions.css', '../chapters/arrival/arrival.css', '../chapters/key/key.css',
-      '../chapters/player/player.css', '../chapters/pictures/pictures.css', '../chapters/shared/coverViewer.css', '../ui/results.css', '../ui/moment.css',
+      '../chapters/player/player.css', '../chapters/pictures/pictures.css', '../chapters/shared/coverViewer.css', '../ui/results.css', '../ui/moment.css', '../tour/tour.css',
     ];
     const offenders: string[] = [];
     for (const f of files) {
@@ -78,5 +78,35 @@ describe('clue contrast (WCAG AA, 4.5:1)', () => {
     const value = /--fs-value:\s*([\d.]+)rem/.exec(theme);
     expect(Number(label?.[1]) * 16).toBeGreaterThanOrEqual(13);
     expect(Number(value?.[1]) * 16).toBeGreaterThanOrEqual(15);
+  });
+
+  it('the guided tour reads: its text colours on its four panel surfaces, and the dark label on the cyan buttons', () => {
+    const tourCss = css('../tour/tour.css');
+    const surfaces: Record<string, string> = {};
+    for (const m of tourCss.matchAll(/--(tour-[a-z-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)) surfaces[m[1] as string] = (m[2] as string).toLowerCase();
+    expect(Object.keys(surfaces).sort()).toEqual(['tour-ask-bg', 'tour-bg', 'tour-quote-bg', 'tour-turn-bg']);
+    const t = tokens();
+    const rows: string[] = [];
+    // Which colours sit on which surface: the panel holds everything; each box holds its own label and text.
+    const pairs: [string, string[]][] = [
+      ['tour-bg', ['text', 'text-dim', 'cyan', 'violet', 'gold', 'heat', 'danger']],
+      ['tour-turn-bg', ['text', 'text-dim', 'cyan']],
+      ['tour-quote-bg', ['text', 'gold']],
+      ['tour-ask-bg', ['text', 'violet']],
+    ];
+    for (const [surface, fgs] of pairs) {
+      for (const fg of fgs) {
+        const r = contrast(t[fg] as string, surfaces[surface] as string);
+        rows.push(`${fg} on ${surface} ${r.toFixed(2)}`);
+        expect(r, `${fg} on ${surface}`).toBeGreaterThanOrEqual(MIN);
+      }
+    }
+    // The text on the filled cyan buttons (Next, Show me where, Start the guided tour) is the sunken background.
+    expect(contrast(t['bg-sunk'] as string, t['cyan'] as string), 'bg-sunk on cyan').toBeGreaterThanOrEqual(MIN);
+    expect(contrast(t['bg-sunk'] as string, '#7ff5d6'), 'bg-sunk on the hovered cyan').toBeGreaterThanOrEqual(MIN);
+    // The disabled Next button and the away notice.
+    expect(contrast(t['text-dim'] as string, t['bg-raised'] as string)).toBeGreaterThanOrEqual(MIN);
+    expect(contrast(t['heat'] as string, t['bg-sunk'] as string)).toBeGreaterThanOrEqual(MIN);
+    console.log(`[contrast] tour pair table (need ${MIN}):\n${rows.join('\n')}`);
   });
 });

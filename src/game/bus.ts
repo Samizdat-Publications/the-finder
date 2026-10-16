@@ -34,6 +34,9 @@ export type Command =
   | { type: 'codex.close' }
   | SettingCommand
   | { type: 'settings.panel'; open: boolean }
+  | { type: 'tour.start'; step?: number }
+  | { type: 'tour.goto'; step: number }
+  | { type: 'tour.exit' }
   | { type: 'save.reset' };
 
 export async function dispatch(cmd: Command): Promise<void> {
@@ -75,6 +78,12 @@ export async function dispatch(cmd: Command): Promise<void> {
       return gameService.setSetting(cmd.name, cmd.value);
     case 'settings.panel':
       return gameService.settingsPanel(cmd.open);
+    case 'tour.start':
+      return gameService.tourStart(cmd.step);
+    case 'tour.goto':
+      return gameService.tourGoto(cmd.step);
+    case 'tour.exit':
+      return gameService.tourExit();
     case 'save.reset':
       gameService.resetSave();
       flushSave();

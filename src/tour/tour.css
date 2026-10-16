@@ -1,0 +1,135 @@
+/* The guided tour: the guide panel, the story card on the hub, the spotlight ring and the entry buttons.
+   Colours are the theme's tokens (src/ui/theme.css) plus four panel surfaces, each checked for contrast in
+   src/ui/contrast.test.ts. */
+:root {
+  --tour-bg: #0f0d26;
+  --tour-turn-bg: #0c2027;
+  --tour-quote-bg: #211a0c;
+  --tour-ask-bg: #1a1838;
+}
+
+/* ---- the guide in the workbench's side column ---- */
+.guide-col { min-height: 0; display: flex; flex-direction: column; }
+.guide { display: flex; flex-direction: column; min-height: 0; background: var(--tour-bg); border: 1px solid var(--line); border-radius: 10px; color: var(--text); font-size: 1rem; line-height: 1.5; }
+.guide-column { flex: 1; }
+
+.g-head { flex: none; padding: 0.7rem 1rem 0.6rem; border-bottom: 1px solid var(--line); }
+.g-headline { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; }
+.g-part { font: 700 var(--fs-label) var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--cyan); }
+.g-count { font: var(--fs-label) var(--font-mono); color: var(--text-dim); white-space: nowrap; }
+.g-bar { height: 5px; margin: 0.45rem 0 0.55rem; background: var(--bg-sunk); border-radius: 99px; overflow: hidden; }
+.g-bar span { display: block; height: 100%; background: var(--cyan); border-radius: 99px; }
+.g-dots { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.g-dot { width: 0.85rem; height: 0.85rem; padding: 0; border-radius: 50%; border: 2px solid var(--line); background: transparent; cursor: pointer; }
+.g-dot.done { background: var(--cyan); border-color: var(--cyan); }
+.g-dot.current { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 0 3px rgba(232, 182, 74, 0.3); }
+.g-dot.ahead { border-color: var(--text-dim); }
+.g-dot:disabled { cursor: default; opacity: 0.55; }
+.g-dot:not(:disabled):hover { box-shadow: 0 0 0 3px rgba(79, 240, 196, 0.35); }
+
+.g-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0.9rem 1rem 1rem; display: grid; gap: 0.9rem; align-content: start; }
+.g-title { margin: 0; font-size: 1.3rem; line-height: 1.25; color: var(--text); }
+.g-label { margin: 0 0 0.35rem; font: 700 var(--fs-label) var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
+.g-text p { margin: 0 0 0.7em; }
+.g-text p:last-child { margin-bottom: 0; }
+.g-text strong { color: var(--text); font-weight: 700; }
+
+.g-away { padding: 0.6rem 0.8rem; border: 1px solid var(--heat); border-radius: 8px; background: var(--bg-sunk); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+.g-away p { margin: 0; color: var(--heat); }
+
+/* Your turn / Watch: the one thing to do */
+.g-turn { padding: 0.8rem 0.9rem 0.9rem; background: var(--tour-turn-bg); border: 2px solid var(--cyan); border-radius: 10px; }
+.g-turn .g-label { color: var(--cyan); font-size: 0.9rem; }
+.g-turn.watch { border-style: dashed; }
+.g-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.8rem; }
+.g-main { background: var(--cyan); color: var(--bg-sunk); border-color: var(--cyan); font-weight: 700; }
+.g-main:hover { background: #7ff5d6; }
+.g-second { color: var(--cyan); }
+.g-main:disabled, .g-second:disabled { opacity: 0.6; cursor: progress; }
+.g-gentle { margin: 0.7rem 0 0; color: var(--heat); }
+.g-error { margin: 0.7rem 0 0; color: var(--danger); }
+
+/* What we just learned, the real story, talk about it */
+.g-after { display: grid; gap: 0.9rem; border-radius: 10px; transition: box-shadow 0.4s; }
+.g-after.fresh { box-shadow: 0 0 0 3px rgba(155, 123, 255, 0.55), 0 0 22px rgba(155, 123, 255, 0.35); }
+.g-learned .g-label { color: var(--violet); }
+.g-story { padding: 0.8rem 0.9rem; background: var(--tour-quote-bg); border-left: 4px solid var(--gold); border-radius: 4px 10px 10px 4px; }
+.g-story .g-label { color: var(--gold); }
+.g-quote { font-family: Georgia, 'Times New Roman', serif; font-size: 1.04em; }
+.g-ask { position: relative; padding: 0.8rem 0.9rem; background: var(--tour-ask-bg); border: 1px solid var(--violet); border-radius: 16px 16px 16px 3px; }
+.g-ask .g-label { color: var(--violet); }
+.g-ask .g-text { font-weight: 600; }
+
+/* the footer: always in view */
+.g-foot { flex: none; position: sticky; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.7rem 1rem; border-top: 1px solid var(--line); background: var(--tour-bg); border-radius: 0 0 10px 10px; }
+.g-nextwrap { display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; }
+.g-next { min-height: 3rem; padding: 0.6rem 1.8rem; font-size: 1.1rem; font-weight: 700; background: var(--cyan); color: var(--bg-sunk); border-color: var(--cyan); }
+.g-next:hover:not(:disabled) { background: #7ff5d6; }
+.g-next:disabled { background: var(--bg-raised); color: var(--text-dim); border-color: var(--line); cursor: not-allowed; }
+.g-locked { font-size: var(--fs-label); color: var(--text-dim); }
+.g-back { min-height: 2.75rem; }
+.g-back:disabled { opacity: 0.5; cursor: default; }
+
+/* the workbench with the guide: a column of its own */
+@media (min-width: 1000px) and (min-height: 620px) {
+  .bench-body[data-guide='on'] { grid-template-columns: minmax(0, 1fr) clamp(22rem, 27vw, 25rem); }
+  .guide-col .guide { height: 100%; }
+}
+@media (max-width: 999px), (max-height: 619px) {
+  .bench-body[data-guide='on'] .guide-col { order: -1; }
+  .g-scroll { overflow: visible; }
+}
+
+/* ---- the story stage on the hub ---- */
+.story-stage { flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; padding: 0.5rem 0; }
+.story-card { width: 100%; max-width: 45rem; max-height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.story-card .guide { flex: 1; min-height: 0; box-shadow: 0 0 40px rgba(79, 240, 196, 0.08); }
+.story-card.with-cover { max-width: 64rem; flex-direction: row; gap: 1.5rem; align-items: stretch; }
+.story-cover { flex: none; width: min(18rem, 30%); align-self: center; color: var(--gold); filter: drop-shadow(0 0 14px rgba(232, 182, 74, 0.25)); }
+.story-cover svg { display: block; width: 100%; height: auto; }
+.story-cover #cover { color: var(--gold); }
+.story-card.with-cover .guide { flex: 1; min-width: 0; }
+.guide-card { font-size: 1.15rem; line-height: 1.55; }
+.guide-card .g-scroll { padding: 1.1rem 1.5rem 1.2rem; gap: 1.1rem; }
+.guide-card .g-title { font-size: 1.75rem; }
+.guide-card .g-head { padding: 0.8rem 1.5rem 0.7rem; }
+.guide-card .g-foot { padding: 0.85rem 1.5rem; }
+@media (max-width: 999px), (max-height: 619px) {
+  .story-stage { align-items: flex-start; }
+  .story-card, .story-card.with-cover { max-height: none; flex-direction: column; }
+  .story-cover { width: min(14rem, 60%); align-self: center; }
+}
+
+/* ---- the spotlight ring ---- */
+.spotlight {
+  position: fixed; z-index: 18; pointer-events: none; box-sizing: border-box;
+  border: 3px solid var(--cyan); border-radius: 10px;
+  box-shadow: 0 0 0 2px rgba(8, 7, 26, 0.7), 0 0 18px 4px rgba(79, 240, 196, 0.55);
+}
+:root:not(.calm) .spotlight { animation: tourglow 1.9s ease-in-out infinite; }
+@keyframes tourglow { 50% { box-shadow: 0 0 0 2px rgba(8, 7, 26, 0.7), 0 0 28px 8px rgba(79, 240, 196, 0.8); } }
+.spotlight.flash { border-width: 5px; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(8, 7, 26, 0.7), 0 0 30px 8px rgba(232, 182, 74, 0.8); }
+:root:not(.calm) .spotlight.flash { animation: tourflash 0.7s ease-in-out 2; }
+@keyframes tourflash { 50% { opacity: 0.25; } }
+.spotlight.still { animation: none; }
+
+/* ---- entry buttons ---- */
+.tour-start { margin-top: 0.5rem; padding: 0.7rem 1.1rem; font-size: 1rem; font-weight: 700; background: var(--cyan); color: var(--bg-sunk); border-color: var(--cyan); }
+.tour-start:hover { background: #7ff5d6; }
+.core .tour-start + .gloss { margin-top: 0.5rem; }
+.button.primary { background: var(--cyan); color: var(--bg-sunk); font-weight: 700; }
+.button.primary:hover { background: #7ff5d6; color: var(--bg-sunk); }
+.landing-lead { font-size: 1.1rem; }
+
+/* ---- where the Voyagers are now (VoyagerNow.tsx) ---- */
+.tour-now { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; }
+.tour-now-craft { padding: 0.8rem 0.9rem; background: var(--tour-quote-bg); border: 1px solid var(--gold); border-radius: 10px; }
+.tour-now-craft h3 { margin: 0 0 0.3rem; font: 700 var(--fs-label) var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); }
+.tour-now-craft p { margin: 0.3rem 0 0; font-size: 0.95rem; }
+.tour-now-big { font: 700 1.9rem/1.1 var(--font-mono); color: var(--text); }
+.tour-now-big span { display: block; font: var(--fs-label) var(--font-sans); color: var(--text-dim); }
+.tour-now-ld, .tour-now-src { grid-column: 1 / -1; margin: 0; }
+.tour-now-src { font-size: var(--fs-label); color: var(--text-dim); }
+.tour-now-loading, .tour-now-error { margin: 0; color: var(--text-dim); }
+.tour-now-error { color: var(--danger); }
+@media (max-width: 520px) { .tour-now { grid-template-columns: minmax(0, 1fr); } }

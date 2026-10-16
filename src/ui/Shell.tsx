@@ -12,6 +12,9 @@ import { Hub } from './Hub';
 import { Moment } from './Moment';
 import { ScrollCues } from './scrollCue';
 import { notebookOpen, revealInside } from './notebook';
+import { PARTS, STOPS } from '../tour/script';
+import { Spotlight } from '../tour/Spotlight';
+import { StoryStage } from '../tour/StoryStage';
 import { SettingsPanel } from './SettingsPanel';
 import { Workbench } from './Workbench';
 import { send } from './send';
@@ -37,21 +40,41 @@ function TopBar() {
   const where = view === 'hub' ? 'the ring' : (chapterDef(view)?.title ?? view);
   const open = view === 'hub' ? [] : openNodes(view, confirmed);
   // Only chapters whose instruments exist count: the later chapters' deductions are in the graph before they are playable.
+  const touring = game.tour.value.on;
+  const partTitle = PARTS.find((x) => x.id === STOPS[game.tour.value.step]?.part)?.title ?? '';
   const playable = NODES.filter((n) => chapterDef(n.chapter)?.built);
   return (
     <header class="topbar">
       <div class="status" role="status">
         <GlyphLabel k="vessel status" height={20} />
         <span class="statusline">
-          At {where}. {playable.filter((n) => confirmed.has(n.id)).length} of {playable.length} deductions confirmed
-          {hintsUsed.value > 0 ? `, ${hintsUsed.value} hint${hintsUsed.value === 1 ? '' : 's'} used` : ''}.
+          {touring ? (
+            `Guided tour: ${partTitle}`
+          ) : (
+            <>
+              At {where}. {playable.filter((n) => confirmed.has(n.id)).length} of {playable.length} deductions confirmed
+              {hintsUsed.value > 0 ? `, ${hintsUsed.value} hint${hintsUsed.value === 1 ? '' : 's'} used` : ''}.
+            </>
+          )}
         </span>
       </div>
       <nav class="tools" aria-label="Instruments">
+        {touring ? (
+          <button type="button" class="tool" data-tool="leave-tour" onClick={() => send({ type: 'tour.exit' })}>
+            <span>Leave tour</span>
+          </button>
+        ) : (
+          <button type="button" class="tool" data-tool="tour" onClick={() => send({ type: 'tour.start' })}>
+            <span>Guided tour</span>
+          </button>
+        )}
+        {!touring && (
         <button type="button" class="tool" data-tool="hub" aria-current={view === 'hub'} onClick={() => send({ type: 'chapter.enter', chapter: 'hub' })}>
           <MiniRing />
           <span>Ring</span>
         </button>
+        )}
+        {!touring && (
         <button
           type="button"
           class="tool"
@@ -73,6 +96,7 @@ function TopBar() {
         >
           <span>Hint</span>
         </button>
+        )}
         <button
           type="button"
           class="tool"
@@ -115,7 +139,7 @@ export function Shell() {
     <div class="shell">
       <TopBar />
       <main class="stage" id="stage">
-        {view === 'hub' ? <Hub /> : <Workbench chapter={view} />}
+        {view === 'hub' ? game.tour.value.on ? <StoryStage /> : <Hub /> : <Workbench chapter={view} />}
       </main>
       <div class="notice" role="alert" aria-live="assertive">
         {notice && <span>{notice}</span>}
@@ -123,6 +147,7 @@ export function Shell() {
       {(game.codexOpen.value || game.settingsOpen.value) && <div class="drawer-scrim" aria-hidden="true" />}
       {game.codexOpen.value && <Codex />}
       {game.settingsOpen.value && <SettingsPanel />}
+      <Spotlight />
       <Moment />
       <ScrollCues />
     </div>

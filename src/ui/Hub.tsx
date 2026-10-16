@@ -3,7 +3,7 @@
 
 import { chapterStatus, type ChapterStatus } from '../game/deductions';
 import { CHAPTERS, chapterDef, nodeDef } from '../game/graph';
-import { confirmedSet } from '../game/state';
+import { confirmedSet, game } from '../game/state';
 import { GlyphLabel, GlyphSvg } from './Glyph';
 import { send } from './send';
 
@@ -59,7 +59,10 @@ export function Hub() {
         </svg>
         <div class="core">
           <GlyphSvg k="the finder" height={34} />
-          <p class="gloss">Choose where to work.</p>
+          <button type="button" class="btn tour-start" data-tour-start onClick={() => send({ type: 'tour.start' })}>
+            {game.tour.value.step > 0 ? 'Resume the guided tour' : 'Start the guided tour'}
+          </button>
+          <p class="gloss">or pick any lit chapter to explore on your own</p>
         </div>
         {CHAPTERS.map((c, i) => {
           const status = chapterStatus(c.id, confirmed);
