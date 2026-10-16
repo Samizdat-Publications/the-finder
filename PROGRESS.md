@@ -165,13 +165,17 @@ and live-checked.
 
 ## In flight
 
-- **6a (The Voices' audit fixes)** resumed by a builder-opus helper at about 17:35 on 2026-10-16, with the
-  rule that the tour bot must keep passing (see the commit log for whether it landed).
+- Nothing running. 6a (The Voices' audit fixes) landed (6ee29da): all five items; the Sounds of Earth test
+  case stays pending until the lead reads the panels in `review/archive/2026-10-16T18-14-57-sounds-spectrograms/`
+  (see `docs/plans/M5_specs/step6a-progress.md`).
 
 ## Known issues and open questions
 
-- **The `enter` browser test** can exceed its 100 ms long-task limit by a millisecond or two when the
-  whole check loads the machine (101 ms once on 2026-10-16; 78 ms when run alone).
+- **The `enter` browser test is flaky on this machine tonight:** entering The Map shows one 86 to 166 ms
+  main-thread task (limit 100). The commit from before the tour (3ec48e9) measures the same 89 to 130 ms, so
+  it is not a regression from the tour; M4 step 7e measured under 65 ms. Investigate Thursday (machine power
+  state, or the chart's WebGL setup), then either move that work off the main thread or adjust the limit
+  with a logged decision.
 - **Tour:** "Do it for me" works the real controls everywhere except where a canvas gesture has no in-page
   handle (none left after the Map's chartHandle). The tour's spotlight rings a group of choices, not the
   right one. Any new deduction must get a tour stop and an action, or `src/tour/*.test.ts` fails.
@@ -214,8 +218,9 @@ and live-checked.
 ## Next (exact)
 
 0. **Read Stewart's notes from playing the tour with his son** (docs/STEWART_FEEDBACK.md) and act on them
-   first. If 6a landed (commit log), skip item 1.
-1. **Finish 6a** (The Voices' audit fixes) from `docs/plans/M5_specs/step6a-progress.md`: wire
+   first.
+1. **6a is done except** the lead's reading of the Sounds of Earth panels (makes the pending test real;
+   decide whether machine tones count as "not theirs"). The original item, for reference: **Finish 6a** (The Voices' audit fixes) from `docs/plans/M5_specs/step6a-progress.md`: wire
    `tools/voices/others.py` into the analysis and `checkOthers`; render the Sounds of Earth spectrogram
    panels and read them (the lead) to give that test independent truth; decide the music-items question
    (proposed: refuse stretches on music items); the multi-harmonic octave fold with bootstrap margins and
