@@ -25,6 +25,12 @@ This is presentation only: no checker, science, bus command or test assertion ab
 - **The Spot:** opens with the raking lamp low (the angle The Key uses), so the cover's relief shows.
 - **Galaxy chart labels:** labels avoid each other and bright points (a simple screen-space declutter: drop or nudge the lower-priority label), the home star and the Galactic centre always kept.
 
+## 4. From the M3 and M4 QA audit (`review/archive/qa/`, summarised in PROGRESS)
+- **No long freeze on entering a chapter.** `trailRows()` blocks the main thread for about 1 s on the dev machine (the Trail browser test's 1 s bound failed once at 1,023 ms), so a laptop would freeze for seconds; `identification()` and `region()` take 0.2 to 0.7 s. Compute the epoch model's heavy parts off the main thread or in cooperative chunks (a Worker that runs the same pure science, or async versions that yield every few milliseconds), cached per seed, behind the instrument's "measuring" state; the checkers keep their synchronous getters (they throw until the part is ready, so the bus refuses instead of recording). Target and test: no main-thread long task over 100 ms on entering The Map, The Spot or The Trail at 1440x900 (a PerformanceObserver for long tasks in the browser tests), and record the GPU adapter and CPU in the perf checks.
+- **Old saves' seeds.** A save made by Start over before step 7d carries a time-based seed that may fail a check (about 1.3% do). On load, a save whose seed is neither the default nor in `data/seeds.json` moves to the next validated seed; deductions already confirmed stay confirmed with the readings they recorded. Unit test.
+- **Contour text.** Results print "the 100.000% contour"; write levels above 99.9% as "beyond the 99.9% contour" (and below as now).
+- **The Trail chart's labels** ("the craft" over "Gl 445 (home)") get the same declutter as the galaxy chart.
+
 ## Tests and looking
 All existing tests pass (update selectors minimally; say which). Re-run the whole-game bot to make a new capture (`node tools/harness/browser-tests.mjs game`, which writes `review/inbox/<timestamp>-m4/`) plus captures of the five moments at 1440x900 and 1366x768; look at every frame and fix what is wrong or ugly. Keep the "Working, don't touch" items as they are.
 
