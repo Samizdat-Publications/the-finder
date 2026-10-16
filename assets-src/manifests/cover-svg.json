@@ -1,0 +1,33 @@
+{
+ "asset": "public/media/cover/cover.svg",
+ "built": "2026-10-15",
+ "description": "The Voyager record cover rebuilt as an exact layered SVG in millimetres (304.8 mm disc), traced from the 1977 NASA photo; binary digits and map geometry from data/cover.json.",
+ "inputs": [
+  "sources/cover-photo/GPN-2000-001978.jpg",
+  "sources/pioneer-svg/Pioneer_plaque.svg (digit positions along the pulsar lines only, via tools/data/svgmap.py)",
+  "data/cover.json"
+ ],
+ "run": [
+  "python -P tools/cover/measure.py",
+  "python -P tools/cover/placement.py",
+  "python -P tools/cover/build_cover.py",
+  "node tools/cover/overlay.mjs",
+  "python -P tools/cover/landmarks.py"
+ ],
+ "settings": {
+  "coverDiameterMm": 304.8,
+  "scaleNote": "12 inch disc, the diameter of the record it protects; pixels per mm from a circle fit to the photo edge (tools/cover/measure.py measure_disc)",
+  "etchFilter": "top-hat (9 px opening, sigma 5 background) normalised by local etch brightness (tools/cover/etch.py)",
+  "binaryRows": "components of the thresholded etch, thresholds stepped until the row reads as data/cover.json; marks never edited",
+  "handMeasured": [
+   "plan-view cartridge outline and side-view cartridge (read from 6x and 8x crops)",
+   "waveform vertices after the 8-peak burst (read from 5x and 6x crops; automatic tracers cut the sharp dips)",
+   "photo-pixel coordinates are stored in assets-src/cover/geometry.json with provenance strings"
+  ],
+  "mapPlacement": "similarity from two measured points, the Sun and the end tick of the centre line (tools/cover/placement.py)",
+  "randomSeeds": "none; deterministic"
+ },
+ "python": "3.14 (numpy, scipy, scikit-image, opencv, networkx, Pillow); node: sharp for the overlay only",
+ "models": "none; no generated imagery",
+ "cost": 0
+}

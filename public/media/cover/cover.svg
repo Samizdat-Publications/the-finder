@@ -1,0 +1,801 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 304.8 304.8" width="304.8mm" height="304.8mm" data-units="mm" data-cover-diameter-mm="304.8" data-source="NASA/JPL GPN-2000-001978 (1977, public domain), data/cover.json, Pioneer plaque vector map geometry" data-generator="tools/cover/build_cover.py">
+  <title>Voyager Golden Record cover, rebuilt as exact layered SVG</title>
+  <desc>The aluminium cover of the Voyager record, traced from the 1977 NASA photograph. Units are millimetres, origin at the top left of the 304.8 mm disc, orientation as in the photograph. Every binary digit is its own element (class bit one or bit zero, data-index) in document order, the most significant digit first as on the cover. Strokes are plain (currentColor); colour and lighting belong to the game.</desc>
+  <style>.stroke,.solid,.tick,.bit,.delimiter,.mark{fill:none;stroke:currentColor;stroke-linecap:butt;stroke-linejoin:round}.dot{fill:currentColor;stroke:none}circle.stroke{fill:none}</style>
+  <g id="cover" color="#1a1a1a" fill="none" stroke="currentColor" stroke-linecap="butt" stroke-linejoin="round">
+    <g id="outline" data-id="cover.outline">
+      <circle class="stroke" data-id="cover.edge" cx="152.4" cy="152.4" r="152.4" stroke-width="0.4844" data-measured="disc edge fitted to the photo, rms 3.54 px"/>
+      <g data-id="cover.spindleHole">
+        <circle class="stroke" cx="149.8286" cy="154.6722" r="5.1941" stroke-width="0.4844" data-role="collar"/>
+        <circle class="stroke" cx="150.0736" cy="154.4001" r="3.4176" stroke-width="0.4844" data-role="hole"/>
+      </g>
+    </g>
+    <g id="record" data-id="record">
+      <g data-id="record.plan">
+        <path class="stroke" d="M111.8583 95.6867 L111.7717 96.2429 L111.6763 96.7977 L111.5722 97.3509 L111.4593 97.9023 L111.3377 98.4519 L111.2075 98.9996 L111.0687 99.5451 L110.9212 100.0883 L110.7652 100.6291 L110.6006 101.1675 L110.4276 101.7031 L110.2461 102.2359 L110.0563 102.7659 L109.8581 103.2927 L109.6516 103.8164 L109.4368 104.3367 L109.2139 104.8535 L108.9828 105.3668 L108.7436 105.8764 L108.4965 106.3821 L108.2413 106.8839 L107.9783 107.3815 L107.7074 107.875 L107.4288 108.3641 L107.1425 108.8487 L106.8486 109.3288 L106.5471 109.8041 L106.2382 110.2747 L105.9218 110.7403 L105.5982 111.2008 L105.2673 111.6562 L104.9292 112.1063 L104.5841 112.551 L104.232 112.9901 L103.873 113.4237 L103.5073 113.8516 L103.1348 114.2736 L102.7556 114.6896 L102.37 115.0997 L101.9779 115.5036 L101.5795 115.9012 L101.1749 116.2925 L100.7641 116.6774 L100.3473 117.0557 L99.9246 117.4274 L99.496 117.7924 L99.0618 118.1505 L98.6219 118.5018 L98.1766 118.8461 L97.7258 119.1833 L97.2698 119.5133 L96.8087 119.8361 L96.3425 120.1515 L95.8714 120.4596 L95.3954 120.7601 L94.9148 121.0531 L94.4296 121.3385 L93.94 121.6162 L93.446 121.8861 L92.9479 122.1482 L92.4456 122.4024 L91.9394 122.6486 L91.4294 122.8868 L90.9157 123.1169 L90.3984 123.3388 L89.8777 123.5526 L89.3536 123.7581 L88.8264 123.9553 L88.2961 124.1442 L87.7629 124.3246 L87.227 124.4966 L86.6883 124.6601 L86.1472 124.8151 L85.6037 124.9615 L85.0579 125.0993 L84.5101 125.2285 L83.9602 125.349 L83.4085 125.4608 L82.8551 125.5639 L82.3002 125.6582 L81.7439 125.7438 L81.1862 125.8205 L80.6274 125.8885 L80.0676 125.9476 L79.507 125.9978 L78.9456 126.0392 L78.3837 126.0717 L77.8213 126.0953 L77.2586 126.1101 L76.6957 126.1159 L76.1328 126.1129 L75.57 126.1009 L75.0075 126.0801 L74.4454 126.0504 L73.8838 126.0118 L73.3229 125.9644 L72.7629 125.9081 L72.2038 125.843 L71.6457 125.769 L71.089 125.6862 L70.5336 125.5947 L69.9797 125.4944 L69.4274 125.3853 L68.877 125.2676 L68.3285 125.1411 L67.782 125.006 L67.2378 124.8623 L66.6959 124.71 L66.1565 124.5492 L65.6196 124.3799 L65.0856 124.2021 L64.5543 124.0159 L64.0261 123.8213 L63.5011 123.6185 L62.9793 123.4073 L62.4609 123.1879 L61.946 122.9604 L61.4348 122.7248 L60.9274 122.4811 L60.4239 122.2294 L59.9245 121.9698 L59.4291 121.7024 L58.9381 121.4271 L58.4515 121.1442 L57.9694 120.8536 L57.492 120.5554 L57.0194 120.2497 L56.5516 119.9366 L56.0888 119.6161 L55.6312 119.2884 L55.1788 118.9534 L54.7317 118.6114 L54.2901 118.2623 L53.8541 117.9063 L53.4237 117.5435 L52.9991 117.1739 L52.5805 116.7977 L52.1678 116.4149 L51.7612 116.0256 L51.3608 115.63 L50.9667 115.228 L50.579 114.8199 L50.1978 114.4057 L49.8232 113.9856 L49.4553 113.5596 L49.0942 113.1278 L48.7399 112.6904 L48.3925 112.2474 L48.0523 111.799 L47.7191 111.3453 L47.3931 110.8864 L47.0745 110.4224 L46.7632 109.9534 L46.4593 109.4796 L46.163 109.001 L45.8743 108.5178 L45.5932 108.0301 L45.3199 107.538 L45.0544 107.0416 L44.7968 106.5411 L44.5471 106.0367 L44.3054 105.5283 L44.0717 105.0162 L43.8462 104.5004 L43.6289 103.9812 L43.4198 103.4586 L43.2189 102.9327 L43.0264 102.4038 L42.8423 101.8718 L42.6666 101.3371 L42.4994 100.7996 L42.3406 100.2595 L42.1905 99.717 L42.0489 99.1722 L41.9159 98.6253 L41.7916 98.0763 L41.676 97.5254 L41.5691 96.9727 L41.471 96.4184 L41.3816 95.8627 L41.301 95.3056 L41.2292 94.7473 L41.1663 94.1879 L41.1122 93.6276 L41.0669 93.0666 L41.0305 92.5048 L41.003 91.9426 L40.9844 91.38 L40.9746 90.8172 L40.9738 90.2543 L40.9819 89.6915 L40.9988 89.1288 L41.0246 88.5665 L41.0593 88.0047 L41.1029 87.4435 L41.1553 86.8831 L41.2166 86.3235 L41.2867 85.765 L41.3656 85.2077 L41.4534 84.6516 L41.5498 84.0971 L41.6551 83.5441 L41.769 82.9929 L41.8917 82.4435 L42.023 81.8961 L42.163 81.3509 L42.3115 80.808 L42.4686 80.2674 L42.6342 79.7294 L42.8083 79.1942 L42.9908 78.6617 L43.1818 78.1321 L43.381 77.6057 L43.5886 77.0825 L43.8043 76.5626 L44.0283 76.0461 L44.2604 75.5333 L44.5006 75.0242 L44.7488 74.519 L45.0049 74.0178 L45.2689 73.5206 L45.5408 73.0277 L45.8204 72.5392 L46.1077 72.0551 L46.4026 71.5756 L46.705 71.1009 L47.0149 70.631 L47.3321 70.166 L47.6567 69.7061 L47.9885 69.2514 L48.3274 68.802 L48.6734 68.358 L49.0264 67.9195 L49.3863 67.4866 L49.7529 67.0595 L50.1263 66.6383 L50.5062 66.2229 L50.8927 65.8137 L51.2856 65.4106 L51.6848 65.0137 L52.0902 64.6232 L52.5017 64.2392 L52.9193 63.8617 L53.3427 63.4908 L53.772 63.1267 L54.207 62.7694 L54.6475 62.4191 L55.0936 62.0757 L55.545 61.7394 L56.0016 61.4103 L56.4634 61.0884 L56.9302 60.7739 L57.402 60.4668 L57.8785 60.1672 L58.3597 59.8751 L58.8455 59.5907 L59.3357 59.314 L59.8302 59.0451 L60.3288 58.784 L60.8316 58.5308 L61.3383 58.2856 L61.8488 58.0484 L62.363 57.8194 L62.8807 57.5984 L63.4018 57.3857 L63.9263 57.1813 L64.4539 56.9851 L64.9846 56.7973 L65.5181 56.618 L66.0544 56.447 L66.5934 56.2846 L67.1348 56.1307 L67.6786 55.9853 L68.2247 55.8486 L68.7728 55.7205 L69.3229 55.6011 L69.8748 55.4904 L70.4284 55.3884 L70.9835 55.2952 L71.54 55.2108 L72.0978 55.1351 L72.6567 55.0683 L73.2166 55.0104 L73.7774 54.9612 L74.3388 54.921 L74.9009 54.8896 L75.4633 54.8671 L76.026 54.8535 L76.5889 54.8487 L77.1518 54.8529 L77.7145 54.866 L78.277 54.8879 L78.8391 54.9187 L79.4005 54.9584 L79.9613 55.007 L80.5213 55.0644 L81.0803 55.1307 L81.6382 55.2057 L82.1948 55.2896 L82.75 55.3823 L83.3037 55.4837 L83.8557 55.5938 L84.4059 55.7127 L84.9541 55.8402 L85.5003 55.9764 L86.0443 56.1212 L86.5859 56.2746 L87.125 56.4365 L87.6615 56.6069 L88.1952 56.7857 L88.726 56.973 L89.2539 57.1686 L89.7785 57.3725 L90.2999 57.5847 L90.8178 57.8051 L91.3322 58.0337 L91.843 58.2704 L92.3499 58.5151 L92.8529 58.7677 L93.3518 59.0283 L93.8466 59.2967 L94.3371 59.573 L94.8231 59.8569 L95.3046 60.1485 L95.7814 60.4476 L96.2535 60.7542 L96.7206 61.0683 L97.1828 61.3897 L97.6397 61.7183 L98.0915 62.0542 L98.5379 62.3971 L98.9788 62.747 L99.4141 63.1039 L99.8437 63.4676 L100.2676 63.838 L100.6855 64.2151 L101.0974 64.5987 L101.5032 64.9888 L101.9028 65.3853 L102.2961 65.788 L102.683 66.1969 L103.0633 66.6118 L103.4371 67.0327 L103.8042 67.4594 L104.1645 67.8919 L104.5179 68.3301 L104.8643 68.7737 L105.2037 69.2228 L105.536 69.6772 L105.861 70.1367 L106.1787 70.6014 L106.4891 71.071 L106.792 71.5454 L107.0873 72.0246 L107.3751 72.5084 L107.6552 72.9967 L107.9275 73.4893 L108.192 73.9862 L108.4487 74.4872 L108.6974 74.9921" stroke-width="0.4844" data-role="disc edge, hidden behind the cartridge"/>
+        <circle class="stroke" cx="76.5711" cy="90.7174" r="6.9236" stroke-width="0.4844" data-role="label"/>
+        <circle class="stroke" cx="76.5854" cy="90.6761" r="1.3363" stroke-width="0.4844" data-role="spindle"/>
+        <g data-id="record.cartridge" data-role="stylus cartridge, outline, plan view">
+          <path class="stroke" d="M108.9324 73.4555 L113.5624 73.4555 L113.5624 75.4784 L108.9324 75.4784Z" stroke-width="0.4844"/>
+          <path class="stroke" d="M109.2886 74.0538 L113.2063 74.0538 L113.2063 74.9941 L109.2886 74.9941Z" stroke-width="0.3419"/>
+          <path class="stroke" d="M108.79 75.4784 L108.7615 88.8412 L113.8188 88.8412 L113.8188 75.4784" stroke-width="0.4844"/>
+          <path class="stroke" d="M109.5735 75.9486 L109.5735 88.6275" stroke-width="0.3419"/>
+          <path class="stroke" d="M112.8501 75.9486 L112.8501 88.6275" stroke-width="0.3419"/>
+          <path class="stroke" d="M110.471 76.5184 L111.7532 76.5184 L111.7532 79.5101 L110.471 79.5101Z" stroke-width="0.3419"/>
+          <path class="stroke" d="M110.6135 84.4962 L111.8956 84.4962 L111.8956 87.4879 L110.6135 87.4879Z" stroke-width="0.3419"/>
+          <path class="stroke" d="M108.7045 76.091 L107.6218 76.6609 L107.3369 78.6553 L107.7643 80.6498 L108.7045 81.2196" stroke-width="0.3419"/>
+          <path class="stroke" d="M113.7903 75.8061 L114.7448 76.6609 L114.8873 78.6553 L114.4599 80.0799 L113.7903 80.3648" stroke-width="0.3419"/>
+          <path class="stroke" d="M109.1889 90.622 L109.4026 89.4111 L110.471 89.0549 L112.0381 89.0549 L113.1778 89.4111 L114.0325 90.622" stroke-width="0.4844"/>
+          <path class="stroke" d="M109.9012 90.622 L109.9012 94.326 L110.471 95.6081 L112.8928 95.6081 L113.3202 94.326 L113.3202 90.622" stroke-width="0.4844"/>
+          <path class="stroke" d="M110.8272 91.6192 L112.1378 91.6192 L112.1378 95.1807 L110.8272 95.1807Z" stroke-width="0.3419"/>
+          <path class="stroke" d="M109.1889 90.622 L107.978 90.3371 L108.4766 91.1918 L107.7643 91.7617 L108.619 92.6164 L108.0492 93.4712 L109.1889 94.326 L110.0436 95.4656" stroke-width="0.3419"/>
+          <path class="stroke" d="M114.0325 90.622 L115.1722 89.9097 L114.6024 90.9069 L115.3147 91.4768 L114.4599 92.3315 L115.0298 93.3287 L114.0325 94.326 L113.1778 95.4656" stroke-width="0.3419"/>
+        </g>
+        <g data-id="record.rotationPeriod" data-kind="binary" data-binary="100110000110010000000000000000000" data-bits="33" data-value-th="5113380864" data-unit="tH" data-msb="first" data-direction="counter-clockwise from the mark next to the cartridge">
+          <desc>Time for one turn of the record in hydrogen time units, written round the rim, read counter-clockwise from the mark next to the cartridge.</desc>
+          <g class="row" data-row="0">
+            <path class="bit one" data-index="0" d="M109.8713 68.6503 L106.9508 70.5849" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="1" d="M104.7128 65.6187 L107.4195 69.0221" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="2" d="M100.7381 61.7894 L103.8224 64.6058" stroke-width="0.4274"/>
+            <path class="bit one" data-index="3" d="M101.8465 59.5271 L99.4688 62.3165" stroke-width="0.4274"/>
+            <path class="bit one" data-index="4" d="M99.8691 57.933 L97.6738 60.9161" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="5" d="M92.5466 56.346 L97.0284 58.9815" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="6" d="M86.1644 53.9028 L91.1804 55.6978" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="7" d="M79.4645 52.5608 L84.7768 53.4683" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="8" d="M71.9312 52.605 L77.9174 52.3884" stroke-width="0.4274"/>
+            <path class="bit one" data-index="9" d="M70.5379 50.9296 L71.075 54.2604" stroke-width="0.4274"/>
+            <path class="bit one" data-index="10" d="M67.6688 51.5294 L68.5121 54.9912" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="11" d="M66.9251 53.4968 L61.939 55.0866" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="12" d="M61.0899 55.3815 L56.0938 58.1068" stroke-width="0.4274"/>
+            <path class="bit one" data-index="13" d="M53.1591 57.7563 L55.3032 60.8164" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="14" d="M52.2816 61.1084 L48.183 65.1899" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="15" d="M47.3553 66.1245 L44.5403 70.4026" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="16" d="M43.4319 71.9896 L41.2808 77.0427" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="17" d="M40.7052 78.5584 L39.3191 84.4121" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="18" d="M38.98 86.7043 L39.0698 92.9726" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="19" d="M39.2878 95.5226 L40.9047 101.9975" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="20" d="M41.4731 103.5289 L43.6841 108.4182" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="21" d="M44.5289 109.8556 L47.985 114.7064" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="22" d="M49.7743 116.7364 L54.1379 120.5743" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="23" d="M56.5454 122.2383 L61.0885 124.7242" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="24" d="M62.0971 125.2541 L66.955 126.9452" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="25" d="M68.1987 127.2885 L73.7931 128.2059" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="26" d="M80.06 128.1789 L74.9228 128.2757" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="27" d="M86.2086 127.0734 L81.1712 128.1205" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="28" d="M92.35 124.9137 L87.1787 126.8198" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="29" d="M99.634 120.6156 L93.7034 124.3595" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="30" d="M104.821 115.6438 L100.3919 119.9646" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="31" d="M109.2715 109.253 L105.9621 114.2947" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="32" d="M112.1036 102.6799 L109.9453 108.0962" stroke-width="0.4274"/>
+          </g>
+        </g>
+      </g>
+      <g data-id="record.side">
+        <path class="stroke" d="M42.1612 155.1993 L113.249 155.47 L113.249 156.5812 L42.1612 156.2393 L42.1612 155.1993Z" stroke-width="0.4844" data-role="record seen edge-on"/>
+        <g data-id="record.sideCartridge" data-role="stylus cartridge, elevation view">
+          <path class="stroke" d="M111.3258 153.732 L110.6135 153.3046 L110.3286 152.4499 L109.9724 151.0253 L109.545 150.028 L109.6163 148.6034 L110.2573 147.7487 L110.3286 146.3241 L114.8873 146.3241 L114.9585 147.7487 L115.5284 148.461 L115.5996 149.7431 L115.2434 150.7403 L114.8873 151.3102 L114.8873 152.7348 L114.4599 153.4471 L113.8901 153.732" stroke-width="0.4844"/>
+          <path class="stroke" d="M110.8984 150.7403 L114.3175 150.7403 L114.3175 153.732 L110.8984 153.732Z" stroke-width="0.3419"/>
+          <path class="stroke" d="M111.7532 151.3102 L113.4627 151.3102 L113.4627 154.1594 L111.7532 154.1594Z" stroke-width="0.3419"/>
+          <path class="stroke" d="M111.6107 149.5294 L112.323 149.2445 L113.1778 149.2445 L114.0325 149.7431 L114.7448 150.5979" stroke-width="0.3419"/>
+          <path class="stroke" d="M112.6079 154.1594 L112.6079 155.2278" stroke-width="0.3419"/>
+          <path class="stroke" d="M113.4627 154.1594 L113.4627 155.4415" stroke-width="0.3419"/>
+        </g>
+        <g data-id="record.playTime" data-kind="binary" data-binary="1000010110000000000000000000000000000000000" data-bits="43" data-value-th="4587025072128" data-unit="tH" data-msb="first" data-rows="9/10/10/10/4">
+          <desc>Playing time of one side in hydrogen time units, written in five rows between two tall bars.</desc>
+          <g class="row" data-row="0">
+            <path class="bit one" data-index="0" d="M80.4831 159.7837 L80.6099 163.2142" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="1" d="M82.0416 161.4192 L84.8951 161.4733" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="2" d="M85.7157 161.4363 L88.8626 161.5203" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="3" d="M89.5151 161.4633 L92.3771 161.5673" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="4" d="M92.9769 161.5502 L95.4015 161.5873" stroke-width="0.4274"/>
+            <path class="bit one" data-index="5" d="M96.4315 159.8507 L96.5612 163.2754" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="6" d="M98.2408 161.5502 L100.9547 161.6015" stroke-width="0.4274"/>
+            <path class="bit one" data-index="7" d="M103.5745 160.2296 L103.6258 163.653" stroke-width="0.4274"/>
+            <path class="bit one" data-index="8" d="M105.7399 160.1926 L105.8539 163.7641" stroke-width="0.4274"/>
+          </g>
+          <g class="row" data-row="1">
+            <path class="bit zero" data-index="9" d="M79.3434 165.6474 L82.0558 165.7215" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="10" d="M82.3678 165.6773 L85.2299 165.7998" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="11" d="M85.8937 165.6844 L88.8882 165.7158" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="12" d="M89.2829 165.6745 L92.2802 165.7514" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="13" d="M92.7945 165.7386 L95.0782 165.7899" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="14" d="M95.5924 165.7742 L98.1624 165.8369" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="15" d="M98.8534 165.7984 L101.8493 165.8611" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="16" d="M102.667 165.8112 L105.1074 165.9053" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="17" d="M105.9906 165.8169 L108.9909 165.8924" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="18" d="M109.6476 165.8397 L112.6421 165.8682" stroke-width="0.4274"/>
+          </g>
+          <g class="row" data-row="2">
+            <path class="bit zero" data-index="19" d="M79.2608 168.8172 L82.2524 168.8271" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="20" d="M82.4448 168.7402 L85.5846 168.8186" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="21" d="M86.012 168.7103 L89.0108 168.8471" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="22" d="M89.327 168.7146 L92.4683 168.8428" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="23" d="M92.88 168.7858 L95.3075 168.8172" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="24" d="M95.8774 168.7787 L98.4445 168.8058" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="25" d="M98.973 168.7516 L101.6883 168.8214" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="26" d="M102.6043 168.7929 L105.4621 168.8642" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="27" d="M106.21 168.7929 L109.0692 168.8699" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="28" d="M109.7744 168.7687 L112.7775 168.8798" stroke-width="0.4274"/>
+          </g>
+          <g class="row" data-row="3">
+            <path class="bit zero" data-index="29" d="M79.3277 171.8088 L82.3308 171.9057" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="30" d="M82.8508 171.786 L85.7114 171.8886" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="31" d="M85.9821 171.8045 L89.1205 171.8658" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="32" d="M89.4852 171.7932 L92.3486 171.9242" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="33" d="M92.8259 171.8117 L95.6793 171.8758" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="34" d="M96.0725 171.8288 L98.9232 171.8473" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="35" d="M99.3007 171.8174 L102.0089 171.8601" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="36" d="M102.7867 171.7419 L105.3724 171.863" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="37" d="M106.2585 171.7746 L109.1205 171.8786" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="38" d="M110.0223 171.8216 L112.8729 171.8302" stroke-width="0.4274"/>
+          </g>
+          <g class="row" data-row="4">
+            <path class="bit zero" data-index="39" d="M79.4773 174.7749 L82.4747 174.8845" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="40" d="M82.9975 174.8062 L85.7057 174.8247" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="41" d="M86.247 174.772 L89.1076 174.866" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="42" d="M89.8783 174.8076 L93.0196 174.8618" stroke-width="0.4274"/>
+          </g>
+          <path class="delimiter" d="M76.7848 158.956 L76.9472 167.3698" stroke-width="0.4274"/>
+          <path class="delimiter" d="M113.8003 159.3464 L113.9385 168.3342" stroke-width="0.4274"/>
+        </g>
+      </g>
+    </g>
+    <g id="pictures" data-id="pictures">
+      <g data-id="picture.waveform" data-role="general appearance of the video signal: burst, step, three lines">
+        <path class="stroke" d="M145.5163 58.1581 L147.2971 71.793 L147.7643 57.7222 L149.5052 71.6576 L150.2887 57.5711 L151.9983 71.803 L152.9243 57.7307 L154.8332 71.7745 L155.5598 57.7136 L156.9844 71.6505 L157.879 57.5797 L159.4304 71.6505 L160.6171 57.6182 L162.3266 71.5152 L163.1501 57.7222" stroke-width="0.4844"/>
+        <path class="stroke" d="M163.1501 57.7222 L164.606 66.8311 L175.433 66.8311 L175.433 74.239 L177.8548 74.239 L177.8548 75.5212 L180.5616 75.5212 L180.5616 63.5545 L181.4164 64.4093 L181.7013 65.9763 L181.9862 62.5573 L182.2711 62.2723 L183.1259 59.5656 L183.9807 65.5489 L184.1231 65.8339 L184.5505 63.697 L185.2628 63.5545 L185.6902 65.8339 L186.26 70.5351 L186.5449 66.9735 L186.8299 65.9763 L187.1148 62.4148 L187.3997 65.5489 L187.8271 65.5489 L188.112 61.56 L188.3969 61.4176 L188.6818 62.8422 L189.3942 67.116 L189.964 63.2696 L190.5338 57.8561 L190.9612 59.8505 L191.3886 65.264 L191.6735 65.6914 L192.2434 63.1271 L192.6707 62.9846 L193.0981 65.5489 L194.0953 71.2474 L194.5227 65.5489 L194.9501 64.9791 L195.6624 62.1299 L196.2323 60.9902 L196.8021 57.2862 L197.2295 62.6997 L197.5144 64.5517 L197.9418 61.2751 L198.5116 64.6942 L198.939 65.5489 L199.9362 67.116 L201.2184 68.6831 L201.3608 73.6692 L201.9307 74.0966 L204.495 74.0966 L205.2073 75.5212 L206.347 75.8061 L206.4894 63.8394 L207.0593 64.6942 L207.4866 64.5517 L207.914 61.4176 L208.6263 61.2751 L209.4811 58.9958 L210.0509 59.2807 L210.6208 62.6997 L211.0482 64.6942 L211.9029 63.1271 L212.3303 64.6942 L213.0426 68.1132 L213.7549 69.5378 L214.3247 68.1132 L215.037 64.4093 L215.7493 61.4176 L216.1767 62.6997 L216.4617 63.9819 L216.889 60.7053 L217.4589 60.2779 L217.8863 62.1299 L218.3136 64.6942 L218.5986 63.412 L219.1684 57.8561 L219.7382 57.4287 L220.0232 60.9902 L220.1656 62.6997 L220.593 61.9874 L221.0204 63.5545 L221.5902 69.2529 L222.0176 65.8339 L222.3025 62.9846 L222.5875 61.56 L223.2998 57.0013 L223.7271 60.4204 L224.0121 63.697 L224.4394 61.1327 L224.8668 63.2696 L225.2942 65.9763 L225.864 66.6886 L227.0037 68.1132 L227.1462 73.8116 L227.716 74.0966 L230.5652 74.0966 L230.7077 75.5212 L232.7022 75.5212 L232.8446 63.5545 L233.272 63.2696 L233.6994 64.8366 L234.2692 64.6942 L234.9815 59.993 L235.4089 59.8505 L235.6938 60.5628 L236.1212 59.1382 L236.8335 57.7136 L237.4033 58.8533 L237.8307 60.8477 L238.2581 61.9874 L238.4006 61.7025 L238.828 60.2779 L239.2553 60.9902 L239.8252 63.5545 L241.2498 69.2529 L241.8196 67.116 L242.5319 61.4176 L243.1018 59.5656 L243.3867 61.4176 L243.9565 62.6997 L244.2415 59.993 L244.8113 59.993 L245.3811 62.6997 L246.0934 57.0013 L246.3784 57.7136 L246.6633 60.5628 L246.9482 62.1299 L247.518 61.7025 L247.803 63.1271 L248.2303 65.264 L248.5153 68.8255 L248.9427 64.8366 L249.37 62.6997 L249.655 57.7136 L250.0823 57.0013 L250.3673 60.2779 L250.9371 61.2751 L251.222 62.4148 L251.6494 64.8366 L251.7919 66.4037 L252.3617 66.9735 L252.9315 68.3981 L253.5014 68.1132 L253.9288 68.5406 L254.0712 73.5267 L257.2054 73.8116 L257.4903 74.9513 L258.345 74.9513 L258.4875 63.412" stroke-width="0.4844"/>
+      </g>
+      <g data-id="picture.lineLabels" data-set="waveform">
+        <g data-id="picture.lineLabel.waveform.1" data-kind="label" data-binary="1" data-bits="1" data-value-th="1" data-line="1" data-set="waveform">
+          <g class="row" data-row="0">
+            <path class="bit one" data-index="0" d="M190.8871 50.8641 L190.9285 54.9983" stroke-width="0.4274"/>
+          </g>
+        </g>
+        <g data-id="picture.lineLabel.waveform.2" data-kind="label" data-binary="10" data-bits="2" data-value-th="2" data-line="2" data-set="waveform">
+          <g class="row" data-row="0">
+            <path class="bit one" data-index="0" d="M216.7865 49.9011 L216.8762 55.175" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="1" d="M217.8378 52.6791 L220.8309 52.652" stroke-width="0.4274"/>
+          </g>
+        </g>
+        <g data-id="picture.lineLabel.waveform.3" data-kind="label" data-binary="11" data-bits="2" data-value-th="3" data-line="3" data-set="waveform">
+          <g class="row" data-row="0">
+            <path class="bit one" data-index="0" d="M244.8968 50.0165 L245.005 54.8672" stroke-width="0.4274"/>
+            <path class="bit one" data-index="1" d="M247.159 50.1974 L247.3528 54.9086" stroke-width="0.4274"/>
+          </g>
+        </g>
+      </g>
+      <g data-id="picture.lineTime" data-kind="binary" data-binary="101101001100000000000000" data-bits="24" data-value-th="11845632" data-unit="tH" data-msb="first" data-rows="12/8/4">
+        <desc>Duration of one picture line in hydrogen time units, in three rows between two tall bars.</desc>
+        <g class="row" data-row="0">
+          <path class="bit one" data-index="0" d="M179.0145 78.6525 L179.0857 81.7923" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="1" d="M179.9761 80.1697 L182.5489 80.2936" stroke-width="0.4274"/>
+          <path class="bit one" data-index="2" d="M183.9393 78.6097 L184.0376 81.6128" stroke-width="0.4274"/>
+          <path class="bit one" data-index="3" d="M185.4352 78.6582 L185.5178 81.6555" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="4" d="M186.3939 80.1355 L188.9611 80.1625" stroke-width="0.4274"/>
+          <path class="bit one" data-index="5" d="M190.1663 78.4502 L190.2674 81.7325" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="6" d="M191.2248 80.0742 L193.9415 80.1554" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="7" d="M194.1694 80.0756 L196.4516 80.1113" stroke-width="0.4274"/>
+          <path class="bit one" data-index="8" d="M197.4289 78.7094 L197.5002 81.845" stroke-width="0.4274"/>
+          <path class="bit one" data-index="9" d="M199.0701 78.6382 L199.1299 81.9162" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="10" d="M199.9576 79.9959 L202.3809 80.0471" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="11" d="M202.8951 79.9916 L205.6033 80.0756" stroke-width="0.4274"/>
+        </g>
+        <g class="row" data-row="1">
+          <path class="bit zero" data-index="12" d="M177.8919 83.7511 L180.7439 83.7924" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="13" d="M181.3779 83.7497 L184.2285 83.7782" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="14" d="M184.5462 83.7141 L187.3969 83.6984" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="15" d="M188.3684 83.697 L191.0752 83.6927" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="16" d="M191.551 83.65 L194.5455 83.6756" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="17" d="M194.9829 83.6414 L197.976 83.6585" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="18" d="M198.4304 83.63 L201.1386 83.6642" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="19" d="M201.5688 83.63 L204.5633 83.6799" stroke-width="0.4274"/>
+        </g>
+        <g class="row" data-row="2">
+          <path class="bit zero" data-index="20" d="M184.4351 86.3496 L187.5764 86.4137" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="21" d="M188.4197 86.3354 L191.2732 86.3838" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="22" d="M191.7277 86.3325 L194.4387 86.3795" stroke-width="0.4274"/>
+          <path class="bit zero" data-index="23" d="M195.0968 86.2997 L198.2353 86.3382" stroke-width="0.4274"/>
+        </g>
+        <path class="delimiter" d="M175.745 78.4516 L175.8504 84.4435" stroke-width="0.4274"/>
+        <path class="delimiter" d="M206.8983 77.9701 L207.0564 85.1088" stroke-width="0.4274"/>
+      </g>
+      <g data-id="picture.scan" data-role="scan triggering: three slow downstrokes and fast retraces; the middle stroke carries its circles lower (staggered interlace)">
+        <path class="stroke" d="M180.422 95.4656 L200.6856 116.1723 L206.5692 97.0569 L226.2359 117.953 L232.8845 97.5385 L252.4557 119.0172 L257.9604 98.4687" stroke-width="0.4844"/>
+        <circle class="stroke" cx="183.2484" cy="98.3462" r="1.4246" stroke-width="0.3419"/>
+        <circle class="stroke" cx="187.3954" cy="102.583" r="1.4018" stroke-width="0.3419"/>
+        <circle class="stroke" cx="210.7917" cy="101.3763" r="1.4403" stroke-width="0.3419"/>
+        <circle class="stroke" cx="214.6139" cy="105.3011" r="1.4545" stroke-width="0.3419"/>
+        <circle class="stroke" cx="234.7977" cy="99.9375" r="1.3918" stroke-width="0.3419"/>
+        <circle class="stroke" cx="238.6413" cy="104.1899" r="1.4047" stroke-width="0.3419"/>
+      </g>
+      <g data-id="picture.lineLabels" data-set="scan">
+        <g data-id="picture.lineLabel.scan.1" data-kind="label" data-binary="1" data-bits="1" data-value-th="1" data-line="1" data-set="scan">
+          <g class="row" data-row="0">
+            <path class="bit one" data-index="0" d="M192.7975 92.2603 L192.8559 96.5384" stroke-width="0.4274"/>
+          </g>
+        </g>
+        <g data-id="picture.lineLabel.scan.2" data-kind="label" data-binary="10" data-bits="2" data-value-th="2" data-line="2" data-set="scan">
+          <g class="row" data-row="0">
+            <path class="bit one" data-index="0" d="M219.0601 93.2504 L219.1656 97.5328" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="1" d="M220.8936 95.4186 L224.3155 95.4642" stroke-width="0.4274"/>
+          </g>
+        </g>
+        <g data-id="picture.lineLabel.scan.3" data-kind="label" data-binary="11" data-bits="2" data-value-th="3" data-line="3" data-set="scan">
+          <g class="row" data-row="0">
+            <path class="bit one" data-index="0" d="M242.804 92.5709 L242.8724 96.9886" stroke-width="0.4274"/>
+            <path class="bit one" data-index="1" d="M244.7415 92.7247 L244.8056 97.1438" stroke-width="0.4274"/>
+          </g>
+        </g>
+      </g>
+      <g data-id="picture.raster" data-role="video frame showing the direction of scan">
+        <path class="stroke" d="M181.4263 130.6434 L223.4166 130.5266 L223.4194 161.5759 L181.8794 161.8266 L181.4263 130.6434" stroke-width="0.4844"/>
+        <path class="stroke" d="M221.1628 161.14 L222.8724 161.14 L222.445 143.1899 L221.8752 142.905" stroke-width="0.4844"/>
+        <path class="stroke" d="M221.1628 161.14 L221.5902 143.0475 L221.8752 142.905" stroke-width="0.4844"/>
+        <path class="stroke" d="M181.8437 160.4277 L182.6985 131.6506 L183.9807 160.4277 L184.1231 131.6506 L185.4053 160.4277 L185.2628 131.6506 L187.1148 160.4277 L186.8299 131.6506 L188.3969 160.4277 L188.3969 131.6506 L189.964 160.4277 L189.8215 131.6506 L191.3886 160.4277 L191.1037 131.6506 L192.6707 160.4277" stroke-width="0.3419" data-role="first scan lines"/>
+        <g data-id="picture.rasterLines" data-kind="binary" data-binary="1000000000" data-bits="10" data-value-th="512" data-unit="count" data-msb="first" data-layout="vertical notation: a horizontal bar then 5 dashes (left column, bottom to top) and 4 dashes (right column, bottom to top)">
+          <desc>Number of vertical lines in one picture (512) in vertical notation.</desc>
+          <g class="row" data-row="0">
+            <path class="bit one" data-index="0" d="M220.6044 128.9097 L223.1872 129.0123" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="1" d="M221.5917 126.1972 L221.764 128.3655" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="2" d="M221.6372 123.9991 L221.7284 125.7784" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="3" d="M221.5304 121.9362 L221.623 123.7156" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="4" d="M221.5831 119.6797 L221.6828 121.5416" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="5" d="M221.6045 119.2295 L221.6444 117.0883" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="6" d="M223.1131 124.2897 L223.1772 126.1445" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="7" d="M223.0391 122.1514 L223.1032 124.0048" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="8" d="M222.992 119.8378 L223.1245 121.4177" stroke-width="0.4274"/>
+            <path class="bit zero" data-index="9" d="M222.908 117.2707 L223.1146 119.3164" stroke-width="0.4274"/>
+          </g>
+        </g>
+        <g data-id="picture.rasterLabel" data-disputed="true" data-reading="10000 (CED Magic); 1, 10, 11 (research); no official source">
+          <path class="mark bar" data-index="0" d="M184.0405 126.6146 L184.1545 128.478" stroke-width="0.4274"/>
+          <path class="mark dash" data-index="1" d="M185.1688 127.609 L187.3128 127.6888" stroke-width="0.4274"/>
+          <path class="mark dash" data-index="2" d="M180.8351 129.1333 L182.7042 129.2288" stroke-width="0.4274"/>
+          <path class="mark dash" data-index="3" d="M183.4379 129.2373 L185.1488 129.263" stroke-width="0.4274"/>
+          <path class="mark dash" data-index="4" d="M185.4337 129.2673 L187.1447 129.2929" stroke-width="0.4274"/>
+        </g>
+      </g>
+      <g data-id="picture.calibration" data-role="the first image: a circle in a frame, fixing the ratio of horizontal to vertical">
+        <path class="stroke" d="M181.8437 167.8356 L182.2711 197.6098 L182.556 197.8948 L189.3942 198.0372 L223.7271 197.7523 L223.7271 184.6459 L223.4422 171.682 L223.5847 167.9781 L223.1573 167.4082 L182.6985 167.2658" stroke-width="0.4844"/>
+        <circle class="stroke" cx="203.0063" cy="182.0674" r="9.8326" stroke-width="0.4844"/>
+      </g>
+    </g>
+    <g id="map" data-id="pulsarMap" data-role="the pulsar map: the Sun at the origin, 14 pulsars and the galactic centre" data-r0-mm="132.3938">
+      <g data-id="pulsarMap.gcLine" data-role="distance to the galactic centre, R0, the unit of the map" data-angle-deg="0">
+        <path class="solid" d="M91.696 227.2023 L224.0832 228.5238" stroke-width="0.2707"/>
+        <path class="tick end" d="M224.0753 229.3063 L224.091 227.7412" stroke-width="0.2707"/>
+      </g>
+      <g data-id="pulsarMap.lines">
+        <g data-id="pulsar.1" data-order="1" data-b-name="B1642-03" data-j-name="J1645-0317" data-label-1972="1642" data-angle-deg="14.0194" data-r-over-r0="0.078317" data-broken="true" data-digits-along-own-line="false" data-binary="100000110100101010001110101100" data-value-th="550675372">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L94.7419 226.474" stroke-width="0.2707"/>
+          <path class="solid" data-piece="1" d="M95.7698 226.2282 L101.7804 224.791" stroke-width="0.2707"/>
+          <path class="tick z" d="M97.0454 226.2917 L96.8787 225.5946" stroke-width="0.2707" data-abs-z-over-r0="0.03742"/>
+          <g class="digits" data-id="pulsar.1.digits">
+            <path class="bit one" data-index="0" d="M103.1147 224.8863 L102.948 224.1892" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="1" d="M103.4532 224.4343 L104.1504 224.2676" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="2" d="M104.7405 224.1221 L105.4377 223.9554" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="3" d="M105.901 223.8407 L106.5982 223.674" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="4" d="M107.1591 223.5356 L107.8562 223.3689" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="5" d="M108.3294 223.2518 L109.0265 223.0851" stroke-width="0.2279"/>
+            <path class="bit one" data-index="6" d="M109.678 223.2947 L109.5113 222.5976" stroke-width="0.2279"/>
+            <path class="bit one" data-index="7" d="M110.2534 223.1552 L110.0867 222.4581" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="8" d="M110.6504 222.689 L111.3475 222.5223" stroke-width="0.2279"/>
+            <path class="bit one" data-index="9" d="M111.8918 222.7579 L111.7251 222.0607" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="10" d="M112.3376 222.2798 L113.0347 222.1131" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="11" d="M113.5858 221.9771 L114.283 221.8104" stroke-width="0.2279"/>
+            <path class="bit one" data-index="12" d="M114.9247 222.0224 L114.7581 221.3252" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="13" d="M115.351 221.549 L116.0482 221.3823" stroke-width="0.2279"/>
+            <path class="bit one" data-index="14" d="M116.6803 221.5063 L116.5136 220.8092" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="15" d="M117.1357 221.1163 L117.8328 220.9496" stroke-width="0.2279"/>
+            <path class="bit one" data-index="16" d="M118.4843 221.1592 L118.3177 220.462" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="17" d="M118.9399 220.6787 L119.637 220.512" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="18" d="M120.1687 220.3807 L120.8658 220.2141" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="19" d="M121.5925 220.0355 L122.2897 219.8688" stroke-width="0.2279"/>
+            <path class="bit one" data-index="20" d="M122.9119 220.0855 L122.7452 219.3883" stroke-width="0.2279"/>
+            <path class="bit one" data-index="21" d="M123.4775 219.9483 L123.3108 219.2512" stroke-width="0.2279"/>
+            <path class="bit one" data-index="22" d="M124.0334 219.8135 L123.8667 219.1164" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="23" d="M124.4695 219.3378 L125.1666 219.1711" stroke-width="0.2279"/>
+            <path class="bit one" data-index="24" d="M125.8473 219.3736 L125.6807 218.6765" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="25" d="M126.3614 218.879 L127.0586 218.7123" stroke-width="0.2279"/>
+            <path class="bit one" data-index="26" d="M127.6905 218.9266 L127.5238 218.2295" stroke-width="0.2279"/>
+            <path class="bit one" data-index="27" d="M128.2464 218.7918 L128.0797 218.0947" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="28" d="M128.663 218.3209 L129.3601 218.1542" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="29" d="M129.921 218.0158 L130.6182 217.8491" stroke-width="0.2279"/>
+          </g>
+        </g>
+        <g data-id="pulsar.2" data-order="2" data-b-name="B1929+10" data-j-name="J1932+1059" data-label-1972="1929" data-angle-deg="47.9857" data-r-over-r0="0.009968" data-broken="false" data-digits-along-own-line="false" data-binary="10011001011010111010010111000" data-value-th="321746104">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L92.589 226.2307" stroke-width="0.2707"/>
+          <g class="digits" data-id="pulsar.2.digits">
+            <path class="bit one" data-index="0" d="M95.2594 223.9978 L94.7317 223.5128" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="1" d="M95.3731 223.3343 L95.8582 222.8066" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="2" d="M96.2351 222.3823 L96.7202 221.8546" stroke-width="0.2279"/>
+            <path class="bit one" data-index="3" d="M97.2666 221.7811 L96.7388 221.296" stroke-width="0.2279"/>
+            <path class="bit one" data-index="4" d="M97.6572 221.3497 L97.1295 220.8646" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="5" d="M97.7706 220.6865 L98.2557 220.1587" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="6" d="M98.6462 219.7195 L99.1312 219.1918" stroke-width="0.2279"/>
+            <path class="bit one" data-index="7" d="M99.7721 219.0139 L99.2444 218.5288" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="8" d="M99.8989 218.336 L100.384 217.8082" stroke-width="0.2279"/>
+            <path class="bit one" data-index="9" d="M101.0384 217.6154 L100.5107 217.1303" stroke-width="0.2279"/>
+            <path class="bit one" data-index="10" d="M101.4425 217.1691 L100.9148 216.684" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="11" d="M101.6231 216.4317 L102.1082 215.9039" stroke-width="0.2279"/>
+            <path class="bit one" data-index="12" d="M102.6953 215.7855 L102.1676 215.3004" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="13" d="M102.8355 215.0927 L103.3206 214.565" stroke-width="0.2279"/>
+            <path class="bit one" data-index="14" d="M103.9751 214.3721 L103.4473 213.8871" stroke-width="0.2279"/>
+            <path class="bit one" data-index="15" d="M104.3724 213.9332 L103.8447 213.4482" stroke-width="0.2279"/>
+            <path class="bit one" data-index="16" d="M104.7698 213.4943 L104.2421 213.0093" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="17" d="M104.9639 212.7421 L105.449 212.2143" stroke-width="0.2279"/>
+            <path class="bit one" data-index="18" d="M106.0496 212.081 L105.5218 211.5959" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="19" d="M106.1763 211.4031 L106.6614 210.8753" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="20" d="M107.0519 210.436 L107.537 209.9083" stroke-width="0.2279"/>
+            <path class="bit one" data-index="21" d="M108.2049 209.7006 L107.6772 209.2155" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="22" d="M108.3317 209.0226 L108.8167 208.4949" stroke-width="0.2279"/>
+            <path class="bit one" data-index="23" d="M109.4846 208.2872 L108.9569 207.8022" stroke-width="0.2279"/>
+            <path class="bit one" data-index="24" d="M109.8753 207.8558 L109.3475 207.3707" stroke-width="0.2279"/>
+            <path class="bit one" data-index="25" d="M110.2659 207.4243 L109.7382 206.9393" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="26" d="M110.4466 206.6868 L110.9317 206.1591" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="27" d="M111.3222 205.7198 L111.8073 205.1921" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="28" d="M112.1979 204.7527 L112.6829 204.225" stroke-width="0.2279"/>
+          </g>
+        </g>
+        <g data-id="pulsar.3" data-order="3" data-b-name="B1933+16" data-j-name="J1935+1616" data-label-1972="1933" data-angle-deg="52.796" data-r-over-r0="0.406042" data-broken="true" data-digits-along-own-line="false" data-binary="11110010111110001110100011110" data-value-th="509549854">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L93.6437 224.6891" stroke-width="0.2707"/>
+          <path class="solid" data-piece="1" d="M94.486 223.6024 L124.6264 184.7118" stroke-width="0.2707"/>
+          <path class="tick z" d="M123.7513 186.4261 L123.1847 185.987" stroke-width="0.2707" data-abs-z-over-r0="0.014284"/>
+          <g class="digits" data-id="pulsar.3.digits">
+            <path class="bit one" data-index="0" d="M125.5053 184.1407 L124.9388 183.7016" stroke-width="0.2279"/>
+            <path class="bit one" data-index="1" d="M125.8624 183.6813 L125.2958 183.2422" stroke-width="0.2279"/>
+            <path class="bit one" data-index="2" d="M126.2194 183.2219 L125.6529 182.7828" stroke-width="0.2279"/>
+            <path class="bit one" data-index="3" d="M126.5765 182.7624 L126.0099 182.3233" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="4" d="M126.5701 182.1875 L127.0092 181.6209" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="5" d="M127.3626 181.1678 L127.8016 180.6012" stroke-width="0.2279"/>
+            <path class="bit one" data-index="6" d="M128.3182 180.5213 L127.7517 180.0823" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="7" d="M128.4163 179.8119 L128.8554 179.2453" stroke-width="0.2279"/>
+            <path class="bit one" data-index="8" d="M129.5461 178.9414 L128.9796 178.5023" stroke-width="0.2279"/>
+            <path class="bit one" data-index="9" d="M129.9097 178.4735 L129.3432 178.0345" stroke-width="0.2279"/>
+            <path class="bit one" data-index="10" d="M130.2733 178.0057 L129.7067 177.5666" stroke-width="0.2279"/>
+            <path class="bit one" data-index="11" d="M130.6369 177.5379 L130.0703 177.0988" stroke-width="0.2279"/>
+            <path class="bit one" data-index="12" d="M131.0005 177.0701 L130.4339 176.631" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="13" d="M131.1247 176.327 L131.5638 175.7604" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="14" d="M131.9346 175.2849 L132.3737 174.7183" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="15" d="M132.7445 174.2428 L133.1836 173.6762" stroke-width="0.2279"/>
+            <path class="bit one" data-index="16" d="M133.8308 173.4283 L133.2642 172.9892" stroke-width="0.2279"/>
+            <path class="bit one" data-index="17" d="M134.1878 172.9688 L133.6213 172.5298" stroke-width="0.2279"/>
+            <path class="bit one" data-index="18" d="M134.5449 172.5094 L133.9783 172.0703" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="19" d="M134.6255 171.8224 L135.0646 171.2558" stroke-width="0.2279"/>
+            <path class="bit one" data-index="20" d="M135.7467 170.9631 L135.1801 170.524" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="21" d="M135.8796 170.2088 L136.3187 169.6422" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="22" d="M136.7069 169.1443 L137.146 168.5777" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="23" d="M137.5168 168.1022 L137.9559 167.5356" stroke-width="0.2279"/>
+            <path class="bit one" data-index="24" d="M138.6031 167.2877 L138.0365 166.8486" stroke-width="0.2279"/>
+            <path class="bit one" data-index="25" d="M138.9543 166.8357 L138.3878 166.3966" stroke-width="0.2279"/>
+            <path class="bit one" data-index="26" d="M139.3056 166.3838 L138.739 165.9447" stroke-width="0.2279"/>
+            <path class="bit one" data-index="27" d="M139.6568 165.9318 L139.0903 165.4927" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="28" d="M139.7549 165.2224 L140.194 164.6558" stroke-width="0.2279"/>
+          </g>
+        </g>
+        <g data-id="pulsar.4" data-order="4" data-b-name="B2016+28" data-j-name="J2018+2839" data-label-1972="2016" data-angle-deg="68.8156" data-r-over-r0="0.03771" data-broken="true" data-digits-along-own-line="false" data-binary="101111001111001110011000001101" data-value-th="792520205">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L92.8993 224.1871" stroke-width="0.2707"/>
+          <path class="solid" data-piece="1" d="M93.2808 223.2312 L93.5465 222.5654" stroke-width="0.2707"/>
+          <path class="tick z" d="M93.6201 223.348 L92.9544 223.0823" stroke-width="0.2707" data-abs-z-over-r0="0.005284"/>
+          <g class="digits" data-id="pulsar.4.digits">
+            <path class="bit one" data-index="0" d="M94.1875 221.9538 L93.5218 221.6881" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="1" d="M94.1078 221.1842 L94.3735 220.5184" stroke-width="0.2279"/>
+            <path class="bit one" data-index="2" d="M94.9075 220.145 L94.2418 219.8793" stroke-width="0.2279"/>
+            <path class="bit one" data-index="3" d="M95.1252 219.5981 L94.4595 219.3324" stroke-width="0.2279"/>
+            <path class="bit one" data-index="4" d="M95.343 219.0511 L94.6772 218.7854" stroke-width="0.2279"/>
+            <path class="bit one" data-index="5" d="M95.5607 218.5041 L94.8949 218.2384" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="6" d="M95.4661 217.7718 L95.7318 217.106" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="7" d="M95.8966 216.6903 L96.1623 216.0245" stroke-width="0.2279"/>
+            <path class="bit one" data-index="8" d="M96.7112 215.6138 L96.0454 215.3481" stroke-width="0.2279"/>
+            <path class="bit one" data-index="9" d="M96.9338 215.0544 L96.2681 214.7887" stroke-width="0.2279"/>
+            <path class="bit one" data-index="10" d="M97.1565 214.495 L96.4908 214.2293" stroke-width="0.2279"/>
+            <path class="bit one" data-index="11" d="M97.3792 213.9356 L96.7135 213.6699" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="12" d="M97.2549 213.2779 L97.5206 212.6121" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="13" d="M97.8116 211.8793 L98.0773 211.2136" stroke-width="0.2279"/>
+            <path class="bit one" data-index="14" d="M98.5965 210.8775 L97.9308 210.6118" stroke-width="0.2279"/>
+            <path class="bit one" data-index="15" d="M98.8192 210.3181 L98.1534 210.0524" stroke-width="0.2279"/>
+            <path class="bit one" data-index="16" d="M99.0418 209.7587 L98.3761 209.493" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="17" d="M98.9398 209.045 L99.2055 208.3793" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="18" d="M99.4075 207.8702 L99.6731 207.2045" stroke-width="0.2279"/>
+            <path class="bit one" data-index="19" d="M100.2072 206.8311 L99.5414 206.5654" stroke-width="0.2279"/>
+            <path class="bit one" data-index="20" d="M100.4224 206.2903 L99.7567 206.0246" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="21" d="M100.3427 205.5207 L100.6084 204.855" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="22" d="M100.7955 204.3832 L101.0611 203.7175" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="23" d="M101.2408 203.2644 L101.5065 202.5987" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="24" d="M101.7901 201.8845 L102.0558 201.2188" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="25" d="M102.2503 200.7284 L102.516 200.0627" stroke-width="0.2279"/>
+            <path class="bit one" data-index="26" d="M103.0129 199.7825 L102.3472 199.5168" stroke-width="0.2279"/>
+            <path class="bit one" data-index="27" d="M103.2133 199.2791 L102.5476 199.0134" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="28" d="M103.1336 198.5094 L103.3992 197.8437" stroke-width="0.2279"/>
+            <path class="bit one" data-index="29" d="M103.9036 197.5449 L103.2379 197.2792" stroke-width="0.2279"/>
+          </g>
+        </g>
+        <g data-id="pulsar.5" data-order="5" data-b-name="B2217+47" data-j-name="J2219+4754" data-label-1972="2217" data-angle-deg="98.0388" data-r-over-r0="0.110979" data-broken="true" data-digits-along-own-line="false" data-binary="101101100101101001000010110001" data-value-th="764842161">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L91.2785 224.0166" stroke-width="0.2707"/>
+          <path class="solid" data-piece="1" d="M91.1343 222.9165 L89.7866 212.634" stroke-width="0.2707"/>
+          <path class="tick z" d="M90.3659 214.2959 L89.6551 214.3891" stroke-width="0.2707" data-abs-z-over-r0="0.013015"/>
+          <g class="digits" data-id="pulsar.5.digits">
+            <path class="bit one" data-index="0" d="M89.9612 211.2115 L89.2505 211.3046" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="1" d="M89.5168 210.5786 L89.4237 209.8679" stroke-width="0.2279"/>
+            <path class="bit one" data-index="2" d="M89.6978 209.2016 L88.9871 209.2948" stroke-width="0.2279"/>
+            <path class="bit one" data-index="3" d="M89.6248 208.6444 L88.9141 208.7376" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="4" d="M89.1857 208.0514 L89.0925 207.3406" stroke-width="0.2279"/>
+            <path class="bit one" data-index="5" d="M89.3771 206.7539 L88.6664 206.8471" stroke-width="0.2279"/>
+            <path class="bit one" data-index="6" d="M89.3015 206.1768 L88.5908 206.27" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="7" d="M88.8675 205.6236 L88.7744 204.9129" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="8" d="M88.6902 204.2704 L88.5971 203.5597" stroke-width="0.2279"/>
+            <path class="bit one" data-index="9" d="M88.8843 202.9929 L88.1736 203.086" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="10" d="M88.4503 202.4396 L88.3572 201.7289" stroke-width="0.2279"/>
+            <path class="bit one" data-index="11" d="M88.6392 201.1223 L87.9285 201.2154" stroke-width="0.2279"/>
+            <path class="bit one" data-index="12" d="M88.5583 200.5054 L87.8476 200.5985" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="13" d="M88.127 199.972 L88.0338 199.2613" stroke-width="0.2279"/>
+            <path class="bit one" data-index="14" d="M88.3184 198.6746 L87.6077 198.7677" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="15" d="M87.8845 198.1213 L87.7913 197.4106" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="16" d="M87.7124 196.8079 L87.6192 196.0972" stroke-width="0.2279"/>
+            <path class="bit one" data-index="17" d="M87.8986 195.4707 L87.1879 195.5639" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="18" d="M87.4751 194.997 L87.382 194.2863" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="19" d="M87.3187 193.8031 L87.2255 193.0923" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="20" d="M87.1596 192.5892 L87.0664 191.8784" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="21" d="M86.9901 191.2957 L86.8969 190.585" stroke-width="0.2279"/>
+            <path class="bit one" data-index="22" d="M87.1815 189.9982 L86.4708 190.0914" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="23" d="M86.7606 189.5445 L86.6675 188.8338" stroke-width="0.2279"/>
+            <path class="bit one" data-index="24" d="M86.9573 188.2869 L86.2466 188.38" stroke-width="0.2279"/>
+            <path class="bit one" data-index="25" d="M86.8817 187.7098 L86.171 187.8029" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="26" d="M86.4503 187.1764 L86.3572 186.4657" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="27" d="M86.2443 185.6043 L86.1512 184.8936" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="28" d="M86.0696 184.271 L85.9765 183.5603" stroke-width="0.2279"/>
+            <path class="bit one" data-index="29" d="M86.2585 182.9537 L85.5477 183.0468" stroke-width="0.2279"/>
+          </g>
+        </g>
+        <g data-id="pulsar.6" data-order="6" data-b-name="B0329+54" data-j-name="J0332+5434" data-label-1972="0328" data-angle-deg="144.6747" data-r-over-r0="0.068447" data-broken="true" data-digits-along-own-line="false" data-binary="111100011111100011111000010110" data-value-th="1014906390">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L89.0212 225.2663" stroke-width="0.2707"/>
+          <path class="solid" data-piece="1" d="M88.1386 224.6274 L84.3552 221.889" stroke-width="0.2707"/>
+          <path class="tick z" d="M84.7905 221.7617 L84.3703 222.3423" stroke-width="0.2707" data-abs-z-over-r0="0.0021"/>
+          <g class="digits" data-id="pulsar.6.digits">
+            <path class="bit one" data-index="0" d="M83.4589 220.7946 L83.0386 221.3753" stroke-width="0.2279"/>
+            <path class="bit one" data-index="1" d="M83.0415 220.4927 L82.6213 221.0733" stroke-width="0.2279"/>
+            <path class="bit one" data-index="2" d="M82.6242 220.1908 L82.2039 220.7714" stroke-width="0.2279"/>
+            <path class="bit one" data-index="3" d="M82.2068 219.8888 L81.7865 220.4695" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="4" d="M81.4902 219.8129 L80.9096 219.3926" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="5" d="M80.5308 219.1189 L79.9502 218.6986" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="6" d="M79.6039 218.4483 L79.0233 218.0281" stroke-width="0.2279"/>
+            <path class="bit one" data-index="7" d="M78.8082 217.4303 L78.3879 218.0109" stroke-width="0.2279"/>
+            <path class="bit one" data-index="8" d="M78.3822 217.1221 L77.9619 217.7027" stroke-width="0.2279"/>
+            <path class="bit one" data-index="9" d="M77.9561 216.8139 L77.5358 217.3945" stroke-width="0.2279"/>
+            <path class="bit one" data-index="10" d="M77.5301 216.5057 L77.1098 217.0863" stroke-width="0.2279"/>
+            <path class="bit one" data-index="11" d="M77.104 216.1975 L76.6838 216.7781" stroke-width="0.2279"/>
+            <path class="bit one" data-index="12" d="M76.678 215.8893 L76.2577 216.4699" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="13" d="M75.9451 215.8016 L75.3645 215.3813" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="14" d="M74.8882 215.037 L74.3075 214.6167" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="15" d="M73.8637 214.2959 L73.2831 213.8756" stroke-width="0.2279"/>
+            <path class="bit one" data-index="16" d="M73.1168 213.3131 L72.6965 213.8937" stroke-width="0.2279"/>
+            <path class="bit one" data-index="17" d="M72.6981 213.0102 L72.2778 213.5908" stroke-width="0.2279"/>
+            <path class="bit one" data-index="18" d="M72.2794 212.7073 L71.8591 213.2879" stroke-width="0.2279"/>
+            <path class="bit one" data-index="19" d="M71.8606 212.4044 L71.4404 212.985" stroke-width="0.2279"/>
+            <path class="bit one" data-index="20" d="M71.4419 212.1015 L71.0216 212.6821" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="21" d="M70.7578 212.049 L70.1772 211.6288" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="22" d="M69.7984 211.355 L69.2178 210.9347" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="23" d="M68.5788 210.4727 L67.9982 210.0525" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="24" d="M67.5381 209.7199 L66.9575 209.2996" stroke-width="0.2279"/>
+            <path class="bit one" data-index="25" d="M66.905 208.8195 L66.4848 209.4001" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="26" d="M66.2047 208.7553 L65.624 208.335" stroke-width="0.2279"/>
+            <path class="bit one" data-index="27" d="M65.4903 207.796 L65.07 208.3767" stroke-width="0.2279"/>
+            <path class="bit one" data-index="28" d="M65.0188 207.4549 L64.5985 208.0356" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="29" d="M64.3834 207.4378 L63.8028 207.0175" stroke-width="0.2279"/>
+          </g>
+        </g>
+        <g data-id="pulsar.7" data-order="7" data-b-name="B0525+21" data-j-name="J0528+2200" data-label-1972="0525" data-angle-deg="182.3559" data-r-over-r0="0.124326" data-broken="true" data-digits-along-own-line="false" data-binary="100111101000110101000100111000100" data-value-th="5320116676">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L88.473 227.3027" stroke-width="0.2707"/>
+          <path class="solid" data-piece="1" d="M87.5463 227.3316 L75.244 227.7147" stroke-width="0.2707"/>
+          <path class="tick z" d="M77.2188 227.2947 L77.2412 228.0111" stroke-width="0.2707" data-abs-z-over-r0="0.015008"/>
+          <g class="digits" data-id="pulsar.7.digits">
+            <path class="bit one" data-index="0" d="M74.7672 227.0013 L74.7895 227.7178" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="1" d="M74.2264 227.3996 L73.5099 227.4219" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="2" d="M73.0652 227.465 L72.3488 227.4873" stroke-width="0.2279"/>
+            <path class="bit one" data-index="3" d="M71.7633 227.1705 L71.7856 227.8869" stroke-width="0.2279"/>
+            <path class="bit one" data-index="4" d="M71.2674 227.1984 L71.2897 227.9149" stroke-width="0.2279"/>
+            <path class="bit one" data-index="5" d="M70.7431 227.2279 L70.7655 227.9444" stroke-width="0.2279"/>
+            <path class="bit one" data-index="6" d="M70.233 227.2567 L70.2554 227.9731" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="7" d="M69.6802 227.6556 L68.9638 227.6779" stroke-width="0.2279"/>
+            <path class="bit one" data-index="8" d="M68.4194 227.3588 L68.4417 228.0752" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="9" d="M68.037 227.7481 L67.3206 227.7705" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="10" d="M66.6771 227.8247 L65.9607 227.847" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="11" d="M65.5437 227.8886 L64.8273 227.9109" stroke-width="0.2279"/>
+            <path class="bit one" data-index="12" d="M64.1828 227.5973 L64.2051 228.3138" stroke-width="0.2279"/>
+            <path class="bit one" data-index="13" d="M63.616 227.6292 L63.6384 228.3457" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="14" d="M63.0927 228.0266 L62.3763 228.0489" stroke-width="0.2279"/>
+            <path class="bit one" data-index="15" d="M61.8732 227.7274 L61.8956 228.4438" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="16" d="M61.5483 228.1135 L60.8319 228.1358" stroke-width="0.2279"/>
+            <path class="bit one" data-index="17" d="M60.0738 227.8287 L60.0961 228.5451" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="18" d="M59.7488 228.2148 L59.0324 228.2372" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="19" d="M58.4736 228.2867 L57.7571 228.309" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="20" d="M57.1416 228.3616 L56.4252 228.3839" stroke-width="0.2279"/>
+            <path class="bit one" data-index="21" d="M55.8797 228.0648 L55.902 228.7813" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="22" d="M55.3278 228.4638 L54.6114 228.4861" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="23" d="M54.01 228.538 L53.2935 228.5603" stroke-width="0.2279"/>
+            <path class="bit one" data-index="24" d="M52.9183 228.2316 L52.9406 228.948" stroke-width="0.2279"/>
+            <path class="bit one" data-index="25" d="M52.4224 228.2595 L52.4447 228.976" stroke-width="0.2279"/>
+            <path class="bit one" data-index="26" d="M51.8556 228.2914 L51.8779 229.0079" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="27" d="M51.5159 228.6784 L50.7995 228.7007" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="28" d="M50.1555 228.755 L49.4391 228.7773" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="29" d="M49.0927 228.8148 L48.3762 228.8371" stroke-width="0.2279"/>
+            <path class="bit one" data-index="30" d="M47.6332 228.5292 L47.6555 229.2456" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="31" d="M47.2504 228.9186 L46.5339 228.9409" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="32" d="M45.975 228.9904 L45.2585 229.0127" stroke-width="0.2279"/>
+          </g>
+        </g>
+        <g data-id="pulsar.8" data-order="8" data-b-name="B0531+21" data-j-name="J0534+2200" data-label-1972="0531" data-angle-deg="185.3758" data-r-over-r0="0.195064" data-broken="false" data-digits-along-own-line="false" data-binary="10110011100000101010000010" data-value-th="47057538">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L65.9615 229.3651" stroke-width="0.2707"/>
+          <path class="tick z" d="M68.4632 228.7952 L68.5232 229.5095" stroke-width="0.2707" data-abs-z-over-r0="0.01919"/>
+          <g class="digits" data-id="pulsar.8.digits">
+            <path class="bit one" data-index="0" d="M65.1013 229.0546 L65.1613 229.7689" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="1" d="M64.5586 229.462 L63.8444 229.522" stroke-width="0.2279"/>
+            <path class="bit one" data-index="2" d="M63.4616 229.1961 L63.5217 229.9104" stroke-width="0.2279"/>
+            <path class="bit one" data-index="3" d="M62.9218 229.2427 L62.9818 229.957" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="4" d="M62.353 229.6523 L61.6387 229.7123" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="5" d="M61.1087 229.7597 L60.3945 229.8197" stroke-width="0.2279"/>
+            <path class="bit one" data-index="6" d="M59.8624 229.5067 L59.9225 230.221" stroke-width="0.2279"/>
+            <path class="bit one" data-index="7" d="M59.3825 229.5481 L59.4426 230.2624" stroke-width="0.2279"/>
+            <path class="bit one" data-index="8" d="M58.8627 229.593 L58.9227 230.3073" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="9" d="M58.3233 230.0001 L57.6091 230.0601" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="10" d="M57.1215 230.1038 L56.4072 230.1638" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="11" d="M55.7924 230.2185 L55.0782 230.2786" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="12" d="M54.6896 230.3137 L53.9753 230.3737" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="13" d="M53.3747 230.4272 L52.6604 230.4872" stroke-width="0.2279"/>
+            <path class="bit one" data-index="14" d="M52.3041 230.159 L52.3641 230.8733" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="15" d="M51.7345 230.5687 L51.0203 230.6288" stroke-width="0.2279"/>
+            <path class="bit one" data-index="16" d="M50.4845 230.3161 L50.5445 231.0304" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="17" d="M49.9106 230.7262 L49.1963 230.7862" stroke-width="0.2279"/>
+            <path class="bit one" data-index="18" d="M48.6249 230.4766 L48.6849 231.1909" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="19" d="M48.0018 230.8909 L47.2875 230.9509" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="20" d="M46.8565 230.9897 L46.1423 231.0498" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="21" d="M45.6547 231.0935 L44.9405 231.1535" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="22" d="M44.5236 231.1911 L43.8093 231.2511" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="23" d="M43.1579 231.3107 L42.4436 231.3707" stroke-width="0.2279"/>
+            <path class="bit one" data-index="24" d="M42.0863 231.0409 L42.1463 231.7552" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="25" d="M41.5981 231.4418 L40.8838 231.5018" stroke-width="0.2279"/>
+          </g>
+        </g>
+        <g data-id="pulsar.9" data-order="9" data-b-name="B0823+26" data-j-name="J0826+2637" data-label-1972="0823" data-angle-deg="198.0897" data-r-over-r0="0.041182" data-broken="true" data-digits-along-own-line="false" data-binary="101100111011010101011110001011" data-value-th="753751947">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L88.7025 228.1472" stroke-width="0.2707"/>
+          <path class="solid" data-piece="1" d="M87.5 228.5268 L86.4966 228.8435" stroke-width="0.2707"/>
+          <path class="tick z" d="M89.5498 227.5039 L89.7655 228.1875" stroke-width="0.2707" data-abs-z-over-r0="0.025037"/>
+          <g class="digits" data-id="pulsar.9.digits">
+            <path class="bit one" data-index="0" d="M85.3919 228.7997 L85.6077 229.4832" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="1" d="M84.9834 229.3057 L84.2998 229.5215" stroke-width="0.2279"/>
+            <path class="bit one" data-index="2" d="M83.7084 229.3336 L83.9242 230.0171" stroke-width="0.2279"/>
+            <path class="bit one" data-index="3" d="M83.1154 229.5217 L83.3311 230.2052" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="4" d="M82.7378 230.018 L82.0543 230.2337" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="5" d="M81.588 230.3826 L80.9044 230.5984" stroke-width="0.2279"/>
+            <path class="bit one" data-index="6" d="M80.2266 230.4379 L80.4424 231.1215" stroke-width="0.2279"/>
+            <path class="bit one" data-index="7" d="M79.6909 230.6078 L79.9067 231.2913" stroke-width="0.2279"/>
+            <path class="bit one" data-index="8" d="M79.1553 230.7777 L79.371 231.4612" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="9" d="M78.7607 231.2793 L78.0772 231.4951" stroke-width="0.2279"/>
+            <path class="bit one" data-index="10" d="M77.5674 231.2813 L77.7832 231.9648" stroke-width="0.2279"/>
+            <path class="bit one" data-index="11" d="M76.9744 231.4694 L77.1901 232.1529" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="12" d="M76.5828 231.9701 L75.8992 232.1858" stroke-width="0.2279"/>
+            <path class="bit one" data-index="13" d="M75.2526 232.0155 L75.4683 232.699" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="14" d="M74.8918 232.5064 L74.2083 232.7221" stroke-width="0.2279"/>
+            <path class="bit one" data-index="15" d="M73.4926 232.5737 L73.7083 233.2572" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="16" d="M73.1197 233.0684 L72.4362 233.2842" stroke-width="0.2279"/>
+            <path class="bit one" data-index="17" d="M71.7708 233.1198 L71.9865 233.8033" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="18" d="M71.3747 233.6219 L70.6911 233.8377" stroke-width="0.2279"/>
+            <path class="bit one" data-index="19" d="M70.0299 233.6719 L70.2456 234.3555" stroke-width="0.2279"/>
+            <path class="bit one" data-index="20" d="M69.4942 233.8418 L69.71 234.5254" stroke-width="0.2279"/>
+            <path class="bit one" data-index="21" d="M68.9203 234.0238 L69.136 234.7074" stroke-width="0.2279"/>
+            <path class="bit one" data-index="22" d="M68.3655 234.1998 L68.5813 234.8833" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="23" d="M68.074 234.6688 L67.3904 234.8845" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="24" d="M66.9106 235.0377 L66.2271 235.2535" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="25" d="M65.8149 235.3853 L65.1313 235.601" stroke-width="0.2279"/>
+            <path class="bit one" data-index="26" d="M64.4819 235.4315 L64.6977 236.1151" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="27" d="M64.0698 235.9387 L63.3863 236.1545" stroke-width="0.2279"/>
+            <path class="bit one" data-index="28" d="M62.7793 235.9715 L62.9951 236.6551" stroke-width="0.2279"/>
+            <path class="bit one" data-index="29" d="M62.1862 236.1596 L62.402 236.8432" stroke-width="0.2279"/>
+          </g>
+        </g>
+        <g data-id="pulsar.10" data-order="10" data-b-name="B0950+08" data-j-name="J0953+0755" data-label-1972="0950" data-angle-deg="230.584" data-r-over-r0="0.007799" data-broken="false" data-digits-along-own-line="false" data-binary="10101011011001101100101000011" data-value-th="359455043">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L91.0325 227.9934" stroke-width="0.2707"/>
+          <g class="digits" data-id="pulsar.10.digits">
+            <path class="bit one" data-index="0" d="M90.2018 228.5285 L90.751 228.9892" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="1" d="M90.0837 229.2199 L89.6231 229.7691" stroke-width="0.2279"/>
+            <path class="bit one" data-index="2" d="M89.0085 229.9376 L89.5577 230.3982" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="3" d="M88.9036 230.6133 L88.443 231.1625" stroke-width="0.2279"/>
+            <path class="bit one" data-index="4" d="M87.7244 231.4538 L88.2736 231.9144" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="5" d="M87.6585 232.0835 L87.1979 232.6327" stroke-width="0.2279"/>
+            <path class="bit one" data-index="6" d="M86.5571 232.8322 L87.1063 233.2928" stroke-width="0.2279"/>
+            <path class="bit one" data-index="7" d="M86.1679 233.2917 L86.7171 233.7523" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="8" d="M86.0762 233.9519 L85.6155 234.5011" stroke-width="0.2279"/>
+            <path class="bit one" data-index="9" d="M85.0265 234.6394 L85.5757 235.1001" stroke-width="0.2279"/>
+            <path class="bit one" data-index="10" d="M84.6244 235.1142 L85.1736 235.5748" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="11" d="M84.5197 235.7898 L84.0591 236.339" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="12" d="M83.6247 236.8465 L83.1641 237.3957" stroke-width="0.2279"/>
+            <path class="bit one" data-index="13" d="M82.5362 237.58 L83.0853 238.0406" stroke-width="0.2279"/>
+            <path class="bit one" data-index="14" d="M82.1859 237.9935 L82.7351 238.4542" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="15" d="M82.0683 238.6844 L81.6076 239.2336" stroke-width="0.2279"/>
+            <path class="bit one" data-index="16" d="M80.9797 239.4179 L81.5289 239.8785" stroke-width="0.2279"/>
+            <path class="bit one" data-index="17" d="M80.5906 239.8773 L81.1397 240.338" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="18" d="M80.4729 240.5682 L80.0122 241.1174" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="19" d="M79.6038 241.5943 L79.1432 242.1435" stroke-width="0.2279"/>
+            <path class="bit one" data-index="20" d="M78.5542 242.2819 L79.1033 242.7425" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="21" d="M78.3976 243.0187 L77.9369 243.5679" stroke-width="0.2279"/>
+            <path class="bit one" data-index="22" d="M77.283 243.7828 L77.8322 244.2434" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="23" d="M77.1524 244.489 L76.6917 245.0382" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="24" d="M76.2833 245.5151 L75.8227 246.0643" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="25" d="M75.531 246.4035 L75.0704 246.9526" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="26" d="M74.7787 247.2918 L74.3181 247.841" stroke-width="0.2279"/>
+            <path class="bit one" data-index="27" d="M73.7809 247.918 L74.3301 248.3786" stroke-width="0.2279"/>
+            <path class="bit one" data-index="28" d="M73.3918 248.3775 L73.941 248.8381" stroke-width="0.2279"/>
+          </g>
+        </g>
+        <g data-id="pulsar.11" data-order="11" data-b-name="B0833-45" data-j-name="J0835-4510" data-label-1972="0833" data-angle-deg="264.6303" data-r-over-r0="0.162827" data-broken="true" data-digits-along-own-line="false" data-binary="111100011011011001010100111" data-value-th="126726823">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L91.3566 230.4632" stroke-width="0.2707"/>
+          <path class="solid" data-piece="1" d="M91.2369 231.6134 L89.4645 248.6438" stroke-width="0.2707"/>
+          <path class="tick z" d="M89.2495 247.248 L89.9624 247.3222" stroke-width="0.2707" data-abs-z-over-r0="0.010318"/>
+          <g class="digits" data-id="pulsar.11.digits">
+            <path class="bit one" data-index="0" d="M88.9929 249.7325 L89.7059 249.8067" stroke-width="0.2279"/>
+            <path class="bit one" data-index="1" d="M88.9267 250.3677 L89.6396 250.4419" stroke-width="0.2279"/>
+            <path class="bit one" data-index="2" d="M88.8649 250.9605 L89.5778 251.0347" stroke-width="0.2279"/>
+            <path class="bit one" data-index="3" d="M88.8031 251.5534 L89.516 251.6276" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="4" d="M89.101 252.1515 L89.0268 252.8644" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="5" d="M88.9589 253.5136 L88.8847 254.2265" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="6" d="M88.8221 254.8263 L88.7479 255.5392" stroke-width="0.2279"/>
+            <path class="bit one" data-index="7" d="M88.3306 256.0843 L89.0436 256.1585" stroke-width="0.2279"/>
+            <path class="bit one" data-index="8" d="M88.2644 256.7195 L88.9773 256.7937" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="9" d="M88.5858 257.0918 L88.5116 257.8047" stroke-width="0.2279"/>
+            <path class="bit one" data-index="10" d="M88.0951 258.3427 L88.8081 258.4169" stroke-width="0.2279"/>
+            <path class="bit one" data-index="11" d="M88.026 259.0061 L88.7389 259.0803" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="12" d="M88.3261 259.5831 L88.2519 260.296" stroke-width="0.2279"/>
+            <path class="bit one" data-index="13" d="M87.8346 260.8411 L88.5476 260.9153" stroke-width="0.2279"/>
+            <path class="bit one" data-index="14" d="M87.7699 261.4622 L88.4828 261.5364" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="15" d="M88.0707 262.0321 L87.9965 262.745" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="16" d="M87.925 263.4295 L87.8508 264.1424" stroke-width="0.2279"/>
+            <path class="bit one" data-index="17" d="M87.4505 264.5252 L88.1634 264.5993" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="18" d="M87.7469 265.1374 L87.6727 265.8503" stroke-width="0.2279"/>
+            <path class="bit one" data-index="19" d="M87.2474 266.473 L87.9603 266.5472" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="20" d="M87.5475 267.05 L87.4733 267.7629" stroke-width="0.2279"/>
+            <path class="bit one" data-index="21" d="M87.0487 268.3786 L87.7616 268.4528" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="22" d="M87.3481 268.9626 L87.2739 269.6755" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="23" d="M87.209 270.2965 L87.1348 271.0094" stroke-width="0.2279"/>
+            <path class="bit one" data-index="24" d="M86.7161 271.5686 L87.429 271.6428" stroke-width="0.2279"/>
+            <path class="bit one" data-index="25" d="M86.6557 272.1473 L87.3687 272.2215" stroke-width="0.2279"/>
+            <path class="bit one" data-index="26" d="M86.5969 272.7119 L87.3098 272.7861" stroke-width="0.2279"/>
+          </g>
+        </g>
+        <g data-id="pulsar.12" data-order="12" data-b-name="B1240-64" data-j-name="J1243-6423" data-label-1972="1240" data-angle-deg="301.4834" data-r-over-r0="0.562105" data-broken="true" data-digits-along-own-line="true" data-binary="100000110110010110001001111000" data-value-th="551117432">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L93.4449 230.1231" stroke-width="0.2707"/>
+          <path class="solid" data-piece="1" d="M94.0828 231.1886 L129.9262 291.0511" stroke-width="0.2707"/>
+          <path class="tick z" d="M128.9912 290.1873 L129.6062 289.8191" stroke-width="0.2707" data-abs-z-over-r0="0.009226"/>
+          <g class="digits" data-id="pulsar.12.digits">
+            <path class="bit one" data-index="0" d="M112.4746 264.5555 L113.0896 264.1873" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="1" d="M113.0161 264.7615 L113.3843 265.3764" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="2" d="M113.6041 265.7424 L113.9723 266.3574" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="3" d="M114.223 266.775 L114.5912 267.39" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="4" d="M114.8523 267.8248 L115.2205 268.4398" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="5" d="M115.4661 268.8489 L115.8343 269.4638" stroke-width="0.2279"/>
+            <path class="bit one" data-index="6" d="M115.7652 270.0452 L116.3801 269.677" stroke-width="0.2279"/>
+            <path class="bit one" data-index="7" d="M116.0205 270.4713 L116.6355 270.1031" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="8" d="M116.5338 270.6302 L116.902 271.2451" stroke-width="0.2279"/>
+            <path class="bit one" data-index="9" d="M117.0201 272.1389 L117.6351 271.7707" stroke-width="0.2279"/>
+            <path class="bit one" data-index="10" d="M117.4579 272.8692 L118.0728 272.501" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="11" d="M118.0967 273.2376 L118.4649 273.8526" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="12" d="M118.9272 274.6232 L119.2954 275.2381" stroke-width="0.2279"/>
+            <path class="bit one" data-index="13" d="M119.2819 275.9123 L119.8969 275.5441" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="14" d="M119.8918 276.2324 L120.26 276.8474" stroke-width="0.2279"/>
+            <path class="bit one" data-index="15" d="M120.2888 277.5921 L120.9038 277.2239" stroke-width="0.2279"/>
+            <path class="bit one" data-index="16" d="M120.6025 278.1156 L121.2175 277.7473" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="17" d="M121.1401 278.315 L121.5084 278.93" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="18" d="M121.8056 279.4252 L122.1738 280.0402" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="19" d="M122.2504 280.1673 L122.6186 280.7823" stroke-width="0.2279"/>
+            <path class="bit one" data-index="20" d="M122.806 281.7916 L123.4209 281.4234" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="21" d="M123.3273 281.964 L123.6956 282.579" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="22" d="M123.9474 282.9985 L124.3156 283.6135" stroke-width="0.2279"/>
+            <path class="bit one" data-index="23" d="M124.2141 284.1409 L124.8291 283.7727" stroke-width="0.2279"/>
+            <path class="bit one" data-index="24" d="M124.5352 284.6765 L125.1501 284.3083" stroke-width="0.2279"/>
+            <path class="bit one" data-index="25" d="M124.8343 285.1756 L125.4493 284.8073" stroke-width="0.2279"/>
+            <path class="bit one" data-index="26" d="M125.1262 285.6625 L125.7411 285.2942" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="27" d="M125.6837 285.8952 L126.0519 286.5102" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="28" d="M126.3111 286.9419 L126.6793 287.5569" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="29" d="M126.9166 287.9521 L127.2849 288.5671" stroke-width="0.2279"/>
+          </g>
+        </g>
+        <g data-id="pulsar.13" data-order="13" data-b-name="B1451-68" data-j-name="J1456-6843" data-label-1972="1451" data-angle-deg="311.0979" data-r-over-r0="0.020382" data-broken="true" data-digits-along-own-line="false" data-binary="10110010011000101011101101111" data-value-th="374101871">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L92.5757 228.2314" stroke-width="0.2707"/>
+          <path class="solid" data-piece="1" d="M92.9838 228.7087 L93.4494 229.2534" stroke-width="0.2707"/>
+          <path class="tick z" d="M92.9441 229.2139 L93.489 228.7481" stroke-width="0.2707" data-abs-z-over-r0="0.002707"/>
+          <g class="digits" data-id="pulsar.13.digits">
+            <path class="bit one" data-index="0" d="M94.1448 230.5903 L94.6896 230.1245" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="1" d="M94.8093 230.8181 L95.275 231.363" stroke-width="0.2279"/>
+            <path class="bit one" data-index="2" d="M95.3166 231.9649 L95.8614 231.4991" stroke-width="0.2279"/>
+            <path class="bit one" data-index="3" d="M95.6942 232.4078 L96.239 231.9421" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="4" d="M96.3326 232.6051 L96.7984 233.15" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="5" d="M97.1789 233.5979 L97.6447 234.1427" stroke-width="0.2279"/>
+            <path class="bit one" data-index="6" d="M97.6081 234.6531 L98.1529 234.1873" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="7" d="M98.2856 234.8961 L98.7514 235.441" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="8" d="M99.0538 235.7973 L99.5196 236.3421" stroke-width="0.2279"/>
+            <path class="bit one" data-index="9" d="M99.5872 236.9746 L100.132 236.5089" stroke-width="0.2279"/>
+            <path class="bit one" data-index="10" d="M99.9648 237.4176 L100.5096 236.9518" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="11" d="M100.6292 237.6454 L101.095 238.1902" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="12" d="M101.4365 238.5923 L101.9023 239.1372" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="13" d="M102.1786 239.4629 L102.6444 240.0078" stroke-width="0.2279"/>
+            <path class="bit one" data-index="14" d="M102.6599 240.5792 L103.2048 240.1134" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="15" d="M103.3374 240.8223 L103.8032 241.3671" stroke-width="0.2279"/>
+            <path class="bit one" data-index="16" d="M103.9359 242.076 L104.4807 241.6102" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="17" d="M104.6134 242.3191 L105.0792 242.8639" stroke-width="0.2279"/>
+            <path class="bit one" data-index="18" d="M105.0426 243.3742 L105.5874 242.9085" stroke-width="0.2279"/>
+            <path class="bit one" data-index="19" d="M105.4072 243.8019 L105.952 243.3361" stroke-width="0.2279"/>
+            <path class="bit one" data-index="20" d="M105.7847 244.2448 L106.3296 243.7791" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="21" d="M106.3451 244.3505 L106.8109 244.8953" stroke-width="0.2279"/>
+            <path class="bit one" data-index="22" d="M106.9045 245.5583 L107.4493 245.0926" stroke-width="0.2279"/>
+            <path class="bit one" data-index="23" d="M107.269 245.986 L107.8139 245.5202" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="24" d="M107.8554 246.1222 L108.3212 246.667" stroke-width="0.2279"/>
+            <path class="bit one" data-index="25" d="M108.4148 247.3301 L108.9597 246.8643" stroke-width="0.2279"/>
+            <path class="bit one" data-index="26" d="M108.7924 247.773 L109.3372 247.3072" stroke-width="0.2279"/>
+            <path class="bit one" data-index="27" d="M109.17 248.2159 L109.7148 247.7502" stroke-width="0.2279"/>
+            <path class="bit one" data-index="28" d="M109.5476 248.6589 L110.0924 248.1931" stroke-width="0.2279"/>
+          </g>
+        </g>
+        <g data-id="pulsar.14" data-order="14" data-b-name="B1727-47" data-j-name="J1731-4744" data-label-1972="1727" data-angle-deg="342.733" data-r-over-r0="0.300864" data-broken="true" data-digits-along-own-line="false" data-binary="1000110001111100100011011101010" data-value-th="1178486506">
+          <path class="solid" data-piece="0" d="M91.696 227.2023 L94.4895 228.1013" stroke-width="0.2707"/>
+          <path class="solid" data-piece="1" d="M95.6121 228.4626 L129.6134 239.4047" stroke-width="0.2707"/>
+          <path class="tick z" d="M125.1723 238.3519 L125.3919 237.6696" stroke-width="0.2707" data-abs-z-over-r0="0.034368"/>
+          <g class="digits" data-id="pulsar.14.digits">
+            <path class="bit one" data-index="0" d="M131.0998 240.27 L131.3194 239.5877" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="1" d="M131.6029 240.0547 L132.2853 240.2743" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="2" d="M132.7878 240.4349 L133.4701 240.6545" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="3" d="M133.9535 240.809 L134.6358 241.0286" stroke-width="0.2279"/>
+            <path class="bit one" data-index="4" d="M135.0861 241.5491 L135.3057 240.8668" stroke-width="0.2279"/>
+            <path class="bit one" data-index="5" d="M135.6401 241.7269 L135.8597 241.0446" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="6" d="M136.113 241.5019 L136.7953 241.7215" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="7" d="M137.2596 241.8698 L137.9419 242.0894" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="8" d="M138.368 242.2255 L139.0503 242.445" stroke-width="0.2279"/>
+            <path class="bit one" data-index="9" d="M139.5049 242.967 L139.7245 242.2847" stroke-width="0.2279"/>
+            <path class="bit one" data-index="10" d="M140.0049 243.1274 L140.2244 242.4451" stroke-width="0.2279"/>
+            <path class="bit one" data-index="11" d="M140.4913 243.2835 L140.7109 242.6012" stroke-width="0.2279"/>
+            <path class="bit one" data-index="12" d="M140.9778 243.4396 L141.1974 242.7573" stroke-width="0.2279"/>
+            <path class="bit one" data-index="13" d="M141.4642 243.5957 L141.6838 242.9134" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="14" d="M142.0563 243.4089 L142.7386 243.6285" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="15" d="M143.2029 243.7769 L143.8852 243.9964" stroke-width="0.2279"/>
+            <path class="bit one" data-index="16" d="M144.3831 244.5323 L144.6026 243.8499" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="17" d="M144.8655 244.3103 L145.5478 244.5299" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="18" d="M146.0694 244.6967 L146.7517 244.9162" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="19" d="M147.1969 245.0584 L147.8793 245.278" stroke-width="0.2279"/>
+            <path class="bit one" data-index="20" d="M148.1532 245.742 L148.3728 245.0597" stroke-width="0.2279"/>
+            <path class="bit one" data-index="21" d="M148.6667 245.9068 L148.8863 245.2244" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="22" d="M149.108 245.6717 L149.7903 245.8912" stroke-width="0.2279"/>
+            <path class="bit one" data-index="23" d="M150.2207 246.4054 L150.4403 245.7231" stroke-width="0.2279"/>
+            <path class="bit one" data-index="24" d="M150.7477 246.5745 L150.9673 245.8922" stroke-width="0.2279"/>
+            <path class="bit one" data-index="25" d="M151.2882 246.7479 L151.5078 246.0656" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="26" d="M151.8216 246.5424 L152.5039 246.762" stroke-width="0.2279"/>
+            <path class="bit one" data-index="27" d="M153.0044 247.2986 L153.2239 246.6163" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="28" d="M153.618 247.1188 L154.3003 247.3384" stroke-width="0.2279"/>
+            <path class="bit one" data-index="29" d="M154.7475 247.858 L154.9671 247.1756" stroke-width="0.2279"/>
+            <path class="bit zero" data-index="30" d="M155.357 247.6768 L156.0393 247.8964" stroke-width="0.2279"/>
+          </g>
+        </g>
+      </g>
+    </g>
+    <g id="hydrogen" data-id="hydrogen" data-role="the two lowest states of the hydrogen atom and the transition between them">
+      <g data-id="hydrogen.state.1" data-role="antiparallel spins">
+        <circle class="stroke" cx="194.3076" cy="263.3283" r="6.6629" stroke-width="0.4844"/>
+        <path class="stroke" d="M194.215 255.3776 L194.215 259.0816" stroke-width="0.3419" data-role="spin moment, top"/>
+        <circle class="dot" cx="194.215" cy="258.8679" r="0.4274" fill="currentColor" stroke="none"/>
+        <path class="stroke" d="M194.2777 261.6459 L194.2777 265.2074" stroke-width="0.3419" data-role="spin moment, centre"/>
+        <circle class="dot" cx="194.2777" cy="261.8595" r="0.4274" fill="currentColor" stroke="none"/>
+      </g>
+      <g data-id="hydrogen.state.2" data-role="parallel spins">
+        <circle class="stroke" cx="219.7297" cy="263.8298" r="6.6857" stroke-width="0.4844"/>
+        <path class="stroke" d="M219.7169 255.3776 L219.7169 259.0816" stroke-width="0.3419" data-role="spin moment, top"/>
+        <circle class="dot" cx="219.7169" cy="255.5913" r="0.4274" fill="currentColor" stroke="none"/>
+        <path class="stroke" d="M219.6399 262.0732 L219.6399 265.4923" stroke-width="0.3419" data-role="spin moment, centre"/>
+        <circle class="dot" cx="219.6399" cy="262.2869" r="0.4274" fill="currentColor" stroke="none"/>
+      </g>
+      <path class="stroke" d="M200.791 263.6403 L213.1851 263.7115" stroke-width="0.4844" data-role="transition"/>
+      <g data-id="hydrogen.one" data-role="binary 1: the unit">
+        <path class="bit one" d="M207.1055 263.7115 L207.1055 265.2786" stroke-width="0.4274" data-index="0"/>
+      </g>
+    </g>
+    <!-- Uranium-238 spot: not drawn. NASA says ultra-pure U-238 (about 0.00026 microcurie) is electroplated on the cover in a two-centimetre-diameter area, but it is not on the cover diagram and not identifiable in the 1977 photo (docs/research/cover.md 1e). Its position is the game's documented choice (D-A08), to be filled in when the instruments step places it: a 20 mm circle, no position known from any source. -->
+    <g id="uranium-spot" data-id="cover.uraniumSpot" data-diameter-mm="20" data-drawn="false"></g>
+  </g>
+</svg>
