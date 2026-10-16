@@ -100,3 +100,34 @@ def accepted_stretches(calls: list, speech: list, frames: int) -> list[tuple[int
         if k:
             out.append((a, b, k))
     return out
+
+
+def analysis(mono, items: list[dict], ceiling_hz: float, speech: dict, calls_cfg: dict) -> dict:
+    """voices.json "others": for every item the player can mark (record.json's sides after the pictures), the held
+    calls (start frame, frames, median Hz, glide cents) and, for the greetings and the Sounds of Earth, the speech
+    runs (start frame, frames). Music items get their held tones (start frame, frames) only: see the module note.
+    mono(n) reads Ozma track n as analyse.py does."""
+    tracks = {}
+    for it in items:
+        n = int(it["id"].split("-")[1])
+        m, sr = mono(n)
+        fc, ac = vdsp.yin(m, sr, calls_cfg["fminHz"], calls_cfg["fmaxHz"], calls_cfg["windowS"])
+        cs = vmusic.calls(fc, ac, vdsp.YIN_THRESHOLD, ceiling_hz)
+        if it["kind"] == "music":
+            tracks[it["id"]] = {"kind": "music", "frames": len(fc), "held": [[a, k] for a, k, _, _ in cs]}
+            continue
+        fs, as_ = vdsp.yin(m, sr, speech["fminHz"], speech["fmaxHz"], speech["windowS"])
+        sp = speech_runs(fs, as_, band_cover(m, sr), ceiling_hz)
+        tracks[it["id"]] = {
+            "kind": it["kind"], "frames": len(fc),
+            "calls": [[a, k, round(hz, 2), round(g, 1)] for a, k, hz, g in cs],
+            "speech": [[a, b - a] for a, b in sp],
+            "accepted": [[a, b, k] for a, b, k in accepted_stretches(cs, sp, len(fc))],
+        }
+    return {
+        "rule": {"speechCmnd": SPEECH_CMND, "speechBandHz": list(SPEECH_BAND_HZ), "speechAboveDb": SPEECH_ABOVE_DB,
+                 "speechFloorPct": SPEECH_FLOOR_PCT, "speechCover": SPEECH_COVER, "speechMinFrames": SPEECH_MIN_FRAMES,
+                 "speechStepCents": SPEECH_STEP_CENTS, "nfft": NFFT, "callMinS": vmusic.CALL_MIN_S,
+                 "callStepCents": vmusic.CALL_STEP_CENTS, "aboveHz": ceiling_hz},
+        "tracks": tracks,
+    }

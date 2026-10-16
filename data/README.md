@@ -199,8 +199,9 @@ The Voices' reference analysis (M5 step 4) of the lossless Ozma transfers (`sour
 track as its mono mix (L + R) / 2 rounded to 16 bits; the same samples go to `build/voices/NN.wav` (gitignored)
 so the Node tests can run the TypeScript on them (`src/dsp/voices.ref.test.ts`). The four Voices checkers judge
 against these numbers; `tools/voices/checks.py` checks them against `docs/research/voices.md`, synthetic tones
-and synthetic melodies. Methods and settings: `tools/voices/vdsp.py` and `vmusic.py` (twins of
-`src/dsp/segment.ts`, `pitch.ts`, `spectrum.ts`). About 1.5 minutes; the bootstraps use fixed seeds.
+and synthetic melodies. Methods and settings: `tools/voices/vdsp.py`, `vmusic.py`, `vspec.py` and `vfold.py`
+(twins of `src/dsp/segment.ts`, `pitch.ts`, `spectrum.ts` and `fold.ts`) and `others.py`. About 8 minutes (the
+"others" pass reads every track); the bootstraps use fixed seeds.
 
 ```powershell
 cd "C:\Users\stewa\Documents\Claude\Golden Record"; python -P tools/voices/analyse.py; python -P tools/voices/checks.py
@@ -212,8 +213,11 @@ cd "C:\Users\stewa\Documents\Claude\Golden Record"; python -P tools/voices/analy
   -2000 for digital silence), `f0Hz100` (pitch per frame in hundredths of a Hz, 0 unvoiced); `researchTable`
   (silent runs on voices.md section 1's grid, and the research's own numbers); `levelMixture` (two Gaussians fitted
   to the frame levels: the noise between voices and the voices); `reasonable` (thresholds where a frame is the
-  noise with probability 0.95 down to 0.05, and gaps 0.15 to 0.4 s from voices.md); `accepted` (the fewest and
-  most segments over those settings); `speechCeilingHz` (the highest median pitch of any pitch run held 0.2 s);
+  noise with probability 0.95 down to 0.05, and gaps 0.15 to 0.4 s from voices.md: the one definition of
+  reasonable settings, which the checker uses too); `accepted` (the fewest and most segments over those settings,
+  on the sliders' grid); `cutTable` (the same range for noise-posterior cuts of 0.90, 0.95, 0.99 and 0.999);
+  `nearPublished` (the setting nearest the reasonable band whose count is within 2 of the published 55, and the
+  noise posterior at its threshold); `speechCeilingHz` (the highest median pitch of any pitch run held 0.2 s);
   `oneSpeaker` (Ozma 01, Waldheim: frames, pitch, and the sd of his segment pitches in semitones at the
   centre of the reasonable settings); `reference` (at that setting: segments, their pitch sd, voices' worth of
   pitch, the F-test against one speaker, and BIC for 1, 2 and 3 Gaussian groups minus that for 1).
@@ -221,12 +225,25 @@ cd "C:\Users\stewa\Documents\Claude\Golden Record"; python -P tools/voices/analy
   speech and music track, 01, 02 and 05 to 31, for display), `greetingsDb` and `noiseDb` (the greetings and their
   own silences: stretches below the reasonable threshold's low end, long enough for one Welch segment),
   `crossingHz` (where the greetings fall to twice the noise's power, judged up to 20 kHz) with its 95%
-  `crossingBandHz` (block bootstrap over Welch segments), and the 95%-of-power frequencies.
+  `crossingBandHz` (block bootstrap over Welch segments), `definitions` (the crossing where what the greetings
+  add is a third, a half, one, two and three times the noise: the spread the edge's definition alone causes),
+  and the 95%-of-power frequencies.
 - `music.violin` (Ozma 14, the Gavotte): `notes` `[start frame, frames, cents re 440 Hz x 100]`, `octaveCents`
-  (the repetition curve's peak nearest a doubling), its bootstrap half-width, the tracker's 95% error on
-  synthetic tones, and the 100-cent grid resultant. `music.aria` (Ozma 15): the same grid resultant, showing why
+  (the best fold of the notes, `tools/voices/vfold.py`: how much closer than chance notes a whole repeat apart
+  lie, Gaussian kernel sd 25 cents summed over every harmonic, the note's own pitch left out), `fold` (its score,
+  the bootstrap interval of its position over 1,000 resamplings of the notes, every other peak of the score from
+  100 to 2400 cents with the margin's 95% range and the share of resamplings the best wins, and which peak each
+  named ratio falls on), `trackerSlope` (the tracker's systematic error per doubling on synthetic tones),
+  `octaveTolCents` (the bootstrap half-width and that slope's 95% bound in quadrature), the tracker's 95% error
+  on synthetic tones, and the 100-cent grid resultant. `music.aria` (Ozma 15): the same grid resultant, showing why
   the aria was not used. `music.piano` (Ozma 21, Gould): `hist` (spectral-peak magnitude per 5-cent bin over
   +/- 3600 cents, sum 1), `combScores` (k = 2 to 36 equal steps per octave), `combK`, the fit, and the block
   bootstrap's share of draws picking the same comb.
 - `whale` (Ozma 03): `calls` `[start frame, frames, median Hz, glide cents]` (pitch runs held 0.2 s with a
   median above `speechCeilingHz`) and `segmentS`, the stretch from the first call to the end of the last.
+- `others` (`tools/voices/others.py`): `rule` (the speech finder's and call finder's settings) and, per item after
+  the pictures, `tracks.<id>`: for the greetings and the Sounds of Earth `calls` (as `whale.calls`), `speech`
+  `[start frame, frames]` (runs voiced at a speaking pitch, broadband from 300 to 3,000 Hz, at least 3 frames) and
+  `accepted` `[start frame, end frame, calls]` (the longest stretches between speech holding at least one call);
+  for music only `held` `[start frame, frames]` (held tones by the same call finder: a stretch of music is never
+  accepted, because measurement cannot tell a held note from an animal's call).

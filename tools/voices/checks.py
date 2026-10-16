@@ -17,6 +17,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, str(Path(HERE).parent))
 import analyse  # noqa: E402
 import vdsp  # noqa: E402
+import vfold  # noqa: E402
 import vmusic  # noqa: E402
 from checkrecord import record_check  # noqa: E402
 
@@ -62,14 +63,16 @@ def table() -> None:
     )
     g = V["greetings"]
     acc = g["accepted"]
+    cuts = "; ".join(f"posterior {c['posterior']}: {c['minVoices']} to {c['maxVoices']}" for c in g["cutTable"])
+    near = g["nearPublished"]
     check(
         "voices.ref.count",
         acc["minVoices"] >= 24,
-        claim="Over every reasonable setting the greetings fall into a few dozen separate voices at least; silence alone cannot give the published 55.",
-        measured=f"{acc['minVoices']} to {acc['maxVoices']} segments over thresholds {g['reasonable']['thresholdGridDb']} dBFS (0.5 dB steps) and gaps {g['reasonable']['gapS']} s (0.01 s steps)",
+        claim="Over every reasonable setting the greetings fall into a few dozen stretches of voice between pauses at least; the count depends on where a pause is taken to end a voice, and some settings give about the published 55.",
+        measured=f"{acc['minVoices']} to {acc['maxVoices']} stretches over thresholds {g['reasonable']['thresholdGridDb']} dBFS (0.5 dB steps) and gaps {g['reasonable']['gapS']} s (0.01 s steps); by the noise-posterior cut: {cuts}; nearest to 55: {near['count']} at {near['thresholdDb']} dBFS and {near['gapS']} s (noise posterior there {near['noisePosterior']})",
         expected="'a few dozen at least' (voices.md 1), at least two dozen; NASA's 55 languages for comparison",
-        tolerance=f"thresholds from a two-component mixture of the frame levels (noise {g['levelMixture']['meansDb'][0]} +/- {g['levelMixture']['sdsDb'][0]} dB, voices {g['levelMixture']['meansDb'][1]} +/- {g['levelMixture']['sdsDb'][1]} dB): where a frame is the noise with probability 0.95 down to 0.05; gaps from voices.md 1",
-        notes="The whole range lies above 55: several greetings hold pauses as long as the gaps between them (voices.md 1), so they split; an exact count would need a hand-made onset list.",
+        tolerance=f"the one definition of reasonable settings (analyse.py REASONABLE_GAPS; the checker uses the same): thresholds from a two-component mixture of the frame levels (noise {g['levelMixture']['meansDb'][0]} +/- {g['levelMixture']['sdsDb'][0]} dB, voices {g['levelMixture']['meansDb'][1]} +/- {g['levelMixture']['sdsDb'][1]} dB) where a frame is the noise with probability 0.95 down to 0.05; gaps from voices.md 1",
+        notes="At the 0.95 cut the range lies above 55, but a looser cut reaches it: several greetings hold pauses as long as the gaps between them (voices.md 1), so where the cut is set decides how many split. An exact count would need a hand-made onset list.",
     )
     ref = g["reference"]
     check(
@@ -83,48 +86,57 @@ def table() -> None:
     )
 
 
-def octave(e_tracker: float) -> None:
+def octave() -> None:
     vi = V["music"]["violin"]
-    e = float(np.hypot(vi["bootstrap"]["octaveHalfWidthCents"], e_tracker))
+    fo = vi["fold"]
+    tol = vi["octaveTolCents"]
+    worst = min(fo["peaks"], key=lambda p: p["marginLow"])
+    ok = abs(vi["octaveCents"] - 1200) <= tol and all(p["marginLow"] > 0 for p in fo["peaks"])
+    by_c = {p["cents"]: p for p in fo["peaks"]}
+    named = ", ".join(f"{k} at {v} cents: {by_c[v]['score']:.3f} (wins {by_c[v]['bestWins']:.1%})" for k, v in fo["named"].items() if v is not None)
     check(
         "voices.ref.octave",
-        abs(vi["octaveCents"] - 1200) <= e,
-        claim="On the solo violin, the notes' pattern repeats itself at a doubled frequency: the repetition curve peaks at 2:1.",
-        measured=f"peak at {vi['octaveCents']:.2f} cents ({2 ** (vi['octaveCents'] / 1200):.5f}:1) from {len(vi['notes'])} notes",
-        expected="2:1 = 1200 cents (voices.md 4)",
-        tolerance=f"+/- {e:.2f} cents: the bootstrap's 95% half-width over the notes ({vi['bootstrap']['octaveHalfWidthCents']}) and the tracker's 95% error ({e_tracker:.3f}) in quadrature",
-        notes=f"The aria was tried first: the orchestra under the soprano defeats a single-voice tracker (its notes sit on a 100-cent grid with resultant {V['music']['aria']['gridResultant100']}, the violin's {vi['gridResultant100']}).",
+        ok,
+        claim="On the solo violin, notes a doubled frequency apart line up: folded at 2:1 the notes a repeat apart gather more tightly than at any other ratio up to 4:1, by a bootstrapped margin.",
+        measured=f"best fold {vi['octaveCents']:.2f} cents ({2 ** (vi['octaveCents'] / 1200):.5f}:1), {fo['bestScore']} times chance, from {len(vi['notes'])} notes; it beats all {len(fo['peaks'])} other peaks from 100 to 2400 cents, the closest margin {worst['marginLow']:.3f} to {worst['marginHigh']:.3f} (95%, {fo['draws']} resamplings) against {worst['cents']} cents; {named}",
+        expected="2:1 = 1200 cents (voices.md 4), beating 3:2, 4:3, 5:4, two stacked 3:2 (1406), 3:1 and 4:1",
+        tolerance=f"+/- {tol:.2f} cents: the bootstrap's 95% half-width over the notes ({fo['bootstrap']['halfWidthCents']}) and the tracker's systematic slope ({vi['trackerSlope']['centsPerOctave']} +/- {vi['trackerSlope']['se']} cents per doubling, 95% bound {vi['trackerSlope']['bound95']}) in quadrature; every margin's 2.5th percentile above 0",
+        notes=f"Score (tools/voices/vfold.py): Gaussian kernel (sd {fo['sigmaCents']} cents) closeness of notes a whole repeat apart, summed over every harmonic of the fold, over chance. The plain sum that keeps a note's own pitch (k = 0) grows with the trial ratio: there 2117 cents and 3:1 came within the bootstrap of 2:1 and 4:1 beat it; with it removed the near-tie of 1406 (2.61 against 2.90) is gone too. The aria was tried first: the orchestra under the soprano defeats a single-voice tracker (grid resultant {V['music']['aria']['gridResultant100']}, the violin's {vi['gridResultant100']}).",
     )
-    calibrate_octave(e_tracker)
+    calibrate_octave()
 
 
-def calibrate_octave(e_tracker: float) -> None:
-    """Coverage of the octave's bootstrap interval on synthetic melodies with an exact 2:1 octave: the violin's
-    own notes snapped to a 100-cent grid (so the octave is exactly 1200), with the real intonation scatter."""
+def calibrate_octave() -> None:
+    """Coverage of the octave's interval on synthetic melodies with an exact 2:1 octave: the violin's own notes
+    snapped to a 100-cent grid (so the octave is exactly 1200), redrawn with the real intonation scatter (which
+    holds the tracker's per-note error), estimated and bootstrapped exactly as the reference does."""
+    from scipy.stats import binom
     vi = V["music"]["violin"]
     nc = np.array([n[2] / 100 for n in vi["notes"]])
     off = np.angle(np.exp(2j * np.pi * nc / 100).mean()) / (2 * np.pi) * 100
     grid = np.round((nc - off) / 100) * 100 + off
-    resid = nc - grid
-    sd = float(np.std(resid))
+    sd = float(np.std(nc - grid))
+    slope = vi["trackerSlope"]["bound95"]
     rng = np.random.default_rng(7)
-    trials, cover = 200, 0
+    trials, draws, cover, errs = 200, 300, 0, []
     for _ in range(trials):
         mel = grid[rng.integers(0, len(grid), len(grid))] + rng.normal(0, sd, len(grid))
-        est = analyse.octave_of(mel)
-        boots = [analyse.octave_of(mel[rng.integers(0, len(mel), len(mel))]) for _ in range(300)]
-        boots = np.array([b for b in boots if b is not None])
-        hw = analyse.boot_interval(boots, est)
-        cover += int(abs(est - 1200) <= np.hypot(hw, e_tracker))
+        notes = vfold.Notes(mel)
+        est, _ = vfold.best(notes)
+        pos, _ = vfold.boot_local(notes, est, vfold.resample_weights(len(mel), draws, rng))
+        lo, hi = np.percentile(pos, [2.5, 97.5])
+        cover += int(abs(est - 1200) <= np.hypot(max(est - lo, hi - est), slope))
+        errs.append(est - 1200)
     share = cover / trials
+    band = (binom.ppf(0.025, trials, 0.95) / trials, binom.ppf(0.975, trials, 0.95) / trials)
     check(
         "voices.ref.octaveCoverage",
-        0.9 <= share <= 1.0,
+        band[0] <= share <= band[1],
         claim="The octave's interval is honest: on synthetic melodies with an exact doubling it holds 1200 cents about 95% of the time.",
-        measured=f"{cover} of {trials} synthetic melodies ({share:.1%}); 300 bootstrap draws each",
-        expected="about 95% (a 95% interval)",
-        tolerance="90% to 100% (binomial: 200 trials at 95% give 91% to 98% at 2 sigma; the tracker term only widens it)",
-        notes=f"melodies: the violin's {len(nc)} notes snapped to a 100-cent grid and redrawn with its intonation scatter (sd {sd:.1f} cents)",
+        measured=f"{cover} of {trials} synthetic melodies ({share:.1%}); {draws} bootstrap draws each; the estimate reads {np.mean(errs):+.2f} cents on average (sd {np.std(errs):.2f})",
+        expected="95% (a 95% interval)",
+        tolerance=f"{band[0]:.1%} to {band[1]:.1%}: the central 95% of a binomial count of {trials} trials at 95% (two-sided)",
+        notes=f"melodies: the violin's {len(nc)} notes snapped to a 100-cent grid and redrawn with its intonation scatter (sd {sd:.1f} cents). The fold's chance term (the share of pairs half a repeat apart) falls as the ratio grows, so the peak reads a little high; the bootstrap does not see that bias, which is why the coverage sits a little under 95%.",
     )
 
 
@@ -151,11 +163,11 @@ def hearing() -> None:
     check(
         "voices.ref.hearing",
         10_000 < lo <= sp["crossingHz"] <= hi < analyse.TOP_HZ,
-        claim="The greetings stay above the record's own noise to well over 10 kHz: a lower bound on what the senders make and hear, capped by the record itself.",
+        claim="The greetings stand above their recording's own hiss to well over 10 kHz (by the 3 dB rule): a lower bound on the sounds the senders make, capped by the record itself.",
         measured=f"the greetings' long-term spectrum falls to the noise of their own silences at {sp['crossingHz'] / 1000:.2f} kHz (95% {lo / 1000:.2f} to {hi / 1000:.2f} kHz, block bootstrap); 95% of the greetings' power below {sp['greetingsEnergy95Hz'] / 1000:.2f} kHz, of all the music and speech below {sp['aggregateEnergy95Hz'] / 1000:.2f} kHz",
         expected="voices.md 3: no cutoff, a slow decay into vinyl and tape noise, detectable to well over 10 kHz; most energy below about 8 kHz",
         tolerance="crossing interval above 10 kHz and below 20 kHz (the top the runtime Opus audio carries; the transfer itself reaches 22.05 kHz)",
-        notes="Measured on the greetings against their own silences (same transfer): other tracks carry their own hiss, which no silence on them measures.",
+        notes=f"Measured on the greetings against their own silences (same transfer): other tracks carry their own hiss, which no silence on them measures. The rule alone moves it: where the voices add a third of the hiss to three times it, {sp['definitions']['spreadHz'][0] / 1000:.2f} to {sp['definitions']['spreadHz'][1] / 1000:.2f} kHz (the auditor's definitions gave 15.0 to 17.0). No claim is made about what they hear.",
     )
 
 
@@ -184,12 +196,46 @@ def whale() -> None:
     )
 
 
+def speech() -> None:
+    """voices.others' speech finder against independent truth: the lead's reading of the UN greetings track's
+    spectrograms (docs/reviews/2026-10-16-M5-science-audit.md: speech to about 188 s, calls alone from about 189 s
+    to about 236 s, low moans to about 239.5 s) and the two all-speech tracks (Waldheim, the 55 greetings), where
+    every 4 s stretch must hold speech."""
+    tr = V["others"]["tracks"]
+    t3 = tr["ozma-03"]
+    sp = [(a / 100, (a + n) / 100) for a, n in t3["speech"]]
+    last = max(b for a, b in sp if a < 210)
+    inside = [(a, b) for a, b in sp if b > 190 and a < 234]
+    acc = [(a / 100, b / 100, k) for a, b, k in t3["accepted"]]
+    covers = any(a <= 190 and b >= 234 for a, b, _ in acc)
+    windows = {}
+    for tid in ("ozma-01", "ozma-02"):
+        runs = [(a / 100, (a + n) / 100) for a, n in tr[tid]["speech"]]
+        n = int(tr[tid]["frames"] / 100 // 4)
+        live = [k for k in range(n) if any(b > 4 * k and a < 4 * (k + 1) for a, b in runs)]
+        windows[tid] = (len(live), n)
+    all_speech = all(a == b for a, b in windows.values())
+    ok = abs(last - 188) <= 2 and not inside and covers and all_speech
+    check(
+        "voices.ref.speech",
+        ok,
+        claim="The speech finder (voiced at a speaking pitch, broadband, in runs) finds speech where people speak and none where only the whale calls: a stretch with held calls and no speech is not theirs.",
+        measured=f"UN greetings track: last speech ends {last:.2f} s; speech runs between 190 and 234 s: {len(inside)}; accepted stretches {acc}; 4 s windows holding speech: Waldheim {windows['ozma-01'][0]} of {windows['ozma-01'][1]}, the 55 greetings {windows['ozma-02'][0]} of {windows['ozma-02'][1]}",
+        expected="the lead's reading of the spectrograms (speech to about 188 s; calls alone about 189 to 236 s; moans to about 239.5 s); speech in every stretch of the two all-speech tracks",
+        tolerance="2 s for the reading (a spectrogram read by eye to about a second, with faint calls under the last speakers from about 182 s): last speech within 188 +/- 2 s, none from 190 to 234 s, one accepted stretch covering 190 to 234 s; every 4 s window of Ozma 01 and 02",
+        notes="The rule's thresholds were set on this track against this reading, so its part of the check is not independent of the rule; Ozma 01 and 02 are (and the Sounds of Earth will be, once the lead reads its spectrograms: pending).",
+    )
+    so = tr["ozma-04"]
+    print("PENDING voices.ref.sounds: the Sounds of Earth's accepted stretches (s, calls inside):", [(a / 100, b / 100, k) for a, b, k in so["accepted"]])
+
+
 if __name__ == "__main__":
     e_t = tracker_error()
     table()
-    octave(e_t)
+    octave()
     step()
     hearing()
     whale()
+    speech()
     print("trackerErrorCents95", e_t)
     sys.exit(1 if failed else 0)

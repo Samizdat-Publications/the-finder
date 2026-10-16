@@ -1,57 +1,74 @@
-# M5 step 6a: where it paused (2026-10-16)
+# M5 step 6a: where it stands (2026-10-16, second run, stopped at the lead's checkpoint)
 
-Paused at Stewart's request (quota) before the step was finished. The spec is
-`docs/plans/M5_specs/step6a-voices-audit-fixes.md`; this note keeps what was found so the next session
-resumes, not restarts. Nothing here is wired into the game yet.
+Spec: `docs/plans/M5_specs/step6a-voices-audit-fixes.md`, with the lead's changes of 2026-10-16 (music items
+refused with the held-tone count; the multi-harmonic fold with bootstrap margins and a two-sided coverage band in
+both twins; the guided tour must keep passing; Sounds of Earth panels to review/archive, that case pending).
+Nothing committed. Items 1 to 5 are implemented and tested; what remains is listed at the end.
 
-## Item 1, `voices.others` by measurement: partly done
+## Verified this run
 
-- **Written:** `tools/voices/others.py` (not imported anywhere yet; no behaviour changes).
-- **Why voicing and pitch alone fail:** on track 03 the speech after about 140 s is noisy and hummed and
-  rarely voiced at YIN's 0.1 threshold, while the whale's low pulses (about 100 Hz) and some harmonic calls
-  (254 Hz at 210.8 s) are voiced at a speaking pitch; a cepstral peak and spectral flatness did not
-  separate them either.
-- **The rule in `others.py`:** a frame is speech when it is voiced at a speaking pitch (tracker 60 to 500
-  Hz, CMND below 0.45, pitch at most the speakers' ceiling of 378.33 Hz) AND broadband (at least 70% of
-  the 300 to 3,000 Hz bins stand 15 dB above the track's own floor in that bin, its 20th percentile) AND in
-  a pitch run (under 50 cents a frame) of at least 3 frames. A stretch is "not theirs" when it holds at
-  least one whole held call (the existing call finder) and no speech frame.
-- **Results:** track 03: 9 calls, last speech at 187.43 s, no speech frames from 190 to 239 s; accepted
-  stretch 187.44 to 244.09 s, matching the lead's reading (speech to about 188 s). Thresholds 0.3 and 0.6
-  give the same; coverage 0.6 with 5-frame runs does not (flags speech near 199 and 210 s). Independent
-  check: every 4 s window of Ozma 01 and 02 holds speech (100%).
-- **Caveat for How it's checked:** the rule was chosen on track 03 against the lead's reading, so that test
-  is not independent of the rule; Ozma 01 and 02 are the independent check, and the Sounds of Earth will be
-  another once the lead reads its spectrograms.
-- **Sounds of Earth (track 04), provisional:** 17 calls, 125 speech runs; accepted stretches (seconds,
-  calls inside): 293.11 to 296.77 (1); 296.98 to 298.38 (2); 302.95 to 312.62 (1); 417.37 to 473.56 (10);
-  620.26 to 675.18 (2). Some may be machines (horn, whistle, Morse) rather than animals.
-- **Decision for the lead (open):** music items: the stated rule would accept an instrument's held notes as
-  "not theirs". Proposed: refuse stretches on music items, with the measured held-tone counts in the
-  message (measurement cannot tell a held note from a call).
-- **Remaining:** wire `others.py` into `analyse.py` (an "others" block in `voices.json`: calls for all
-  tracks, speech for the voices and sounds tracks; a whole-record pass costs 3 to 4 minutes; check the JSON
-  size); rewrite `checkOthers` in `src/chapters/voices/checkers.ts` (refusals that say what was measured);
-  test cases from the lead's reading (tolerance 2 s) with the Sounds of Earth case pending; a
-  `voices.ref.speech` check in `tools/voices/checks.py`; the 60 s Sounds of Earth spectrogram panels for the
-  lead to read; update `tests/browser/voices.browser.mjs` (its wrong-answer case expects "Speakers only").
+- `npx vitest run src/dsp src/chapters/voices src/game`: 16 files, 72 tests pass (1 todo: the Sounds of Earth
+  case, pending). `npx tsc --noEmit`: no errors.
+- `python -P tools/voices/checks.py`: every check passes (exit 0), new `voices.ref.speech`; prints
+  `PENDING voices.ref.sounds` with the accepted stretches.
+- Browser tests: `voices` pass (123 s), `game` pass on retry (the first attempt failed in The Pictures: "frame
+  L004 is not loaded yet", not voices), `tour` with TOUR_ARCHIVE=1 pass (229 s; voices.many 15.5 s, hearing
+  2.1 s, others 13.4 s, octave 0.8 s; screenshots in review/archive/2026-10-16T22-28-28-tour).
+- `python -P tools/voices/analyse.py` rerun: data/voices.json 295 KB (was 269 KB), about 8 to 10 minutes.
 
-## Item 2, the octave: design found, no code yet
+## What changed, by item
 
-- The plain fold (the mean resultant length R of 2 pi x pitch / P) cannot discriminate on the Gavotte's
-  411 notes: R(1200) 0.379 but R(1242) 0.384, R(238) 0.681, R(100) 0.625; clickable peaks beat 1200 too (71
-  cents 0.443, 1275 0.381). Reason: the first harmonic resolves P only to about P squared over the notes'
-  3,141-cent span, roughly 480 cents near 1200.
-- **What works:** a multi-harmonic fold: fold the notes modulo P, compare their pairwise closeness
-  (Gaussian kernel, sigma 25 cents) with chance, sum over all harmonics. At sigma 25 the best fold from 30
-  to 2,400 cents is 1199 cents (2.90), apart from its own double 2,398 (3.17); next 2117 (2.85), 1905 (2.80,
-  about 3:1), 1408 (2.61); the named candidates 702 2.19, 498 1.60, 386 1.14. So two stacked fifths (about
-  1406) and 3:1 come close but behind.
-- **Remaining:** the bootstrap margins, the error bar re-derived, a two-sided coverage band, the TypeScript
-  and Python twins, the checker and its messages computed from the comparison.
+1. **voices.others by measurement** (`tools/voices/others.py` wired into `analyse.py` as `others_pass`; new
+   `others` block in voices.json; `whale` now taken from it). Checker (`checkers.ts checkOthers`, data from
+   `data.ts measureStretch`): accept a stretch with at least one whole held call and no speech run touching it;
+   refusals say the calls and speech measured; a music item is always refused with its held-tone count and "cannot
+   tell". D-A32 amended. Track 03: last speech 187.44 s, no speech 190 to 234 s, accepted 187.44 to 244.09 s;
+   Ozma 01 and 02: speech in every 4 s window (10 of 10, 56 of 56). Sounds of Earth (track 04) accepted
+   stretches: 293.11 to 296.77 (1 call), 296.98 to 298.38 (2), 302.95 to 312.62 (1), 417.37 to 473.56 (10),
+   620.26 to 675.18 (2); the calls at 464 to 469 s look like a 1 kHz machine tone (Morse?). Panels:
+   `review/archive/2026-10-16T18-14-57-sounds-spectrograms/` (13 PNGs, index.txt) by `tools/voices/panels.py`.
+2. **voices.octave** (`tools/voices/vfold.py`, `src/dsp/fold.ts`, twins agree: best within 0.01 cents, peaks within
+   5e-5). Score: Gaussian kernel (sd 25 cents) closeness of notes a whole repeat apart, summed over every harmonic,
+   with the k = 0 (own pitch) term removed, over chance (share of pairs at least P/2 apart). Why the change from
+   the progress note's plain fold: with k = 0 kept, 2398 beat 1199 and 2117, 1905, 2191 were within the
+   bootstrap (1199 won only 66%, 85%, 92%). Now: best 1198.805 cents, 2.633 times chance; beats all 43 other peaks
+   (100 to 2400 cents) in 1000 of 1000 resamplings; table: 3:2 704.55 1.980 (margin 0.33 to 1.00), two 3:2
+   1408.44 1.892 (0.45 to 1.06, no longer a near tie), 4:1 2398.77 1.667, 4:3 476.25 1.667, 3:1 1903.63 1.602,
+   5:4 382.26 0.839. Bootstrap 95% 1196.80 to 1200.90; tracker systematic slope 0.32 +/- 0.07 cents per doubling
+   (bound 0.45); tolerance 2.14 cents. Coverage on synthetic melodies 188/200 = 94.0% inside the two-sided binomial
+   band 92.0 to 97.5%; the estimate reads +0.92 cents high on average (the chance term's tilt). The octave chart now
+   draws the fold score (same x mapping, so the tour's click at 1200 snaps to about 1198.6 to 1198.8). Browser
+   Worker best fold 1198.61. Known limit: on a two-octave synthetic major scale the fold prefers 3:2 (a
+   fifth-generated scale); pitch.test.ts now uses three octaves and says so.
+3. **voices.many**: one definition (thresholds -36.0 to -24.5 on the 0.5 dB grid, posterior 0.95 to 0.05; pauses
+   0.15 to 0.40 s) in `analyse.py` and `data.ts isReasonable`; range 63 to 226; cut table 0.90: 66 to 204; 0.95:
+   63 to 226; 0.99: 54 to 265; 0.999: 46 to 265; nearest about-55 setting: 57 at -37.5 dBFS and 0.40 s (noise
+   posterior 0.977). "Separate voices" renamed "stretches of voice between pauses" (reading, panel label,
+   headline). Hint about groups replaced with the spread.
+4. **voices.hearing**: messages and readings say "they make sounds above their recording's hiss up to about
+   17.1 kHz (3 dB rule)", sampling band 16.6 to 17.5, definition spread 15.0 to 18.5 kHz (added = 1/3 to 3 times
+   the hiss; code moved to `tools/voices/vspec.py`). Gloss, hints, question ("How high do their voices reach?") and
+   headline carry no hearing claim.
+5. **Row 16** of docs/HOW_ITS_CHECKED.md rewritten (reference and Worker values named, whale as calls); D-A32
+   amended; data/README.md voices.json section updated.
 
-## Items 3 to 5: not started
+## Files
 
-`voices.many` with one shared definition of reasonable settings (the auditor's count-against-cut table must
-be recomputed; it is not in the repo), the hearing wording within the research, and row 16, D-A32 and
-`src/game/nodesM5.ts` wording.
+Modified: data/README.md, data/voices.json, docs/DECISIONS.md, docs/HOW_ITS_CHECKED.md,
+src/chapters/voices/{ManyPanel.tsx, OctavePanel.tsx, checkers.ts, checkers.test.ts, data.ts, headlines.ts},
+src/dsp/{pitch.test.ts, voices.ref.test.ts}, src/game/nodesM5.ts, src/tour/actions/voices.ts (comments only),
+tests/browser/voices.browser.mjs, tools/voices/{analyse.py, checks.py, others.py}.
+New: src/dsp/fold.ts, src/dsp/fold.test.ts, tools/voices/vfold.py, tools/voices/vspec.py, tools/voices/panels.py.
+
+## What remains
+
+- The lead reads the Sounds of Earth panels; then turn the `it.todo` in checkers.test.ts and the PENDING line in
+  checks.py into real cases (and decide whether machine tones count as "not theirs").
+- Tour script wording for the lead (src/tour/script.ts, not edited): voices.hearing `title` "What can they hear?",
+  `look` "tells us something about their ears" and `why` "they can make them and hear them. Their hearing reaches
+  at least this high" make the hearing claim the audit removed. voices.octave `todo` ("the peak where the pattern
+  of notes comes back") still fits the fold chart.
+- No TypeScript twin of the speech finder (the checker reads the reference's speech runs from voices.json).
+- checks.py now takes several minutes (the octave coverage: 200 trials x 300 draws); not timed exactly.
+- The voices browser test still writes its captures to review/inbox (unchanged behaviour).
+- Run `npm run check` (the lead) and commit.

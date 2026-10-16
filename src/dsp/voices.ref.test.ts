@@ -9,7 +9,8 @@ import { describe, expect, it } from 'vitest';
 import voicesJson from '../../data/voices.json';
 import { recordCheck } from '../../tests/support/record';
 import { readWav } from '../../tests/support/wav';
-import { CHROMA_BIN, binCentres, calls, chromaHistogram, chromaPeaks, combScores, heldRunCeiling, notes, octaveOf, yin } from './pitch';
+import { FoldNotes, bestFold } from './fold';
+import { CHROMA_BIN, binCentres, calls, chromaHistogram, chromaPeaks, combScores, heldRunCeiling, notes, yin } from './pitch';
 import { frameLevels, quietStretches, segments, silentRuns } from './segment';
 import { crossing, meanRows, segmentBands, toDb } from './spectrum';
 
@@ -109,14 +110,14 @@ describe.skipIf(SKIP !== null)('The Voices: TypeScript vs the Python reference (
     const tr = yin(x, sr, yinSet.music);
     const ns = notes(tr);
     const nc = ns.map((n) => Math.round(n.cents * 100) / 100);
-    const oct = octaveOf(nc)!;
+    const oct = bestFold(new FoldNotes(nc)).cents;
     const ref = V.music.violin;
     const sameNotes = ns.length === ref.notes.length && ns.every((n, i) => n.start === ref.notes[i]![0] && n.frames === ref.notes[i]![1]);
     const pass = sameNotes && Math.abs(oct - ref.octaveCents) < 0.01;
     recordCheck({
       id: 'voices.ts.octave',
-      claim: "The browser finds the violin's notes and their repetition at a doubling exactly as the reference does.",
-      measured: `${ns.length} notes (${sameNotes ? 'the same' : 'NOT the same'} starts and lengths); octave peak ${oct.toFixed(3)} cents`,
+      claim: "The browser finds the violin's notes and their best fold (the repeat) exactly as the reference does.",
+      measured: `${ns.length} notes (${sameNotes ? 'the same' : 'NOT the same'} starts and lengths); best fold ${oct.toFixed(3)} cents`,
       expected: `the reference's ${ref.notes.length} notes and ${ref.octaveCents} cents`,
       tolerance: 'notes identical; octave within 0.01 cents',
       pass,

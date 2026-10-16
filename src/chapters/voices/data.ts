@@ -5,7 +5,8 @@
 
 import recordJson from '../../../data/record.json';
 import voicesJson from '../../../data/voices.json';
-import { binCentres, CHROMA_BIN, combScores, COMB_K, HIST_BIN, noteHistogram, peakNear, repetitionCurve } from '../../dsp/pitch';
+import { FoldNotes } from '../../dsp/fold';
+import { binCentres, CHROMA_BIN, combScores, COMB_K } from '../../dsp/pitch';
 import { FRAME_S, segmentPitches, segments, voicesByPitch } from '../../dsp/segment';
 
 export const V = voicesJson;
@@ -35,21 +36,32 @@ export function greetingsAt(thresholdDb: number, gapS: number): GreetingsReading
 export const THRESHOLD_RANGE = { min: -60, max: -10, step: 0.5 } as const;
 export const GAP_RANGE = { min: 0.02, max: 1.5, step: FRAME_S } as const;
 
-/** The octave's tolerance, cents: the bootstrap's 95% half-width and the tracker's 95% error in quadrature. */
-export const OCTAVE_TOL_CENTS = Math.hypot(V.music.violin.bootstrap.octaveHalfWidthCents, V.music.violin.trackerError95Cents);
+/** The reasonable settings, the one definition (tools/voices/analyse.py REASONABLE_GAPS): a threshold on the
+ * slider's grid between where a frame is the noise between voices with probability 0.95 and 0.05, and a pause from
+ * 0.15 to 0.40 s. The accepted count range is taken over exactly this grid. */
+export const REASONABLE = {
+  thresholdDb: V.greetings.reasonable.thresholdGridDb as [number, number],
+  gapS: V.greetings.reasonable.gapS as [number, number],
+} as const;
+/** Slider values carry float rounding (0.02 + k x 0.01): compare within a millionth. */
+const EPS = 1e-6;
+export const isReasonable = (thresholdDb: number, gapS: number): boolean =>
+  thresholdDb >= REASONABLE.thresholdDb[0] - EPS && thresholdDb <= REASONABLE.thresholdDb[1] + EPS && gapS >= REASONABLE.gapS[0] - EPS && gapS <= REASONABLE.gapS[1] + EPS;
+
+/** The octave: the best fold of the violin's notes (tools/voices/vfold.py), cents, and its tolerance: the bootstrap's
+ * 95% half-width and the tracker's systematic slope (its 95% bound) in quadrature. */
+export const OCTAVE_CENTS = V.music.violin.octaveCents;
+export const OCTAVE_TOL_CENTS = V.music.violin.octaveTolCents;
+/** The fold comparison: every other peak of the score, with the bootstrapped margin by which the best beats it. */
+export const FOLD = V.music.violin.fold;
 /** The step's tolerance, cents: half the distance from a twelfth of the octave to a thirteenth (the nearest other comb). */
 export const STEP_TOL_CENTS = (1200 / 12 - 1200 / 13) / 2;
 
 /** The violin's notes, cents re 440 Hz. */
 export const VIOLIN_NOTES = V.music.violin.notes.map((n) => n[2]! / 100);
-/** Its repetition curve, lags 0 to 2400 cents in HIST_BIN steps. */
-export const VIOLIN_CURVE = repetitionCurve(noteHistogram(VIOLIN_NOTES), Math.round(2400 / HIST_BIN));
-
-/** The repetition curve's peak nearest a clicked interval (within half a tempered step), cents; null if none. */
-export function curvePeakNear(cents: number): number | null {
-  const pk = peakNear(VIOLIN_CURVE, cents / HIST_BIN, Math.round(50 / HIST_BIN));
-  return pk === null ? null : pk * HIST_BIN;
-}
+/** The violin's notes with their pair tables, built on first use (about 84,000 pairs). */
+let violinFold: FoldNotes | null = null;
+export const violinNotes = (): FoldNotes => (violinFold ??= new FoldNotes(VIOLIN_NOTES));
 
 /** The piano's spectral-peak histogram (weights) and its bin centres, cents. */
 export const PIANO_HIST = Float64Array.from(V.music.piano.hist);
@@ -81,7 +93,34 @@ export function snrAt(hz: number): number | null {
 /** The whale: the calls found on Ozma 03 and the stretch they span, s. */
 export const WHALE = V.whale;
 export const WHALE_TRACK = V.whale.track;
-export const callTimes = WHALE.calls.map((c) => ({ startS: c[0]! * FRAME_S, endS: (c[0]! + c[1]!) * FRAME_S, hz: c[2]!, glide: c[3]! }));
+
+/** voices.others, measured on every track (tools/voices/others.py): held calls and speech, and for music the held
+ * tones. What a marked stretch holds: calls wholly inside it, speech runs touching it, held tones inside it. */
+export const OTHERS = V.others;
+export interface Held {
+  startS: number;
+  endS: number;
+  hz: number;
+  glide: number;
+}
+export interface StretchMeasure {
+  kind: string;
+  calls: Held[];
+  speech: [number, number][];
+  heldTones: number;
+}
+type OthersTrack = { kind: string; calls?: number[][]; speech?: number[][]; held?: number[][] };
+export function measureStretch(track: string, start: number, end: number): StretchMeasure | null {
+  const t = (OTHERS.tracks as Record<string, OthersTrack>)[track];
+  if (!t) return null;
+  const sec = (a: number, n: number): [number, number] => [a * FRAME_S, (a + n) * FRAME_S];
+  const calls = (t.calls ?? [])
+    .map((c) => ({ startS: c[0]! * FRAME_S, endS: (c[0]! + c[1]!) * FRAME_S, hz: c[2]!, glide: c[3]! }))
+    .filter((c) => c.startS >= start && c.endS <= end);
+  const speech = (t.speech ?? []).map((r) => sec(r[0]!, r[1]!)).filter(([a, b]) => b > start && a < end);
+  const heldTones = (t.held ?? []).map((r) => sec(r[0]!, r[1]!)).filter(([a, b]) => a >= start && b <= end).length;
+  return { kind: t.kind, calls, speech, heldTones };
+}
 
 /** The record's items after the pictures, in order, side by side (D-A17's break is an inference). */
 export interface TrackRef {

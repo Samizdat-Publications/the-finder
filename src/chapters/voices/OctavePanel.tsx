@@ -1,13 +1,15 @@
 // voices.octave: how their music is built. First the tenth piece of music (one bowed instrument, alone): its
-// notes (the Worker's pitch tracker on the runtime audio) and how alike their pattern is to itself moved up by
-// each ratio; the player clicks the ratio where the whole pattern comes back. Then the seventeenth (one
+// notes (the Worker's pitch tracker on the runtime audio) folded at each ratio, and how much closer than chance
+// notes a repeat apart then gather (src/dsp/fold.ts, the reference's own measure, tools/voices/vfold.py); the
+// player clicks the ratio where the whole pattern comes back. Then the seventeenth (one
 // keyboard): the pitches of its sounding partials folded into that ratio, and a comb of equal steps laid over
 // them; the player chooses how many teeth. Both readings are proposed together through the command bus.
 
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { nodeStatus } from '../../game/deductions';
 import { confirmedSet } from '../../game/state';
-import { CHROMA_BIN, COMB_K, HIST_BIN, binCentres, combScores, gridFit, noteHistogram, peakNear, repetitionCurve } from '../../dsp/pitch';
+import { FOLD_RANGE, FoldNotes, foldGrid, localFoldPeak } from '../../dsp/fold';
+import { CHROMA_BIN, COMB_K, binCentres, combScores, gridFit, peakNear } from '../../dsp/pitch';
 import { send } from '../../ui/send';
 import { LastReading, PanelHead } from '../key/parts';
 import { analyse, jobProgress, peekResult } from './analysisClient';
@@ -20,6 +22,9 @@ const PAD = 30;
 const MAX_CENTS = 2400;
 const RATIO_TICKS = [1, 1.25, 1.5, 2, 2.5, 3, 4];
 const FOLD_BINS = 240;
+/** The fold chart's step, cents (a click is refined to the cent: localFoldPeak). */
+const CURVE_STEP = 2;
+const CURVE_GRID = foldGrid(CURVE_STEP);
 
 export function OctavePanel() {
   const id = 'voices.octave';
@@ -39,7 +44,9 @@ export function OctavePanel() {
   }, [status]);
   const vio = peekResult(PIECES.violin, 'violin');
   const pia = peekResult(PIECES.piano, 'piano');
-  const curve = useMemo(() => (vio ? repetitionCurve(noteHistogram(vio.notes), MAX_CENTS / HIST_BIN) : null), [vio]);
+  const fold = useMemo(() => (vio ? new FoldNotes(vio.notes) : null), [vio]);
+  const curve = useMemo(() => (fold ? fold.curve(CURVE_GRID) : null), [fold]);
+  const cmax = curve ? Math.max(...curve) : 1;
   const centres = useMemo(() => (pia ? binCentres(pia.hist.length, CHROMA_BIN) : null), [pia]);
   const scores = useMemo(() => (pia && centres && ratioC ? combScores(centres, pia.hist, ratioC) : null), [pia, centres, ratioC]);
   const fit = useMemo(() => (pia && centres && ratioC ? gridFit(centres, pia.hist, ratioC / k) : null), [pia, centres, ratioC, k]);
@@ -57,11 +64,12 @@ export function OctavePanel() {
   const x = (c: number): number => PAD + (c / MAX_CENTS) * (W - PAD - 8);
   const y = (v: number): number => H - 22 - Math.max(0, v) * (H - 32);
   const onCurve = (e: MouseEvent): void => {
-    if (!curve) return;
+    if (!curve || !fold) return;
     const b = (e.currentTarget as SVGSVGElement).getBoundingClientRect();
     const c = ((((e.clientX - b.left) / b.width) * W - PAD) / (W - PAD - 8)) * MAX_CENTS;
-    const pk = peakNear(curve, c / HIST_BIN, Math.round(50 / HIST_BIN));
-    if (pk !== null && pk > 0) setRatioC(pk * HIST_BIN);
+    // The peak of the drawn curve within half a tempered step of the click, then its own peak to the cent.
+    const pk = peakNear(curve, (c - FOLD_RANGE[0]) / CURVE_STEP, Math.round(50 / CURVE_STEP));
+    if (pk !== null) setRatioC(localFoldPeak(fold, FOLD_RANGE[0] + pk * CURVE_STEP).cents);
   };
   const ratio = ratioC === null ? null : 2 ** (ratioC / 1200);
   const fmax = folded ? Math.max(...folded) : 1;
@@ -71,17 +79,18 @@ export function OctavePanel() {
       <PanelHead id={id} />
       {status !== 'locked' && (
         <>
-          <p class="note small">Music 10, one bowed instrument alone: how alike its notes are to themselves moved up by each ratio. Click the ratio where the whole pattern comes back.</p>
+          <p class="note small">Music 10, one bowed instrument alone: its notes folded at each ratio, and how much closer than chance notes a repeat apart then gather (the line marks chance). Click the ratio where the whole pattern comes back.</p>
           {!curve && <Progress f={jobProgress.value[`${PIECES.violin}/violin`] ?? 0} what="following the notes" />}
           {curve && (
-            <svg class="vo-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="How alike the notes are to themselves moved up by each ratio" onClick={onCurve} data-octave-chart="">
+            <svg class="vo-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="How tightly the notes gather when folded at each ratio" onClick={onCurve} data-octave-chart="">
               {RATIO_TICKS.map((r) => (
                 <g key={r}>
                   <line class="grid" x1={x(1200 * Math.log2(r))} x2={x(1200 * Math.log2(r))} y1={6} y2={H - 22} />
                   <text class="tick" x={x(1200 * Math.log2(r))} y={H - 6} text-anchor="middle">{r}</text>
                 </g>
               ))}
-              <polyline class="vo-voices" points={Array.from(curve, (v, i) => `${x(i * HIST_BIN).toFixed(1)},${y(v).toFixed(1)}`).slice(3).join(' ')} />
+              <line class="grid" x1={x(FOLD_RANGE[0])} x2={x(MAX_CENTS)} y1={y(1 / cmax)} y2={y(1 / cmax)} data-chance="" />
+              <polyline class="vo-voices" points={Array.from(curve, (v, i) => `${x(CURVE_GRID[i]!).toFixed(1)},${y(v / cmax).toFixed(1)}`).join(' ')} />
               {ratioC !== null && <line class="vo-markline" x1={x(ratioC)} x2={x(ratioC)} y1={4} y2={H - 22} data-ratio-cents={ratioC.toFixed(2)} />}
             </svg>
           )}

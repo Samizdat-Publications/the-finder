@@ -16,7 +16,7 @@ export const M5_QUESTIONS: Record<string, string> = {
   'pictures.slip': 'Does every column follow the table\'s own rules?',
   'pictures.height': 'How tall are they?',
   'voices.many': 'Is it one voice, or many?',
-  'voices.hearing': 'What sounds do they make, and hear?',
+  'voices.hearing': 'How high do their voices reach?',
   'voices.octave': 'How is their music built?',
   'voices.others': 'Are all the voices theirs?',
 };
@@ -100,30 +100,30 @@ export const M5_NODES: readonly Omit<NodeDef, 'question'>[] = [
     hints: [
       'Listen to the voices that come after the pictures.',
       'Each voice stops before the next begins: count the pauses, and listen to how high each voice is.',
-      'Mark the pauses between voices and count them; the voices\' pitches fall in more than one group.',
+      'Mark the pauses between voices and count them; then compare how widely their pitches spread with one speaker\'s own range.',
     ],
   },
   {
     id: 'voices.hearing', chapter: 'voices', key: 'their hearing', checkedRow: 16, requires: ['voices.many'],
-    gloss: 'Their voices and music fill a band of frequencies; they make and hear at least that much.',
+    gloss: 'Their voices stand above their recording\'s hiss up to a high pitch: they make sounds at least that high.',
     hints: [
       'Every sound has its own spread of pitches.',
-      'Gather the spectrum of everything on the disc and see where it fades into the noise.',
-      'Read where the long spectrum falls to the noise: the senders make sounds at least that high, so they must hear them.',
+      'Gather the spectrum of the voices and of their silences, and see where the one fades into the other.',
+      'Read where the voices\' long spectrum falls into the hiss: the senders make sounds at least that high. The disc itself may cut off higher ones.',
     ],
   },
   {
     id: 'voices.octave', chapter: 'voices', key: 'octave', checkedRow: 16, requires: ['voices.hearing'],
-    gloss: 'On steps: notes a doubled frequency apart sound alike to them, and that doubling is cut into equal steps.',
+    gloss: 'On steps: their notes come back at a doubled frequency, and that doubling is cut into equal steps.',
     hints: [
       'Their music repeats pitches.',
       'Track the pitch of a single voice or instrument and compare the notes it uses.',
-      'The notes cluster at ratios of two, and between them at small equal steps: measure the step.',
+      'Fold the notes at each ratio: they gather tightest at one, and between its repeats sit small equal steps. Measure the step.',
     ],
   },
   {
     id: 'voices.others', chapter: 'voices', key: 'others', checkedRow: 16, requires: ['voices.many'],
-    gloss: 'No: some voices belong to other animals of their world, singing too.',
+    gloss: 'No: some voices belong to other animals of their world, calling where nobody speaks.',
     hints: [
       'Not every voice sounds like the others.',
       'Compare the pitches and the length of the calls with the speakers before them.',

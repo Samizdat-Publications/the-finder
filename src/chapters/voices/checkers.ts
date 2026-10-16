@@ -1,11 +1,12 @@
 // The Voices' four checkers (voices.many, voices.hearing, voices.octave, voices.others). Each judges the
 // player's reading against the reference analysis of the real record (data/voices.json through data.ts), and a
 // wrong answer reports what the analysis computes for it (PLAN.md "Principles"). The accepted ranges are derived
-// in tools/voices/analyse.py and stated in docs/HOW_ITS_CHECKED.md row 16. Pure: no DOM.
+// in tools/voices/ (analyse.py, vfold.py, others.py) and stated in docs/HOW_ITS_CHECKED.md row 16. Pure: no DOM.
 
 import { registerChecker, type Answer, type CheckResult, type Reading } from '../../game/deductions';
 import { q } from '../../ui/message';
-import { ONE_VOICE_SEMITONES, OCTAVE_TOL_CENTS, SPEC, STEP_TOL_CENTS, V, WHALE, WHALE_TRACK, callTimes, combScore, greetingsAt, snrAt, trackById } from './data';
+import { FOLD_LOCAL_CENTS } from '../../dsp/fold';
+import { FOLD, OCTAVE_CENTS, OCTAVE_TOL_CENTS, ONE_VOICE_SEMITONES, REASONABLE, SPEC, STEP_TOL_CENTS, V, combScore, greetingsAt, isReasonable, measureStretch, snrAt, trackById, violinNotes } from './data';
 
 export const VOICES_NODE_IDS = ['voices.many', 'voices.hearing', 'voices.octave', 'voices.others'] as const;
 
@@ -20,11 +21,14 @@ function num(o: Record<string, Answer>, key: string, what: string): number {
 }
 /** A span of semitones as a frequency ratio (the alien reads ratios, not human steps). */
 const ratioOf = (semitones: number): string => (2 ** (semitones / 12)).toFixed(2);
+const cents = (ratio: number): number => 1200 * Math.log2(ratio);
+const ratioText = (c: number, d = 3): string => (2 ** (c / 1200)).toFixed(d);
+const pct = (share: number): string => `${Math.round(share * 1000) / 10}%`;
 
 const ACC = V.greetings.accepted;
-const REASON = V.greetings.reasonable;
-/** The fitted mixture's means: the noise between voices and the voices, dBFS. A threshold must lie between them. */
-const [NOISE_MEAN, VOICE_MEAN] = V.greetings.levelMixture.meansDb as [number, number];
+const NEAR = V.greetings.nearPublished;
+const [T_LO, T_HI] = REASONABLE.thresholdDb;
+const [G_LO, G_HI] = REASONABLE.gapS;
 
 /** voices.many: { threshold (dBFS), gap (s), groups }. */
 export function checkMany(answer: Answer): CheckResult {
@@ -35,47 +39,37 @@ export function checkMany(answer: Answer): CheckResult {
   const groups = num(o, 'groups', what);
   if (!(gap > 0)) throw new Error(`${what}: gap must be positive`);
   const g = greetingsAt(th, gap);
-  const between = th >= NOISE_MEAN && th <= VOICE_MEAN;
-  const countOk = between && g.count >= ACC.minVoices && g.count <= ACC.maxVoices;
+  const settingOk = isReasonable(th, gap);
   const groupsOk = Number.isInteger(groups) && groups >= 2 && groups <= g.voices;
   const result: Reading[] = [
-    { key: 'separate voices counted', value: g.count },
+    { key: 'stretches of voice between pauses', value: g.count },
     { key: 'fewest over reasonable settings', value: ACC.minVoices },
     { key: 'most over reasonable settings', value: ACC.maxVoices },
     { key: "voices' worth of pitch", value: g.voices },
     { key: 'pause at least', value: gap, dim: 'time' },
   ];
-  const range = `Over every reasonable setting (a threshold between the noise between voices and the voices themselves, a pause between ${q('time', REASON.gapS[0]!)} and ${q('time', REASON.gapS[1]!)}) the count runs from ${ACC.minVoices} to ${ACC.maxVoices}`;
-  if (countOk && groupsOk) {
+  const range =
+    `Over every reasonable setting (quiet below from ${T_LO} to ${T_HI}, where a moment that quiet is the hiss between voices with a probability from 0.95 down to 0.05, and a pause of ${q('time', G_LO)} to ${q('time', G_HI)}) ` +
+    `the stretches number from ${ACC.minVoices} to ${ACC.maxVoices}`;
+  const fiftyFive =
+    `The count depends on where a pause is taken to end a voice: some greetings run into the next with hardly a pause, and some pause inside themselves. ` +
+    `Some settings give about 55, the number of greetings their makers list: quiet below ${NEAR.thresholdDb} with a pause of at least ${q('time', NEAR.gapS)} gives ${NEAR.count}, though there a moment that quiet is still the hiss with probability ${NEAR.noisePosterior.toFixed(3)}.`;
+  if (settingOk && groupsOk) {
     return {
       ok: true,
       result,
       message:
-        `${g.count} separate stretches of speech at this setting. ${range}: many voices, a few dozen at least. ` +
-        'Silence alone cannot give their exact number: some greetings run into the next with hardly a pause, and some pause inside themselves, so the count depends on where the cut is set. ' +
-        `Their pitches span about ${g.voices} single voices' worth (one speaker's own pitch moves within a ratio of about ${ratioOf(ONE_VOICE_SEMITONES)} to 1): high voices and low, not one speaker.`,
+        `${g.count} stretches of voice between pauses at this setting. ${range}: many voices, a few dozen at least. ${fiftyFive} ` +
+        `Their pitches spread over about ${g.voices} single voices' worth (one speaker's own pitch moves within a ratio of about ${ratioOf(ONE_VOICE_SEMITONES)} to 1): high voices and low, not one speaker.`,
     };
   }
   let message: string;
-  if (th > VOICE_MEAN) {
-    message = `${g.count}: the threshold sits above the typical level of the voices themselves, so only their loudest moments count as sound and everything else as pause. Set it between the hiss and the voices. ${range}.`;
-  } else if (th < NOISE_MEAN && g.count >= ACC.minVoices) {
-    message = `${g.count}: the threshold sits below the typical level of the hiss between voices, so only its quietest moments count as pause. Set it between the hiss and the voices. ${range}.`;
-  } else if (g.count < ACC.minVoices) {
-    message =
-      th < REASON.thresholdDb[0]!
-        ? `Only ${g.count}: the threshold sits down in the hiss between the voices, so most pauses never fall below it and voices run together. ${range}.`
-        : `Only ${g.count}: a pause must last ${q('time', gap)} before it counts, longer than most gaps between voices, so voices run together. ${range}.`;
-  } else if (g.count > ACC.maxVoices) {
-    message =
-      th > REASON.thresholdDb[1]!
-        ? `${g.count}: the threshold sits up among the voices themselves, so every soft syllable counts as a pause and single voices fall apart. ${range}.`
-        : `${g.count}: a pause of only ${q('time', gap)} counts, so the short silences inside words split single voices apart. ${range}.`;
-  } else if (groups < 2) {
-    message = `The count is right (${g.count}), but not one voice: one speaker's pitch moves within a ratio of about ${ratioOf(ONE_VOICE_SEMITONES)} to 1, and these pitches span about ${g.voices} times that range. High voices and low.`;
-  } else {
-    message = `The count is right (${g.count}), but pitch alone shows only about ${g.voices} voices' worth of range at this setting (one speaker's own range is a ratio of about ${ratioOf(ONE_VOICE_SEMITONES)} to 1). More voices may share the same pitches; the pitch cannot tell them apart.`;
-  }
+  if (th < T_LO) message = `${g.count}: the threshold sits down in the hiss between the voices, where a moment that quiet is still more likely hiss than voice, so many pauses never fall below it and voices run together or break at random. Set it between the hiss and the voices. ${range}.`;
+  else if (th > T_HI) message = `${g.count}: the threshold sits up among the voices themselves, so every soft syllable counts as a pause and single voices fall apart. Set it between the hiss and the voices. ${range}.`;
+  else if (gap < G_LO) message = `${g.count}: a pause of only ${q('time', gap)} counts, so the short silences inside words split single voices apart. ${range}.`;
+  else if (gap > G_HI) message = `${g.count}: a pause must last ${q('time', gap)} before it counts, longer than most gaps between voices, so voices run together. ${range}.`;
+  else if (groups < 2) message = `The setting is reasonable (${g.count} stretches), but not one voice: one speaker's pitch moves within a ratio of about ${ratioOf(ONE_VOICE_SEMITONES)} to 1, and these pitches spread over about ${g.voices} times that range. High voices and low.`;
+  else message = `The setting is reasonable (${g.count} stretches), but the pitches spread over only about ${g.voices} voices' worth at this setting (one speaker's own range is a ratio of about ${ratioOf(ONE_VOICE_SEMITONES)} to 1). More voices may share the same pitches; pitch alone cannot tell them apart.`;
   return { ok: false, result, message };
 }
 
@@ -85,33 +79,40 @@ export function checkHearing(answer: Answer): CheckResult {
   const top = num(obj(answer, what), 'topHz', what);
   if (!(top > 0)) throw new Error(`${what}: topHz must be positive`);
   const [lo, hi] = SPEC.crossingBandHz as [number, number];
+  const [dLo, dHi] = SPEC.definitions.spreadHz as [number, number];
   const ok = top >= lo && top <= hi;
   const snr = snrAt(top);
   const result: Reading[] = [
     { key: 'marked top', value: top, dim: 'frequency' },
-    { key: 'falls into the noise', value: SPEC.crossingHz, dim: 'frequency' },
+    { key: 'falls into the hiss', value: SPEC.crossingHz, dim: 'frequency' },
     { key: 'lowest it could be', value: lo, dim: 'frequency' },
     { key: 'highest it could be', value: hi, dim: 'frequency' },
+    { key: 'lowest by the rule chosen', value: dLo, dim: 'frequency' },
+    { key: 'highest by the rule chosen', value: dHi, dim: 'frequency' },
     { key: 'most of the power below', value: SPEC.greetingsEnergy95Hz, dim: 'frequency' },
   ];
-  if (snr !== null) result.push({ key: 'voice over noise at the mark', value: Math.round(snr * 10) / 10 });
+  if (snr !== null) result.push({ key: 'voice over hiss at the mark', value: Math.round(snr * 10) / 10 });
+  const rule = `where what the voices add equals the hiss itself; between ${q('frequency', lo, 3)} and ${q('frequency', hi, 3)} as sampled`;
+  const spread = `The rule is a choice: where the voices add from a third of the hiss to three times it, the edge moves from ${q('frequency', dLo, 3)} to ${q('frequency', dHi, 3)}.`;
   if (ok) {
     return {
       ok,
       result,
       message:
-        `Their voices stay above the disc's own hiss up to about ${q('frequency', SPEC.crossingHz, 3)} (between ${q('frequency', lo, 3)} and ${q('frequency', hi, 3)}, as measured), though most of their power lies below ${q('frequency', SPEC.greetingsEnergy95Hz, 2)}. ` +
-        'They make sounds at least that high, and a voice is made to be heard: they hear at least that high. It is only a lower bound. The disc itself limits the band (cut at half speed, its fine groove, its own hiss), so their hearing may reach higher.',
+        `They make sounds above their recording's hiss up to about ${q('frequency', SPEC.crossingHz, 3)} (${rule}), though most of their power lies below ${q('frequency', SPEC.greetingsEnergy95Hz, 2)}. ${spread} ` +
+        'It is a lower bound on the sounds they make: the disc itself limits the band (cut at half speed, its fine groove, its own hiss), so their voices may reach higher.',
     };
   }
   const message =
     top < lo
-      ? `At this mark their voices still stand well clear of the hiss (${snr === null ? 'clear of it' : `${(10 ** (snr / 10)).toFixed(1)} times its power`}): the sound goes higher. Follow the curve up to where it meets the noise.`
-      : `Here the voices add no more than the disc's own hiss: the mark is in the noise. The sound falls into it lower down, near ${q('frequency', SPEC.crossingHz, 3)}.`;
+      ? `At this mark their voices still stand well clear of the hiss (${snr === null ? 'clear of it' : `${(10 ** (snr / 10)).toFixed(1)} times its power`}): the sound goes higher. Follow the curve up to where it meets the hiss. ${spread}`
+      : `Here the voices add no more than the disc's own hiss: the mark is in the hiss. The sound falls into it lower down, near ${q('frequency', SPEC.crossingHz, 3)} (${rule}). ${spread}`;
   return { ok: false, result, message };
 }
 
-const cents = (ratio: number): number => 1200 * Math.log2(ratio);
+type FoldPeakRow = (typeof FOLD.peaks)[number];
+const named = FOLD.named as Record<string, number | null>;
+const peakNamed = (p: FoldPeakRow): string | null => Object.entries(named).find(([, c]) => c !== null && Math.abs(c - p.cents) < 0.01)?.[0] ?? null;
 
 /** voices.octave: { ratio (the repeating interval, as a frequency ratio), step (one step, as a ratio) }. */
 export function checkOctave(answer: Answer): CheckResult {
@@ -123,39 +124,55 @@ export function checkOctave(answer: Answer): CheckResult {
   const c = cents(ratio);
   const s = cents(step);
   const k = Math.round(c / s);
-  const ratioOk = Math.abs(c - 1200) <= OCTAVE_TOL_CENTS;
-  const stepOk = Math.abs(s - 100) <= STEP_TOL_CENTS;
+  const ratioOk = Math.abs(c - OCTAVE_CENTS) <= OCTAVE_TOL_CENTS;
+  const stepOk = Math.abs(s - OCTAVE_CENTS / 12) <= STEP_TOL_CENTS;
+  const score = violinNotes().score(c);
   const result: Reading[] = [
     { key: 'repeating ratio', value: Number(ratio.toFixed(4)) },
+    { key: 'notes gather, times chance', value: Number(score.toFixed(3)) },
+    { key: 'best ratio', value: Number((2 ** (OCTAVE_CENTS / 1200)).toFixed(5)) },
+    { key: 'gather there, times chance', value: FOLD.bestScore },
     { key: 'steps in it', value: k },
     { key: 'one step, as a ratio', value: Number(step.toFixed(5)) },
     { key: 'comb fit', value: Number(combScore(c, k).toFixed(3)) },
   ];
+  const best = ratioText(OCTAVE_CENTS, 4);
   const pieces = 'the repeat on the tenth piece of music (one bowed instrument, alone), the steps on the seventeenth (one keyboard)';
   if (ratioOk && stepOk) {
+    const close = [...FOLD.peaks].sort((a, b) => b.score - a.score)[0]!;
     return {
       ok: true,
       result,
       message:
-        `Their notes repeat their pattern at a doubled frequency (${ratio.toFixed(4)} to 1), and the doubling is cut into ${k} equal steps, each a ratio of ${step.toFixed(5)}: ${pieces}. ` +
-        'Notes a doubling apart do the same work in their music. This holds for these pieces; other music on the disc (the second, the 24th and the 25th pieces among them) is tuned in other ways.',
+        `Their notes come back at a doubled frequency (${ratio.toFixed(4)} to 1): folded there, notes a repeat apart lie ${FOLD.bestScore.toFixed(2)} times as close as chance would put them, closer than at any other ratio up to 4 to 1 ` +
+        `(the next, ${ratioText(close.cents)} to 1, ${close.score.toFixed(2)} times, and the doubling wins in ${pct(close.bestWins)} of resamplings of the notes). ` +
+        `The doubling is cut into ${k} equal steps, each a ratio of ${step.toFixed(5)}: ${pieces}. This holds for these pieces; other music on the disc (the second, the 24th and the 25th pieces among them) is tuned in other ways.`,
     };
   }
-  let message: string;
-  if (!ratioOk) {
-    const near = (t: number): boolean => Math.abs(c - t) < 50;
-    message = near(701.955)
-      ? `About 3 to 2. Notes this far apart are common in their music too, but the pattern of notes does not repeat there. Look for the ratio where the whole pattern comes back.`
-      : near(498.045)
-        ? `About 4 to 3: common too, but not where the pattern comes back. Look further up the curve.`
-        : `The notes' pattern does not come back at ${ratio.toFixed(3)} to 1. Find the ratio where the curve rises again, and the whole pattern repeats.`;
-  } else {
-    message = `The repeat is right, but ${k} equal steps do not fit the piano's notes as well: a comb of ${k} fits ${combScore(c, k).toFixed(2)}, and the best comb fits ${combScore(c, 12).toFixed(2)}. Try other numbers of teeth.`;
+  if (ratioOk) {
+    return {
+      ok: false,
+      result,
+      message: `The repeat is right, but ${k} equal steps do not fit the keyboard's notes as well: a comb of ${k} fits ${combScore(c, k).toFixed(2)}, and the best comb fits ${combScore(c, 12).toFixed(2)}. Try other numbers of teeth.`,
+    };
   }
-  return { ok: false, result, message };
+  // The ratio: judged by the same comparison as the doubling (tools/voices/vfold.py analysis).
+  const near = FOLD.peaks.filter((p) => Math.abs(p.cents - c) <= FOLD_LOCAL_CENTS).sort((a, b) => Math.abs(a.cents - c) - Math.abs(b.cents - c))[0];
+  const vs = near
+    ? `Folded at ${ratio.toFixed(3)} to 1 the notes a repeat apart lie ${near.score.toFixed(2)} times as close as chance would put them, at ${best} to 1 ${FOLD.bestScore.toFixed(2)} times; the doubling wins in ${pct(near.bestWins)} of resamplings of the notes, by ${near.marginLow.toFixed(2)} to ${near.marginHigh.toFixed(2)} (95%).`
+    : `Folded at ${ratio.toFixed(3)} to 1 the notes a repeat apart lie ${score.toFixed(2)} times as close as chance would put them, at ${best} to 1 ${FOLD.bestScore.toFixed(2)} times.`;
+  const name = near ? peakNamed(near) : null;
+  let why: string;
+  if (Math.abs(c - 2 * OCTAVE_CENTS) <= FOLD_LOCAL_CENTS) why = 'This ratio is two doublings: a pattern that comes back at one doubling comes back at two as well, but folded at two the notes one doubling apart fall half a repeat out of line, so the fold is weaker. The pattern comes back first at the doubling.';
+  else if (name === '3:2') why = 'About 3 to 2: notes this far apart are common in their melodies, so many line up, but notes of the same kind a doubling apart do not. The whole pattern comes back only at the doubling.';
+  else if (name === 'two 3:2') why = 'About two 3 to 2 steps stacked (a ratio near 2.25): notes this far apart are common too, because their melodies move by 3 to 2 so often, but only those notes line up; at the doubling every kind of note lines up with its copy.';
+  else if (name === '3:1') why = 'About 3 to 1, a doubling and a 3 to 2 stacked: some notes line up there, fewer than at the doubling.';
+  else if (name === '4:3') why = 'About 4 to 3: common in their melodies too, but not where the whole pattern comes back.';
+  else why = 'The pattern of notes does not come back whole at this ratio. Find the ratio where the notes gather most tightly.';
+  return { ok: false, result, message: `${vs} ${why}` };
 }
 
-/** voices.others: { track, start, end } (s): a stretch marked on a track. Right inside the whale song. */
+/** voices.others: { track, start, end } (s): a stretch marked on a track. Right where held calls sound and nobody speaks. */
 export function checkOthers(answer: Answer): CheckResult {
   const what = 'voices.others';
   const o = obj(answer, what);
@@ -164,34 +181,48 @@ export function checkOthers(answer: Answer): CheckResult {
   const start = num(o, 'start', what);
   const end = num(o, 'end', what);
   if (!(end > start)) throw new Error(`${what}: end must be after start`);
-  const [s0, s1] = WHALE.segmentS as [number, number];
-  const inside = track === WHALE_TRACK ? callTimes.filter((c) => c.startS >= start && c.startS < end) : [];
+  const m = measureStretch(track, start, end);
+  if (!m) throw new Error(`${what}: no measurement for ${track}`);
+  const ceiling = V.greetings.speechCeilingHz;
   const result: Reading[] = [
     { key: 'marked from', value: start, dim: 'time' },
     { key: 'marked to', value: end, dim: 'time' },
-    { key: 'long high calls inside', value: inside.length },
-    { key: "speakers' highest held pitch", value: V.greetings.speechCeilingHz, dim: 'frequency' },
   ];
-  if (inside.length) {
-    result.push({ key: 'longest call', value: Math.max(...inside.map((c) => c.endS - c.startS)), dim: 'time' });
-    result.push({ key: 'highest call', value: Math.max(...inside.map((c) => c.hz)), dim: 'frequency' });
-  }
-  const ok = track === WHALE_TRACK && start >= s0 && end <= s1 && inside.length > 0;
-  if (ok) {
-    const longest = Math.max(...inside.map((c) => c.endS - c.startS));
-    const glide = Math.max(...inside.map((c) => c.glide));
+  if (m.kind === 'music') {
+    result.push({ key: 'held tones inside', value: m.heldTones });
     return {
-      ok,
+      ok: false,
       result,
       message:
-        `Here the voices are not speaking. Long calls hold one sliding pitch for up to ${q('time', longest, 2)}, gliding by a ratio of as much as ${(2 ** (glide / 1200)).toFixed(2)} to 1, higher than any speaker in the greetings ever holds a note (${q('frequency', V.greetings.speechCeilingHz, 3)}). ` +
-        'Another animal of their world, singing: they sent its voice beside their own.',
+        `This is one of their pieces of music. Measured in the marked stretch: ${m.heldTones} held tone${m.heldTones === 1 ? '' : 's'} (a steady pitch above ${q('frequency', ceiling, 3)} for at least ${q('time', V.others.rule.callMinS)}). ` +
+        "Measurement alone cannot tell an instrument's or a singer's held note from another animal's call, so a stretch of their music cannot show another animal. Look among the voices and the sounds instead.",
+    };
+  }
+  result.push({ key: 'held calls inside', value: m.calls.length }, { key: 'stretches of speech touching it', value: m.speech.length });
+  if (m.calls.length) {
+    result.push({ key: 'longest call', value: Math.max(...m.calls.map((c) => c.endS - c.startS)), dim: 'time' });
+    result.push({ key: 'highest call', value: Math.max(...m.calls.map((c) => c.hz)), dim: 'frequency' });
+  }
+  result.push({ key: "speakers' highest held pitch", value: ceiling, dim: 'frequency' });
+  const calls = `${m.calls.length} held call${m.calls.length === 1 ? '' : 's'} (a steady or sliding pitch above ${q('frequency', ceiling, 3)}, the highest any speaker in the greetings holds, for at least ${q('time', V.others.rule.callMinS)})`;
+  if (m.calls.length && !m.speech.length) {
+    const longest = Math.max(...m.calls.map((c) => c.endS - c.startS));
+    const glide = Math.max(...m.calls.map((c) => c.glide));
+    return {
+      ok: true,
+      result,
+      message:
+        `Here nobody speaks: ${calls}, and no speech (no voiced, broadband sound at a speaking pitch). The calls hold one sliding pitch for up to ${q('time', longest, 2)}, gliding by a ratio of as much as ${(2 ** (glide / 1200)).toFixed(2)} to 1. ` +
+        'Another animal of their world, calling: they sent its voice beside their own.',
     };
   }
   let message: string;
-  if (track !== WHALE_TRACK) message = 'Every voice on this track is one of theirs: speech or music, no call held long and high like the singing elsewhere among the greetings.';
-  else if (inside.length === 0) message = `Speakers only in this stretch: nothing held long and higher than ${q('frequency', V.greetings.speechCeilingHz, 3)}. Listen on, near the end of the track.`;
-  else message = 'Part of this stretch is the singing, but part is speech: mark only the stretch where the long calls are.';
+  const a = m.speech.length ? Math.max(start, Math.min(...m.speech.map((r) => r[0]))) : 0;
+  const b = m.speech.length ? Math.min(end, Math.max(...m.speech.map((r) => r[1]))) : 0;
+  const sp = m.speech.length ? `${m.speech.length} stretch${m.speech.length === 1 ? '' : 'es'} of speech (voiced, broadband sound at a speaking pitch) between ${q('time', a, 4)} and ${q('time', b, 4)}` : '';
+  if (m.calls.length) message = `Part of this stretch holds ${calls}, but it also holds ${sp}: mark only where the calls sound and nobody speaks.`;
+  else if (m.speech.length) message = `Speakers in this stretch: ${sp}, and no held call. Listen on.`;
+  else message = `Neither speech nor a held call in this stretch: nothing holds a pitch above ${q('frequency', ceiling, 3)} for ${q('time', V.others.rule.callMinS)}. Listen on.`;
   return { ok: false, result, message };
 }
 

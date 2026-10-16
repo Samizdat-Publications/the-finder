@@ -6,9 +6,11 @@
 //     spectrum.crossingHz; the chart's x mapping, PAD_L 44 and 20,000 Hz across 520 - 44 - 6 units, is the
 //     bot's hearX, HearingPanel.tsx);
 //   others: a drag on the whale track's spectrogram across the whale song (data/voices.json whale.track and
-//     whale.segmentS, 3 s in from each end as the bot does; the track's length from data/record.json);
-//   octave: a click on the repetition curve at a doubling (1200 cents; OctavePanel.tsx PAD 30, 2,400 cents
-//     across 520 - 30 - 8 units, the bot's octX), then the comb's teeth at data/voices.json music.piano.combK.
+//     whale.segmentS, 3 s in from each end as the bot does: held calls and no speech, so voices.others accepts
+//     it; the track's length from data/record.json);
+//   octave: a click on the fold chart at a doubling (1200 cents; OctavePanel.tsx PAD 30, 2,400 cents across
+//     520 - 30 - 8 units, the bot's octX; the click snaps to the fold's peak there, about 1198.8 cents, inside
+//     data/voices.json music.violin.octaveTolCents), then the comb's teeth at data/voices.json music.piano.combK.
 
 import { V, WHALE_TRACK, trackById } from '../../chapters/voices/data';
 import { centreOf, clickAt, drag, ensureChapter, finish, press, proposeWith, setValue, sleep, viewBoxToScreen, waitEnabled, waitFor, waitVisible } from '../actionsKit';

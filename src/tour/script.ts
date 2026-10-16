@@ -336,10 +336,10 @@ export const STOPS: readonly Stop[] = [
   },
   {
     id: 'voices.hearing', part: 'voices', kind: 'do', chapter: 'voices', node: 'voices.hearing',
-    title: 'What can they hear?',
-    look: 'Their voices and music fill a band of pitches, from low to high. Above some pitch, there is only hiss. That edge tells us something about their ears.',
+    title: 'How high do their sounds go?',
+    look: 'Their voices and music fill a band of pitches, from low to high. Above some pitch, there is only the hiss of the recording. Where does their sound stop?',
     todo: 'On the chart, click where the voices\' curve sinks down into the hiss on the right. Then press **Propose**.',
-    why: 'If the senders filled the record with sounds up to this pitch, they can make them and hear them. Their hearing reaches at least this high.',
+    why: 'Their voices and music stand above the hiss of the recording up to about this pitch. The senders make sounds at least this high, and chose to record them. (Whether they can hear all of it, the record alone cannot say.)',
     human: 'Young humans hear up to about 20,000 vibrations a second. Most adults hear a bit less. Bats and dolphins hear far higher.',
   },
   {

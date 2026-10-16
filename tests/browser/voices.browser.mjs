@@ -120,7 +120,7 @@ export async function playVoices(page, { assert, log, shot = async () => undefin
   if (wrong) {
     await markStretch(page, 'ozma-03', 20, 40);
     const w = await propose(page, 'voices.others');
-    assert(!w.ok && /Speakers only/.test(w.message), `${label}: a stretch of speech is rejected (${w.message})`);
+    assert(!w.ok && /Speakers/.test(w.message), `${label}: a stretch of speech is rejected (${w.message})`);
     shown.othersWrong = w.message;
   }
   await markStretch(page, 'ozma-03', s0 + 3, s1 - 3);
@@ -157,7 +157,7 @@ export async function playVoices(page, { assert, log, shot = async () => undefin
   await page.waitForSelector('[data-control="teeth"]', { timeout: 120_000 });
   await setRange(page, '[data-control="teeth"]', 12);
   await page.locator('[data-comb-chart]').scrollIntoViewIfNeeded();
-  await shot('octave', 'The repetition curve with its mark at a doubling, and the keyboard\'s pitches folded into one doubling under a comb of twelve equal teeth; the comb fit bars peak at twelve.', 'Clicked the peak where the pattern comes back, then moved the comb\'s teeth until it fit best.');
+  await shot('octave', 'The fold curve (how tightly the notes gather folded at each ratio) with its mark at a doubling, and the keyboard\'s pitches folded into one doubling under a comb of twelve equal teeth; the comb fit bars peak at twelve.', 'Clicked the peak where the pattern comes back, then moved the comb\'s teeth until it fit best.');
   const before = await page.evaluate(() => window.__finder.state().game.nodes['voices.octave']?.attempts.length ?? 0);
   await page.locator('[data-propose-button="voices.octave"]').click();
   await page.waitForFunction((n) => (window.__finder.state().game.nodes['voices.octave']?.attempts.length ?? 0) > n, before);
@@ -177,6 +177,7 @@ async function agreement(page) {
     const c = await import('/src/chapters/voices/analysisClient.ts');
     const seg = await import('/src/dsp/segment.ts');
     const pitch = await import('/src/dsp/pitch.ts');
+    const fold = await import('/src/dsp/fold.ts');
     const t0 = performance.now();
     const [g, h, vi, pi, ca] = await Promise.all([
       c.analyse('ozma-02', 'greetings'), c.analyse('ozma-02', 'hearing'), c.analyse('ozma-14', 'violin'), c.analyse('ozma-21', 'piano'), c.analyse('ozma-03', 'calls'),
@@ -202,7 +203,7 @@ async function agreement(page) {
       if (a && b) { both++; dc.push(Math.abs(1200 * Math.log2(g.f0[k] / (rf[k] / 100)))); }
     }
     dc.sort((x, y) => x - y);
-    const octave = pitch.octaveOf(vi.notes);
+    const octave = fold.bestFold(new fold.FoldNotes(vi.notes)).cents;
     const centres = pitch.binCentres(pi.hist.length, pitch.CHROMA_BIN);
     const sc = pitch.combScores(centres, pi.hist, ref.music.violin.octaveCents);
     const k = 2 + sc.indexOf(Math.max(...sc));
@@ -287,13 +288,13 @@ export default async function run({ page, baseUrl, record, assert, log }) {
 
   // ---- the browser's analyses against the reference: the codec must not change any verdict ----
   const acc = V.greetings.accepted;
-  const tol = Math.hypot(V.music.violin.bootstrap.octaveHalfWidthCents, V.music.violin.trackerError95Cents);
+  const tol = V.music.violin.octaveTolCents;
   const [cLo, cHi] = S.crossingBandHz;
   const whaleIn = agree.calls.length >= 3 && agree.calls.every(([a, b]) => a >= V.whale.segmentS[0] - 1 && b <= V.whale.segmentS[1] + 1);
   const checks = {
     counts: agree.lo >= 24 && agree.hi >= agree.lo,
     crossing: agree.crossing >= cLo && agree.crossing <= cHi,
-    octave: Math.abs(agree.octave - 1200) <= tol,
+    octave: Math.abs(agree.octave - V.music.violin.octaveCents) <= tol && Math.abs(agree.octave - 1200) <= tol,
     comb: agree.k === 12,
     whale: whaleIn,
   };
@@ -302,9 +303,9 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   record({
     id: 'voices.browser.agree',
     claim: "In the browser, The Voices' analyses run in a Worker on the record's runtime audio (Opus) and reach the same verdicts as the reference on the lossless transfers.",
-    measured: `frame levels within ${agree.levelMeanAbs.toFixed(3)} dB on average; silent runs ${JSON.stringify(agree.table)}; ${agree.lo} to ${agree.hi} voices over the reasonable settings (reference ${acc.minVoices} to ${acc.maxVoices}); voicing agrees on ${(agree.voicedAgree * 100).toFixed(2)}% of frames, pitch median ${agree.pitchMedianCents.toFixed(3)} cents apart (95% ${agree.pitch95Cents.toFixed(2)}); crossing ${(agree.crossing / 1000).toFixed(2)} kHz; the codec moves the greetings' long spectrum by ${agree.hiBandDiff.map(([f, d]) => `${(f / 1000).toFixed(1)} kHz ${d >= 0 ? '+' : ''}${d.toFixed(2)} dB`).join(', ')}; octave ${agree.octave.toFixed(2)} cents from ${agree.notes} notes; best comb ${agree.k}; ${agree.calls.length} calls ${agree.calls.length ? `${agree.calls[0][0].toFixed(2)} to ${agree.calls.at(-1)[1].toFixed(2)} s` : ''}; Worker ms ${JSON.stringify(Object.fromEntries(Object.entries(agree.timings).map(([k, v]) => [k, Math.round(v)])))}`,
+    measured: `frame levels within ${agree.levelMeanAbs.toFixed(3)} dB on average; silent runs ${JSON.stringify(agree.table)}; ${agree.lo} to ${agree.hi} voices over the reasonable settings (reference ${acc.minVoices} to ${acc.maxVoices}); voicing agrees on ${(agree.voicedAgree * 100).toFixed(2)}% of frames, pitch median ${agree.pitchMedianCents.toFixed(3)} cents apart (95% ${agree.pitch95Cents.toFixed(2)}); crossing ${(agree.crossing / 1000).toFixed(2)} kHz; the codec moves the greetings' long spectrum by ${agree.hiBandDiff.map(([f, d]) => `${(f / 1000).toFixed(1)} kHz ${d >= 0 ? '+' : ''}${d.toFixed(2)} dB`).join(', ')}; best fold ${agree.octave.toFixed(2)} cents from ${agree.notes} notes; best comb ${agree.k}; ${agree.calls.length} calls ${agree.calls.length ? `${agree.calls[0][0].toFixed(2)} to ${agree.calls.at(-1)[1].toFixed(2)} s` : ''}; Worker ms ${JSON.stringify(Object.fromEntries(Object.entries(agree.timings).map(([k, v]) => [k, Math.round(v)])))}`,
     expected: `the reference (data/voices.json): ${JSON.stringify(V.greetings.researchTable.research)}; ${acc.minVoices} to ${acc.maxVoices}; crossing ${(S.crossingHz / 1000).toFixed(2)} kHz; octave ${V.music.violin.octaveCents} cents; comb ${V.music.piano.combK}; whale ${V.whale.segmentS.join(' to ')} s`,
-    tolerance: `each verdict's own error bar: crossing inside the reference's 95% band ${(cLo / 1000).toFixed(2)} to ${(cHi / 1000).toFixed(2)} kHz; octave within ${tol.toFixed(2)} cents of 1200; the same comb; every call inside the whale stretch (1 s slack for the codec's onsets); at least two dozen voices. The frame levels, silent runs, voicing and pitch are reported, not judged: they show what the codec changes`,
+    tolerance: `each verdict's own error bar: crossing inside the reference's 95% band ${(cLo / 1000).toFixed(2)} to ${(cHi / 1000).toFixed(2)} kHz; best fold within ${tol.toFixed(2)} cents of the reference's and of 1200; the same comb; every call inside the whale stretch (1 s slack for the codec's onsets); at least two dozen voices. The frame levels, silent runs, voicing and pitch are reported, not judged: they show what the codec changes`,
     pass: Object.values(checks).every(Boolean),
   });
   record({

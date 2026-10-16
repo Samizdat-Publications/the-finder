@@ -86,7 +86,7 @@ export function ManyPanel() {
                 </label>
               </div>
               <p class="vo-count">
-                Separate voices: <span class="num big" data-count={segs.length}>{segs.length}</span>
+                Stretches of voice between pauses: <span class="num big" data-count={segs.length}>{segs.length}</span>
               </p>
               <svg class="vo-chart vo-pitch" viewBox={`0 0 ${W} ${PH}`} role="img" aria-label="Each voice's pitch, low to high, with a ruler one speaker's range wide">
                 <rect class="vo-ruler" x={px(ruler)} y={6} width={rulerW} height={PH - 22} data-ruler="" />

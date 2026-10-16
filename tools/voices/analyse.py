@@ -3,8 +3,8 @@
 read, so the TypeScript can be checked against this on the same samples).
 
 Inputs : sources/ozma-cd-NN/NN.flac (tools/sources.json; 44.1 kHz, 16-bit stereo)
-Outputs: data/voices.json, build/voices/02.wav, 03.wav, 14.wav
-Run    : python -P tools/voices/analyse.py   (about 1 minute)
+Outputs: data/voices.json, build/voices/01.wav, 02.wav, 03.wav, 14.wav, 21.wav
+Run    : python -P tools/voices/analyse.py   (about 8 minutes: the "others" pass reads every track)
 
 Every track is analysed as its mono mix (L + R) / 2 rounded to 16 bits, exactly the samples written to the
 WAVs. What each part measures, and why its settings are what they are, is in docs/research/voices.md and in
@@ -21,8 +21,12 @@ import numpy as np
 import soundfile as sf
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import others  # noqa: E402
 import vdsp  # noqa: E402
+import vfold  # noqa: E402
 import vmusic  # noqa: E402
+import vspec  # noqa: E402
+from vspec import BAND_HZ, BLOCK, NPERSEG, SNR_EDGE_DB, TOP_HZ, block_resample, crossing, quiet_stretches  # noqa: E402,F401
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT_JSON = os.path.join(ROOT, "data", "voices.json")
@@ -44,12 +48,19 @@ RESEARCH_TABLE = [[66, 34, 7], [105, 72, 31], [115, 93, 51], [130, 100, 66]]
 """docs/research/voices.md section 1: silent runs in Ozma 02 by threshold (rows) and minimum gap (columns)."""
 REASONABLE_GAPS = (0.15, 0.40)
 """voices.md section 1: gaps between greetings are typically 0.2 to 0.5 s; the research's own grid spans
-0.15 to 0.4 s. Shorter minimum gaps split single words; longer ones skip most of the gaps between voices."""
+0.15 to 0.4 s. Shorter minimum gaps split single words; longer ones skip most of the gaps between voices.
+
+THE reasonable settings (one definition, used here and by src/chapters/voices/checkers.ts): a threshold between
+the levels where a frame is the noise between voices with probability POSTERIOR_EDGE and 1 - POSTERIOR_EDGE (the
+two-component mixture of the frame levels), on the slider's 0.5 dB grid, and a minimum pause from 0.15 to 0.40 s
+on its 0.01 s grid. The count range is taken over exactly that grid."""
+POSTERIOR_CUTS = [0.90, 0.95, 0.99, 0.999]
+"""How the count range moves with the noise-posterior cut (reported; 0.95 is the definition)."""
+PUBLISHED_VOICES = 55
+"""The greetings' languages as NASA lists them (voices.md 1): the settings that give about this many are found."""
 SPEC_TRACKS = [1, 2] + list(range(5, 32))
 """All the speech and music: Waldheim (01), the 55 greetings (02) and the 27 pieces (05 to 31). Track 03 (the
 UN greetings over whale song) and 04 (the Sounds of Earth) are left out: not only theirs, or not voices."""
-BAND_HZ = 250.0
-NPERSEG = 4096
 BOOT = 2000
 
 
@@ -87,6 +98,14 @@ def greetings() -> dict:
     grid_t = np.arange(np.ceil(t_lo * 2) / 2, np.floor(t_hi * 2) / 2 + 1e-9, 0.5)
     grid_g = np.round(np.arange(REASONABLE_GAPS[0], REASONABLE_GAPS[1] + 1e-9, 0.01), 2)
     counts = np.array([[len(vdsp.segments(lv, t, g)) for g in grid_g] for t in grid_t])
+    cut_table = []
+    for p in POSTERIOR_CUTS:
+        a, b = posterior_level(w, mu, sd, lo_k, hi_k, p), posterior_level(w, mu, sd, lo_k, hi_k, 1 - p)
+        gt = np.arange(np.ceil(a * 2) / 2, np.floor(b * 2) / 2 + 1e-9, 0.5)
+        cc = [len(vdsp.segments(lv, t, g)) for t in gt for g in grid_g]
+        cut_table.append({"posterior": p, "thresholdDb": [r(a, 2), r(b, 2)], "minVoices": int(min(cc)), "maxVoices": int(max(cc))})
+    near = near_published(lv, grid_g, (float(grid_t[0]), float(grid_t[-1])))
+    near["noisePosterior"] = r(noise_posterior(w, mu, sd, lo_k, hi_k, near["thresholdDb"]), 4)
     f0, ap = vdsp.yin(m, sr, SPEECH["fminHz"], SPEECH["fmaxHz"], SPEECH["windowS"])
     f0q = np.where(ap < vdsp.YIN_THRESHOLD, np.round(f0 * 100), 0).astype(int)
     f0c, apc = vdsp.yin(m, sr, CALLS["fminHz"], CALLS["fmaxHz"], CALLS["windowS"])
@@ -117,6 +136,8 @@ def greetings() -> dict:
         "levelMixture": {"weights": [r(w[lo_k]), r(w[hi_k])], "meansDb": [r(mu[lo_k]), r(mu[hi_k])], "sdsDb": [r(sd[lo_k]), r(sd[hi_k])]},
         "reasonable": {"thresholdDb": [r(t_lo, 3), r(t_hi, 3)], "thresholdGridDb": [float(grid_t[0]), float(grid_t[-1])], "gapS": list(REASONABLE_GAPS)},
         "accepted": {"minVoices": int(counts.min()), "maxVoices": int(counts.max())},
+        "cutTable": cut_table,
+        "nearPublished": near,
         "speechCeilingHz": r(ceiling, 2),
         "oneSpeaker": {"track": "ozma-01", "levelsDb10": lw10.tolist(), "f0Hz100": fw100.tolist(),
                        "settings": {"thresholdDb": ref_t, "gapS": ref_g}, "segments": len(one), "sdSemitones": r(sd_one, 4)},
@@ -129,12 +150,33 @@ POSTERIOR_EDGE = 0.95
 """The reasonable thresholds run from where a frame is the noise with probability 0.95 to where it is 0.05."""
 
 
+def noise_posterior(w, mu, sd, lo_k: int, hi_k: int, t: float) -> float:
+    """The probability that a frame at level t is the noise between voices (the fitted mixture)."""
+    a = w[lo_k] / sd[lo_k] * np.exp(-0.5 * ((t - mu[lo_k]) / sd[lo_k]) ** 2)
+    b = w[hi_k] / sd[hi_k] * np.exp(-0.5 * ((t - mu[hi_k]) / sd[hi_k]) ** 2)
+    return float(a / (a + b))
+
+
+def near_published(lv: np.ndarray, gaps: np.ndarray, band: tuple[float, float]) -> dict:
+    """The setting on the sliders' grid, with a reasonable pause, that gives about PUBLISHED_VOICES (within 2) with
+    the threshold as close to the reasonable band as possible (ties: the count nearer, then the longer pause)."""
+    best = None
+    for t in np.arange(-60.0, -10.0 + 1e-9, 0.5):
+        dist = max(band[0] - t, t - band[1], 0.0)
+        for g in gaps:
+            n = len(vdsp.segments(lv, t, g))
+            if abs(n - PUBLISHED_VOICES) > 2:
+                continue
+            key = (dist, abs(n - PUBLISHED_VOICES), -g)
+            if best is None or key < best[0]:
+                best = (key, float(t), float(g), n)
+    return {"thresholdDb": best[1], "gapS": best[2], "count": best[3]}
+
+
 def posterior_level(w, mu, sd, lo_k: int, hi_k: int, p: float) -> float:
     """The level between the two means where the noise component's posterior probability equals p (bisection)."""
     def post(t: float) -> float:
-        a = w[lo_k] / sd[lo_k] * np.exp(-0.5 * ((t - mu[lo_k]) / sd[lo_k]) ** 2)
-        b = w[hi_k] / sd[hi_k] * np.exp(-0.5 * ((t - mu[hi_k]) / sd[hi_k]) ** 2)
-        return a / (a + b)
+        return noise_posterior(w, mu, sd, lo_k, hi_k, t)
     a, b = float(mu[lo_k]), float(mu[hi_k])
     for _ in range(100):
         c = 0.5 * (a + b)
@@ -177,16 +219,16 @@ def tracker_errors() -> dict[str, np.ndarray]:
 
 
 def music() -> dict:
-    """The octave on the solo violin (notes from the pitch tracker, the repetition curve's peak near a doubling),
-    and the step on Gould's piano (spectral peaks, the comb of equal divisions of that octave that fits best)."""
+    """The octave on the solo violin (notes from the pitch tracker; the best fold of their pitches, vfold.py, with
+    its bootstrap against every other ratio the chart offers), and the step on Gould's piano (spectral peaks, the comb of equal divisions of that octave that fits best)."""
     m, sr = mono(14)
     write_wav(14, m, sr)
     f0, ap = vdsp.yin(m, sr, MUSIC["fminHz"], MUSIC["fmaxHz"], MUSIC["windowS"])
     ns = vmusic.notes(f0, ap, vdsp.YIN_THRESHOLD)
     nc = np.array([round(c * 100) / 100 for _, _, c in ns])
-    octave = octave_of(nc)
-    rng = np.random.default_rng(20261016)
-    bo = [o for o in (octave_of(nc[rng.integers(0, len(nc), len(nc))]) for _ in range(BOOT)) if o is not None]
+    fold = vfold.analysis(nc, 20261016)
+    octave = fold["bestCents"]
+    slope, slope_se = tracker_slope()
     # The aria, tried with a tracker set for the soprano: how well its notes sit on a 100-cent grid.
     ma, sra = mono(15)
     fa, aa = vdsp.yin(ma, sra, ARIA["fminHz"], ARIA["fmaxHz"], ARIA["windowS"])
@@ -219,7 +261,9 @@ def music() -> dict:
             "piece": "Partita for Violin Solo no. 3 in E major, BWV 1006: Gavotte (Bach; Arthur Grumiaux)",
             "notes": [[a, n, int(round(c * 100))] for a, n, c in ns],
             "octaveCents": r(octave, 3),
-            "bootstrap": {"draws": BOOT, "kept": len(bo), "octaveHalfWidthCents": r(boot_interval(np.array(bo), octave), 3)},
+            "fold": fold,
+            "trackerSlope": {"centsPerOctave": r(slope, 4), "se": r(slope_se, 4), "bound95": r(abs(slope) + 1.959963984540054 * slope_se, 4)},
+            "octaveTolCents": r(float(np.hypot(fold["bootstrap"]["halfWidthCents"], abs(slope) + 1.959963984540054 * slope_se)), 3),
             "gridResultant100": r(grid(nc)),
             "trackerError95Cents": r(np.percentile(np.abs(tracker_errors()["music"]), 95), 4),
         },
@@ -243,132 +287,53 @@ PIANO_BOOT = 200
 """Bootstrap draws for the piano's comb (each refits 35 combs; 200 resolve a winning share near 1)."""
 
 
-def octave_of(nc: np.ndarray) -> float | None:
-    """The repetition curve's peak nearest a doubling (within one tempered step of 1200 cents), cents."""
-    h = vmusic.histogram(nc)
-    curve = vmusic.repetition_curve(h, int(2400 / vmusic.HIST_BIN))
-    pk = vmusic.peak_near(curve, 1200 / vmusic.HIST_BIN, int(100 / vmusic.HIST_BIN))
-    return None if pk is None else pk * vmusic.HIST_BIN
+def tracker_slope() -> tuple[float, float]:
+    """The music tracker's systematic error against pitch, cents per doubling (least squares over the median
+    error of 40 synthetic tones, log-uniform 200 to 2,200 Hz, seeded) and its standard error. The octave's
+    tolerance carries it: a tracker that read high notes a little sharp would stretch the measured repeat. Its
+    per-frame scatter is not added: it is already in the notes' own scatter, which the bootstrap resamples."""
+    rng = np.random.default_rng(42)
+    xs, ys = [], []
+    for f in np.exp(rng.uniform(np.log(200), np.log(2200), 40)):
+        x = tone(f, 44100, 0.5, rng)
+        f0, ap = vdsp.yin(x, 44100, MUSIC["fminHz"], MUSIC["fmaxHz"], MUSIC["windowS"])
+        v = ap < vdsp.YIN_THRESHOLD
+        xs.append(np.log2(f / 440))
+        ys.append(float(np.median(1200 * np.log2(f0[v] / f))))
+    x, y = np.array(xs), np.array(ys)
+    b, a = np.polyfit(x, y, 1)
+    res = y - (a + b * x)
+    se = float(np.sqrt(res @ res / (len(x) - 2) / ((x - x.mean()) ** 2).sum()))
+    return float(b), se
 
 
-def spectrum(noise_threshold_db: float) -> dict:
-    """Long-term spectra: every speech and music track (for display), and the deduction's measurement on the
-    greetings (Ozma 02): their long-term spectrum against the same transfer's own silence between voices, and
-    where the one falls into the other, with a block bootstrap over Welch segments for its uncertainty."""
-    edges = np.arange(0.0, 22050.0 + 1e-9, BAND_HZ)
-    edges = np.append(edges, 22050.0) if edges[-1] < 22050 else edges
-    per, tot, nseg = {}, None, 0
-    for n in SPEC_TRACKS:
-        m, sr = mono(n)
-        f, p, ns = vdsp.welch(m, sr, NPERSEG)
-        bp = vdsp.band_power(f, p, edges)
-        per[f"ozma-{n:02d}"] = bp
-        tot = bp * ns if tot is None else tot + bp * ns
-        nseg += ns
-    agg = tot / nseg
-    m, sr = mono(2)
-    speech_seg = vdsp.segment_bands(m, sr, NPERSEG, edges)
-    noise_seg = np.concatenate([vdsp.segment_bands(x, sr, NPERSEG, edges) for x in quiet_stretches(m, sr, noise_threshold_db)])
-    speech = speech_seg.mean(axis=0)
-    noise = noise_seg.mean(axis=0)
-    cross = crossing(10 * np.log10(speech / noise), edges)
-    rng = np.random.default_rng(1977)
-    bc = []
-    for _ in range(BOOT):
-        sp = block_resample(speech_seg, BLOCK, rng).mean(axis=0)
-        no = block_resample(noise_seg, BLOCK, rng).mean(axis=0)
-        bc.append(crossing(10 * np.log10(sp / no), edges))
-    lo, hi = np.percentile(bc, [2.5, 97.5])
-    cum = np.cumsum(agg) / agg.sum()
-    k95 = int(np.searchsorted(cum, 0.95))
-    cum2 = np.cumsum(speech) / speech.sum()
-    return {
-        "bandEdgesHz": [float(e) for e in edges],
-        "welch": {"nperseg": NPERSEG, "overlap": 0.5, "window": "periodic Hann", "detrend": "constant", "scaling": "density"},
-        "tracks": list(per.keys()),
-        "perTrackDb": {k: [r(10 * np.log10(v), 3) for v in per[k]] for k in per},
-        "aggregateDb": [r(10 * np.log10(v), 3) for v in agg],
-        "aggregatePeakBandHz": [float(edges[int(np.argmax(agg))]), float(edges[int(np.argmax(agg)) + 1])],
-        "aggregateEnergy95Hz": float(edges[k95 + 1]),
-        "greetingsDb": [r(10 * np.log10(v), 3) for v in speech],
-        "noiseDb": [r(10 * np.log10(v), 3) for v in noise],
-        "noiseSegments": int(len(noise_seg)),
-        "greetingsSegments": int(len(speech_seg)),
-        "greetingsEnergy95Hz": float(edges[int(np.searchsorted(cum2, 0.95)) + 1]),
-        "crossingHz": r(cross, 1),
-        "crossingBandHz": [r(lo, 1), r(hi, 1)],
-        "bootstrap": {"draws": BOOT, "blockSegments": BLOCK},
-    }
-
-
-BLOCK = 20
-"""Block bootstrap: Welch segments overlap by half and speech is correlated over a syllable or two, so whole
-blocks of 20 segments (about 0.9 s) are resampled together."""
-
-
-def block_resample(seg: np.ndarray, block: int, rng: np.random.Generator) -> np.ndarray:
-    nb = max(1, len(seg) // block)
-    starts = rng.integers(0, max(1, len(seg) - block + 1), nb)
-    return np.concatenate([seg[s: s + block] for s in starts])
-
-
-def quiet_stretches(m: np.ndarray, sr: int, threshold_db: float) -> list[np.ndarray]:
-    """Every stretch of the greetings quieter than threshold_db (and not digital silence) long enough for one
-    Welch segment: the transfer's own noise between voices."""
-    lv = vdsp.frame_levels(m, sr)
-    hop = vdsp.hop_of(sr)
-    quiet = (lv < threshold_db) & (lv > -100)
-    d = np.diff(np.concatenate([[0], quiet.astype(np.int8), [0]]))
-    return [m[a * hop: b * hop] for a, b in zip(np.flatnonzero(d == 1), np.flatnonzero(d == -1)) if (b - a) * hop >= NPERSEG]
-
-
-SNR_EDGE_DB = 10 * np.log10(2.0)
-"""Where the sound falls into the noise: the aggregate is twice the noise power (3.01 dB above it), so what the
-tracks add equals the record's own noise there (a signal-to-noise ratio of one)."""
-
-
-TOP_HZ = 20_000.0
-"""Bands are judged only up to 20 kHz: the game's runtime audio is Opus, which codes at most 20 kHz (fullband,
-RFC 6716 section 2), so the browser can measure nothing above it. The crossing lies well below."""
-
-
-def crossing(snr: np.ndarray, edges: np.ndarray) -> float:
-    """The frequency above which the signal stays within SNR_EDGE_DB of the noise (bands up to TOP_HZ): the last
-    band centre still above it, interpolated linearly to where the band-centre curve meets it; TOP_HZ if the
-    last band is still above it."""
-    nb = int(np.searchsorted(edges, TOP_HZ, side="right")) - 1
-    snr = snr[:nb]
-    edges = edges[: nb + 1]
-    centres = 0.5 * (edges[:-1] + edges[1:])
-    above = np.flatnonzero(snr > SNR_EDGE_DB)
-    if len(above) == 0:
-        return float(centres[0])
-    k = int(above[-1])
-    if k == len(snr) - 1:
-        return float(edges[-1])
-    s0, s1 = snr[k], snr[k + 1]
-    return float(centres[k] + (s0 - SNR_EDGE_DB) / (s0 - s1) * (centres[k + 1] - centres[k]))
-
-
-def whale(ceiling_hz: float) -> dict:
+def whale(oth: dict) -> dict:
+    """The UN greetings track's calls (from the "others" pass) and the stretch they span, s."""
     m, sr = mono(3)
     write_wav(3, m, sr)
-    f0, ap = vdsp.yin(m, sr, CALLS["fminHz"], CALLS["fmaxHz"], CALLS["windowS"])
-    cs = vmusic.calls(f0, ap, vdsp.YIN_THRESHOLD, ceiling_hz)
+    cs = oth["tracks"]["ozma-03"]["calls"]
     seg = [cs[0][0] * vdsp.FRAME_S, (cs[-1][0] + cs[-1][1]) * vdsp.FRAME_S] if cs else None
     return {
         "track": "ozma-03",
-        "calls": [[a, n, r(hz, 2), r(g, 1)] for a, n, hz, g in cs],
+        "calls": cs,
         "segmentS": [r(seg[0], 2), r(seg[1], 2)] if seg else None,
         "minCallS": vmusic.CALL_MIN_S,
     }
 
 
+def others_pass(ceiling_hz: float) -> dict:
+    """voices.others on every item after the pictures (tools/voices/others.py; data/record.json's order)."""
+    rec = json.load(open(os.path.join(ROOT, "data", "record.json"), encoding="utf-8"))
+    items = [i for s in rec["sides"] for i in s["items"] if i["kind"] != "pictures"]
+    return others.analysis(mono, items, ceiling_hz, SPEECH, CALLS)
+
+
 def main() -> None:
     g = greetings()
     mus = music()
-    spec = spectrum(g["reasonable"]["thresholdDb"][0])
-    wh = whale(g["speechCeilingHz"])
+    spec = vspec.spectrum(mono, SPEC_TRACKS, g["reasonable"]["thresholdDb"][0], BOOT)
+    oth = others_pass(g["speechCeilingHz"])
+    wh = whale(oth)
     out = {
         "meta": {
             "about": "The Voices' reference analysis of the Ozma transfers (M5 step 4); see data/README.md.",
@@ -386,6 +351,7 @@ def main() -> None:
         "spectrum": spec,
         "music": mus,
         "whale": wh,
+        "others": oth,
     }
     with open(OUT_JSON, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(out, fh, separators=(",", ":"), sort_keys=True)
@@ -397,6 +363,11 @@ def main() -> None:
     print("aria", mus["aria"], "piano", {k: v for k, v in mus["piano"].items() if k not in ("hist", "combScores")}, mus["piano"]["combScores"][:14])
     print("crossing", spec["crossingHz"], spec["crossingBandHz"], "energy95", spec["greetingsEnergy95Hz"], spec["aggregateEnergy95Hz"], "noise segs", spec["noiseSegments"])
     print("whale", wh["segmentS"], len(wh["calls"]))
+    print("octave", mus["violin"]["octaveCents"], mus["violin"]["octaveTolCents"], mus["violin"]["fold"]["bootstrap"], mus["violin"]["fold"]["named"])
+    print("many cut table", g["cutTable"], "near 55", g["nearPublished"])
+    print("hearing definitions", spec["definitions"])
+    for k, v in oth["tracks"].items():
+        print("others", k, v["kind"], len(v.get("calls", v.get("held", []))), "speech", len(v.get("speech", [])), "accepted", [(a / 100, b / 100, n) for a, b, n in v.get("accepted", [])])
 
 
 if __name__ == "__main__":

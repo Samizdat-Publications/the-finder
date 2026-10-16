@@ -6,7 +6,8 @@ import { describe, expect, it } from 'vitest';
 import voicesJson from '../../data/voices.json';
 import { recordCheck } from '../../tests/support/record';
 import { createRng, type Rng } from '../science/random';
-import { COMB_K, calls, combScores, octaveOf, yin, type TrackerSettings } from './pitch';
+import { FoldNotes, bestFold } from './fold';
+import { COMB_K, calls, combScores, yin, type TrackerSettings } from './pitch';
 
 const SR = 44_100;
 
@@ -57,10 +58,13 @@ describe('pitch', () => {
 
   it('the octave, the comb and the calls on synthetic music (voices.dsp.music)', () => {
     const rng = createRng('music');
-    // A melody on a 100-cent grid (offset 30 cents) over two octaves of a major scale, intonation sd 8 cents.
+    // A melody on a 100-cent grid (offset 30 cents) over three octaves of a major scale, intonation sd 8 cents. (Over
+    // only two octaves the fold prefers 3:2: a scale built from fifths lines up a fifth apart, and two octaves hold
+    // too few notes a doubling apart to outweigh it. The Gavotte spans 2.6 octaves and folds best at 2:1 by a wide
+    // margin: voices.ref.octave.)
     const scale = [0, 200, 400, 500, 700, 900, 1100];
-    const mel = Array.from({ length: 400 }, () => -500 + 30 + scale[Math.floor(rng.uniform() * 7)]! + 1200 * Math.floor(rng.uniform() * 2) + 8 * rng.normal());
-    const oct = octaveOf(mel)!;
+    const mel = Array.from({ length: 400 }, () => -500 + 30 + scale[Math.floor(rng.uniform() * 7)]! + 1200 * Math.floor(rng.uniform() * 3) + 8 * rng.normal());
+    const oct = bestFold(new FoldNotes(mel)).cents;
     // Combs on weighted pitches: equal-tempered (12 per octave) and seven equal steps.
     const pts = (k: number): { c: Float64Array; w: Float64Array } => {
       const c = Float64Array.from({ length: 600 }, () => (1200 / k) * Math.floor(rng.uniform() * 3 * k) - 1800 + 4 * rng.normal());
@@ -91,7 +95,7 @@ describe('pitch', () => {
       claim: 'The octave, the comb and the call finder recover known structure: a doubling, twelve and seven equal steps, a sliding call of known length and glide.',
       measured: `octave ${oct.toFixed(2)} cents; combs ${k12} and ${k7}; ${cs.length} call(s)${c0 ? `, ${(c0.frames / 100).toFixed(2)} s, glide ${c0.glideCents.toFixed(1)} cents` : ''}`,
       expected: '1200 cents; 12 and 7; one call of 0.8 s gliding 300 cents',
-      tolerance: 'octave within 5 cents (8-cent intonation over 400 notes in 10-cent bins); combs exact; call length within 5 frames (YIN windows overlap the onsets), glide within 15 cents',
+      tolerance: 'octave within 5 cents (8-cent intonation over 400 notes; the fold, src/dsp/fold.ts); combs exact; call length within 5 frames (YIN windows overlap the onsets), glide within 15 cents',
       pass,
     });
     expect(pass).toBe(true);
