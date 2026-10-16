@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "description": "Where the uranium-238 spot sits on the cover, in the cover SVG's millimetre coordinates (public/media/cover/cover.svg, viewBox 0 0 304.8 304.8, origin top left as in NASA's photo).",
+    "basis": "D-A23: a documented game choice. NASA says ultra-pure uranium-238 was electroplated onto the cover over a two-centimetre-diameter area (docs/research/cover.md 1e) but no source gives its position, and it is not on the cover diagram. Placed in the empty top-centre area, clear of every drawing.",
+    "built": "2026-10-16"
+  },
+  "centreMm": [150, 32],
+  "diameterMm": 20,
+  "diameterSource": "NASA golden-record-cover page: a two-centimetre diameter area (docs/research/cover.md 1e)",
+  "visible": false
+}
