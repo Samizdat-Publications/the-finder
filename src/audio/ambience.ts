@@ -1,6 +1,8 @@
 // Per-chapter instrument hums: a low, slowly beating drone in each chapter's own key. Arrival is cold and
 // sparse, The Key has a faint resonant ring, The Player a warm mechanical bed, The Pictures a scanning
-// shimmer; the rest share the quiet hub drone. Beds crossfade when the chapter changes, drop 12 dB while the
+// shimmer, The Map a slow wide drone that faintly pulses (a sky of clocks), The Spot a close dry room (its
+// detector clicks are the music), The Trail a low tone that moves and settles; the rest share the quiet hub
+// drone. Beds crossfade when the chapter changes, drop 12 dB while the
 // record plays, and dip for a hush. Works on any BaseAudioContext so a browser test renders it offline.
 // Taste, not physics. Seeded noise only.
 
@@ -19,7 +21,7 @@ export interface BedHandle {
 }
 
 /** Gain trims (linear) from measured bed peaks, so each bed alone peaks near LEVEL_DBFS.bed. */
-const BED_TRIM: Record<Bed, number> = { hub: 1, cold: 1.1, ring: 1.17, warm: 1.5, shimmer: 1.07 };
+const BED_TRIM: Record<Bed, number> = { hub: 1, cold: 1.1, ring: 1.17, warm: 1.5, shimmer: 1.07, sky: 1.14, room: 1.83, drift: 1.02 };
 
 function lfo(ctx: BaseAudioContext, hz: number, depth: number, target: AudioParam, when: number, sources: AudioScheduledSourceNode[]): void {
   const o = ctx.createOscillator();
@@ -123,6 +125,69 @@ export function buildBed(ctx: BaseAudioContext, view: ChapterView, when: number,
       ng.connect(mix);
       src.start(when);
       sources.push(src);
+      break;
+    }
+    case 'sky': {
+      // A sky of clocks: a wide drone (root, a hair-detuned root, a soft fifth and octave) whose whole level
+      // breathes slowly, with four faint high partials each pulsing at its own rate, like distant beacons.
+      const pulse = ctx.createGain();
+      pulse.gain.value = 0.85;
+      lfo(ctx, 0.13, 0.15, pulse.gain, when, sources);
+      pulse.connect(mix);
+      add(r, 0.42, 'sine', pulse);
+      add(r * 1.0016, 0.3, 'sine', pulse);
+      add(r * 1.5, 0.1, 'sine', pulse);
+      add(r * 2.003, 0.07, 'sine', pulse);
+      [0.71, 1.13, 1.37, 1.79].forEach((rate, i) => {
+        const g = add(r * (12 + 4 * i), 0.0);
+        lfo(ctx, rate, 0.01, g.gain, when, sources);
+        g.gain.value = 0.01;
+      });
+      break;
+    }
+    case 'room': {
+      // A close, dry room: a very quiet low root and a little low-passed room noise, nothing that beats or
+      // moves, so the detector's clicks carry the chapter.
+      add(r, 0.3);
+      add(r * 2, 0.04);
+      const src = ctx.createBufferSource();
+      src.buffer = noiseBuffer(ctx, rng.fork('room'), 4, 'brown');
+      src.loop = true;
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 260;
+      lp.Q.value = 0.5;
+      const ng = ctx.createGain();
+      ng.gain.value = 0.3;
+      src.connect(lp);
+      lp.connect(ng);
+      ng.connect(mix);
+      src.start(when);
+      sources.push(src);
+      break;
+    }
+    case 'drift': {
+      // A low moving tone that settles: the root and its fifth start a little off and glide home over about
+      // 9 s, with a slow vibrato that fades as they arrive; under them the plain root holds still.
+      add(r * 0.5, 0.25);
+      const glide = (target: number, from: number, level: number): void => {
+        const t = tone(ctx, mix, target * from, when);
+        t.gain.gain.value = level;
+        t.osc.frequency.setValueAtTime(target * from, when);
+        t.osc.frequency.exponentialRampToValueAtTime(target, when + 9);
+        const vib = ctx.createGain();
+        vib.gain.setValueAtTime(target * 0.006, when);
+        vib.gain.setTargetAtTime(0, when + 3, 2.5);
+        const o = ctx.createOscillator();
+        o.frequency.value = 0.21;
+        o.connect(vib);
+        vib.connect(t.osc.frequency);
+        o.start(when);
+        sources.push(t.osc, o);
+      };
+      glide(r, 1.06, 0.42);
+      glide(r * 1.5, 0.95, 0.14);
+      add(r * 1.0009, 0.18);
       break;
     }
     case 'hub': {

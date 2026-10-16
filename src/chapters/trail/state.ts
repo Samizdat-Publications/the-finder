@@ -4,10 +4,12 @@
 // measured behind a visible "measuring" state so the page paints first.
 
 import { signal } from '@preact/signals';
+import { weightedMean } from '../../science/stats';
 import { loadEpochModel, type EpochModel } from '../shared/epochModel';
+import { AGREE_CHI2_PER_DOF } from './checkers';
 import type { FrameAges, FrameId } from './frames';
-import { agesInFrame } from './frames';
-import { starById } from './physics';
+import { agesInFrame, judgedLines, oldSpread } from './frames';
+import { originRow, starById } from './physics';
 
 export type Tool = 'trail' | 'runback' | 'ruler' | 'region' | 'reframe';
 
@@ -32,6 +34,30 @@ export const measuring = signal<string | null>(null);
 export const failure = signal<string | null>(null);
 /** Ages in the current frame, once measured. */
 export const frameAges = signal<FrameAges | null>(null);
+
+/**
+ * The reframe's last reading, for the sound layer (src/audio/cues.ts plays the ages snapping together the
+ * first time this says the origin star's frame and agreement). `scatterYears` is each judged old line's age
+ * in the alien's own frame minus their weighted mean: the scatter the tones start from. Set by selectFrame
+ * only, so the interface and a bot driving the same frame control produce it alike.
+ */
+export interface ReframeReading {
+  frame: FrameId;
+  /** True when the frame is the star the trail picks out (the origin). */
+  origin: boolean;
+  /** True when the judged old lines agree within their errors in this frame (AGREE_CHI2_PER_DOF). */
+  agree: boolean;
+  scatterYears: number[];
+}
+export const reframeReading = signal<ReframeReading | null>(null);
+
+function readingOf(m: EpochModel, f: FrameId, ages: FrameAges): ReframeReading {
+  const originId = originRow(m).star.id;
+  const set = judgedLines(agesInFrame(m, originId, starById(m, originId)));
+  const own = agesInFrame(m, 'own').perLine.filter((a) => !a.young && set.has(a.jname));
+  const wm = own.length > 0 ? weightedMean(own.map((a) => a.median), own.map((a) => a.sigma)).mean : 0;
+  return { frame: f, origin: f === originId, agree: oldSpread(ages, set).chi2PerDof < AGREE_CHI2_PER_DOF, scatterYears: own.map((a) => a.median - wm) };
+}
 
 /** Let the page paint before a long synchronous measurement. */
 export function yieldFrame(): Promise<void> {
@@ -92,7 +118,10 @@ export async function selectFrame(m: EpochModel, f: FrameId): Promise<void> {
   const star = f === 'own' ? undefined : starById(m, f);
   const label = f === 'own' ? 'your own frame' : 'that star\'s frame';
   const ages = await timed(`frame:${String(f)}`, `Moving the pulsar rates into ${label}`, () => agesInFrame(m, f, star));
-  if (frame.value === f) frameAges.value = ages;
+  if (frame.value === f) {
+    frameAges.value = ages;
+    reframeReading.value = readingOf(m, f, ages);
+  }
 }
 
 /** Everything the reframe needs before it draws: the motion fit, and the origin frame's ages (the plot's axis spans it). */

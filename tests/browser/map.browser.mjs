@@ -58,15 +58,6 @@ async function playOnce({ page, baseUrl, assert, log, label, dir, shots, review 
   );
   await page.goto(`${baseUrl}/play/`, { waitUntil: 'load' });
   await page.waitForFunction(() => Boolean(window.__finder), null, { timeout: 30_000 });
-  await page.evaluate(() => window.__finder.dispatch({ type: 'chapter.enter', chapter: 'map' }));
-  await page.waitForSelector('.mapinst[data-map-phase="ready"]', { timeout: 120_000 });
-  await page.waitForSelector('.map-chart[data-chart-ready="true"]', { timeout: 60_000 });
-  const ms = await page.evaluate(() => {
-    const d = document.querySelector('.mapinst').dataset;
-    return { load: Number(d.msLoad), identify: Number(d.msIdentify) };
-  });
-  log(`[${label}] loaded in ${ms.load} ms; identification held the page ${ms.identify} ms`);
-
   const shot = async (name, shows) => {
     await page.waitForTimeout(300);
     const m = await page.evaluate(() => {
@@ -88,6 +79,24 @@ async function playOnce({ page, baseUrl, assert, log, label, dir, shots, review 
     shots.push({ file: `${label}/${file}`, shows, ...m });
     if (m.pageScrollPx > 0 || m.textUnder13px.length) log(`[${label}] ${name}: page scroll ${m.pageScrollPx}px; small text ${m.textUnder13px.join(', ')}`);
   };
+  return playMap(page, { assert, log, label, shot, review });
+}
+
+/**
+ * The Map played through its instrument from the ring (The Key done), every proposal from its buttons:
+ * exported for the whole-game bot (tests/browser/game.browser.mjs). shot(name, shows, did) takes each capture;
+ * with `game` set, one more frame is taken (the map aligned). The model is the page's own (its save's seed).
+ */
+export async function playMap(page, { assert, log, label = '', shot, review = false, game = false }) {
+  await page.evaluate(() => window.__finder.dispatch({ type: 'chapter.enter', chapter: 'map' }));
+  await page.waitForSelector('.mapinst[data-map-phase="ready"]', { timeout: 120_000 });
+  await page.waitForSelector('.map-chart[data-chart-ready="true"]', { timeout: 60_000 });
+  const ms = await page.evaluate(() => {
+    const d = document.querySelector('.mapinst').dataset;
+    return { load: Number(d.msLoad), identify: Number(d.msIdentify) };
+  });
+  log(`[${label}] loaded in ${ms.load} ms; identification held the page ${ms.identify} ms`);
+
   const state = () => page.evaluate(() => window.__finder.state().game);
   const attempts = async (id) => (await state()).nodes[id].attempts.length;
   const propose = async (id) => {
@@ -98,10 +107,10 @@ async function playOnce({ page, baseUrl, assert, log, label, dir, shots, review 
     return a[a.length - 1];
   };
   // What a bot reads off the instrument, computed in the page from the same model and helpers.
-  await page.evaluate(async (seed) => {
+  await page.evaluate(async () => {
     const { epochModel } = await import('/src/chapters/shared/epochModel.ts');
-    window.__mapTest = { m: epochModel(seed), mm: await import('/src/chapters/map/mapMath.ts') };
-  }, SEED);
+    window.__mapTest = { m: epochModel(window.__finder.state().game.seed), mm: await import('/src/chapters/map/mapMath.ts') };
+  });
   const selectLine = (n) => page.click(`[data-line-button="${n}"]`);
   const clickPulsar = async (jname) => {
     const p = await page.evaluate(async (j) => {
@@ -144,6 +153,7 @@ async function playOnce({ page, baseUrl, assert, log, label, dir, shots, review 
   const aligned = await angle();
   assert(Math.abs(aligned) <= 0.1, `the dial aligns the long line with the centre (${aligned} deg)`);
   log(`[${label}] dial: long line ${aligned.toFixed(2)} deg from the centre`);
+  if (game) await shot('map-aligned', `The dial turned until the cover map's long line points at the Galactic centre (${aligned.toFixed(2)} deg off); nothing matched yet.`, 'Turned the dial until the long line points at the centre of the galaxy.');
 
   // ---- map.periods: a young line first (refused), then an old one ----
   const crab = lines.find((l) => l.bname === 'B0531+21');

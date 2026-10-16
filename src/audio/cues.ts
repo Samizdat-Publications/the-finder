@@ -4,10 +4,11 @@
 // log and the caption, and hands the events to a sink (the real Web Audio sink in start.tsx, a fake in tests).
 
 import { effect, signal } from '@preact/signals';
+import { reframeReading } from '../chapters/trail/state';
 import { nodeDef, type ChapterId, type ChapterView } from '../game/graph';
 import { confirmedSet, game, turntable } from '../game/state';
 
-export type CueKind = 'pluck' | 'cadence' | 'tick' | 'breath' | 'swell' | 'hush' | 'chapter' | 'duck';
+export type CueKind = 'pluck' | 'cadence' | 'tick' | 'breath' | 'swell' | 'hush' | 'chapter' | 'duck' | 'snap' | 'warm' | 'twist';
 
 export interface CueEvent {
   kind: CueKind;
@@ -17,6 +18,8 @@ export interface CueEvent {
   nodeId?: string;
   /** For duck: true while the record plays. */
   on?: boolean;
+  /** For snap: each old line's age offset in the alien's own frame, scaled so the largest is +/-1. */
+  scatter?: number[];
 }
 
 export interface SoundSink {
@@ -43,6 +46,9 @@ export const MIN_GAP_MS: Record<CueKind, number> = {
   hush: 3000,
   chapter: 0,
   duck: 0,
+  snap: 3000,
+  warm: 3000,
+  twist: 3000,
 };
 
 const CAPTIONS: Record<CueKind, string | null> = {
@@ -54,6 +60,9 @@ const CAPTIONS: Record<CueKind, string | null> = {
   hush: 'the instruments hush',
   chapter: 'the hum changes key',
   duck: null,
+  snap: 'scattered tones settle into one chord',
+  warm: 'a warm low tone, held',
+  twist: 'the instruments hush, then the warm tone again, softer',
 };
 
 export function captionFor(kind: CueKind): string | null {
@@ -63,6 +72,10 @@ export function captionFor(kind: CueKind): string | null {
 /** The deduction ids with a cue of their own. A pluck would crowd them, so they replace it. */
 export const SWELL_NODE = 'pictures.circle';
 export const HUSH_NODE = 'player.firstSound';
+/** The Sun found: the warm low tone under the pluck. */
+export const WARM_NODE = 'trail.origin';
+/** The neighbour twist: the hush, then the warm tone again, softer. */
+export const TWIST_NODE = 'trail.neighbour';
 
 const LOG_CAP = 300;
 const log: CueLogEntry[] = [];
@@ -128,11 +141,13 @@ export function startCues(opts: CuesOptions): Cues {
     if (!prev) return;
     const added = [...now_].filter((id) => !prev.has(id));
     if (added.length === 0) return;
-    // One cue per state change: the moments first (swell, then hush), else a pluck in the first node's key.
-    const swell = added.find((id) => id === SWELL_NODE);
-    const hush = added.find((id) => id === HUSH_NODE);
-    if (swell) fire({ kind: 'swell', chapter: 'pictures', nodeId: swell });
-    else if (hush) fire({ kind: 'hush', chapter: 'player', nodeId: hush });
+    // One cue per state change: the moments first (swell, hush, the Sun found, the neighbour twist), else a
+    // pluck in the first node's key.
+    const has = (id: string): boolean => added.includes(id);
+    if (has(SWELL_NODE)) fire({ kind: 'swell', chapter: 'pictures', nodeId: SWELL_NODE });
+    else if (has(HUSH_NODE)) fire({ kind: 'hush', chapter: 'player', nodeId: HUSH_NODE });
+    else if (has(WARM_NODE)) fire({ kind: 'warm', chapter: 'trail', nodeId: WARM_NODE });
+    else if (has(TWIST_NODE)) fire({ kind: 'twist', chapter: 'trail', nodeId: TWIST_NODE });
     else {
       const first = added[0] as string;
       fire({ kind: 'pluck', chapter: chapterOf(first) ?? 'hub', nodeId: first });
@@ -164,6 +179,15 @@ export function startCues(opts: CuesOptions): Cues {
     if (was === false && open) fire({ kind: 'breath', chapter: game.chapter.peek() });
   });
 
+  // ---- The Trail's reframe: the first time the ages are read in the origin star's frame and agree ----
+  let snapped = false;
+  const stopSnap = effect(() => {
+    const r = reframeReading.value;
+    if (snapped || !r || !r.origin || !r.agree) return;
+    const big = Math.max(1e-9, ...r.scatterYears.map((y) => Math.abs(y)));
+    if (fire({ kind: 'snap', chapter: 'trail', nodeId: 'trail.when', scatter: r.scatterYears.map((y) => y / big) })) snapped = true;
+  });
+
   // ---- the chapter (the hum changes key) ----
   let chapterWas: ChapterView | null = null;
   const stopChapter = effect(() => {
@@ -192,6 +216,7 @@ export function startCues(opts: CuesOptions): Cues {
     dispose(): void {
       stopConfirm();
       stopReject();
+      stopSnap();
       stopCodex();
       stopChapter();
       stopPlaying();

@@ -1,12 +1,13 @@
 // The cue mapping under Node: which state change makes which cue, the rate limits, the baseline on load, the
 // ducking while the record plays, and the ambience's gains on a fake audio graph.
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { reframeReading } from '../chapters/trail/state';
 import type { Attempt } from '../game/deductions';
 import { resetAll } from '../game/gameService';
 import { game, turntable, type NodeRecord } from '../game/state';
 import type { NeedleState } from '../record/engine';
 import { Ambience } from './ambience';
-import { HUSH_NODE, SWELL_NODE, captionFor, clearCueLog, cueLog, lastCaption, startCues, type Cues, type CueEvent, type SoundSink } from './cues';
+import { HUSH_NODE, MIN_GAP_MS, SWELL_NODE, TWIST_NODE, WARM_NODE, captionFor, clearCueLog, cueLog, lastCaption, startCues, type Cues, type CueEvent, type SoundSink } from './cues';
 import { CHAPTER_VOICE, DUCK_DB, HUSH_DB, dbToLin, voiceFor } from './synth';
 
 class FakeSink implements SoundSink {
@@ -40,6 +41,7 @@ const needle = (down: boolean, speed = 0.28): NeedleState => ({
 beforeEach(() => {
   resetAll();
   turntable.needle.value = null;
+  reframeReading.value = null;
   clearCueLog();
   clockMs = 1000;
   sink = new FakeSink();
@@ -118,6 +120,63 @@ describe('cues from game state', () => {
   });
 });
 
+describe("The Trail's moments (M4 step 7)", () => {
+  const scatter = [-2400, 900, 3100, -150, -1450];
+
+  it('plays the warm tone for the Sun found (trail.origin), once, with its caption, instead of a pluck', () => {
+    confirm(WARM_NODE);
+    expect(sink.events).toEqual([{ kind: 'warm', chapter: 'trail', nodeId: WARM_NODE }]);
+    expect(cueLog().at(-1)).toMatchObject({ kind: 'warm', nodeId: WARM_NODE, caption: 'a warm low tone, held' });
+    expect(lastCaption.value?.text).toBe('a warm low tone, held');
+    confirm(WARM_NODE); // already confirmed: no state change, no cue
+    expect(sink.events).toHaveLength(1);
+  });
+
+  it('plays the twist for the neighbour (trail.neighbour): the hush, then the warm tone softer, as one captioned cue', () => {
+    confirm(TWIST_NODE);
+    expect(sink.events).toEqual([{ kind: 'twist', chapter: 'trail', nodeId: TWIST_NODE }]);
+    expect(captionFor('twist')).toBe('the instruments hush, then the warm tone again, softer');
+    expect(cueLog().filter((c) => c.kind === 'twist')).toHaveLength(1);
+  });
+
+  it("snaps the ages together the first time the origin star's frame agrees, and only then", () => {
+    reframeReading.value = { frame: 'own', origin: false, agree: false, scatterYears: scatter };
+    reframeReading.value = { frame: 42, origin: false, agree: false, scatterYears: scatter };
+    expect(sink.events).toHaveLength(0); // the alien's own frame and another star's: no snap
+    reframeReading.value = { frame: 0, origin: true, agree: true, scatterYears: scatter };
+    expect(sink.events).toHaveLength(1);
+    const e = sink.events[0]!;
+    expect(e).toMatchObject({ kind: 'snap', chapter: 'trail', nodeId: 'trail.when' });
+    // one tone per line, pitched from its offset: the largest offset maps to +/-1, the signs and order kept
+    expect(e.scatter).toHaveLength(scatter.length);
+    expect(e.scatter?.[2]).toBe(1);
+    expect(e.scatter?.map((x) => Math.sign(x))).toEqual(scatter.map((x) => Math.sign(x)));
+    expect(cueLog().at(-1)?.caption).toBe('scattered tones settle into one chord');
+    // back to the alien's frame and to the origin again, long after: the first time only
+    clockMs += 60_000;
+    reframeReading.value = { frame: 'own', origin: false, agree: false, scatterYears: scatter };
+    reframeReading.value = { frame: 0, origin: true, agree: true, scatterYears: scatter };
+    expect(sink.events.filter((x) => x.kind === 'snap')).toHaveLength(1);
+  });
+
+  it('does not snap in the origin frame when the lines do not agree', () => {
+    reframeReading.value = { frame: 0, origin: true, agree: false, scatterYears: scatter };
+    expect(sink.events).toHaveLength(0);
+  });
+
+  it('rate-limits each new cue like the M3 moments', () => {
+    for (const kind of ['snap', 'warm', 'twist'] as const) {
+      expect(MIN_GAP_MS[kind]).toBe(MIN_GAP_MS.swell);
+      expect(cues.fire({ kind, chapter: 'trail' })).toBe(true);
+      clockMs += MIN_GAP_MS[kind] - 1;
+      expect(cues.fire({ kind, chapter: 'trail' })).toBe(false);
+      clockMs += 2;
+      expect(cues.fire({ kind, chapter: 'trail' })).toBe(true);
+      clockMs += 10_000;
+    }
+  });
+});
+
 describe('rate limits', () => {
   it('drops a second pluck inside the gap and lets the next one through after it', () => {
     confirm('arrival.purpose');
@@ -139,7 +198,7 @@ describe('rate limits', () => {
   });
 
   it('gives every cue with a sound a caption but the tick and the ducking', () => {
-    for (const k of ['pluck', 'cadence', 'breath', 'swell', 'hush', 'chapter'] as const) expect(captionFor(k)).toBeTruthy();
+    for (const k of ['pluck', 'cadence', 'breath', 'swell', 'hush', 'chapter', 'snap', 'warm', 'twist'] as const) expect(captionFor(k)).toBeTruthy();
     expect(captionFor('tick')).toBeNull();
   });
 });
@@ -149,6 +208,16 @@ describe('the keys', () => {
     for (const v of Object.values(CHAPTER_VOICE)) expect(v.pluckHz / v.rootHz).toBeCloseTo(4, 1);
     const beds = ['arrival', 'key', 'player', 'pictures'].map((c) => CHAPTER_VOICE[c as 'arrival'].bed);
     expect(new Set(beds).size).toBe(4);
+  });
+
+  it("gives the seven built chapters seven different keys and beds, keeping the M3 chapters' values", () => {
+    const built = ['arrival', 'key', 'player', 'pictures', 'map', 'spot', 'trail'] as const;
+    expect(new Set(built.map((c) => CHAPTER_VOICE[c].rootHz)).size).toBe(7);
+    expect(new Set(built.map((c) => CHAPTER_VOICE[c].pluckHz)).size).toBe(7);
+    expect(new Set(built.map((c) => CHAPTER_VOICE[c].bed)).size).toBe(7);
+    expect(new Set(built.map((c) => CHAPTER_VOICE[c].bed)).has('hub')).toBe(false);
+    expect(CHAPTER_VOICE.pictures).toEqual({ rootHz: 73.42, pluckHz: 293.66, bed: 'shimmer' });
+    expect(CHAPTER_VOICE.player).toEqual({ rootHz: 49.0, pluckHz: 196.0, bed: 'warm' });
   });
 });
 
@@ -237,6 +306,12 @@ describe('the ambience (fake audio graph)', () => {
     expect(ctx.nodes.length).toBeGreaterThan(before);
     const stopped = ctx.nodes.filter((n) => n.stopped.length > 0);
     expect(stopped.length).toBeGreaterThan(0); // the arrival bed was told to stop
+    for (const v of ['map', 'spot', 'trail'] as const) {
+      const n0 = ctx.nodes.length;
+      amb.setChapter(v); // each new bed builds on the graph and crossfades in
+      expect(amb.view).toBe(v);
+      expect(ctx.nodes.length).toBeGreaterThan(n0);
+    }
     amb.hush();
     const hushed = ctx.nodes.filter((n) => n.gain.calls.some((c) => c[0] === 'target' && Math.abs(c[1] - dbToLin(HUSH_DB)) < 1e-9));
     expect(hushed).toHaveLength(1);

@@ -1,6 +1,8 @@
 // The interface's sounds, synthesized live in Web Audio on any BaseAudioContext: a resonant pluck on a
 // confirmed deduction, a dull low two-note fall on a rejected answer, a quiet tick on instrument controls,
-// a breath when the codex opens, and the harmonic swell when the calibration circle resolves.
+// a breath when the codex opens, the harmonic swell when the calibration circle resolves, and The Trail's
+// two moments: the scattered tones of the map's old lines settling into one chord (the ages snapping
+// together) and a warm low held tone (the Sun found; softer again for the neighbour twist).
 // All noise comes from seeded streams, so the same seed always renders the same cue. Levels are the
 // LEVEL_DBFS targets in synth.ts (peak, cue alone); TRIM holds the measured correction so the peak lands
 // on the target (see tests/browser/sound.browser.mjs, which checks it).
@@ -8,7 +10,7 @@
 import type { Rng } from '../science/random';
 import { LEVEL_DBFS, dbToLin, noiseBuffer, tone } from './synth';
 
-export type RenderKind = 'pluck' | 'cadence' | 'tick' | 'breath' | 'swell';
+export type RenderKind = 'pluck' | 'cadence' | 'tick' | 'breath' | 'swell' | 'snap' | 'warm';
 
 export interface RenderedCue {
   /** Seconds from `when` until the cue has died away (the caller may stop sources after this). */
@@ -16,7 +18,7 @@ export interface RenderedCue {
 }
 
 /** Gain trims (linear) found by measuring the rendered peaks; a pure scale, so shapes are untouched. */
-const TRIM: Record<RenderKind, number> = { pluck: 1.38, cadence: 1.2, tick: 1.86, breath: 1.1, swell: 1.15 };
+const TRIM: Record<RenderKind, number> = { pluck: 1.38, cadence: 1.2, tick: 1.86, breath: 1.1, swell: 1.15, snap: 1.37, warm: 1.0 };
 
 const peakOf = (kind: RenderKind): number => dbToLin(LEVEL_DBFS[kind]) * TRIM[kind];
 
@@ -185,5 +187,83 @@ export function swell(ctx: BaseAudioContext, dest: AudioNode, when: number, root
       osc.stop(when + total);
     }
   });
+  return { durationS: total };
+}
+
+/** The chord the old lines settle into: a major chord stacked up the harmonic series, one tone per line. */
+const SNAP_CHORD = [1, 5 / 4, 3 / 2, 2, 5 / 2, 3, 4, 5, 6, 8, 10, 12];
+/** How far the most scattered line starts from its chord tone, octaves (a taste choice). */
+const SNAP_SPREAD_OCT = 0.5;
+/** Seconds until every tone has arrived on its chord tone ("over about two seconds", the spec). */
+export const SNAP_SETTLE_S = 2;
+
+/**
+ * The ages snapping together: one short tone per old line, entering one after another, each pitched off
+ * its chord tone by its age's offset in the alien's own frame (`scatter`, each in -1..1, the largest offset
+ * at +/-1); each glides onto its tone of one chord, which all arrive at together after SNAP_SETTLE_S, swell,
+ * hold briefly and fade. About 6 s.
+ */
+export function snap(ctx: BaseAudioContext, dest: AudioNode, when: number, rootHz: number, scatter: readonly number[], rng: Rng): RenderedCue {
+  const offs = scatter.length > 0 ? scatter.slice(0, SNAP_CHORD.length) : [-1, 0.6, -0.3, 0.9, -0.7, 0.2, -0.5, 0.4];
+  const out = ctx.createGain();
+  out.gain.value = peakOf('snap') / 2.2;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 2400;
+  lp.Q.value = 0.5;
+  lp.connect(out);
+  out.connect(dest);
+  const settle = when + SNAP_SETTLE_S;
+  const total = 6.4;
+  offs.forEach((off, i) => {
+    const target = rootHz * (SNAP_CHORD[i] as number) * (1 + (rng.uniform() - 0.5) * 0.002);
+    const start = target * 2 ** (SNAP_SPREAD_OCT * Math.max(-1, Math.min(1, off)));
+    const enter = when + i * 0.11;
+    const amp = 1 / (1 + 0.3 * i);
+    const { osc, gain } = tone(ctx, lp, start, enter, 'triangle');
+    osc.frequency.setValueAtTime(start, enter);
+    osc.frequency.exponentialRampToValueAtTime(target, settle);
+    const g = gain.gain;
+    // the short scattered tone: a quick strike that falls to a murmur while it glides
+    g.setValueAtTime(0, enter);
+    g.linearRampToValueAtTime(amp * 0.7, enter + 0.012);
+    g.setTargetAtTime(amp * 0.12, enter + 0.012, 0.09);
+    // the chord: every voice swells together onto its tone, holds, and fades
+    g.setTargetAtTime(amp * 0.55, settle - 0.35, 0.18);
+    g.setTargetAtTime(0, settle + 0.9, 0.5);
+    osc.stop(when + total);
+  });
+  return { durationS: total };
+}
+
+/**
+ * The warm tone: a low, soft, held note (a chorus of two sines a hair apart, a quiet octave and twelfth,
+ * through a low-pass), a slow rise, about three seconds held, a long release. `levelDb` lowers it (the
+ * neighbour twist plays it softer). About 7 s.
+ */
+export function warm(ctx: BaseAudioContext, dest: AudioNode, when: number, hz: number, rng: Rng, levelDb = 0): RenderedCue {
+  const out = ctx.createGain();
+  out.gain.value = (peakOf('warm') * dbToLin(levelDb)) / 1.6;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = Math.max(400, hz * 4);
+  lp.Q.value = 0.4;
+  lp.connect(out);
+  out.connect(dest);
+  const total = 7;
+  const parts: Array<[number, number]> = [
+    [1, 0.7],
+    [1.0025, 0.55],
+    [2, 0.22],
+    [3, 0.08],
+  ];
+  for (const [mult, amp] of parts) {
+    const { osc, gain } = tone(ctx, lp, hz * mult * (1 + (rng.uniform() - 0.5) * 0.001), when);
+    const g = gain.gain;
+    g.setValueAtTime(0, when);
+    g.setTargetAtTime(amp, when, 0.35);
+    g.setTargetAtTime(0, when + 3.4, 0.55);
+    osc.stop(when + total);
+  }
   return { durationS: total };
 }

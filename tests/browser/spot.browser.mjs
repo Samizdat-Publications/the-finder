@@ -54,6 +54,14 @@ async function play(page, baseUrl, size, { assert, log, shot }) {
   await page.evaluate(([k, v]) => { localStorage.clear(); localStorage.setItem(k, v); }, [SAVE_KEY, saveJson('finder-1')]);
   await page.goto(`${baseUrl}/play/`, { waitUntil: 'load' });
   await page.waitForFunction(() => Boolean(window.__finder), null, { timeout: 90_000 });
+  return playSpot(page, { assert, log, shot, label: `${size.w}x${size.h}` });
+}
+
+/**
+ * The Spot played through its instrument from the ring (The Key done): exported for the whole-game bot
+ * (tests/browser/game.browser.mjs). shot(name, shows, did) takes each capture.
+ */
+export async function playSpot(page, { assert, log, shot, label = '' }) {
   const game = () => page.evaluate(() => window.__finder.state().game);
   assert((await game()).chapterStatus.spot === 'open', 'The Spot is open once The Key is done');
   await page.evaluate(() => window.__finder.dispatch({ type: 'chapter.enter', chapter: 'spot' }));
@@ -154,7 +162,7 @@ async function play(page, baseUrl, size, { assert, log, shot }) {
   await shot('spot-done', 'The Spot done: three confirmed instruments folded to their verdicts.', 'Proposed the pure start.');
   const g = await game();
   assert(g.chapterStatus.spot === 'done', 'The Spot is done');
-  log(`${size.w}x${size.h}: rate far ${rateFar.toFixed(5)} /s, over ${rateOver.toFixed(3)} /s; short ${tShort.toFixed(0)} s; long ${tLong.toFixed(0)} s, ratio ${R}, age ${yrs('age').toFixed(0)} (${yrs('age low, 95%').toFixed(0)} to ${yrs('age high, 95%').toFixed(0)})`);
+  log(`${label}: rate far ${rateFar.toFixed(5)} /s, over ${rateOver.toFixed(3)} /s; short ${tShort.toFixed(0)} s; long ${tLong.toFixed(0)} s, ratio ${R}, age ${yrs('age').toFixed(0)} (${yrs('age low, 95%').toFixed(0)} to ${yrs('age high, 95%').toFixed(0)})`);
   return { rateFar, rateOver, tShort, tLong, R, age: [yrs('age'), yrs('age low, 95%'), yrs('age high, 95%')], wrong: [wrongFind.message, wrongAge.message, wrongPurity.message] };
 }
 

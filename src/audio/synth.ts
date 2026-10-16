@@ -18,8 +18,15 @@ export const LEVEL_DBFS = {
   tick: -50,
   breath: -30,
   swell: -22,
+  /** The ages snapping together (The Trail's reframe): the scattered tones drawing into one chord. */
+  snap: -22,
+  /** The Sun found (trail.origin): the warm low tone held under the pluck. */
+  warm: -26,
   bed: -34,
 } as const;
+
+/** The warm tone's level in the neighbour twist, relative to its level for the Sun found, dB ("softer"). */
+export const TWIST_WARM_DB = -6;
 
 /** How far the ambience drops while the record plays, dB. */
 export const DUCK_DB = -12;
@@ -28,7 +35,7 @@ export const HUSH_DB = -26;
 /** Seconds the hush holds before the instruments return. */
 export const HUSH_HOLD_S = 5;
 
-export type Bed = 'cold' | 'ring' | 'warm' | 'shimmer' | 'hub';
+export type Bed = 'cold' | 'ring' | 'warm' | 'shimmer' | 'sky' | 'room' | 'drift' | 'hub';
 
 export interface ChapterVoice {
   /** The chapter's drone root, Hz. */
@@ -38,14 +45,17 @@ export interface ChapterVoice {
   bed: Bed;
 }
 
-/** Each chapter has its own key. The four built chapters have their own beds; the rest share the hub's. */
+/**
+ * Each chapter has its own key. The seven built chapters have their own beds; the rest share the hub's.
+ * The Map moved off The Pictures' D to C sharp (M4 step 7) so no two built chapters share a key.
+ */
 export const CHAPTER_VOICE: Record<ChapterView, ChapterVoice> = {
   hub: { rootHz: 55.0, pluckHz: 220.0, bed: 'hub' },
   arrival: { rootHz: 55.0, pluckHz: 220.0, bed: 'cold' },
   key: { rootHz: 65.41, pluckHz: 261.63, bed: 'ring' },
-  map: { rootHz: 73.42, pluckHz: 293.66, bed: 'hub' },
-  spot: { rootHz: 82.41, pluckHz: 329.63, bed: 'hub' },
-  trail: { rootHz: 87.31, pluckHz: 349.23, bed: 'hub' },
+  map: { rootHz: 69.3, pluckHz: 277.18, bed: 'sky' },
+  spot: { rootHz: 82.41, pluckHz: 329.63, bed: 'room' },
+  trail: { rootHz: 87.31, pluckHz: 349.23, bed: 'drift' },
   player: { rootHz: 49.0, pluckHz: 196.0, bed: 'warm' },
   pictures: { rootHz: 73.42, pluckHz: 293.66, bed: 'shimmer' },
   voices: { rootHz: 98.0, pluckHz: 392.0, bed: 'hub' },
