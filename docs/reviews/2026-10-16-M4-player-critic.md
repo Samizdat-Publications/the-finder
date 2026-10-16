@@ -48,3 +48,24 @@ sentence. Then back to the instrument.
 The ring hub and its finished glow; quantified rejections that teach; the reframe snap; the run-back's
 V-curve; the purity gauge flipping from "do not fit" to "fit"; sound captions; the "Needs: ..." chaining
 and the nudge buttons; the ruler's nearest-neighbour verdict.
+
+## Second pass after step 7e (2026-10-16)
+
+Same blind critic, 27 stills of commit 1ddcfcf plus the five moments, with the first build in `previous/`.
+Verdict: better. Scores now: first impression 7, wonder 7, alien interface 7, space scenes 6, clues 7,
+what to do next 7, satisfaction 8, pictures and record 6, typography and layout 6, would keep playing 8.
+Steam one-liner: "A Voyager-record detective game where wrong answers come with error bars and the right
+one gives you goosebumps. I want the rest of the ring."
+
+| # | Remaining problem | Decision |
+|---|---|---|
+| 1 | The Map's motion step packs the sky map, two plots, the cost bar and four rows of nudges into one box | M5 polish batch: one control (drag the axis on the sky) and one result; the plots and nudges under "show working" |
+| 2 | The finish is flat: the codex ends as a ledger of glyph rows and equations | M6 (Portrait: the codex assembles into the senders' portrait and a final message) |
+| 3 | Space scenes lack presence: pinprick stars, a dot for the craft, the warm-white star not visibly warm | M5 polish batch: chart stars sized and coloured from the catalogue as the encounter scene does (D-A21), the craft drawn as a craft glyph; the full art pass stays M7 |
+| 4 | Wrong-answer prose is a tall red block that crowds the controls | M5 polish batch: verdict first in one line, the rest folded |
+| 5 | The hero numbers have no human-scale anchor | M5 polish batch: with the human gloss on, the moment shows the SI reading under the hero number; with it off, a comparison in the alien's own terms where one exists (for example, as a share of the craft's whole journey) |
+| 6 | The instrument shows through the moments' overlay | M5 polish batch: an opaque backdrop |
+| 7 | Glyph use is inconsistent and its mapping undiscoverable | M5 (the numerals table gives the script a job) |
+
+Working, don't touch (added): the "earlier try" folds; the Spot's raking-lamp cover (the best-looking thing
+in the build); the short-count / long-count arc; the hero numerals with one sentence.
