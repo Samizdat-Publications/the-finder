@@ -1,6 +1,6 @@
 {
-  "generated": "2026-10-15",
-  "count": 45,
+  "generated": "2026-10-16",
+  "count": 64,
   "checks": [
     {
       "id": "clocks.bateman",
@@ -13,20 +13,20 @@
     {
       "id": "clocks.rtg.coverage",
       "claim": "The thorium clock in the heat source, measured to 1%, gives an age range that contains the true age 95% of the time.",
-      "measured": "coverage 95.6% over 1000 seeded trials; typical 95% half-width 968 years",
-      "expected": "95%",
-      "tolerance": "93% to 97% (3 binomial standard errors for 1,000 trials)",
+      "measured": "coverage 95.6% over 1000 seeded trials; typical 95% statistical half-width 968 years; separate half-life systematic +/- 137 years (1 sigma, LNHB)",
+      "expected": "95% coverage; half-life systematic about 137 y (LNHB) and 29 y (Cheng 2013), science audit",
+      "tolerance": "93% to 97% (3 binomial standard errors for 1,000 trials); systematic within 10% of the audit value",
       "pass": true,
-      "notes": "Half-life systematic (LNHB to Cheng et al. 2013 set) on the atom ratio: 0.3 years. The research's 103 years is for the activity ratio; on the atom ratio the U-234 and Th-230 shifts nearly cancel."
+      "notes": "Half-life systematic, 1 sigma, propagated per nuclide: LNHB U-234 131.0 y, Th-230 -38.7 y, Pu-238 0.04 y, total 136.6 y; with the Cheng et al. 2013 set (1 sigma = half their 2 sigma) 29.2 y. Cross-check only: the LNHB and Cheng central ages differ by -0.1 y, because on the atom ratio the U-234 and Th-230 shifts nearly cancel (the research's 103 y is for the activity ratio)."
     },
     {
       "id": "clocks.rtg.heat",
-      "claim": "Forty-four thousand years on, the three heat sources together still give off a few watts.",
-      "measured": "8.72 W per spacecraft (launch: 7249 W)",
-      "expected": "clocks.md 4b estimates about 8 W per spacecraft, radon retained",
-      "tolerance": "between 3 and 20 W (order-of-magnitude check of an estimate)",
+      "claim": "Each heat source started at about 2,400 W; 44,000 years on, the three together still give off 4.9 to 8.7 W, depending on whether radon stays in the fuel.",
+      "measured": "launch 2416 W per RTG; at 44,000 y 4.86 to 8.72 W per spacecraft (radon progeny 3.87 W, Pu-239 1.48 W)",
+      "expected": "design 2,400 W thermal per MHW-RTG at launch (LA-5202: 24 spheres of 100 W); clocks.md 4b estimates about 8 W at 40,000 y, radon retained",
+      "tolerance": "2% at launch (nominal design figure); the 44,000-year range is reported, not tested against an independent value",
       "pass": true,
-      "notes": "Energy model: alpha decays deposit their full Q value; Pu-241 its mean beta energy; each Ra-226 decay adds its progeny chain to Pb-206 in secular equilibrium with radon retained (28.01 MeV, NNDC; gammas counted, an upper bound by about 1.7 MeV per chain). Activities at 44,000 y: U-234 2.55 TBq, Th-230 0.90 TBq, Ra-226 0.86 TBq, Pu-239 1.76 TBq, others 0.037 TBq."
+      "notes": "Range assumptions: high = radon retained, so the Ra-226 progeny (Rn-222 to Pb-206, 28.01 MeV per decay, NNDC; gammas counted, an upper bound by about 1.7 MeV) add their heat; low = radon escapes. About 1.5 W comes from Pu-239, which rests on the Cassini split of the non-238 plutonium (an assumption). Alpha decays deposit their full Q value; Pu-241 its mean beta energy. Activities at 44,000 y: U-234 2.55 TBq, Th-230 0.90 TBq, Ra-226 0.86 TBq, Pu-239 1.76 TBq, others 0.037 TBq."
     },
     {
       "id": "clocks.rtg.inventory",
@@ -35,15 +35,16 @@
       "expected": "clocks.md 4b: 12.8 kg Pu-238 (from 3 x 24 spheres of 251.5 g PuO2, 80 at.% Pu-238, LA-5202); 11.2 kg, 1.1 kg, 22 g at 40,000 y",
       "tolerance": "2% for the launch inventory, 3% for the 40,000-year inventory (research rounding)",
       "pass": true,
-      "notes": "PuO2 molar mass 270.29 g/mol. Non-238 plutonium (20 at.%) split as Cassini fuel: atom fractions Pu-239 0.1699, Pu-240 0.0238, Pu-241 0.00473, Pu-242 0.00154 (an assumption). At 44,000 y per spacecraft: Pu-239 0.768 kg, Pu-240 3.67 g, Pu-242 23.0 g, Pu-241 none, U-235 1.92 kg, U-236 0.373 kg, Np-237 74 g."
+      "notes": "PuO2 molar mass 270.29 g/mol. Non-238 plutonium (20 at.%) split as Cassini fuel: atom fractions Pu-239 0.1699, Pu-240 0.0238, Pu-241 0.00473, Pu-242 0.00154 (an assumption). The Pu-239, Pu-240, Pu-242, U-235, U-236 and Np-237 amounts below rest on that Cassini split and on no uranium impurity in the fuel. At 44,000 y per spacecraft: Pu-239 0.768 kg, Pu-240 3.67 g, Pu-242 23.0 g, Pu-241 none, U-235 1.92 kg, U-236 0.373 kg, Np-237 74 g."
     },
     {
       "id": "clocks.rtg.parent",
       "claim": "The heat source holds uranium-234 with almost no uranium-238, so it was not natural uranium: it came from something heavier, made on purpose.",
-      "measured": "U-238/U-234 atom ratio 1.71e-4 at 44,000 y (the little U-238 comes from Pu-242)",
+      "measured": "U-238/U-234 atom ratio 1.71e-4 at 44,000 y, 8.0 orders of magnitude under natural uranium; with U-238 impurity of 1% of the plutonium mass it would be 1.43e-2, still 6.1 orders under",
       "expected": "natural uranium has U-234/U-238 = 5.49e-5, i.e. U-238/U-234 about 18200",
-      "tolerance": "U-238/U-234 below 1e-3, seven orders of magnitude under natural uranium",
-      "pass": true
+      "tolerance": "U-238/U-234 below 1e-3; with 1% U-238 contamination still more than 4 orders under natural uranium",
+      "pass": true,
+      "notes": "The 1.7e-4 readout (U-238 grown from Pu-242) depends on the Cassini isotopic split assumed for the non-238 plutonium and on no uranium impurity in the fuel; the deduction does not, as the contamination case shows."
     },
     {
       "id": "clocks.rtg.ratio",
@@ -69,7 +70,7 @@
       "expected": "95% (Wilson score interval on the U-234 fraction, mapped through the Bateman ratio)",
       "tolerance": "93% to 97% (3 binomial standard errors for 1,000 trials)",
       "pass": true,
-      "notes": "Pure U-238 start assumed; uranium and thorium separated before counting; same efficiency for every line."
+      "notes": "Pure U-238 start assumed; uranium and thorium separated before counting; same efficiency for every line. Separate half-life systematic (1 sigma, LNHB): +/- 108 y (U-234 108 y, U-238 1.8e-4 y)."
     },
     {
       "id": "clocks.uranium.coverage49",
@@ -78,7 +79,7 @@
       "expected": "95% (Wilson score interval on the U-234 fraction, mapped through the Bateman ratio)",
       "tolerance": "93% to 97% (3 binomial standard errors for 1,000 trials)",
       "pass": true,
-      "notes": "Pure U-238 start assumed; uranium and thorium separated before counting; same efficiency for every line."
+      "notes": "Pure U-238 start assumed; uranium and thorium separated before counting; same efficiency for every line. Separate half-life systematic (1 sigma, LNHB): +/- 0.12 y (U-234 0.12 y, U-238 2.1e-10 y)."
     },
     {
       "id": "clocks.uranium.purity",
@@ -155,16 +156,26 @@
     },
     {
       "id": "dating.epoch.coverage",
-      "claim": "The combined pulsar age range is honest: its 95% range contains the true age about 95% of the time.",
-      "measured": "coverage 95.3% over 300 seeded realizations",
+      "claim": "Under the stated model, the combined pulsar age range is honest: its 95% range contains the true age about 95% of the time.",
+      "measured": "coverage 95.0% over 300 seeded realizations",
       "expected": "95%",
       "tolerance": "92% to 98% (about 2.4 binomial standard errors of 1.26% for 300 trials)",
-      "pass": true
+      "pass": true,
+      "notes": "This proves the interval code under the stated model (truth drawn from the same braking-index, timing-noise and distance models the estimator assumes); dating.epoch.misspecified tests it when they differ."
+    },
+    {
+      "id": "dating.epoch.misspecified",
+      "claim": "The pulsar age range stays roughly honest even when the real pulsars break the model's assumptions.",
+      "measured": "old braking index truly U[1, 5] (estimator assumes U[2, 4]): coverage 97% of 100, median error -16 yr (model: -3 yr), median half-width 213 yr; two-state switching timing noise (estimator assumes Gaussian): coverage 91% of 100, median error -7 yr (model: -3 yr), median half-width 213 yr; old-pulsar glitches left in the truth (estimator ignores them): coverage 97% of 100, median error 6 yr (model: -3 yr), median half-width 213 yr; glitch bias on the combined date -6.2 yr (one-sided, does not average down) against a combined sigma of 111 yr",
+      "expected": "95% if the model were right",
+      "tolerance": "at least 80% in each case (below that the error bars would be dishonest); 100 realizations each",
+      "pass": true,
+      "notes": "Glitch spin-up rates used: J1645-0317 4.55e-10/yr, J2219+4754 2.04e-11/yr, J0528+2200 8.63e-11/yr. Glitch bias is one-sided and does not average down."
     },
     {
       "id": "dating.epoch.noReframe",
       "claim": "Without moving into the Sun's rest frame, the old pulsars disagree about the map's age by thousands of years, exactly as the home star's own motion predicts.",
-      "measured": "controlled run, error vs prediction: B1642-03 -337 vs -339 yr; B1929+10 -208 vs -209 yr; B1933+16 -7 vs -7 yr; B2016+28 8054 vs 8066 yr; B2217+47 1102 vs 1111 yr; B0329+54 3160 vs 3174 yr; B0525+21 549 vs 557 yr; B0823+26 2587 vs 2599 yr; B0950+08 6228 vs 6239 yr; B1240-64 -788 vs -795 yr; B1451-68 -27069 vs -27073 yr (worst 1.49%). Full realization errors: B1642-03 -696, B1929+10 +135, B1933+16 -51, B2016+28 +7052, B2217+47 +225, B0329+54 +3364, B0525+21 +866, B0823+26 +2659, B0950+08 +4976, B1451-68 -27005 yr; s.d. 9523 yr",
+      "measured": "controlled run, error vs prediction: B1642-03 -337 vs -339 yr; B1929+10 -208 vs -209 yr; B1933+16 -7 vs -7 yr; B2016+28 8054 vs 8066 yr; B2217+47 1102 vs 1111 yr; B0329+54 3160 vs 3174 yr; B0525+21 549 vs 557 yr; B0823+26 2587 vs 2599 yr; B0950+08 6228 vs 6239 yr; B1240-64 -788 vs -795 yr; B1451-68 -27069 vs -27073 yr (worst 1.49%). Full realization errors: B1642-03 -808, B1929+10 +86, B1933+16 -16, B2016+28 +7186, B2217+47 +355, B0329+54 +3320, B0525+21 +839, B0823+26 +2680, B0950+08 +5452, B1451-68 -27018 yr; s.d. 9573 yr",
       "expected": "clocks.md 3b point 4: error = -2 tau_c (V . n) / c (400 yr per km/s for B2016+28)",
       "tolerance": "2% per pulsar in the controlled run (no timing noise, light time, parallax or Shklovskii; n known)",
       "pass": true,
@@ -173,7 +184,7 @@
     {
       "id": "dating.epoch.outlier",
       "claim": "The one map period that was written with false precision (B1240-64) stands out and is rejected automatically.",
-      "measured": "dropped in 99.7% of 300 realizations; offset 3439 +/- 535 yr; another pulsar dropped in 0 realizations",
+      "measured": "dropped in 100.0% of 300 realizations; offset 3434 +/- 468 yr; another pulsar dropped in 0 realizations",
       "expected": "offset about +3,400 yr (clocks.md 3b point 6)",
       "tolerance": "dropped in at least 99%; mean offset within 300 yr of 3,400 (spec)",
       "pass": true
@@ -181,15 +192,16 @@
     {
       "id": "dating.epoch.reframe",
       "claim": "Moved into the Sun's rest frame, the old pulsars agree: combined, they date the map to within a few hundred years.",
-      "measured": "realization 0: 43905 yr [43613, 44181], truth 44109 yr, 10 pulsars kept; median 95% half-width over 300 realizations 282 yr; median error -4 yr",
+      "measured": "nominal realization: 44098 yr [43873, 44311], truth 44109 yr, 10 pulsars kept; over 300 realizations median 95% half-width 214 yr, median error -3 yr",
       "expected": "the time since each pulsar's implied epoch today (clocks.md 3a), combined with the same weights",
-      "tolerance": "computed: Monte Carlo over braking index, timing noise, map precision, observer state and distances",
-      "pass": true
+      "tolerance": "nominal estimate within its own 95% interval of the truth; median error under a tenth of the median half-width",
+      "pass": true,
+      "notes": "Under the stated model (see dating.epoch.misspecified for model errors)."
     },
     {
       "id": "dating.epoch.velocityFit",
       "claim": "Even without a star catalogue, the pulsars alone give both the map's age and the home star's velocity relative to the senders' frame.",
-      "measured": "coverage 92.5%; velocity error rms (galactic x, y, z) 2.9, 1.1, 7.6 km/s; median 1-sigma (ICRS x, y, z) 6.4, 3.8, 2.7 km/s; median age 44104 +/- 175 yr; dropped: J1243-6423 198x",
+      "measured": "coverage 93.5%; velocity error rms (galactic x, y, z) 2.3, 0.9, 4.4 km/s; median 1-sigma (ICRS x, y, z) 3.7, 2.7, 1.6 km/s; median age 44103 +/- 152 yr; dropped: J1243-6423 199x",
       "expected": "true Gliese 445 velocity relative to the Sun (32.6, -20.4, -107.0) km/s ICRS",
       "tolerance": "the 95% region (chi-square, 3 degrees of freedom) contains it in at least 90% of 200 realizations (spec)",
       "pass": true,
@@ -198,20 +210,110 @@
     {
       "id": "dating.epoch.young",
       "claim": "The young pulsars (Crab, Vela, B1727-47) agree with the old ones, but their ages are uncertain by tens of percent because their braking is not known.",
-      "measured": "B0531+21: coverage 100.0%, median 95% width 287% of the age (realization 0: [28714, 154342] yr, truth 44106); B0833-45: coverage 100.0%, median 95% width 100% of the age (realization 0: [23245, 67755] yr, truth 44106); B1727-47: coverage 93.3%, median 95% width 26% of the age (realization 0: [34481, 45773] yr, truth 44108)",
+      "measured": "B0531+21: coverage 100.0%, median 95% width 287% of the age (realization 0: [28384, 154825] yr, truth 44106); B0833-45: coverage 100.0%, median 95% width 100% of the age (realization 0: [23264, 67005] yr, truth 44106); B1727-47: coverage 93.3%, median 95% width 26% of the age (realization 0: [34421, 45663] yr, truth 44108)",
       "expected": "each interval contains its truth",
       "tolerance": "at least 90% of 300 realizations (spec)",
       "pass": true,
-      "notes": "Braking-index prior U[0.9, 3.2]; the true long-term values are Crab 2.342 and Vela 1.7."
+      "notes": "Under the stated model. Braking-index prior U[0.9, 3.2] (a judgment call, see pulsarEpoch.ts); the true long-term values are Crab 2.342 and Vela 1.7."
     },
     {
       "id": "dating.today",
       "claim": "Today the map dates itself to about 1971: the Crab and the glitch-corrected Vela pulsar agree on late 1971, and 13 pulsars average 1969.7.",
-      "measured": "Crab 1971.76, Vela glitch-corrected 1971.82; mean of 13 usable 1969.75 (s.d. 1.41), glitch-corrected 1969.67 (s.d. 1.33). B1642-03 1969.77 (research 1969.77); B1929+10 1969.78 (research 1969.78); B1933+16 1970.19 (research 1970.19); B2016+28 1966.60 (research 1966.6); B2217+47 1969.91 (research 1969.91); B0329+54 1969.76 (research 1969.76); B0525+21 1968.94 (research 1968.94); B0531+21 1971.76 (research 1971.76); B0823+26 1969.14 (research 1969.14); B0950+08 1968.47 (research 1968.47); B0833-45 1972.21 (research 1972.21), glitch-corrected 1971.82 (research 1971.77; 13 glitches, sum 1.7566e-5); B1451-68 1969.52 (research 1969.52); B1727-47 1970.64 (research 1970.64), glitch-corrected 1970.09 (research 1970.09; 6 glitches, sum 3.4246e-6)",
-      "expected": "docs/research/clocks.md section 3a (ATNF v2.9.0 ephemerides; Jodrell Bank glitch table)",
-      "tolerance": "each epoch within 0.05 yr; mean within 0.3 yr of 1969.7",
+      "measured": "Crab 1971.76; Vela glitch-corrected 1971.75 +/- 0.24 (systematic; 14 glitches, sum 2.0651e-5; pre-glitch F1 gives 1971.51), 0.01 yr from the Crab; mean of 13 usable 1969.75 (s.d. 1.41), glitch-corrected 1969.67 (s.d. 1.32). B1642-03 1969.77 (research 1969.77); B1929+10 1969.78 (research 1969.78); B1933+16 1970.19 (research 1970.19); B2016+28 1966.60 (research 1966.6); B2217+47 1969.91 (research 1969.91); B0329+54 1969.76 (research 1969.76); B0525+21 1968.94 (research 1968.94); B0531+21 1971.76 (research 1971.76); B0823+26 1969.14 (research 1969.14); B0950+08 1968.47 (research 1968.47); B0833-45 1972.21 (research 1972.21); B1451-68 1969.52 (research 1969.52); B1727-47 1970.64 (research 1970.64), glitch-corrected 1970.09 (research 1970.09; 6 glitches, sum 3.4246e-6)",
+      "expected": "docs/research/clocks.md section 3a (ATNF v2.9.0 ephemerides; Jodrell Bank glitch table); for Vela, agreement with the Crab",
+      "tolerance": "each raw epoch (and B1727-47 corrected) within 0.05 yr; Vela corrected within its computed systematic plus 0.05 yr of the Crab; mean within 0.3 yr of 1969.7",
       "pass": true,
-      "notes": "F0 and F1 only, except where F2 implies a physical braking index (only the Crab); glitches added back strictly between the solved epoch and PEPOCH, iterated until stable. Vela: 13 glitches give 1971.82; the research value 1971.77 also added back glitch #2 (MJD 41192), which precedes the date it solved for (MJD 41234), so it is not self-consistent (D-A16)."
+      "notes": "F0 and F1 only, except where F2 implies a physical braking index (only the Crab). Glitches added back after the solved epoch up to and including PEPOCH (a glitch within 1 day after PEPOCH counts as at PEPOCH: the ephemeris is the post-glitch fit; for Vela, ATNF F0 is Dodson, McCulloch and Lewis 2002 pre-glitch nu plus the permanent jump), iterated until stable. The research value 1971.77 added back a glitch (#2, MJD 41192) that precedes the date it solved for and omitted the January 2000 glitch at PEPOCH."
+    },
+    {
+      "id": "decoder.browser",
+      "claim": "In the browser, the real path (FLAC fetched whole, decoded at 96 kHz, decoded in a Worker) gives the same pictures as the tested Node decode, fast enough to keep up with playback.",
+      "measured": "3 frames (L000, L019, R072): largest pixel difference 0 grey levels; Worker decode 47, 42, 39 ms",
+      "expected": "The Node decode of the same slices by the same code (itself pixel-equal to the Python reference, decoder.frames)",
+      "tolerance": "At most 1 grey level per pixel (spec; both run V8); under 250 ms per frame (spec target for this PC; a frame lasts 4.3 s of tape)",
+      "pass": true,
+      "notes": "Installed Chrome via Playwright. Chrome's decodeAudioData returns positive 16-bit samples as w / 32767 (negatives as w / 32768); src/media/frames.ts restores the exact integers before decoding, without which up to 407 pixels per frame differed by 1 grey level. Fetch plus decodeAudioData took 24, 20, 20 ms per frame on the dev server."
+    },
+    {
+      "id": "decoder.circle",
+      "claim": "Decoded in the browser at the measured geometry (512 x 355), the calibration circle comes out round.",
+      "measured": "axis ratio 1.0006 (horizontal over vertical), ring fit rms 1.08 px",
+      "expected": "A circle: ratio 1.00 (the reference decoder measured 1.0002 at 384 kHz)",
+      "tolerance": "+/- 0.01 (the target set in tools/ref-decoder/README.md section 7)",
+      "pass": true,
+      "notes": "Ellipse fitted to the ring centre line by algebraic least squares (Halir and Flusser, as scikit-image EllipseModel)."
+    },
+    {
+      "id": "decoder.frames",
+      "claim": "The browser decoder turns each of the 156 picture slices into the same picture as the reference decoder.",
+      "measured": "SSIM mean 1.0000, worst 1.0000 (L000); 156 of 156 pixel-identical, largest difference 0 grey levels",
+      "expected": "The Python reference decoder's 96 kHz decodes of the same slices (build/ref96, tools/ref-decoder)",
+      "tolerance": "SSIM at least 0.98 per frame (scikit-image defaults); for scale, the reference's own 96 vs 384 kHz decodes differ by SSIM 0.970 at worst",
+      "pass": true,
+      "notes": "Node decode time 107 ms per frame including WAV and PNG reading."
+    },
+    {
+      "id": "decoder.ref.aspectIndependent",
+      "claim": "Our picture geometry, set by the calibration circle, agrees with clean published copies of nine other record images.",
+      "measured": "9 images: x/y scale median 0.9915 (std 0.0098, sem 0.0033); the circle against the gallery circle 1.0004; shear median -0.0138 (std 0.0025, sem 0.0008), same sign in the 2 frames Barry rotates",
+      "expected": "x/y scale of the circle within the scatter of the other images",
+      "tolerance": "2 x the image-to-image std (0.0197)",
+      "pass": true,
+      "notes": "Clean images: NASA's Images on the Golden Record gallery (tests only). Our frames show a shear of -0.0138 +/- 0.0008 against them, fixed in the record's raster (also in rotated frames), which the calibration circle does not reveal; see the decoder README."
+    },
+    {
+      "id": "decoder.ref.circle",
+      "claim": "Procedure self-test: decoding the calibration circle live from the tape with the stored geometry reproduces a horizontal-to-vertical extent ratio of 1.00 (the row count was chosen to make it so).",
+      "measured": "hx/hy 1.0002 (one row = 0.28%), true ellipse minor/major 0.9934 with its major axis at 136 deg, 512 x 355, re-detected start differs by 0.00 samples",
+      "expected": "hx/hy 1.00",
+      "tolerance": "+/- 0.01 (the spec; one row changes it by 0.28%)",
+      "pass": true,
+      "notes": "Not an independent geometry test: see decoder.aspectIndependent. The fitted ellipse is not a perfect circle: minor/major 0.993 with a diagonal major axis, a shear no row count removes."
+    },
+    {
+      "id": "decoder.ref.frameStarts",
+      "claim": "All 156 frames are found from the signal alone, and their starts agree with Ron Barry's hand-made 2017 table.",
+      "measured": "155 of 156 within 1 line after the median offset (-3154 samples); exceptions: L041: Barry -0.37 lines from the comb end",
+      "expected": "every start within 1 line of Barry's",
+      "tolerance": "1 line (Barry's own starts spread over 2.5 lines)",
+      "pass": true,
+      "notes": "Barry's table is validation only, never a seed. L041: his start lies inside the start-of-picture comb."
+    },
+    {
+      "id": "decoder.ref.linePeriod",
+      "claim": "The tape's line period, locked to the falling sync edges, matches an independent earlier measurement and runs slightly fast against the cover's 8.3396 ms.",
+      "measured": "first frame L000: 3197.423 samples = 8.32662 ms (R000 8.32766 ms); median of 156 frames 8.3204 ms; cover 8.3396 ms, so the tape runs 0.16% (start) to 0.23% (median) fast; the period falls steadily along the reel",
+      "expected": "3197.4 samples (8.3266 ms) on the master (images-and-audio.md section 1)",
+      "tolerance": "+/- 0.05 samples (the rounding of the quoted value) at L000; median within 0.01 ms of 8.326",
+      "pass": true,
+      "notes": "The period drifts from 3197.4 to about 3193.9 samples along the reel, the same on both channels (a tape transport effect); the median is 8.3204 ms."
+    },
+    {
+      "id": "decoder.ref.slant",
+      "claim": "Slant-meter self-test: decoding the circle free-running with the line time 1%, 5% and 20% too long slants the picture by e x the line period per line, as measured by the sync-edge slant meter.",
+      "measured": "e=+0.00: 0.00 vs -0.00, e=+0.01: -31.96 vs -31.97, e=+0.05: -159.86 vs -159.87, e=+0.20: -639.48 vs -639.48",
+      "expected": "-e x period samples per line",
+      "tolerance": "within 10%",
+      "pass": true,
+      "notes": "A self-test of the meter the browser tests reuse, not an independent measurement."
+    },
+    {
+      "id": "decoder.ref.ssim96",
+      "claim": "Decoding the 96 kHz browser slices loses little against decoding the 384 kHz tape.",
+      "measured": "mean 0.9864, worst 0.9703 (L009); sync edges agree to 0.62 samples rms (384 kHz) in the median frame",
+      "expected": "reported; no threshold yet (M2 sets the browser's)",
+      "tolerance": "none (informational)",
+      "pass": true,
+      "notes": "Same decoder and geometry at both rates; the 96 kHz decode is seeded only by the slice index."
+    },
+    {
+      "id": "decoder.slant",
+      "claim": "Decoding with the wrong line time slants the picture by exactly the error, and dropping the interlace offset leaves the measured even/odd comb.",
+      "measured": "slant in samples per line: e 0%: 0.00 (ref 0.00); e 1%: -31.96 (ref -31.96); e 5%: -159.86 (ref -159.86); e 20%: -639.48 (ref -639.48); even/odd shift 8.38 samples without the offset, 0.58 with it",
+      "expected": "The reference decoder on the same frame (build/ref/metrics.json wrong_results): comb 8.83 without, 1.31 with",
+      "tolerance": "Slants within 10% (spec; at e = 0 within 10% of the +1% slant); comb within 1.03 samples, the interquartile range of the offset across frames (README section 6)",
+      "pass": true,
+      "notes": "The browser decodes 96 kHz slices; the reference measured at 384 kHz. The Python reference run once on the same 96 kHz slice gave the same comb values as this decoder (8.379 without, 0.585 with the offset), so the difference from the 384 kHz values is the lower rate, not the port."
     },
     {
       "id": "epilogue.ephemeris",
@@ -253,7 +355,7 @@
       "expected": "Gaia DR3 recheck 44.1 kyr, 0.573 pc, 115.9 km/s (voyager.md section 5); Bailer-Jones and Farnocchia 2019 (Gaia DR2) 44.0 kyr, 0.575 pc, 116.0 km/s",
       "tolerance": "0.3 kyr, 0.01 pc, 0.5 km/s (published rounding plus the DR2-to-DR3 shift)",
       "pass": true,
-      "notes": "Straight-line motion of both bodies from the Gaia DR3 astrometry of Gliese 445 and the Bailer-Jones and Farnocchia asymptote; no Galactic potential, as in the published calculation."
+      "notes": "Straight-line motion of both bodies from the Gaia DR3 astrometry of Gliese 445 and the Bailer-Jones and Farnocchia asymptote, with no Galactic potential, as in the research DR3 recheck. Bailer-Jones and Farnocchia integrated through a Galactic potential, and their 44.0 kyr counts from about the Gaia epoch (2016 to 2019), not from launch; that offset of about 40 years is inside the 0.3 kyr tolerance."
     },
     {
       "id": "epoch.neighbourDistance",
@@ -262,7 +364,7 @@
       "expected": "1.0240 pc: Gliese 445's closest approach to the Sun in closed form from its Gaia DR3 parallax, proper motion and radial velocity",
       "tolerance": "0.0041 pc (2 sigma propagated from Gaia DR3, plus 0.001 pc for the few centuries between the two moments)",
       "pass": true,
-      "notes": "Older pre-Gaia figures (Wikipedia, about 1.06 pc or 3.45 ly) differ by about 22 sigma; the story uses the Gaia DR3 value (D-A15)."
+      "notes": "Older pre-Gaia figures (Wikipedia, about 1.06 pc or 3.45 ly) differ by 0.036 pc, many times the Gaia DR3 uncertainty of 0.0016 pc; the story uses the Gaia DR3 value (D-A15)."
     },
     {
       "id": "epoch.neighbours",
@@ -271,7 +373,7 @@
       "expected": "Rank 1 to 3 (PLAN.md \"The story frame\"); the story figure about 1.06 pc (3.45 ly) is from Wikipedia's Gliese 445 article (voyager.md section 5)",
       "tolerance": "rank <= 3; distance error propagated from the Gaia DR3 errors of Gliese 445 (1 sigma)",
       "pass": true,
-      "notes": "HYG v4.2 within 30 pc is incomplete for faint M dwarfs. 2155 of 3933 stars within 30 pc have no radial velocity and are moved with v_r = 0, so each is uncertain by |v_r| x 44 kyr (about 1.4 pc at 30 km/s); 19 of them could come closer to Gliese 445 than the Sun for some |v_r| <= 150 km/s (with the |v_r| each would need: GJ 1245A 64 km/s, GJ 1245B 64 km/s, Gl 244B 64 km/s, HYG 82472 66 km/s, HYG 82473 76 km/s, HYG 102708 90 km/s, GJ 3522 103 km/s, HYG 83352 108 km/s, HYG 85345 115 km/s, GJ 1230A 122 km/s, GJ 1230B 122 km/s, HYG 58735 123 km/s, GJ 3379 125 km/s, GJ 4053 126 km/s, GJ 3991 126 km/s, GJ 4063 136 km/s, Gl 300 140 km/s, GJ 3323 145 km/s, GJ 3454 146 km/s). The DR3 distance is -22.8 sigma from the 1.06 pc figure; see epoch.neighbourDistance."
+      "notes": "HYG v4.2 within 30 pc is incomplete for faint M dwarfs. 2155 of 3933 stars within 30 pc have no radial velocity and are moved with v_r = 0, so each is uncertain by |v_r| x 44 kyr (about 1.4 pc at 30 km/s); 19 of them could come closer to Gliese 445 than the Sun for some |v_r| <= 150 km/s (with the |v_r| each would need: GJ 1245A 64 km/s, GJ 1245B 64 km/s, Gl 244B 64 km/s, HYG 82472 66 km/s, HYG 82473 76 km/s, HYG 102708 90 km/s, GJ 3522 103 km/s, HYG 83352 108 km/s, HYG 85345 115 km/s, GJ 1230A 122 km/s, GJ 1230B 122 km/s, HYG 58735 123 km/s, GJ 3379 125 km/s, GJ 4053 126 km/s, GJ 3991 126 km/s, GJ 4063 136 km/s, Gl 300 140 km/s, GJ 3323 145 km/s, GJ 3454 146 km/s). The DR3 distance differs from the older 1.06 pc figure by 0.036 pc, many times its Gaia DR3 uncertainty of 0.0016 pc; see epoch.neighbourDistance."
     },
     {
       "id": "epoch.pulsars.geometry",
@@ -285,25 +387,25 @@
     {
       "id": "epoch.pulsars.glitches",
       "claim": "The tiny glitches of the old pulsars change the dating less than their timing noise does, so the projection leaves them out.",
-      "measured": "B1642-03: at most 138 yr from glitches over 44100 yr, against 441 yr (1 sigma) from timing noise",
-      "expected": "glitch rate and sizes from clocks.md Table 2A (Shabanova 2009); timing noise 1% (Lyne et al. 2010)",
+      "measured": "B1642-03: at most 138 yr from glitches over 44100 yr, against 558 yr (1 sigma) from timing noise",
+      "expected": "glitch rate and sizes from clocks.md Table 2A (Shabanova 2009); timing noise rms 1.265% for B1642-03 (half the 2.53% peak-to-peak, Lyne et al. 2010 Table 1)",
       "tolerance": "glitch effect below the timing-noise term",
       "pass": true,
-      "notes": "Glitches always spin a pulsar up, so this is a one-sided bias (the pulsar looks younger), bounded here by the largest observed size."
+      "notes": "Glitches always spin a pulsar up, so this is a one-sided bias (the pulsar looks younger) that does not average down across realizations, bounded here by the largest observed size. Through the small weight of B1642-03 in the combined date it moves the combined age by only tens of years at most; dating.epoch.misspecified measures that shift, and the coverage, with old-pulsar glitches left in the truth."
     },
     {
       "id": "epoch.sunBrightness",
       "claim": "From Gliese 445 at the epoch, the Sun is one of the ten brightest stars in the sky.",
-      "measured": "Sun magnitude -0.10 from Gliese 445 (rank 5), -0.78 from the craft. Brightest: 1. Sirius -0.96 (3.3 pc); 2. Canopus -0.58 (96.6 pc); 3. Vega -0.41 (6.3 pc); 4. Altair -0.39 (3.0 pc); 5. Sol -0.10 (1.0 pc); 6. Arcturus 0.17 (12.5 pc); 7. Rigel 0.19 (266.3 pc); 8. Capella 0.31 (14.6 pc); 9. Betelgeuse 0.47 (154.4 pc); 10. Achernar 0.50 (43.8 pc)",
+      "measured": "Sun magnitude -0.14 from Gliese 445 (rank 5), -0.82 from the craft. Brightest: 1. Sirius -0.96 (3.3 pc); 2. Canopus -0.58 (96.6 pc); 3. Vega -0.41 (6.3 pc); 4. Altair -0.39 (3.0 pc); 5. Sol -0.14 (1.0 pc); 6. Arcturus 0.17 (12.5 pc); 7. Rigel 0.19 (266.3 pc); 8. Capella 0.31 (14.6 pc); 9. Betelgeuse 0.47 (154.4 pc); 10. Achernar 0.50 (43.8 pc)",
       "expected": "Rank 1 to 10 (PLAN.md \"The story frame\")",
-      "tolerance": "rank <= 10; magnitudes from HYG absolute V magnitudes (Sun 4.85) and distances at the epoch, no extinction",
+      "tolerance": "rank <= 10; magnitudes from HYG absolute V magnitudes (the Sun 4.81, Willmer 2018, in place of the HYG value 4.85) and distances at the epoch, no extinction",
       "pass": true,
       "notes": "Includes the naked-eye sky list (mag <= 6.5 from Earth) moved to the epoch; 206 sky stars without a distance are skipped (all fainter than mag 3.3 from Earth). Double stars are listed per component. HYG v4.2 within 30 pc is incomplete for faint M dwarfs. 2155 of 3933 stars within 30 pc have no radial velocity and are moved with v_r = 0, so each is uncertain by |v_r| x 44 kyr (about 1.4 pc at 30 km/s); 19 of them could come closer to Gliese 445 than the Sun for some |v_r| <= 150 km/s (with the |v_r| each would need: GJ 1245A 64 km/s, GJ 1245B 64 km/s, Gl 244B 64 km/s, HYG 82472 66 km/s, HYG 82473 76 km/s, HYG 102708 90 km/s, GJ 3522 103 km/s, HYG 83352 108 km/s, HYG 85345 115 km/s, GJ 1230A 122 km/s, GJ 1230B 122 km/s, HYG 58735 123 km/s, GJ 3379 125 km/s, GJ 4053 126 km/s, GJ 3991 126 km/s, GJ 4063 136 km/s, Gl 300 140 km/s, GJ 3323 145 km/s, GJ 3454 146 km/s)."
     },
     {
       "id": "identify.epoch",
       "claim": "In the alien's catalogue, 44,000 years from now, the most likely pulsar for every map line is the right one, by a strong margin over the next best.",
-      "measured": "pass 2 (final): sigma_theta 1.31 deg, sigma_b 1.23 deg; anchors 13 (B1642-03, B1933+16, B2016+28, B2217+47, B0329+54, B0525+21, B0531+21, B0823+26, B0950+08, B0833-45, B1240-64, B1451-68, B1727-47); fitted age 44268 yr (dropped J1243-6423); origin 8.2 pc from the Sun; length scale 10430 pc per R0, sigma_ln 0.97. Pass 1: sigma_theta 1.24 deg. B1642-03: 8 pre-selected, runner-up J1819-1717, margin > 10^6 (min over 20 seeds > 10^6; pass 1 > 10^6); B1929+10: 8 pre-selected, runner-up J1916+1225, margin 10^2.1 (min over 20 seeds 10^1.8; pass 1 10^0.6); B1933+16: 3 pre-selected, runner-up J1935+2154, margin > 10^6 (min over 20 seeds 10^2.5; pass 1 > 10^6); B2016+28: 2 pre-selected, runner-up J2002+3217, margin > 10^6 (min over 20 seeds > 10^6; pass 1 > 10^6); B2217+47: 1 pre-selected, runner-up none, margin no competitor (min over 20 seeds no competitor; pass 1 no competitor); B0329+54: 1 pre-selected, runner-up none, margin no competitor (min over 20 seeds no competitor; pass 1 no competitor); B0525+21: 1 pre-selected, runner-up none, margin no competitor (min over 20 seeds no competitor; pass 1 no competitor); B0531+21: 2 pre-selected, runner-up J0614+2229, margin > 10^6 (min over 20 seeds 10^3.8; pass 1 > 10^6); B0823+26: 1 pre-selected, runner-up none, margin no competitor (min over 20 seeds no competitor; pass 1 no competitor); B0950+08: 2 pre-selected, runner-up J0729-1448, margin 10^3.4 (min over 20 seeds 10^3.5; pass 1 10^2.3); B0833-45: 2 pre-selected, runner-up J0901-4624, margin > 10^6 (min over 20 seeds 10^2.0; pass 1 > 10^6); B1240-64: 4 pre-selected, runner-up J1305-6203, margin 10^1.9 (min over 20 seeds 10^1.7; pass 1 10^2.2); B1451-68: 7 pre-selected, runner-up J1357-6429, margin > 10^6 (min over 20 seeds 10^3.7; pass 1 10^5.2); B1727-47: 4 pre-selected, runner-up J1705-3936, margin 10^4.9 (min over 20 seeds 10^4.1; pass 1 10^5.7)",
+      "measured": "pass 2 (final): sigma_theta 1.32 deg, sigma_b 1.23 deg; anchors 13 (B1642-03, B1933+16, B2016+28, B2217+47, B0329+54, B0525+21, B0531+21, B0823+26, B0950+08, B0833-45, B1240-64, B1451-68, B1727-47); fitted age 44243 yr (dropped J1243-6423); origin 8.3 pc from the Sun; length scale 10434 pc per R0, sigma_ln 0.97. Pass 1: sigma_theta 1.24 deg. B1642-03: 8 pre-selected, runner-up J1819-1717, margin > 10^6, odds against all others > 10^6 (min over 20 seeds > 10^6; pass 1 > 10^6); B1929+10: 8 pre-selected, runner-up J1916+1225, margin 10^2.1, odds against all others 10^2.1 (min over 20 seeds 10^1.8; pass 1 10^0.6); B1933+16: 3 pre-selected, runner-up J1935+2154, margin > 10^6, odds against all others > 10^6 (min over 20 seeds 10^2.5; pass 1 > 10^6); B2016+28: 2 pre-selected, runner-up J2002+3217, margin > 10^6, odds against all others > 10^6 (min over 20 seeds > 10^6; pass 1 > 10^6); B2217+47: 1 pre-selected, runner-up none, margin no competitor, odds against all others no competitor (min over 20 seeds no competitor; pass 1 no competitor); B0329+54: 1 pre-selected, runner-up none, margin no competitor, odds against all others no competitor (min over 20 seeds no competitor; pass 1 no competitor); B0525+21: 1 pre-selected, runner-up none, margin no competitor, odds against all others no competitor (min over 20 seeds no competitor; pass 1 no competitor); B0531+21: 2 pre-selected, runner-up J0614+2229, margin > 10^6, odds against all others > 10^6 (min over 20 seeds 10^3.8; pass 1 > 10^6); B0823+26: 1 pre-selected, runner-up none, margin no competitor, odds against all others no competitor (min over 20 seeds no competitor; pass 1 no competitor); B0950+08: 2 pre-selected, runner-up J0729-1448, margin 10^3.4, odds against all others 10^3.4 (min over 20 seeds 10^3.5; pass 1 10^2.3); B0833-45: 2 pre-selected, runner-up J0901-4624, margin > 10^6, odds against all others > 10^6 (min over 20 seeds 10^2.0; pass 1 > 10^6); B1240-64: 4 pre-selected, runner-up J1305-6203, margin 10^1.9, odds against all others 10^1.9 (min over 20 seeds 10^1.7; pass 1 10^2.2); B1451-68: 7 pre-selected, runner-up J1357-6429, margin > 10^6, odds against all others > 10^6 (min over 20 seeds 10^3.7; pass 1 10^5.2); B1727-47: 4 pre-selected, runner-up J1705-3936, margin 10^4.8, odds against all others 10^4.7 (min over 20 seeds 10^4.0; pass 1 10^5.7)",
       "expected": "the 14 identities (Sagan et al. 1972)",
       "tolerance": "right pulsar on all 14 lines in the nominal and 20 seeded realizations; nominal margin at least 20 (Kass and Raftery 1995, strong evidence)",
       "pass": true,
@@ -317,6 +419,24 @@
       "tolerance": "longitude within 5 deg; map age between 0 and 59 years for some braking index 0.9 to 4, with each period trusted to max(its stated digits, 0.4 ppm)",
       "pass": true,
       "notes": "Finding: B2016+28 implies a date of 1966.6, before its 1968 discovery, so its 1970/71 period was good to about 8 significant figures, not the 9 Sagan et al. state; 0.4 ppm is the accuracy Johnston measured against Taylor and Manchester 1975 (cover.md section 2)."
+    },
+    {
+      "id": "record.groove",
+      "claim": "Dropping the needle at a radius finds the right moment of the record: one turn every 3.6 s, from the outside in.",
+      "measured": "side 1: 1023.44 turns, pitch 83.79 um; side 2: 963.19 turns, pitch 89.03 um; worst radius/time round trip 6.8e-13",
+      "expected": "music from 146.05 mm to 60.3 mm (12-inch disc standard, IEC 60098 / RIAA), turns = side duration / T with T = 3.59994 s from the cover (cover.md 1b)",
+      "tolerance": "1e-9 (s and mm)",
+      "pass": true,
+      "notes": "The Voyager record's real groove radii are not documented; the standard values are used, so the pitch is a model, not a measurement."
+    },
+    {
+      "id": "record.timeline",
+      "claim": "The record's timeline puts every track in its place: each side lasts exactly as long as its tracks added up.",
+      "measured": "side 1 3684.310 s, side 2 3467.414 s; 32 track starts found at offset 0, 0 failures",
+      "expected": "the sum of the shipped files' durations in data/record.json (side 1 3684.310 s, side 2 3467.414 s)",
+      "tolerance": "1e-9 s (double rounding)",
+      "pass": true,
+      "notes": "Side break after music 11 is an inference (D-A17). Both sides run longer than the cover's 53.8 min, as NASA's \"about an hour per side\" allows."
     },
     {
       "id": "trail.age",
@@ -337,6 +457,14 @@
       "notes": "Catalogue values (HYG v4.2, Gaia DR3 for Gliese 445), straight-line motion. The Sun's small residual angle comes from the craft's early, planet-bent path (its 2026 position lies 3.8 deg off the asymptote)."
     },
     {
+      "id": "trail.uniqueNoRv",
+      "claim": "Of 1642 stars tested in total, the 1434 with no measured radial velocity that could lie within 10 parsecs of the craft (the other 208 have full velocities) cannot fake the Sun's straight-away signature for any radial velocity up to 300 km/s.",
+      "measured": "smallest possible angle 2.17 deg for |v_r| <= 100 km/s (GJ 3379 at 86.7 km/s); 0.86 deg for |v_r| <= 300 km/s (HYG 27535 at -300.0 km/s, 201 sigma from zero by its own simulated measurement); tested 1434 stars without and 208 with radial velocities",
+      "expected": "above the Sun's angle plus 5 sigma (1.02 deg) for |v_r| <= 100 km/s; more than 5 of its own sigma for |v_r| <= 300 km/s",
+      "tolerance": "radial velocities scanned on a 0.25 km/s grid with golden-section refinement; only values that put the star within 10 pc of the craft count",
+      "pass": true
+    },
+    {
       "id": "trail.uniqueWithErrors",
       "claim": "Even with realistic measurement errors, only the Sun fits: its angle is consistent with zero and every other star is ruled out.",
       "measured": "Sun 0.0043 +/- 0.2034 deg (0.02 sigma); smallest other margin Gl 216A 65.05 +/- 1.074 deg (61 sigma)",
@@ -346,9 +474,18 @@
       "notes": "Measurement model (kinematics.ts): every star measured with Gaia DR3's precision for Gliese 445 (radial velocity 0.15 km/s; parallax distance error growing with distance squared), aimed along the alien's line of sight; the craft's own state is exact. A model, labelled as one."
     },
     {
+      "id": "triangulation.coverage",
+      "claim": "The size of the map-origin region is honest: in simulated maps it contains the true origin about 95% of the time.",
+      "measured": "coverage 93.0% over 200 simulated maps (sigma_theta 1.06 deg; mean re-estimated 1.12)",
+      "expected": "95%",
+      "tolerance": "90% to 99% (about 3 binomial standard errors of 1.5% for 200 trials)",
+      "pass": true,
+      "notes": "Simulation under the fitted angle noise and the catalogue distance errors; real map errors may not be Gaussian."
+    },
+    {
       "id": "triangulation.epoch",
       "claim": "Forty-four thousand years on, the alien's own fit of the map still points to a region that contains the Sun.",
-      "measured": "elapsed 44176 yr; centre (3.6, 3.1) pc, 95% semi-axes 14.5 x 6.5 pc (major axis toward l = 49 deg), sigma_theta 1.00 deg, rms 0.98 deg (alien frame, origin = Gliese 445 at the map epoch); Sun at (2.5, -3.3) pc, at the 72% contour; Gliese 445's own map-epoch position inside the region (at the 29% contour); 919 catalogued stars within 30 pc of the Sun inside. Without lengths: centre (3.5, 3.0) pc, 95% semi-axes 14.9 x 6.4 pc (major axis toward l = 49 deg), sigma_theta 1.00 deg, rms 0.99 deg",
+      "measured": "elapsed 44160 yr; about 30 by 14 pc across; centre (3.8, 3.4) pc, 95% semi-axes 15.1 x 6.9 pc (major axis toward l = 49 deg), sigma_theta 1.07 deg, rms 0.98 deg (alien frame, origin = Gliese 445 at the map epoch); Sun at (2.5, -3.3) pc, at the 70% contour; Gliese 445's own map-epoch position inside the region (at the 30% contour); 1012 catalogued stars within 30 pc of the Sun inside. Without lengths: about 31 by 13 pc across; centre (3.6, 3.2) pc, 95% semi-axes 15.6 x 6.7 pc (major axis toward l = 49 deg), sigma_theta 1.06 deg, rms 0.98 deg",
       "expected": "the Sun; Sagan's design claim about 20 pc (cover.md section 3)",
       "tolerance": "Sun inside the 95% region",
       "pass": true,
@@ -357,7 +494,7 @@
     {
       "id": "triangulation.mirror",
       "claim": "Reading the map as if seen from the other side of the galaxy (mirrored) makes the lines refuse to meet.",
-      "measured": "rms 94.97 deg mirrored vs 0.98 deg correct (ratio 96.6)",
+      "measured": "rms 81.79 deg mirrored vs 0.98 deg correct (ratio 83.5)",
       "expected": "mirror ambiguity resolved by the fit (SSD72: it resolves once one pulsar is identified)",
       "tolerance": "mirrored rms at least 5 times the correct one (spec)",
       "pass": true
@@ -365,7 +502,7 @@
     {
       "id": "triangulation.today",
       "claim": "The map's 14 directions, fitted onto today's pulsar positions, point back to a small region of the galactic plane that contains the Sun.",
-      "measured": "with lengths: centre (0.8, 6.3) pc, 95% semi-axes 15.0 x 6.7 pc (major axis toward l = 49 deg), sigma_theta 1.00 deg, rms 0.98 deg; Sun at the 69% contour; 982 catalogued stars within 30 pc fall inside it. Without lengths: centre (0.7, 6.2) pc, 95% semi-axes 14.7 x 6.7 pc (major axis toward l = 50 deg), sigma_theta 1.00 deg, rms 0.98 deg",
+      "measured": "with lengths: about 31 by 14 pc across; centre (1.0, 6.5) pc, 95% semi-axes 15.7 x 7.1 pc (major axis toward l = 49 deg), sigma_theta 1.06 deg, rms 0.98 deg; Sun at the 67% contour; 1073 catalogued stars within 30 pc fall inside it. Without lengths: about 30 by 14 pc across; centre (0.9, 6.4) pc, 95% semi-axes 15.2 x 7.0 pc (major axis toward l = 50 deg), sigma_theta 1.06 deg, rms 0.98 deg",
       "expected": "the Sun (origin of the SSB frame); Sagan's design claim about 20 pc, '1 in 10^3 stars' (cover.md section 3)",
       "tolerance": "Sun inside the 95% region (Monte Carlo over angle noise and distances, 2,000 draws)",
       "pass": true,
@@ -374,9 +511,42 @@
     {
       "id": "triangulation.wrongId",
       "claim": "Swapping the two nearest pulsars makes the map fit visibly poor, so a wrong match shows.",
-      "measured": "rms 49.13 deg swapped vs 0.98 deg correct (ratio 50.0); largest residual 172.1 deg",
+      "measured": "rms 48.49 deg swapped vs 0.98 deg correct (ratio 49.5); largest residual 172.1 deg",
       "expected": "residuals far above the map's 3 deg accuracy",
       "tolerance": "rms at least 3 times the correct fit (spec)",
+      "pass": true
+    },
+    {
+      "id": "turntable.direction",
+      "claim": "Turn the record the wrong way and it plays backward: a rising sweep comes out falling.",
+      "measured": "correlation with the time-reversed input 1.000000 (with the forward input -0.007); pitch 3303 Hz falling to 896 Hz, across an item boundary",
+      "expected": "the input chirp (200 to 4,000 Hz) reversed in time, from the mirrored position",
+      "tolerance": "correlation above 0.99 (spec)",
+      "pass": true
+    },
+    {
+      "id": "turntable.pitch",
+      "claim": "Play the record at the wrong speed and the pitch and tempo shift by exactly the speed error, as on a real turntable.",
+      "measured": "k 0.5: 500.00 Hz (relative error 1.1e-16), 4.0000 s; k 0.97: 970.00 Hz (relative error 2.9e-8), 2.0619 s; k 1: 1000.00 Hz (relative error 1.1e-16), 2.0000 s; k 1.03: 1030.00 Hz (relative error 2.8e-8), 1.9418 s; k 2: 2000.00 Hz (relative error 1.1e-16), 1.0000 s",
+      "expected": "1,000 Hz x k and 2 s / k for a 1,000 Hz, 2 s test tone (PLAN.md How it's checked 9)",
+      "tolerance": "frequency within 0.1% (spec); duration within one 128-frame render quantum (Web Audio block size)",
+      "pass": true
+    },
+    {
+      "id": "turntable.record",
+      "claim": "Dropping the needle at the right radius plays the real record from that point, at the right speed and at a wrong one.",
+      "measured": "k 1: correlation 1.0000 over 5 s (needle at 81.40 mm); k 1.03: correlation 1.0000 over 5 s (needle at 81.40 mm)",
+      "expected": "the decoded Johnny B. Goode file (music 7, side 1) from its start, resampled by k for k = 1.03",
+      "tolerance": "correlation above 0.99 (spec)",
+      "pass": true,
+      "notes": "Needle radius from the groove model (12-inch standard radii, not documented for Voyager). Stylus sounds off for this check."
+    },
+    {
+      "id": "turntable.runout",
+      "claim": "A needle dropped inside the music lands in the locked run-out groove and clicks once every turn.",
+      "measured": "k 1: 4 clicks every 3.59994 s, worst 0.7 samples off; k 1.5: 4 clicks every 2.39996 s, worst 0.8 samples off",
+      "expected": "one click per turn, every T / k with T = 3.59994 s from the cover (cover.md 1b), the first one turn after the drop",
+      "tolerance": "2 samples at 48 kHz (onset detection to the sample at each end)",
       "pass": true
     },
     {
