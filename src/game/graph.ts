@@ -60,9 +60,9 @@ const sig3 = (x: number): string => Number(x.toPrecision(3)).toLocaleString('en-
 export const CHAPTERS: readonly ChapterDef[] = [
   { id: 'arrival', title: 'Arrival', gloss: 'A cold machine, falling past your star.', requires: [], built: true },
   { id: 'key', title: 'The Key', gloss: 'Reading the cover: its marks and its unit.', requires: ['arrival.purpose'], built: true },
-  { id: 'map', title: 'The Map', gloss: 'Fourteen lines and their numbers.', requires: ['key.timesNotLengths'], built: false },
-  { id: 'spot', title: 'The Spot', gloss: 'A speck of uranium on the cover.', requires: ['key.timesNotLengths'], built: false },
-  { id: 'trail', title: 'The Trail', gloss: 'Where it came from, and how long ago.', requires: ['key.timesNotLengths'], built: false },
+  { id: 'map', title: 'The Map', gloss: 'Fourteen lines and their numbers.', requires: ['key.timesNotLengths'], built: true },
+  { id: 'spot', title: 'The Spot', gloss: 'A speck of uranium on the cover.', requires: ['key.timesNotLengths'], built: true },
+  { id: 'trail', title: 'The Trail', gloss: 'Where it came from, and how long ago.', requires: ['key.timesNotLengths'], built: true },
   { id: 'player', title: 'The Player', gloss: 'How the disc is meant to be played.', requires: ['key.timesNotLengths'], built: true },
   { id: 'pictures', title: 'The Pictures', gloss: 'Turning the signal into images.', requires: ['key.timesNotLengths'], built: true },
   { id: 'voices', title: 'The Voices', gloss: 'What the disc says.', requires: ['player.firstSound'], built: false },

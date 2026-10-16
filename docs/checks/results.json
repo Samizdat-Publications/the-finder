@@ -1,6 +1,6 @@
 {
   "generated": "2026-10-16",
-  "count": 102,
+  "count": 126,
   "checks": [
     {
       "id": "arrival.fuelAge",
@@ -40,7 +40,7 @@
     {
       "id": "bot.slice",
       "claim": "A bot plays the slice from a fresh save through the command bus the interface uses (Arrival, The Key, The Player, The Pictures) with the right answers: every deduction confirms, the codex holds every entry, and nothing errors.",
-      "measured": "18 of 18 deductions confirmed; codex 18 entries; chapters done: arrival, key, player, pictures; 66 s; 16 screenshots",
+      "measured": "18 of 18 deductions confirmed; codex 18 entries; chapters done: arrival, key, player, pictures; 62 s; 16 screenshots",
       "expected": "18 of 18 confirmed (src/game/graph.ts: 4 Arrival, 3 Key, 4 Player, 7 Pictures), 18 codex entries, no console errors (PLAN.md How it's checked item 11)",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -48,7 +48,7 @@
     {
       "id": "bot.wrongAnswers",
       "claim": "From a fresh save, every wrong choice each slice checker offers is played once through the command bus, rejected, and its computed result shown in the notebook (and on the instrument where it has a result line); then the right answer confirms.",
-      "measured": "43 wrong answers over 18 deductions, all rejected and shown (arrival.purpose 3, arrival.heat 3, arrival.madeNotMined 1, arrival.fuelAge 3, key.binary 4, key.unit 4, key.timesNotLengths 1, player.speed 2, player.start 5, player.direction 1, player.firstSound 9, pictures.lineTime 1, pictures.sync 1, pictures.interlace 1, pictures.polarity 1, pictures.aspect 1, pictures.circle 1, pictures.firstFrames 1); all 18 then confirmed; 48 s",
+      "measured": "43 wrong answers over 18 deductions, all rejected and shown (arrival.purpose 3, arrival.heat 3, arrival.madeNotMined 1, arrival.fuelAge 3, key.binary 4, key.unit 4, key.timesNotLengths 1, player.speed 2, player.start 5, player.direction 1, player.firstSound 9, pictures.lineTime 1, pictures.sync 1, pictures.interlace 1, pictures.polarity 1, pictures.aspect 1, pictures.circle 1, pictures.firstFrames 1); all 18 then confirmed; 47 s",
       "expected": "each wrong answer rejected with its result shown; the arrival choices and hydrogen transitions read from the source; the player and picture wrong states one per distinct result",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -70,6 +70,14 @@
       "pass": true
     },
     {
+      "id": "chapter.map",
+      "claim": "The Map plays in the browser through its instrument: the dial aligns the map, lines are assigned by clicking pulsars on the chart, the clock dates the map, the axis is dragged on the sky and the origin slid on the plane; every wrong proposal is refused with what it computed.",
+      "measured": "periods: young line refused, line 1 accepted (match quality log10 88.1); old: future refused, 42268 years ago accepted; identify: one wrong line refused, all 14 accepted; motion: pole refused, l 141.7 b 39.2 accepted (scatter 516 yr); region: (20, -20) pc refused, (3.6, 3.4) accepted; frames 1440x900 4.2 ms mean, 1366x768 4.2 ms mean; longest main-thread task 430 ms; identification 202 ms, region 374 ms on the main thread",
+      "expected": "The same results as the Node checkers for the default seed (map.periods, map.old, map.identify, map.motion, map.region); no console errors",
+      "tolerance": "As each checker; the spec allows a single blocking computation up to 1 s",
+      "pass": true
+    },
+    {
       "id": "chapter.pictures",
       "claim": "The Pictures plays in the browser on the real 1977 tape: from the free-running start every wrong setting is rejected with its measured result, the right ones bring the calibration circle round, and the next frames develop line by line at record speed.",
       "measured": "start slant 187.2 samples/line; cover line time accepted (slant -4.98); wobble 7.98 free, 0.000 locked; comb 8.38 / 0.58; mounts 0 of 5 / 5 of 5; axis ratio 0.6935 at 512 rows, 1.0006 at 355; L001, R001, L002 watched",
@@ -80,9 +88,25 @@
     {
       "id": "chapter.player",
       "claim": "The Player plays in the browser: a wrong speed is heard shifted by exactly k, the run-out clicks once per turn, the label is silent, the wrong direction carries the groove outward and plays backward, and with all three right the first sound off side 1 is the picture signal, a pattern repeating every line.",
-      "measured": "3.47 s per turn: k 1.03745 on the engine and in the result, 0.636 semitones; run-out clicks every 2.4 s at 2.4 s per turn; ccw side time 1119.26 to 1117.77 s in 1.5 s; first sound every 8.3266 ms, confirmed 21.9 s after a drop at 147.5 mm; bench readout \"120.00 mm: the music\"",
+      "measured": "3.47 s per turn: k 1.03745 on the engine and in the result, 0.636 semitones; run-out clicks every 2.4 s at 2.4 s per turn; ccw side time 1119.26 to 1117.80 s in 1.5 s; first sound every 8.3266 ms, confirmed 21.9 s after a drop at 147.5 mm; bench readout \"120.00 mm: the music\"",
       "expected": "k = 3.59994 / 3.47 from the cover (cover.md 1b); one click per turn; the tape's 8.326 ms line period (images-and-audio.md section 1); the Node checkers' results",
       "tolerance": "k and semitones to 1e-9 (same arithmetic); line period within 0.001 ms (the research quotes it to that place)",
+      "pass": true
+    },
+    {
+      "id": "chapter.spot",
+      "claim": "The Spot plays start to finish through its instrument: the sweep finds the hidden spot by its counts, a short count gives a wide interval, a day's count dates the spot, and natural uranium is rejected while a pure start fits.",
+      "measured": "1440x900: rate 0.00000 /s away, 5.333 /s over the spot; age 44114 y (95% 42783 to 45489) after 24.2 h; one wrong answer per node rejected with its computed result; same at 1366x768",
+      "expected": "the behaviour in docs/plans/M4_specs/step4-the-spot.md; the age from the test's own closed-form inversion of the measured ratio (LNHB half-lives)",
+      "tolerance": "exact (interface behaviour); the proposed age is the closed-form age rounded to 50 years, well inside the interval",
+      "pass": true
+    },
+    {
+      "id": "chapter.trail",
+      "claim": "The Trail plays in the browser through its instrument: a wrong star, a short run-back and a wrong distance are each rejected with their computed results; the warm-white star, the meeting and the ruler's distance confirm; with The Map built, the region view and the reframe confirm WHERE and WHEN.",
+      "measured": "wrong star rejected (Ran 8.58 deg); Sun 0.0043 +/- 0.2091 deg accepted; meeting 44100 years accepted (95% 43461 to 44787); ruler 1.026 +/- 0.002 pc accepted; where and when: played; 0.98 ms per chart frame; longest measurement 595 ms",
+      "expected": "the same results as the Node checkers (trail.check.*); no console errors; no measurement over 1 s on the main thread (spec)",
+      "tolerance": "exact (interface behaviour); 1 s for a blocking call",
       "pass": true
     },
     {
@@ -97,7 +121,7 @@
     {
       "id": "chart.galaxy.view",
       "claim": "On the galaxy chart, pointing at a pulsar picks that pulsar, and the chart draws at 60 frames per second at 1440 x 900.",
-      "measured": "14 of 14 map pulsars picked at their projected points; 4366 pulsars drawn; 0.92 ms per frame (120 frames, each waited for)",
+      "measured": "14 of 14 map pulsars picked at their projected points; 4366 pulsars drawn; 0.71 ms per frame (120 frames, each waited for)",
       "expected": "every map pulsar picked; under 16.7 ms per frame",
       "tolerance": "pick radius 12 CSS px; frame budget 16.7 ms on this PC (headless Chrome)",
       "pass": true
@@ -113,7 +137,7 @@
     {
       "id": "chart.neighbourhood.view",
       "claim": "On the neighbourhood chart, pointing at a star picks that star, and the trail drawn for it shows the kinematics' own angle.",
-      "measured": "Sun and Ross 248 picked at their projected points (2 of 2); Sun 0.0043 deg, Ross 248 51.78 deg drawn; 313 stars; 0.89 ms per frame",
+      "measured": "Sun and Ross 248 picked at their projected points (2 of 2); Sun 0.0043 deg, Ross 248 51.78 deg drawn; 315 stars; 0.69 ms per frame",
       "expected": "kinematics.trail recomputed in the page from the science modules (seed 'charts.dev'); under 16.7 ms per frame",
       "tolerance": "1e-9 deg (same computation); pick radius 12 CSS px; frame budget 16.7 ms",
       "pass": true
@@ -362,11 +386,11 @@
     {
       "id": "decoder.browser",
       "claim": "In the browser, the real path (FLAC fetched whole, decoded at 96 kHz, decoded in a Worker) gives the same pictures as the tested Node decode, fast enough to keep up with playback.",
-      "measured": "3 frames (L000, L019, R072): largest pixel difference 0 grey levels; Worker decode 65, 66, 47 ms",
+      "measured": "3 frames (L000, L019, R072): largest pixel difference 0 grey levels; Worker decode 43, 39, 41 ms",
       "expected": "The Node decode of the same slices by the same code (itself pixel-equal to the Python reference, decoder.frames)",
       "tolerance": "At most 1 grey level per pixel (spec; both run V8); under 250 ms per frame (spec target for this PC; a frame lasts 4.3 s of tape)",
       "pass": true,
-      "notes": "Installed Chrome via Playwright. Chrome's decodeAudioData returns positive 16-bit samples as w / 32767 (negatives as w / 32768); src/media/frames.ts restores the exact integers before decoding, without which up to 407 pixels per frame differed by 1 grey level. Fetch plus decodeAudioData took 13, 33, 18 ms per frame on the dev server."
+      "notes": "Installed Chrome via Playwright. Chrome's decodeAudioData returns positive 16-bit samples as w / 32767 (negatives as w / 32768); src/media/frames.ts restores the exact integers before decoding, without which up to 407 pixels per frame differed by 1 grey level. Fetch plus decodeAudioData took 15, 18, 13 ms per frame on the dev server."
     },
     {
       "id": "decoder.circle",
@@ -384,7 +408,7 @@
       "expected": "The Python reference decoder's 96 kHz decodes of the same slices (build/ref96, tools/ref-decoder)",
       "tolerance": "SSIM at least 0.98 per frame (scikit-image defaults); for scale, the reference's own 96 vs 384 kHz decodes differ by SSIM 0.970 at worst",
       "pass": true,
-      "notes": "Node decode time 114 ms per frame including WAV and PNG reading."
+      "notes": "Node decode time 123 ms per frame including WAV and PNG reading."
     },
     {
       "id": "decoder.ref.aspectIndependent",
@@ -547,7 +571,7 @@
     {
       "id": "game.graph",
       "claim": "The deduction graph gates the chapters as designed: The Key opens after the first Arrival deduction, the player and the pictures after the key is read, and a wrong answer is remembered with what it showed.",
-      "measured": "31 deductions in 4 chapters, every prerequisite exists and every node is reachable; key locked at start: true; key open after arrival.purpose: true; hints reveal nudge, method, answer in order and are counted",
+      "measured": "31 deductions in 7 chapters, every prerequisite exists and every node is reachable; key locked at start: true; key open after arrival.purpose: true; hints reveal nudge, method, answer in order and are counted",
       "expected": "D-A06 hub structure and the design in docs/plans/M3_specs/step1-shell-graph-codex.md",
       "tolerance": "exact (logic, with test checkers: the real checkers arrive in steps 3 to 6)",
       "pass": true
@@ -620,6 +644,64 @@
       "tolerance": "counts exact; burst speed from annealed copper C11000 (CDA: 32 ksi, specific gravity 8.91, Poisson 0.328 from its moduli) and the uniform rotating-disc stress (Timoshenko and Goodier)",
       "pass": true,
       "notes": "The optical and ionization lines are computed from the Rydberg formula (CODATA 2022) and agree with the NIST ASD to parts in 1e5 (docs/research/key-physics.md)."
+    },
+    {
+      "id": "map.identify",
+      "claim": "Assigning every line its most likely pulsar (the old ones first, then the young ones by direction once the age is known) gives the documented identities, and the map's limits are stated.",
+      "measured": "default seed odds: 1 about 10⁸⁸ to 1; 2 about 160 to 1; 3 about 390 to 1; 4 about 10⁸ to 1; 5 certain: no other pulsar along the line fits; 6 certain: no other pulsar along the line fits; 7 certain: no other pulsar along the line fits; 8 about 10⁷⁴ to 1; 9 certain: no other pulsar along the line fits; 10 about 10⁴ to 1; 11 more than 10³⁰⁰ to 1; 12 about 58 to 1; 13 about 10⁶ to 1; 14 about 10⁴ to 1; limits: known to 3 figures only; distances off by up to 6 times; ticks 12 of 14, without a sign",
+      "expected": "The documented identities (cover.json; Johnston 2002) for three seeds; B1240-64 known to three figures (SSD72) and map distances off by up to about six times (Vela 1.63 kpc on the map against 0.28 kpc, research cover.md section 2)",
+      "tolerance": "Every line's best candidate equal to the documented pulsar; the distance factor between 4 and 9 (the map's scale is fitted here, not taken from 1972)",
+      "pass": true
+    },
+    {
+      "id": "map.motion",
+      "claim": "The old lines' own-frame ages fall on one straight line against (P / Pdot) times the cosine of the angle to the right axis on the sky; that axis, found on the instrument, is the alien's own motion relative to the map's makers.",
+      "measured": "instrument axis l 141.75, b 39.05: chi-square 2.50; measured velocity's axis 1.10; fit 44050 +/- 92 yr, 115.9 km/s; map-seed-a: 1.20 and 0.00; map-seed-b: 2.50 and 1.00",
+      "expected": "The alien's own measured velocity relative to the Sun (Gaia DR3 for Gliese 445, epoch.ts), independent of the pulsars, accepted as an axis for three seeds; the velocity fit of pulsarAge.ts (dating.epoch.velocityFit)",
+      "tolerance": "chi-square of the axis against the fitted velocity at most 5.991 (2 degrees of freedom, 95%)",
+      "pass": true,
+      "notes": "The side plot uses x = (P / Pdot) cos(angle), not the bare cosine: a Doppler shift moves each age by (P / Pdot) v cos / c, so only this x puts the ages on one line (with the bare cosine the scatter stays thousands of years at every axis)."
+    },
+    {
+      "id": "map.motionAxis",
+      "claim": "The Map judges an axis the player drags on the sky by how far it is from the velocity fitted to the map's ages: the smallest chi-square over the speed along the axis.",
+      "measured": "0 along the fitted velocity and its antipode (0.0e+0), rising as the axis turns away in two planes; 95.3% of 4000 seeded fits keep the true axis inside the 95% cut",
+      "expected": "Geometry: under an isotropic covariance the value is |v|^2 sin^2(angle) / sigma^2 and equals the Mahalanobis distance of the projected velocity; a brute-force minimum over the speed; the chi-square law with 2 degrees of freedom (95%)",
+      "tolerance": "Relative error under 1e-9 against geometry, under 1e-6 against a 0.01 km/s speed grid; coverage within 3 binomial standard errors (1.03 points) of 95%",
+      "pass": true,
+      "notes": "The covariance is the real fit's (velocity sigmas 3.9, 2.1, 1.6 km/s, ICRS axes); the cut is the 2-degree-of-freedom 95% chi-square, 5.991, because an axis has two angles."
+    },
+    {
+      "id": "map.old",
+      "claim": "Running the matched pulsars back on the spin-down clock, the map's numbers are met in the past (tens of thousands of years ago), never in the future; the true elapsed time is accepted.",
+      "measured": "default seed, years ago where each old line meets the map at n = 3: B1642-03 42268, B1929+10 43585, B1933+16 44395, B2016+28 51907, B2217+47 45327, B0329+54 46698, B0525+21 45000, B0823+26 46743, B0950+08 50329, B1240-64 46891, B1451-68 16996; own-frame medians 16996 to 51902 years",
+      "expected": "The story's true elapsed time, 44100 years (scenario.json, epoch.ts), accepted for three seeds; the scatter of the own-frame ages is dating.epoch.noReframe (HOW_ITS_CHECKED row 7)",
+      "tolerance": "Accepted inside the union of the matched old lines' 95% intervals (Monte Carlo, pulsarAge.ts datePulsar, 2,000 draws)",
+      "pass": true
+    },
+    {
+      "id": "map.originResiduals",
+      "claim": "When the player slides the map's origin, the bearings to the pulsars are compared with the map's angles after the best common rotation; that comparison is exact on constructed geometry and agrees with the region fit on the real map.",
+      "measured": "constructed: rms 2.3e-14 deg, rotation 3.700000 deg; real map at the fitted centre 0.978 deg rms (fit 0.983), 100 pc off 8.62 deg",
+      "expected": "Constructed origin and rotation (3.7 deg) recovered; on the real map no worse than the triangulation fit's own rms (triangulation.ts fitMapOrigin) and rising away from it",
+      "tolerance": "Constructed: 1e-9 deg (double precision); real: rotation within 0.5 deg of the fit's, rms at most the fit's; 100 pc off at least twice the rms",
+      "pass": true
+    },
+    {
+      "id": "map.periods",
+      "claim": "Every old map line, read through the key, is the period of its documented pulsar, and the game accepts it only with odds of at least 20 to 1 against every other candidate along the line.",
+      "measured": "default seed: 1 B1642-03 about 10⁸⁸ to 1; 2 B1929+10 about 160 to 1; 3 B1933+16 about 390 to 1; 4 B2016+28 about 10⁸ to 1; 5 B2217+47 certain: no other pulsar along the line fits; 6 B0329+54 certain: no other pulsar along the line fits; 7 B0525+21 certain: no other pulsar along the line fits; 9 B0823+26 certain: no other pulsar along the line fits; 10 B0950+08 about 10⁴ to 1; 12 B1240-64 about 58 to 1; 13 B1451-68 about 10⁶ to 1; the same for seeds map-seed-a and map-seed-b; the three young lines (Crab, Vela, B1727-47) refused by period alone",
+      "expected": "The documented identities (cover.json; Johnston 2002, research cover.md section 2); D-A16's strong-evidence margin",
+      "tolerance": "log10 odds at least 1.30 (20 to 1, Kass and Raftery 1995, the identification's own anchor rule)",
+      "pass": true
+    },
+    {
+      "id": "map.region",
+      "claim": "Sliding the map's origin into the fitted region is accepted; the region holds about a thousand catalogued stars when the map was made, the alien's own star among them.",
+      "measured": "30.2 by 13.7 pc, 1007 of 3934 catalogued stars inside at the map epoch, the alien's own star inside; the Sun then at (2.5, -3.3) pc",
+      "expected": "The Sun's own position at the map epoch accepted for three seeds; the research region, about 31 by 14 pc with about a thousand stars (HOW_ITS_CHECKED row 6, triangulation.epoch)",
+      "tolerance": "Inside the 95% ellipse (chi-square 2 degrees of freedom); the size within 15% of the research figures and 700 to 1,400 stars",
+      "pass": true
     },
     {
       "id": "pictures.aspect",
@@ -719,7 +801,7 @@
     {
       "id": "scene.encounter",
       "claim": "The encounter scene renders Voyager 1 under the computed sky at 60 frames per second at 1440 x 900, with every hotspot on the craft.",
-      "measured": "1.15 ms per frame (120 frames back to back, each waited for with a one-pixel read-back), live loop 5.5 ms; 8829 stars drawn; hotspots within 0.297 m of a model vertex",
+      "measured": "1.33 ms per frame (120 frames back to back, each waited for with a one-pixel read-back), live loop 4.3 ms; 8828 stars drawn; hotspots within 0.297 m of a model vertex",
       "expected": "under 16.7 ms (60 fps); each hotspot within its part radius of the model (tools/world/measure-hotspots.mjs)",
       "tolerance": "frame budget 16.7 ms on this PC (RTX 5070 Ti Laptop, headless Chrome); hotspot radius per part (hotspots.ts)",
       "pass": true
@@ -731,7 +813,7 @@
       "expected": "l = 0, b = 0 at the Galactic centre and each star's own (l, b) from icrsToGalactic (Hipparcos matrix, astro.ts); the Large Magellanic Cloud at l 280.47, b -32.89 (SIMBAD)",
       "tolerance": "1 deg (spec); the LMC at least twice as bright as at (280.47, +32.89) and (79.53, -32.89), and the centre at least 5x the galactic pole",
       "pass": true,
-      "notes": "ESA/Gaia/DPAC, CC BY-SA 3.0 IGO (A. Moitinho), EDR3 colour map, equirectangular 4000 x 2000. From 0.75 pc the Milky Way looks as from Earth (it is kiloparsecs away). Star counts: near 3934, sky 8338 (206 without a distance keep their catalogue directions), shown 8829 (apparent mag 6.5 or brighter from the craft)."
+      "notes": "ESA/Gaia/DPAC, CC BY-SA 3.0 IGO (A. Moitinho), EDR3 colour map, equirectangular 4000 x 2000. From 0.75 pc the Milky Way looks as from Earth (it is kiloparsecs away). Star counts: near 3934, sky 8338 (206 without a distance keep their catalogue directions), shown 8828 (apparent mag 6.5 or brighter from the craft)."
     },
     {
       "id": "scene.encounter.sun",
@@ -831,6 +913,57 @@
       "pass": true
     },
     {
+      "id": "spot.checkers",
+      "claim": "The Spot's three deductions are judged by the science: a mark inside the spot, an age inside the counts' 95% interval, and a starting purity the counts accept while rejecting natural uranium; every wrong answer says what was computed.",
+      "measured": "seeds finder-1, spot-a, spot-b: all right answers confirm, all wrong ones rejected. find: far Barely above background here: the detector would count 1.29 × 10⁻⁴ counts per beat from the plate at this point, against its own background of 5.44 × 10⁻⁵ counts per beat. Whatever gives off alphas is far from this point. | find: near Something is giving off alpha particles nearby, but not here: the detector would count 0.595 counts per beat at this point (background 5.44 × 10⁻⁵ counts per beat), and anywhere over the source itself it counts at least 1.61 counts per beat. The rate is still rising toward it. | age: 1 h 44052 (37969 to 51182); 1 day 44124 (42786 to 45506); too short at 1 s | purity at 1 day: pure p 1.000, natural p 0.0e+0; too short at 1 s",
+      "expected": "the spot disc from data/spot.json (D-A23); the craft's age from the epoch model inside the one-day interval; natural uranium (activity ratio 1, secular equilibrium) rejected at p < 0.05",
+      "tolerance": "exact (verdicts); the p < 0.05 threshold is the convention the spec names",
+      "pass": true
+    },
+    {
+      "id": "spot.counting.coverage",
+      "claim": "The age interval the counter gives after an hour of counting contains the spot's true age about 95% of the time.",
+      "measured": "950 of 1000 one-hour counts contain the true age (95.0%)",
+      "expected": "95% (the interval's stated confidence)",
+      "tolerance": "93% to 97% (3 binomial standard errors for 1,000 trials)",
+      "pass": true
+    },
+    {
+      "id": "spot.counting.deterministic",
+      "claim": "The alpha counter is honest and repeatable: the same playthrough always gives the same counts at the same counting time, however the player got there, and counting longer only ever adds counts.",
+      "measured": "seed finder-1 at 1 day: 43771 U-238, 5127 U-234, 954 Th-230; same counts in any order of queries: true; never decreasing over 9 times and 29 steps across a quantum's end: true; another seed differs: true; efficiency 0.052786; mean U-238 in an hour over 400 seeds 1829.2 against 1828.1",
+      "expected": "efficiency (1 - 2 / sqrt 5) / 2 = 0.052786 (point source at a spacing equal to the detector's diameter, alpha-detector.md); Poisson mean activity x efficiency x time",
+      "tolerance": "exact for determinism and monotonicity; efficiency 1e-12; the mean within 4 standard errors (sqrt(mu / 400))",
+      "pass": true
+    },
+    {
+      "id": "spot.detector.farField",
+      "claim": "Far from the spot the count rate falls off exactly as for a point source: the inverse cube of the distance off to the side (the detector faces the plate), the inverse square straight above.",
+      "measured": "r = 150 mm: model 5.9705e-4 /s, point source 5.8979e-4 /s (1.23% apart; 0.017% after the size term); r = 200 mm: model 2.5072e-4 /s, point source 2.4900e-4 /s (0.69% apart; 0.005% after the size term); r = 250 mm: model 1.2809e-4 /s, point source 1.2753e-4 /s (0.44% apart; 0.002% after the size term); on axis at 1 m, solid angle / (A / H^2) = 0.999893",
+      "expected": "point source A h / (4 pi d^3) with the second-order size term (hand derivation, in the test); A / (4 pi H^2) on the axis",
+      "tolerance": "0.1% with the size term (third order is about 1e-4); 2e-4 on the axis (the next term, 3 R^2 / 4 H^2 = 1.1e-4)",
+      "pass": true,
+      "notes": "The spec asked for 1/r^2 far away. That holds straight above the detector; off to the side the detector is face-on to the plate, so a cos(theta) = h / d factor makes it 1/r^3. Both are tested."
+    },
+    {
+      "id": "spot.detector.onAxis",
+      "claim": "The detector model counts the right share of the spot's alphas: it matches the exact formula for a point on the axis and a brute-force simulation of the whole spot.",
+      "measured": "point on axis: worst relative error 4.8e-14 (h = 1, 5, 24 mm); tiny-source table at r = 0: 7.9e-7; edge continuity 3.6e-7; Monte Carlo fraction vs model at r = 0 mm: 0.26125 vs 0.26098, 15 mm: 0.09617 vs 0.09610, 30 mm: 0.00903 vs 0.00900",
+      "expected": "the closed form (1 - h / sqrt(h^2 + R^2)) / 2 for a point on the axis of a disc; an independent seeded Monte Carlo (uniform disc source, isotropic emission) of the 20 mm spot under the 450 mm^2 detector at 5 mm",
+      "tolerance": "closed form 1e-6 (quadrature error); tiny-source table 1e-4 (its 0.01 mm size and interpolation); Monte Carlo 4 standard errors, sqrt((1 - p) / (p N)) with N = 2e6 (about 0.5%)",
+      "pass": true,
+      "notes": "Detector: 450 mm^2 (radius 11.97 mm), stand-off 5 mm (D-A24). The deposit is about 0.13 micrometre thick (clocks.md 4a), so no self-absorption."
+    },
+    {
+      "id": "spot.lines",
+      "claim": "The counter's alpha energies, the natural starting ratio and both clocks come from the nuclear data, not typed in.",
+      "measured": "U238 4.1979 MeV, U234 4.7745 MeV, Th230 4.6870 MeV; natural start A234/A238 = 1.000000000000; pure start read back: U-234 clock 44100.0 y, Th-230 clock 44100.0 y; natural start U-234 clock: never; background in a line's energy band 7.78e-2 counts/day against 932 Th-230 counts/day",
+      "expected": "alpha lines 4.198, 4.775, 4.687 MeV (clocks.md 4a); secular equilibrium gives an activity ratio of 1; the true age 44100 y",
+      "tolerance": "1 keV on the lines (the mass-number approximation is good to about 0.1 keV); 1e-12 on the ratio; 1e-4 and 1e-3 on the clocks (counts rounded to integers of 1e9)",
+      "pass": true,
+      "notes": "Each line's counts include its weaker companion (U-238 4.151, U-234 4.722, Th-230 4.621 MeV): the clocks need only how many alphas each nuclide gives. The background is ignored in the counter: it is under a ten-thousandth of the smallest line."
+    },
+    {
       "id": "trail.age",
       "claim": "Distance divided by speed from the Sun gives the time since the craft left: a third clock.",
       "measured": "44100.3 years exactly; measured 95% interval 43436 to 44778 years (sigma 336)",
@@ -838,6 +971,70 @@
       "tolerance": "1 year for the exact value (spec); the interval comes from the simulated measurements",
       "pass": true,
       "notes": "The interval is set almost entirely by the 0.15 km/s radial-velocity error on the relative speed."
+    },
+    {
+      "id": "trail.check.age",
+      "claim": "The run-back time the player proposes is accepted only inside the 95% interval of distance over speed, which holds the time since launch.",
+      "measured": "distance over speed 44100 years, 95% 43493 to 44764; meeting at 44100",
+      "expected": "44100.4 years since launch (scenario.json)",
+      "tolerance": "the 95% interval from 2,000 seeded simulated measurements (kinematics.ts)",
+      "pass": true
+    },
+    {
+      "id": "trail.check.neighbour",
+      "claim": "The ruler's distance to the origin star is accepted within two of its errors, and the result names the twist: it is the alien's nearest catalogued star and the fifth-brightest in its sky.",
+      "measured": "1.0231 +/- 0.0015 pc; rank by distance 1; rank by brightness 5 (-0.14 mag)",
+      "expected": "D-A15: nearest at 1.024 pc, fifth-brightest at magnitude -0.14 (epoch.neighbours, epoch.sunBrightness)",
+      "tolerance": "2 ruler sigmas; ranks exact",
+      "pass": true
+    },
+    {
+      "id": "trail.check.origin",
+      "claim": "In The Trail the player picks the star the machine flies straight away from; only the warm-white star (the Sun) is accepted, and every other star is ruled out with its computed angle.",
+      "measured": "Sun 0.0043 +/- 0.2008 deg; next Gl 185B 93.18 +/- 2.524 deg (37 sigma); seeds finder-1, trail-seed-2, trail-seed-3 all pick the Sun alone",
+      "expected": "the Sun, the star Voyager 1 was launched from (scenario.json); trail.uniqueWithErrors",
+      "tolerance": "angle within 2 of its own sigma (TRAIL_CONSISTENT_SIGMA, kinematics.ts)",
+      "pass": true
+    },
+    {
+      "id": "trail.check.when",
+      "claim": "Proposed in the origin star's rest frame, the map's age is accepted inside the combined 95% interval, which holds the map's true age; the fitted motion agrees with the measured one.",
+      "measured": "44068 years (95% 43930 to 44210); velocity agreement 1.04 sigma (Mahalanobis, 3 components)",
+      "expected": "44109 years, the kept lines' own implied epochs today, weighted as combined (pulsarAge.test.ts truthYears)",
+      "tolerance": "the combined 95% interval (dating.epoch.coverage calibrates it)",
+      "pass": true
+    },
+    {
+      "id": "trail.check.where",
+      "claim": "The star the machine came from lies inside the map's 95% origin region at the map epoch, one of many stars there; the checker accepts only that star.",
+      "measured": "Sun inside (contour 71.5%); 1007 near stars inside the region",
+      "expected": "the Sun inside the region (triangulation.epoch, HOW_ITS_CHECKED row 6)",
+      "tolerance": "the 95% ellipse, chi-square 5.991 for two dimensions",
+      "pass": true
+    },
+    {
+      "id": "trail.reframe",
+      "claim": "The map's ages agree only in the frame of the star the machine came from: in the alien's own frame, or the frame of the next-best star, they scatter.",
+      "measured": "old lines' chi-square per degree of freedom 1.72 in the warm-white star's frame (spread 1853 years), 8214.2 in the alien's own (34906 years), 33.8 in Ran's (4905 years)",
+      "expected": "agreement within the errors only in the origin frame (dating.epoch.reframe, dating.epoch.noReframe)",
+      "tolerance": "chi-square per dof under 2 in the origin frame, over 5 elsewhere; medians and sigmas of 2000 seeded draws per line (seed \"finder-1\")",
+      "pass": true
+    },
+    {
+      "id": "trail.ruler",
+      "claim": "The alien's ruler puts its nearest neighbour, the star the machine came from, about 1.02 parsecs away, with the error of its own position measurement.",
+      "measured": "default seed: 1.0231 +/- 0.0015 pc (the measured position covariance projected on the line)",
+      "expected": "1.0245 pc, the true distance (D-A15: 1.024 pc, epoch.neighbourDistance)",
+      "tolerance": "4 ruler sigmas (one draw from the measurement covariance)",
+      "pass": true
+    },
+    {
+      "id": "trail.runBack",
+      "claim": "Run back together along their straight lines, the machine and the warm-white star meet at the time since launch.",
+      "measured": "meeting 44100.3 years ago at a separation of 11 AU",
+      "expected": "44100.4 years since launch (scenario.json); the Sun's trail angle 0.0043 deg puts the miss at d sin(angle)",
+      "tolerance": "1 year (trail.age, voyager.md sections 4 and 5: the early, planet-bent path); separation under 0.001 pc",
+      "pass": true
     },
     {
       "id": "trail.unique",

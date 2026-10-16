@@ -153,6 +153,15 @@ export function quantityText(dim: Dim, si: number, humanGloss: boolean): string 
 }
 
 /** A quantity given in SI, as the alien writes it. */
+/**
+ * A measured number: from a million up a power of ten with three figures (an 11-digit count of beats is
+ * unreadable, and a measurement has no more figures than that); below, as formatNumber. Exact counts read
+ * off the cover (dimensionless integers) keep formatNumber's full grouped digits.
+ */
+export function formatMeasured(x: number): string {
+  return Number.isFinite(x) && Math.abs(x) >= 1e6 ? formatPower(x, 3) : formatNumber(x);
+}
+
 export function quantity(dim: Dim, si: number): QuantityText {
-  return { number: formatNumber(toAlien(dim, si)), unitKey: UNIT_KEY[dim], unitGloss: UNIT_GLOSS[dim], si: formatSI(dim, si) };
+  return { number: formatMeasured(toAlien(dim, si)), unitKey: UNIT_KEY[dim], unitGloss: UNIT_GLOSS[dim], si: formatSI(dim, si) };
 }

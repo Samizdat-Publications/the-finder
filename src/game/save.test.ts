@@ -71,9 +71,9 @@ describe('the save', () => {
     expect(migrate({ version: 2, nodes: {} })).toBeNull(); // from a newer game: left alone
     expect(migrate(null)).toBeNull();
     expect(migrate('text')).toBeNull();
-    const damaged = migrate({ version: 1, nodes: { 'arrival.purpose': { confirmed: 'yes', attempts: [{ ok: 'x' }, 5], hints: 99 } }, chapter: 'map', settings: { masterVolume: 'loud' } });
+    const damaged = migrate({ version: 1, nodes: { 'arrival.purpose': { confirmed: 'yes', attempts: [{ ok: 'x' }, 5], hints: 99 } }, chapter: 'voices', settings: { masterVolume: 'loud' } });
     expect(damaged?.nodes['arrival.purpose']).toEqual({ confirmed: false, attempts: [], hints: 3 });
-    expect(damaged?.chapter).toBe('hub'); // map is not built
+    expect(damaged?.chapter).toBe('hub'); // voices is not built
     expect(damaged?.settings).toEqual(defaultSettings());
 
     const storage = fakeStorage();

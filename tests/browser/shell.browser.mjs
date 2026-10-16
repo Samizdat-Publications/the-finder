@@ -18,7 +18,9 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   assert(g.chapter === 'hub', `a fresh game starts on the ring (got ${g.chapter})`);
   assert((await page.locator('.chap').count()) === 10, 'the ring shows ten chapters');
   assert((await page.locator('.chap.open').count()) === 1, 'only Arrival is open at the start');
-  assert((await page.locator('.chap.later').count()) === 6, 'six chapters are marked later');
+  // The chapters not built yet show as LATER (the count follows src/game/graph.ts as chapters land).
+  const unbuilt = await page.evaluate(async () => (await import('/src/game/graph.ts')).CHAPTERS.filter((ch) => !ch.built).length);
+  assert((await page.locator('.chap.later').count()) === unbuilt, `the ${unbuilt} chapters not built yet are marked later`);
   assert(g.confirmed.length === 0 && g.hintsUsed === 0, 'nothing is confirmed at the start');
 
   // ---- 2. enter Arrival; its instrument shows, and the notebook lists its deductions ----

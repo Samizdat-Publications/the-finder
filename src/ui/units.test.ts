@@ -2,7 +2,7 @@
 // ten with a superscript exponent, never e-notation.
 
 import { describe, expect, it } from 'vitest';
-import { formatNumber, formatPower, quantityText, superscript } from './units';
+import { formatMeasured, formatNumber, formatPower, quantity, quantityText, superscript } from './units';
 
 describe('powers of ten in the interface', () => {
   it('superscript writes integers, negatives included', () => {
@@ -24,6 +24,13 @@ describe('powers of ten in the interface', () => {
     expect(formatNumber(1.59e12)).toBe('1.59 × 10¹²');
     expect(formatNumber(8.08e-10)).toBe('8.08 × 10⁻¹⁰');
     expect(formatNumber(5_113_380_864)).toBe('5,113,380,864');
+  });
+
+  it('a measured quantity from a million up reads as a power of ten; exact cover counts keep their digits', () => {
+    expect(formatMeasured(18_708_965_633)).toBe('1.87 × 10¹⁰');
+    expect(formatMeasured(999_999)).toBe('999,999');
+    expect(formatNumber(509_549_854)).toBe('509,549,854');
+    expect(quantity('time', 2e10).number).not.toMatch(/,/);
   });
 
   it('quantityText shows only the alien unit unless the human gloss is on', () => {

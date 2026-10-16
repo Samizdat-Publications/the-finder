@@ -21,4 +21,9 @@
    the top bar's empty middle, where it covers nothing. */
 @media (min-width: 1000px) and (min-height: 620px) {
   .soundtoggle { top: calc((var(--topbar-h) - 2rem) / 2); bottom: auto; left: auto; right: 23.5rem; font-size: var(--fs-label); }
+  /* Captions sit in the top bar too, left of the mute switch, so they never cover an instrument's readouts. */
+  .captions {
+    top: calc((var(--topbar-h) - 1.9rem) / 2); bottom: auto; left: auto; right: 30rem; transform: none;
+    max-width: calc(100vw - 30rem - 36rem); text-align: right;
+  }
 }

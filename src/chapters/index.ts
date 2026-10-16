@@ -4,4 +4,7 @@ import './key/index';
 import './arrival/index';
 import './pictures/index';
 import './player/index';
+import './map/index';
+import './spot/index';
+import './trail/index';
 export {};
