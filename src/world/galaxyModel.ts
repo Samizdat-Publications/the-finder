@@ -17,22 +17,23 @@ import type { CoverData } from '../science/types';
 
 /**
  * The modern distance to the Galactic centre (Sgr A*), kpc: 8.275 +/- 0.009 (stat) +/- 0.033 (sys)
- * (GRAVITY Collaboration 2021, A&A 647, A59; summarised by MPE, "The Massive Black Hole"). The two
- * errors combined in quadrature give 0.034 kpc. Not yet in docs/research (reported to the lead).
+ * (GRAVITY Collaboration 2021, A&A 647, A59, Eq. 38; docs/research/galaxy-constants.md). The two
+ * errors combined in quadrature give 0.034 kpc.
  */
 export const GC_DISTANCE_KPC = 8.275;
 export const GC_DISTANCE_SIGMA_KPC = Math.hypot(0.009, 0.033);
 
 /**
- * Sgr A*, ICRS J2000: RA 17h45m40.0409s, Dec -29d00m28.118s (Reid and Brunthaler 2004, ApJ 616, 872,
- * VLBA). The centre's direction is taken from it (l = 359.944, b = -0.046 deg), not assumed at l = b = 0.
+ * Sgr A*, J2000 (VLBA): RA 17h45m40.0409s, Dec -29d00m28.118s (Reid and Brunthaler 2004, ApJ 616, 872;
+ * docs/research/galaxy-constants.md). The centre's direction is taken from it (l = 359.944, b = -0.046 deg), not assumed at l = b = 0.
  */
 export const SGR_A_RA_DEG = (17 + 45 / 60 + 40.0409 / 3600) * 15;
 export const SGR_A_DEC_DEG = -(29 + 0 / 60 + 28.118 / 3600);
 
 /**
- * Period below which a pulsar is drawn as millisecond (recycled), s: 30 ms, the conventional boundary
- * (Lorimer and Kramer 2005, Handbook of Pulsar Astronomy, section 1.2). A display class only.
+ * Period below which a pulsar is drawn as millisecond (recycled), s: 30 ms, a common convention (Lorimer,
+ * "Binary and Millisecond Pulsars", Living Reviews in Relativity; other papers cut at 16 or 20 ms:
+ * docs/research/galaxy-constants.md). A display class only.
  */
 export const MSP_PERIOD_S = 0.03;
 

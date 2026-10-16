@@ -60,6 +60,8 @@ sources below are planned; each gets its final line (with checksum and date) whe
 - Cassini RTG plutonium isotopic mix (the non-Pu-238 20 at.% of the Voyager fuel, a documented assumption): University of Wisconsin NEEP 602, Spring 2000, lecture 6, slide "Isotopic Concentration of RTG Fuel", https://fti.neep.wisc.edu/fti.neep.wisc.edu/neep602/SPRING00/lecture6.pdf. Fetched 2026-10-15.
 - Half-lives and decay energies: LNHB recommended data (as quoted in docs/research/clocks.md) and NNDC NuDat 3 (cited per entry in src/science/nuclides.ts).
 
+- The galaxy chart's constants (docs/research/galaxy-constants.md): GRAVITY Collaboration (2021), A&A 647, A59 (distance to the Galactic centre, 8275 +/- 9 +/- 33 pc); Reid, M. J. and Brunthaler, A. (2004), ApJ 616, 872 (the position of Sgr A*); Lorimer, D. R., "Binary and Millisecond Pulsars", Living Reviews in Relativity (the 30 ms millisecond-pulsar convention). Read 2026-10-15.
+
 ## Images and models
 - Voyager 3D model: NASA Visualization Technology Applications and Development (VTAD), science.nasa.gov, free to use under NASA's media guidelines; no endorsement implied. `Voyager.glb`, https://science.nasa.gov/resource/voyager-3d-model/ (source `nasa-voyager-glb`). Fetched 2026-10-15; cleaned and compressed to `public/media/models/voyager.glb` by `tools/models/build-voyager.mjs`.
 - The Golden Record cover photo: NASA/JPL, GPN-2000-001978 (public domain), via Wikimedia Commons. Fetched 2026-10-15.
