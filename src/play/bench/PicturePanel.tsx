@@ -6,6 +6,7 @@ import { dispatch, type Command } from '../../game/bus';
 import { COVER_LINE_MS, LINE_MS_RANGE, REFERENCE_ROWS, ROWS_RANGE, TAPE_LINE_MS, lineTimePercentOff } from '../../game/model';
 import { decoder as D } from '../../game/state';
 import { FRAMES, frameEntry } from '../../media/frames';
+import { DECODED_LINES } from '../../dsp/params';
 import { PictureCanvas } from './PictureCanvas';
 import { Slider, Switch, fmtSigned } from './ui';
 
@@ -68,7 +69,7 @@ export function PicturePanel() {
         <button type="button" class="btn" disabled={busy} onClick={() => send({ type: 'decoder.run', speed: 'fast' })}>
           Decode fast
         </button>
-        <span class="help">Record speed shows one line every {TAPE_LINE_MS.toFixed(2)} ms, about {((512 * TAPE_LINE_MS) / 1000).toFixed(1)} s a picture.</span>
+        <span class="help">Record speed shows one line every {TAPE_LINE_MS.toFixed(2)} ms, about {((DECODED_LINES * TAPE_LINE_MS) / 1000).toFixed(1)} s a picture.</span>
       </div>
       {isColour && (
         <div class="row">
@@ -90,7 +91,7 @@ export function PicturePanel() {
           {status === 'idle' && 'Ready.'}
           {status === 'loading' && 'Fetching the slice of tape ...'}
           {status === 'decoding' && 'Decoding in a Worker ...'}
-          {status === 'revealing' && `Lines arriving: ${D.revealed.value} of ${picture?.width ?? 512}`}
+          {status === 'revealing' && `Lines arriving: ${D.revealed.value} of ${picture?.width ?? DECODED_LINES}`}
           {status === 'done' && picture && `Decoded ${picture.frame}: ${picture.width} lines by ${picture.height} rows in ${picture.timings.totalMs.toFixed(0)} ms.`}
           {status === 'done' && colour && `Composed image ${colour.image} from ${colour.frames.join(', ')}. G moved ${colour.shiftG.shift.map((v) => v.toFixed(2)).join(', ')} and B moved ${colour.shiftB.shift.map((v) => v.toFixed(2)).join(', ')} pixels (rows, columns) to line up with R.`}
           {status === 'error' && 'The decode failed.'}

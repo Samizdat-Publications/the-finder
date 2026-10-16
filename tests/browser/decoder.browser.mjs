@@ -80,7 +80,9 @@ export default async function run({ page, record, assert, log }) {
   }
   const maxDiff = Math.max(...rows.map((r) => r.maxDiff));
   const worstMs = Math.max(...rows.map((r) => r.timings.totalMs));
-  const pass = rows.every((r) => r.sizeOk && r.batches === 8) && maxDiff <= MAX_GREY_DIFF && worstMs < TARGET_MS;
+  // the Worker posts the decoded width (the whole raster, 536 lines; data/decoder.json geometry.columns) in batches of 64
+  const batchesOk = (r) => r.batches === Math.ceil(r.width / 64);
+  const pass = rows.every((r) => r.sizeOk && batchesOk(r)) && maxDiff <= MAX_GREY_DIFF && worstMs < TARGET_MS;
   record({
     id: 'decoder.browser',
     claim: 'In the browser, the real path (FLAC fetched whole, decoded at 96 kHz, decoded in a Worker) gives the same pictures as the tested Node decode, fast enough to keep up with playback.',
@@ -91,7 +93,7 @@ export default async function run({ page, record, assert, log }) {
     notes: `Installed Chrome via Playwright. Chrome's decodeAudioData returns positive 16-bit samples as w / 32767 (negatives as w / 32768); src/media/frames.ts restores the exact integers before decoding, without which up to 407 pixels per frame differed by 1 grey level. Fetch plus decodeAudioData took ${rows.map((r) => r.loadMs.toFixed(0)).join(', ')} ms per frame on the dev server.`,
   });
   assert(rows.every((r) => r.sizeOk), 'browser and Node pictures have the same size');
-  assert(rows.every((r) => r.batches === 8), 'the Worker posts 512 lines in 8 batches of 64');
+  assert(rows.every(batchesOk), 'the Worker posts every decoded line in batches of 64');
   assert(maxDiff <= MAX_GREY_DIFF, `browser and Node decodes agree within ${MAX_GREY_DIFF} grey level (max ${maxDiff})`);
   assert(worstMs < TARGET_MS, `Worker decode under ${TARGET_MS} ms per frame (worst ${worstMs.toFixed(0)} ms)`);
 }

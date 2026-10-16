@@ -12,7 +12,7 @@
 // revealed line by line. Pure: no DOM, no randomness.
 
 import { argmax, medianFilter1d, medianOf, percentiles, pyInt, roundHalfEven, uniformFilter1d, unwrap } from './numeric';
-import { BASE_RATE, LINES_PER_FRAME, scaled, type DecodeParams } from './params';
+import { BASE_RATE, DECODED_LINES, scaled, type DecodeParams } from './params';
 import { lockEdges, pulseParity, refineEdge, robustLineFit, syncScore, trackFromSeed, type LineFit } from './sync';
 
 /** Convert decoded slice samples (int16 / 32768, as decodeAudioData and soundfile give them) to tape units. */
@@ -39,10 +39,10 @@ export interface FrameSync {
 
 /**
  * Sync for one frame (the 96 kHz path of make_slices.py): the edge nearest the seed (the first-line
- * offset from data/frames.json) refined and 512 lines tracked with the frame's period as the prior
+ * offset from data/frames.json) refined and DECODED_LINES lines (the whole raster, 536) tracked with the frame's period as the prior
  * (384 kHz samples), outliers replaced, pulse parity read.
  */
-export function syncFrame(x: Float64Array, rate: number, seed: number, periodPrior384k: number, nLines = LINES_PER_FRAME): FrameSync {
+export function syncFrame(x: Float64Array, rate: number, seed: number, periodPrior384k: number, nLines = DECODED_LINES): FrameSync {
   const r = rate / BASE_RATE;
   const box = syncScore(x, r);
   const raw = trackFromSeed(x, seed, nLines, r, periodPrior384k, box);

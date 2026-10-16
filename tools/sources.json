@@ -639,6 +639,17 @@
       "research": "docs/research/images-and-audio.md section 5"
     },
     {
+      "id": "nasa-gr-006",
+      "file": "solar-system-parameters-30992729550-o.gif",
+      "url": "https://science.nasa.gov/wp-content/uploads/2024/03/solar-system-parameters-30992729550-o.gif",
+      "bytes": 20857,
+      "md5": null,
+      "sha256": "f40e7fdc1a31da48aceb27d07bd0e2376e8bd49c9362432372b9ac3f9209bdef",
+      "credit": "NASA Science, Images on the Golden Record gallery (image 6, solar system parameters Jupiter to Pluto); JPL copies most likely scanned from Murmurs of Earth (Pescovitz)",
+      "usedFor": "Tests only: the right edge of frame L005 (M5 step 0b, decoder.ref.edgeL005); never shown in the experience",
+      "research": "docs/research/images-and-audio.md section 5"
+    },
+    {
       "id": "nasa-gr-014",
       "file": "chemical-definitions-31218371762-o.gif",
       "url": "https://science.nasa.gov/wp-content/uploads/2024/03/chemical-definitions-31218371762-o.gif",

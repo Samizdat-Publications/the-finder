@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import framesData from '../../data/frames.json';
 import { loadSlice, slicesUnavailable } from '../../tests/support/wav';
 import { decodeFrame, syncFrame, toTapeUnits } from './decode';
-import { periodPrior, referenceParams } from './params';
+import { DECODED_LINES, periodPrior, referenceParams } from './params';
 import { handleDecode, type DecoderReply, type DoneReply, type LinesReply } from './worker';
 
 const SKIP = slicesUnavailable();
@@ -23,7 +23,9 @@ describe.skipIf(SKIP !== null)('decoder worker handler', () => {
     expect(replies[0]?.type).toBe('sync');
     const lines = replies.filter((m): m is LinesReply => m.type === 'lines');
     const done = replies.find((m): m is DoneReply => m.type === 'done') as DoneReply;
-    expect(lines.map((l) => [l.k0, l.k1])).toEqual([[0, 100], [100, 200], [200, 300], [300, 400], [400, 500], [500, 512]]);
+    // batches of 100 up to the decoded width (DECODED_LINES, the whole raster: 536)
+    expect(lines.map((l) => [l.k0, l.k1])).toEqual([[0, 100], [100, 200], [200, 300], [300, 400], [400, 500], [500, DECODED_LINES]]);
+    expect(done.width).toBe(DECODED_LINES);
     expect(Buffer.from(done.gray).equals(Buffer.from(direct.gray))).toBe(true);
     const H = done.height;
     let mismatches = 0;

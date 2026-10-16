@@ -69,6 +69,16 @@ LABEL_H = 18
 # Heuristic for "content after line 512": a line is active when its high-passed rms exceeds this
 # (measured here: blank framing lines 0.001 to 0.002, picture lines 0.004 to 0.01).
 ACTIVE_RMS = 0.003
+# End of the raster (M5 step 0b, README "Where the raster ends"). The cover's 512 is not the end of the
+# picture: after its last picture line every frame carries lines whose body is flat, high-passed rms
+# (line_activity) 0.0005 to 0.0007 tape units, against 0.0009 or more on every picture line, blank card
+# margins included (measured here on all 156 frames). A frame's raster ends where the first run of
+# RASTER_RUN consecutive flat lines (rms under RASTER_FLAT) begins, searched from line RASTER_FROM.
+# RASTER_FLAT sits between the two measured ranges; RASTER_RUN (chosen) keeps an isolated quiet picture
+# line from ending the raster; RASTER_FROM (chosen) is far inside every picture.
+RASTER_FLAT = 0.0009
+RASTER_RUN = 9
+RASTER_FROM = 400
 # Droop cross-check grid on the calibration card, samples at 384 kHz. Chosen here to bracket the
 # estimate by a factor of 2 to 5 each way.
 TAU_SCAN = [200, 250, 300, 350, 400, 450, 500, 600, 800, 1200, 2000]
@@ -121,6 +131,22 @@ def line_activity(x, a, edges):
         y = seg - uniform_filter1d(seg, size=41, mode="nearest")
         out.append(float(np.sqrt(np.mean(y[20:-20] ** 2))))
     return np.array(out)
+
+
+def raster_lines(x, a, edges):
+    """Lines of picture before the flat post-raster lines (README "Where the raster ends"), or None when
+    tracking stops (a NaN edge) before a run of RASTER_RUN flat lines is found. Same line body and
+    high-pass as line_activity, over consecutive tracked lines only."""
+    act = []
+    for k in range(len(edges) - 1):
+        if not (np.isfinite(edges[k]) and np.isfinite(edges[k + 1])):
+            break
+        act.append(line_activity(x, a, edges[k:k + 2])[0])
+    act = np.array(act)
+    for k in range(RASTER_FROM, len(act) - RASTER_RUN + 1):
+        if np.all(act[k:k + RASTER_RUN] < RASTER_FLAT):
+            return k
+    return None
 
 
 # Colour registration: separations are aligned by normalized cross-correlation of their gradient
@@ -242,11 +268,23 @@ def main():
                   "P": fit["P"], "rms_resid": fit["rms"], "jitter": sync.same_parity_jitter(e),
                   "stagger": 2 * abs(fit["b"]),
                   "active_lines_after_512": int(quiet[0]) if len(quiet) else int(len(act) - LINES),
+                  "raster_lines": raster_lines(x, a, e_all),
                   "tau_frame": None})
         dI = I - I.mean()
         beta = float(np.sum(dI * (dy - dy.mean())) / np.sum(dI * dI))
         f["tau_frame"] = -1.0 / beta if beta < 0 else float("nan")
     log(f"pass 2 done, {time.time() - t_start:.0f} s")
+    # Columns decoded: the longest raster measured on the tape, so no frame's picture is cut (README
+    # "Where the raster ends"). Every measurement below (window, droop, interlace, aspect, streaks, slant)
+    # stays on the cover's 512 lines; only the final pictures take the whole raster.
+    rl = [f["raster_lines"] for f in frames if f["raster_lines"] is not None]
+    COLUMNS = int(max(rl))
+    for f in frames:
+        x, a = frame_window(t, f["ch"], f["edges_raw"])
+        used_c, _fit_c, n_rep_c = sync.lock_edges(f["edges_raw"][:COLUMNS])
+        f.update({"used_cols": used_c, "parity_cols": decode.pulse_parity(x, used_c - a), "n_replaced_cols": n_rep_c})
+    log(f"raster: {len(rl)} frames measured, {min(rl)} to {max(rl)} lines (median {np.median(rl):.0f}); "
+        f"decoding {COLUMNS} columns")
 
     # ---------- 3. droop time constant per channel ----------
     tau = {}  # line-integral estimate first; replaced by the chosen estimate in pass 4b
@@ -416,9 +454,9 @@ def main():
     for f in frames:
         x, a = frame_window(t, f["ch"], f["edges_raw"])
         el = f["used"] - a
-        img, V, lv = decode.decode_frame(x, el, f["parity_long"], params[f["ch"]])
+        img, V, lv = decode.decode_frame(x, f["used_cols"] - a, f["parity_cols"], params[f["ch"]])
         images[f["id"]] = img
-        f["streak_final"] = decode.streak_index(V, lv)
+        f["streak_final"] = decode.streak_index(V[:, :LINES], lv)  # on the cover's 512, as before
         save_gray(os.path.join(OUT, "frames", f["id"] + ".png"), img)
         last = float(f["edges_raw"][LINES - 1]) - a
         sl = decode.measure_slant(x, el, f["P"], last)
@@ -439,6 +477,8 @@ def main():
             "tau_frame_samples": f["tau_frame"],
             "streak_index_final": f["streak_final"],
             "active_lines_after_512": f["active_lines_after_512"],
+            "raster_lines": f["raster_lines"],
+            "edges_replaced_decoded_columns": f["n_replaced_cols"],
             "levels": {"p_lo": params[f["ch"]].p_lo, "p_hi": params[f["ch"]].p_hi, "lo": lv[0], "hi": lv[1]},
             "barry_start": bs,
             "barry_diff_samples": (float(f["used"][0]) - bs) if bs is not None else None,
@@ -570,8 +610,9 @@ def main():
                   caption="orientation: Barry 2017 table, reference only")
 
     # ---------- save ----------
-    np.savez(os.path.join(OUT, "edges.npz"), **{f["id"]: f["used"] for f in frames},
-             **{f["id"] + "_parity": f["parity_long"] for f in frames})
+    # the decoded columns' edges (COLUMNS lines): make_slices.py cuts and checks the slices with them
+    np.savez(os.path.join(OUT, "edges.npz"), **{f["id"]: f["used_cols"] for f in frames},
+             **{f["id"] + "_parity": f["parity_cols"] for f in frames})
     starts_json = [{k: p[k] for k in ("id", "channel", "image", "role", "start_sample", "start_s", "comb_end_sample",
                                       "barry_start", "barry_diff_samples", "barry_diff_lines",
                                       "barry_diff_lines_after_median")} for p in per_frame]
@@ -608,6 +649,12 @@ def main():
                       "meaning": "short-pulse lines' content lags long-pulse lines' content by this many samples "
                                  "after their own falling edges; decode shifts long lines by -offset/2 and short by +offset/2",
                       "barry_hard_coded": 12},
+        "raster": {"decoded_columns": COLUMNS, "frames_measured": len(rl),
+                   "unmeasured": [f["id"] for f in frames if f["raster_lines"] is None],
+                   "min": int(min(rl)), "median": float(np.median(rl)), "max": int(max(rl)),
+                   "histogram": {str(v): int(sum(1 for q in rl if q == v)) for v in sorted(set(rl))},
+                   "rule": f"first line >= {RASTER_FROM} starting {RASTER_RUN} lines of high-passed rms < {RASTER_FLAT}",
+                   "meaning": "lines of picture per frame on the tape; the cover's raster label says 512"},
         "aspect": {"columns": LINES, "rows": n_rows, "samples_per_row": spr, "frame_aspect": LINES / n_rows,
                    "circle_axis_ratio": cfit_final["axis_ratio"],
                    "circle_axis_ratio_meaning": "horizontal extent / vertical extent of the fitted ellipse (hx/hy); "

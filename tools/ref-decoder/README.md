@@ -165,7 +165,7 @@ row)**, hx/hy **1.0002** with all final settings. One row changes hx/hy by 0.28%
 to about +/- 0.14%. Because the row count is chosen to make hx/hy equal 1, the circle check in
 `checks.py` is a **procedure self-test**, not a test of the geometry. The fitted ellipse itself is not a
 perfect circle: **minor/major 0.9934, major axis at 137 degrees** (a diagonal, about 0.65%), which is
-a shear no row count can remove. Frame: **512 x 355, aspect 1.44**; the same geometry for all 156
+a shear no row count can remove. Frame: **512 x 355, aspect 1.44** (536 x 355 since M5 step 0b, "Where the raster ends"); the same geometry for all 156
 frames. (The 1992 CD-ROM images were 512 x 384; Barry used 540 x 364, about 7.4 samples per row.)
 
 **Independent geometry check** (`geometry_check.py`). Nine other record images with clear line art
@@ -180,14 +180,18 @@ correlation under 0.4 rejected (none were), at least 8 matches for the feature s
 
 | Measure (9 images) | Mean | Std error | Median | Image-to-image std | Range |
 |---|---|---|---|---|---|
-| Aspect offset (x/y scale - 1) | **-0.92%** | **0.33%** | -0.85% | 0.98% | -2.8% to +0.4% |
-| Shear (cosine of the true angle between our axes) | **-1.40%** | **0.08%** | -1.38% | 0.25% | -1.8% to -1.1% |
+| Aspect offset (x/y scale - 1) | **-0.95%** | **0.36%** | -0.88% | 1.09% | -3.3% to +0.4% |
+| Shear (cosine of the true angle between our axes) | **-1.43%** | **0.09%** | -1.38% | 0.27% | -1.9% to -1.1% |
+
+(Re-run on the 536-column frames of M5 step 0b. On the 512-column frames of M1 the same fits gave
+-0.92 +/- 0.33% and -1.40 +/- 0.08%: the extra columns, which include the start of the flat post-raster
+lines on some frames, move the fits by under a tenth of a standard error of the spread.)
 
 The calibration circle itself, registered against the gallery's circle, gives x/y 0.9993 and shear
 -0.0072 (the ellipse fits give 1.0004 and -0.0075).
 
-- **These are detections, not agreement.** The aspect offset is about 2.8 standard errors from zero
-  (our columns may be about 0.9%, 3 rows, too narrow against the clean copies) and the shear about 17.
+- **These are detections, not agreement.** The aspect offset is about 2.6 standard errors from zero (2.8 on the M1 frames)
+  (our columns may be about 0.9%, 3 rows, too narrow against the clean copies) and the shear about 16 (17 on the M1 frames).
   The calibration circle, which sets our aspect, does not show either at this level.
 - **Why the check still passes.** The claim recorded (`decoder.ref.aspectIndependent`) is that the
   remaining geometry error is invisible, with a **chosen perceptual threshold**: |aspect offset| and
@@ -203,6 +207,38 @@ The calibration circle itself, registered against the gallery's circle, gives x/
 - **The decode is left unsheared.** The circle cannot set a shear (it disagrees in size and sign), and
   fitting the decoder to clean published images would make the record's decoding depend on outside
   pictures. The measurement is in `build/ref/geometry_check.json` for the lead to decide on.
+
+## Where the raster ends (M5 step 0b)
+
+The cover labels the raster 512 lines, and M1 to M4 decoded 512. On L004 and L005 (Solar System
+parameters) that cut the last column of numbers (Mars's 6800, Pluto's diameter and distance). Measured
+on the tape (`decode_all.py`, `raster_lines`):
+
+- **Every frame carries 534 to 536 lines of picture** (28 frames 534, 98 frames 535, 29 frames 536; 155
+  of 156 measured, median 535). After them each frame carries flat lines (high-passed line rms 0.0005
+  to 0.0007, against 0.0009 or more on every picture line, blank card included), with the syncs still
+  running, until the next frame's start-of-picture comb about 680 lines after line 1 (L004: comb at
+  line 682, next line 1 at 702.5). A frame's raster end is the first of 9 consecutive flat lines.
+  L004 and L005: 534 lines each. Line-art frames mostly measure 534 and photographs 535 to 536: the
+  last line is a partial transition, so the rule's count moves by one with the content.
+- The circle's centre at column 267.4 (of 0..535) agrees: the circle is centred in a raster of about
+  535 lines.
+- **The decoders now take 536 lines** (the longest raster measured, so no frame is cut;
+  `metrics.json` "raster", `data/decoder.json` geometry.columns). Frames with a 534-line raster show the
+  start of the flat lines in their last one or two columns. Everything measured (active window, droop,
+  interlace, aspect, parity profile, streak index, slant) stays on the first 512 lines and is unchanged
+  to the last digit; only the pictures, the per-frame level stretch (now over 536 columns) and the
+  slices (cut to 0.05 s after line 536) changed. The streak index mean moves from 3.14 to 3.15 through
+  the levels.
+- **Registration against NASA's clean images (tests only, `geometry_check.py` "right_edge").** L004
+  against image 5: the cover's 512 lines ended at x 591 of NASA's 640 px (92.3% of the width, 95.6% of
+  the card), so the last 4.4% of the card was missing; NASA's rightmost ink (the last 0 of 6800) is our
+  column 516.7, and NASA's card edge our column 535.3, one line past L004's measured raster end (534).
+  L005 against image 6 (fetched for this, `nasa-gr-006`): the 512 lines ended at x 612 (95.6% of the
+  width, 99.0% of the card); NASA's copy is cropped tighter than the tape, its card ending through the
+  last 0 of 14000 at about our column 517, while the tape carries that 0 whole (our ink to column 518)
+  and card to about column 529. Pluto reads **14000** and **591**, as NASA's image 6 prints them.
+- Check `decoder.ref.rightEdge`. Frames to look at: `build/ref/frames/L004.png`, `L005.png` (536 x 355).
 
 ## Meaningful wrong results (for the M2 browser tests)
 
@@ -228,10 +264,11 @@ it applied, and roughens the ring edge (ellipse rms residual 1.39 px against 1.0
 
 ## Browser slices
 
-`make_slices.py` cuts each frame from 0.05 s before line 1 to 0.05 s after line 512, decimates by
+`make_slices.py` cuts each frame from 0.05 s before line 1 to 0.05 s after line 536 (the decoded
+columns; line 512 before M5 step 0b), decimates by
 exactly 4 (`scipy.signal.resample_poly(x, 1, 4)`, linear phase) to 96 kHz, 16-bit mono, with ONE global
 gain (52,494.7 per unit; tape peak 0.5618 at 90% of full scale; largest slice sample 23,679; nothing
-clipped). Each slice is 0.84 MB, 131 MB in all. `build/slices/index.json` gives frame id, channel,
+clipped). Each slice is about 0.88 MB, 137 MB in all (80.8 MB as FLAC). `build/slices/index.json` gives frame id, channel,
 image, colour role, slice start (384 kHz samples), first-line offset (96 kHz samples), length, gain
 and rate. Every frame was then decoded from its WAV file at 96 kHz with the same code, seeded only by
 the index's first-line offset: SSIM against the 384 kHz decode **0.986 mean, 0.970 worst (L009, a
@@ -246,8 +283,9 @@ true ellipse ratio and tilt), `decoder.ref.slant` (slant-meter self-test), `deco
 3197.4 samples, +/- 0.05, the rounding of that value; reported as information: the median 8.3204 ms, the
 drift along the reel from 8.3277 to 8.3156 ms, and the cover's 8.3396 ms, so the tape runs 0.16% to
 0.23% fast), `decoder.ref.frameStarts` (155 of 156 within one line of Barry's table, the exception
-explained), `decoder.ref.ssim96` (informational) and `decoder.ref.aspectIndependent` (the geometry check
-above: errors detected, under the chosen 2% visibility threshold).
+explained), `decoder.ref.ssim96` (informational), `decoder.ref.aspectIndependent` (the geometry check
+above: errors detected, under the chosen 2% visibility threshold) and `decoder.ref.rightEdge` (the
+raster end, "Where the raster ends").
 
 ## Known limits
 
@@ -256,10 +294,10 @@ above: errors detected, under the chosen 2% visibility threshold).
   is probably not exactly first order. A per-line two-point restore (forcing the next shelf to the same
   level) removed more of the smear but made line-to-line streaking worse by about 40% on R063, R007
   and L000 (measured with an earlier, unnormalised form of the index), so it was not adopted.
-- **512 is the cover's number, not the end of the picture.** In 41 frames picture activity continues
-  for up to 24 lines after line 512, and the circle's centre sits at column 267.4 rather than 256, so
-  the slide raster is probably about 530 lines with the circle centred in it. We decode 512 lines as
-  the cover states; `sync.EXTRA_LINES` tracks 40 more, so a wider decode is a one-line change.
+- **512 is the cover's number, not the end of the picture**: resolved in M5 step 0b, see "Where the
+  raster ends". The pictures are decoded 536 lines wide; every measurement stays on the first 512.
+- L006's syncs drop out from line 533 (a tape dropout at the end of its raster), so its raster end is
+  not measured and its last few columns are decoded on line starts from the edge fit.
 - Random line-to-line streaks remain (final index 3.1 grey levels on average); their source is not the
   clamp (see "Streaks").
 - Line 1 is a definition (first sync after the comb). Barry's table differs by up to two lines.

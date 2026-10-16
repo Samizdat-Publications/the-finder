@@ -46,7 +46,6 @@ FILTER_PAD = 4096
 # Global gain headroom: full scale x HEADROOM / tape peak, leaving room for filter overshoot.
 # Chosen here; the run asserts that no sample clipped.
 HEADROOM = 0.9
-LINES = sync.LINES_PER_FRAME
 
 
 def main():
@@ -99,7 +98,8 @@ def main():
         q, sr = sf.read(os.path.join(SLICES, item["file"]), dtype="float64")
         assert sr == OUT_RATE
         x = q * 32768.0 / gain  # back to tape units (int16 full scale is 32768 in soundfile's float)
-        raw = sync.track_from_seed(x, item["first_line_offset_96k"], LINES, r, fr["period_samples"])
+        # as many lines as the 384 kHz decode (edges.npz holds the decoded columns, README "Where the raster ends")
+        raw = sync.track_from_seed(x, item["first_line_offset_96k"], len(edges[fid]), r, fr["period_samples"])
         used, fit, n_rep = sync.lock_edges(raw)
         par = decode.pulse_parity(x, used, r)
         pd = dict(metrics["decode_params"][fr["channel"]])

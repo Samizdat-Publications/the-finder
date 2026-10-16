@@ -82,8 +82,16 @@ export interface DecoderData {
 
 export const DECODER_DATA = decoderData as unknown as DecoderData;
 
-/** Lines per picture. Source: cover.md section 1c (raster label 1000000000 = 512) and the NASA cover text. */
+/** Lines per picture according to the cover. Source: cover.md section 1c (raster label 1000000000 = 512) and the NASA cover text. */
 export const LINES_PER_FRAME = 512;
+
+/**
+ * Lines decoded per picture, one column each: the longest raster measured on the tape (data/decoder.json
+ * geometry.columns, 536). The 1977 rasters run 534 to 536 lines, past the cover's 512, and the last
+ * column of some pictures (Pluto's 14000 and 591 on L005) lies beyond line 512
+ * (tools/ref-decoder/README.md "Where the raster ends"; check decoder.ref.rightEdge).
+ */
+export const DECODED_LINES = DECODER_DATA.geometry.columns;
 
 /** The reference decode for one channel at `rate` Hz (the 96 kHz slices by default). */
 export function referenceParams(channel: Channel, rate = 96_000, data: DecoderData = DECODER_DATA): DecodeParams {

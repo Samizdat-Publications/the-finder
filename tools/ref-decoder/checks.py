@@ -44,6 +44,11 @@ RESEARCH_START_SAMPLES = 3197.4
 RESEARCH_START_TOL = 0.05
 # Cover line time, ms (24-bit binary x 0.70402 ns; images-and-audio.md section 1, "Line time").
 COVER_MS = 8.3396
+# Lines per picture on the cover (cover.md section 1c: raster label 1000000000 = 512).
+LINES_COVER = sync.LINES_PER_FRAME
+# Registration uncertainty in our columns, pixels: the affine fits of geometry_check.py are set by line
+# art about one pixel wide and the ring fits leave 1.08 px rms (README section 7); 2 px, chosen from that.
+REG_TOL_PX = 2.0
 
 results = []
 
@@ -67,6 +72,61 @@ def circle_live(m):
     img, V, _ = decode.decode_frame(x, used, par, p)
     fit = aspect.fit_ellipse(aspect.ring_points(-V))
     return fit, used[0] + a - f0["start_sample"]
+
+
+def right_edge(m):
+    """decoder.ref.rightEdge: every decoded frame is as wide as the longest raster measured on the tape, and
+    NASA's clean images 5 and 6 (tests only) put their rightmost ink past the cover's 512 lines and inside
+    our decoded width."""
+    from PIL import Image
+    ra = m.get("raster")
+    gpath = os.path.join(REF, "geometry_check.json")
+    if not ra or not os.path.exists(gpath):
+        check("right edge measured", False, "run decode_all.py and geometry_check.py")
+        return
+    with open(gpath, encoding="utf-8") as fh:
+        edges = json.load(fh).get("right_edge") or []
+    cols = ra["decoded_columns"]
+    widths = {Image.open(os.path.join(REF, "frames", f["id"] + ".png")).size[0] for f in m["frames"]}
+    ok_raster = cols == ra["max"] and widths == {cols} and len(ra["unmeasured"]) <= 1
+    parts, ok_edges = [], len(edges) == 2
+    for e in edges:
+        if "error" in e:
+            ok_edges = False
+            parts.append(f"{e['frame']}: {e['error']}")
+            continue
+        ink = e["clean_rightmost_ink_in_our_columns"]
+        reach = max(ink, e["clean_card_right_in_our_columns"])  # where NASA's picture ends, in our columns
+        # cut before: NASA's picture runs past the cover's 512 columns (boundary 511.5); whole now: it ends
+        # inside the decoded width (boundary cols - 0.5), within the registration's own uncertainty
+        ok_edges &= (LINES_COVER - 0.5) < reach <= (cols - 0.5) + REG_TOL_PX
+        parts.append(f"{e['frame']} vs NASA image {e['image']} (NCC {e['ncc']:.2f}): the cover's 512 lines ended at "
+                     f"{e['cover_512_edge_in_clean_px']:.0f} of its {e['clean_width_px']} px "
+                     f"({100 * e['cover_512_edge_fraction_of_clean_width']:.1f}% of the width, "
+                     f"{100 * e['cover_512_edge_fraction_of_card']:.1f}% of the card); its rightmost ink is our column "
+                     f"{ink:.1f}, its card edge our column {e['clean_card_right_in_our_columns']:.1f}")
+    txt = (f"rasters on the tape: {ra['min']} to {ra['max']} lines (median {ra['median']:.0f}; histogram {ra['histogram']}; "
+           f"{ra['frames_measured']} of 156 frames measured, unmeasured {ra['unmeasured'] or 'none'}); decoded {cols} columns; "
+           + "; ".join(parts))
+    ok = ok_raster and ok_edges
+    check("right edge: the decode takes the whole raster on the tape, and NASA's images 5 and 6 end inside it", ok, txt)
+    record_check("decoder.ref.rightEdge",
+                 "The 1977 tape carries each picture past the cover's 512 lines (534 to 536 lines), and the decoders take "
+                 "the whole raster, so the Solar System parameters frames show their last column whole (Mars 6800; Pluto "
+                 "14000 and 591).",
+                 txt,
+                 "the longest raster measured on the tape; NASA's clean images 5 and 6 (tests only) registered into our "
+                 "frames end (card edge or rightmost ink) past column 511.5 and inside the decoded edge",
+                 "raster end: the first of 9 consecutive flat lines (high-passed rms under 0.0009; post-raster lines measure "
+                 "0.0005 to 0.0007, picture lines 0.0009 or more); registration as decoder.ref.aspectIndependent, within 2 px",
+                 ok,
+                 "Before M5 the decoders took the cover's 512 lines and cut the last column of L004 and L005. The cover's "
+                 "512 is the raster label, not the end of the picture: the frames' rasters end at 534 to 536 lines, then the "
+                 "tape carries flat lines until the next frame's start-of-picture comb. The measurements (window, droop, "
+                 "interlace, aspect, streaks) stay on the first 512 lines; only the pictures are wider. NASA's image 6 is "
+                 "cropped tighter than the tape (its card ends through the last 0 of 14000, about our column 517; the "
+                 "tape carries card to about column 529). L006 is unmeasured: its syncs drop out from line 533; its "
+                 "last columns are decoded on fitted line starts.")
 
 
 def main():
@@ -234,6 +294,10 @@ def main():
                      "sign, and the gallery circle (0.986 at 136.9 deg) sits on the same diagonal.")
     else:
         check("independent geometry check run", False, "run geometry_check.py")
+
+    # The right edge (M5 step 0b, README "Where the raster ends"): the decode must take the whole raster
+    # the tape carries, so the Solar System parameters frames keep their last column.
+    right_edge(m)
     print(f"INFO  checks took {time.time() - t0:.1f} s")
     sys.exit(0 if all(results) else 1)
 

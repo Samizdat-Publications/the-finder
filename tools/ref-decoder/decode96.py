@@ -62,7 +62,7 @@ def main() -> None:
             sys.exit(f"{fid}: slice is {sr} Hz x {len(q)}, frames.json says {fr['sampleRate']} x {fr['samples']}")
         x = q * 32768.0 / fr["gain"]  # back to tape units (as make_slices.py)
         r = sr / BASE_RATE
-        raw = sync.track_from_seed(x, fr["firstLineOffset"], sync.LINES_PER_FRAME, r,
+        raw = sync.track_from_seed(x, fr["firstLineOffset"], dec["geometry"]["columns"], r,
                                    dec["frames"][fid]["periodSamples384k"])
         used, _fit, _n = sync.lock_edges(raw)
         par = decode.pulse_parity(x, used, r)

@@ -49,6 +49,14 @@ PAIRS = [(1, "L000", "nasa-gr-001"), (3, "L002", "nasa-gr-003"), (4, "L003", "na
          (5, "L004", "nasa-gr-005"), (14, "L019", "nasa-gr-014"), (15, "L020", "nasa-gr-015"),
          (32, "L039", "nasa-gr-032"), (37, "L050", "nasa-gr-037"), (39, "L052", "nasa-gr-039"),
          (40, "L053", "nasa-gr-040")]
+# The right edge (M5 step 0b, README "Where the raster ends"): the Solar System parameters frames, whose
+# last column of numbers the cover's 512 lines cut. Registered like PAIRS but kept out of the aspect and
+# shear statistics (image 6 is not one of the nine geometry images).
+EDGE_PAIRS = [(5, "L004", "nasa-gr-005"), (6, "L005", "nasa-gr-006")]
+# The cover's lines per picture (cover.md section 1c): the old decoded width.
+COVER_LINES = 512
+# A clean pixel darker than this (0..1) is ink. Chosen here: the GIFs are two-level line art.
+INK = 0.5
 # Fewer ORB matches or RANSAC inliers than this: start from the fitted ring instead. A chosen setting.
 MIN_MATCHES = 8
 # Blur (pixels, Gaussian sigma) applied to both images before the correlation. A chosen setting: removes
@@ -144,6 +152,52 @@ def moment_start(ob, cb, box):
     k = (fo["a"] + fo["b"]) / (fc["a"] + fc["b"])
     ccx, ccy = fc["xc"] + x0, fc["yc"] + y0
     return np.array([[k, 0.0, fo["xc"] - k * ccx], [0.0, k, fo["yc"] - k * ccy], [0.0, 0.0, 1.0]])
+
+
+def right_edge(num, fid, src, B):
+    """Where our frame's right edges fall in NASA's clean image, and where the clean card's right edge and
+    its rightmost ink fall in our columns (registration at the middle row of our frame). Tests only."""
+    files = glob.glob(os.path.join(ROOT, "sources", src, "*"))
+    if not files:
+        return {"image": num, "frame": fid, "error": f"sources/{src} missing (run tools/fetch-sources.mjs {src})"}
+    clean, box = load_clean(files[0])
+    native = np.asarray(Image.open(os.path.join(REF, "frames", fid + ".png")), float) / 255.0
+    ch = 0 if fid[0] == "L" else 1
+    k = barry.ORIENT_ROT90_K[B["orientation"][ch][int(fid[1:])]]
+    if k != 0:
+        return {"image": num, "frame": fid, "error": "frame is turned in Barry's table; edge measure assumes upright"}
+    M, ncc, ninl, _ncc0, start = register(native, clean, box)
+    A, t = M[:, :2], M[:, 2]
+    H, W = native.shape
+    y_mid = (H - 1) / 2.0
+
+    def clean_x_at(our_x):
+        # the clean point that maps to (our_x, y_mid)
+        return float(np.linalg.solve(A, np.array([our_x, y_mid]) - t)[0])
+
+    def our_x_at(clean_x, clean_y):
+        return float((A @ np.array([clean_x, clean_y]) + t)[0])
+
+    y0, y1, x0, x1 = box
+    card_l, card_r = x0 - CONTENT_MARGIN, x1 + CONTENT_MARGIN  # the card's own boundary (load_clean)
+    cy = (y0 + y1) / 2.0
+    ink_cols = np.nonzero(np.any(clean[y0:y1, x0:x1] < INK, axis=0))[0]
+    ink_r = float(x0 + ink_cols.max()) if len(ink_cols) else float("nan")
+    ink_rows = np.nonzero(clean[y0:y1, int(ink_r)] < INK)[0] + y0 if len(ink_cols) else np.array([cy])
+    old_edge, new_edge = COVER_LINES - 0.5, W - 0.5  # right boundary of the last column
+    cw = card_r - card_l
+    xo, xn = clean_x_at(old_edge), clean_x_at(new_edge)
+    return {
+        "image": num, "frame": fid, "start": start, "ncc": ncc, "ransac_inliers": ninl,
+        "decoded_columns": int(W), "clean_width_px": int(clean.shape[1]), "clean_card_left_px": float(card_l),
+        "clean_card_right_px": float(card_r), "clean_rightmost_ink_px": ink_r,
+        "cover_512_edge_in_clean_px": xo, "cover_512_edge_fraction_of_clean_width": xo / clean.shape[1],
+        "cover_512_edge_fraction_of_card": (xo - card_l) / cw,
+        "decoded_edge_in_clean_px": xn, "decoded_edge_fraction_of_clean_width": xn / clean.shape[1],
+        "decoded_edge_fraction_of_card": (xn - card_l) / cw,
+        "clean_card_right_in_our_columns": our_x_at(card_r, cy),
+        "clean_rightmost_ink_in_our_columns": our_x_at(ink_r, float(np.mean(ink_rows))),
+    }
 
 
 def upright_linear(k: int):
@@ -254,6 +308,18 @@ def main():
                        "calibration circle's own ellipticity (assuming the artwork circle is round).",
         "method": "ORB + RANSAC (seeded) start, then Powell maximisation of NCC over the clean content",
     }
+    edges = [right_edge(num, fid, src, B) for num, fid, src in EDGE_PAIRS]
+    for e in edges:
+        if "error" in e:
+            print(f"right edge {e['frame']}: {e['error']}")
+            continue
+        print(f"right edge {e['frame']} vs image {e['image']} (NCC {e['ncc']:.3f}): the cover's 512 lines end at clean x "
+              f"{e['cover_512_edge_in_clean_px']:.1f} px ({100 * e['cover_512_edge_fraction_of_clean_width']:.1f}% of its width, "
+              f"{100 * e['cover_512_edge_fraction_of_card']:.1f}% of the card); our {e['decoded_columns']} columns end at "
+              f"{e['decoded_edge_in_clean_px']:.1f} px ({100 * e['decoded_edge_fraction_of_card']:.1f}% of the card); the clean "
+              f"rightmost ink is our column {e['clean_rightmost_ink_in_our_columns']:.1f}, the card's right edge our column "
+              f"{e['clean_card_right_in_our_columns']:.1f}")
+    summary["right_edge"] = edges
     with open(os.path.join(REF, "geometry_check.json"), "w", encoding="utf-8") as fh:
         json.dump(summary, fh, indent=1)
     print(f"{len(good)} images: x/y median {np.median(xs_):.4f} (mean {xs_.mean():.4f}, std {xs_.std(ddof=1):.4f}); "

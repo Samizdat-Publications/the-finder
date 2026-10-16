@@ -39,14 +39,28 @@ rotation period (Earth 1 d, Venus 243 d, Jupiter 41/100 d: an inference, not a p
 | Saturn | 121 x 10^3 | 1428 | 95 | 43/100 |
 | Uranus | 47600 | 2872 | 14 6/10 | 45/100 |
 | Neptune | 44600 | 4498 | 17 2/10 | 65/100 |
-| Pluto | 1400... (cut) | 591... (cut) | 9/10 | 7/10 |
+| Pluto | 14000 | 591 | 9/10 | 7/10 |
 
 Distances after the first column of each frame omit the x 10^6. **Earth's column is the column of ones:
 the third world is home.** The values are 1977's (Uranus, Neptune and Pluto from the estimates of the
-time). **The right edge of our decode cuts the last column** (Pluto's diameter and distance visibly run
-off the frame; Mars's 6800 sits at the edge of L004): whether the tape itself carries the rest is
-UNVERIFIED and is the first task of M5 step 1's follow-up (register L004 and L005 against NASA's clean
-images, tests only, and check the decoder's horizontal extent).
+time). **The last column is whole on the tape** (M5 step 0b, check `decoder.ref.rightEdge`). Until
+M5 the decoders took the cover's 512 lines and cut it (Pluto's diameter and distance ran off the frame;
+Mars's 6800 sat on the edge of L004). Every frame on the tape carries 534 to 536 lines of picture
+(L004 and L005: 534), then flat lines until the next frame; the decoders now take 536. Registered against
+NASA's clean images (tests only), the old 512-line edge fell at 95.6% of image 5's card and 99.0% of
+image 6's; image 5's card edge lands one line past L004's measured raster end, and NASA's image 6 is
+cropped tighter than the tape (through the last 0 of 14000). Read on the full decode, Pluto's column reads **14000**
+(diameter) and **591** (distance), exactly as NASA's image 6 prints them, with blank card after both; so
+"591" is what the artwork says, not a cut (how the senders meant it beside 4498 for Neptune is
+UNVERIFIED). **Pluto's column breaks the table's own pattern**, which a reader can see from the table
+alone: read like the columns before it (x 10^6 km), "591" would put Pluto closer to the Sun than Jupiter,
+against the order of the drawn circles and every other row (the real value is about 5,900 x 10^6 km, so
+a digit or a power of ten seems to be missing); and its "7/10 d" day disagrees with the 6.4 d rotation
+known since the 1950s (UNVERIFIED which was meant). Its mass of 9/10 e looks like the large estimates
+before Charon was found in 1978 (UNVERIFIED). A candidate moment for the game: the Finder notices that
+one column does not fit and marks it as a slip of the senders, not of the decoding. Evidence and
+numbers: `tools/ref-decoder/README.md` "Where the raster ends"; frames `build/ref/frames/L004.png` and
+`L005.png`.
 
 **L001 (image 2):** the pulsar map again, with binary period ticks along each line, beside a photograph
 of the Andromeda galaxy.

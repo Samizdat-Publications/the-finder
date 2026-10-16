@@ -11,7 +11,7 @@ import { recordCheck } from '../../tests/support/record';
 import { ssim } from '../../tests/support/ssim';
 import { loadSlice, slicesUnavailable } from '../../tests/support/wav';
 import { decodeFrame, decodeLines, frameLevels, makeJob, measureInterlace, measureSlant, planLines, syncFrame, toGray, toTapeUnits, type FrameSync } from './decode';
-import { DECODER_DATA, periodPrior, referenceParams, type Channel } from './params';
+import { DECODER_DATA, LINES_PER_FRAME, periodPrior, referenceParams, type Channel } from './params';
 
 interface FrameEntry {
   frame: string;
@@ -115,7 +115,7 @@ describe.skipIf(SKIP !== null)('browser decoder vs the Python reference (96 kHz 
     const whole = decodeFrame(x, sync, p);
     const job = makeJob(x, sync, p);
     const V = new Float64Array(p.nRows * job.nLines);
-    for (const [k0, k1] of [[300, 512], [0, 1], [1, 37], [37, 300]] as const) decodeLines(job, k0, k1, V);
+    for (const [k0, k1] of [[300, job.nLines], [0, 1], [1, 37], [37, 300]] as const) decodeLines(job, k0, k1, V);
     const g = new Uint8Array(V.length);
     toGray(V, job.nLines, p, frameLevels(V, p), g);
     expect(Buffer.from(g).equals(Buffer.from(whole.gray))).toBe(true);
@@ -146,12 +146,14 @@ describe.skipIf(SKIP !== null)('browser decoder vs the Python reference (96 kHz 
       }
     }
     // dropping the interlace offset: the even/odd comb, at one row per 384 kHz sample as decode_all.py
+    // measured on the cover's 512 lines, as decode_all.py measures it (the decoded pictures are wider: DECODED_LINES)
+    const sync512 = syncFrame(x, 96_000, f.firstLineOffset, periodPrior(f.frame), LINES_PER_FRAME);
     const fine = (delta: number) => {
       const pf = { ...p, nRows: Math.trunc(p.w1 - p.w0), delta, parityProfile: null };
-      const job = makeJob(x, sync, pf);
+      const job = makeJob(x, sync512, pf);
       const V = new Float64Array(pf.nRows * job.nLines);
       decodeLines(job, 0, job.nLines, V);
-      return measureInterlace(V, pf.nRows, sync.parityLong, 40, 0.5).offset; // IL_MAX_LAG 40, IL_MIN_PEAK 0.5 (decode_all.py)
+      return measureInterlace(V, pf.nRows, sync512.parityLong, 40, 0.5).offset; // IL_MAX_LAG 40, IL_MIN_PEAK 0.5 (decode_all.py)
     };
     const ni = DECODER_DATA.reference.noInterlace;
     const without = fine(0);

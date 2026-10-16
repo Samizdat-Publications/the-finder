@@ -1,12 +1,15 @@
-// The picture canvas (512 columns appearing left to right, one pixel per decoded pixel, scaled by a whole
+// The picture canvas (DECODED_LINES columns, the tape's whole raster, appearing left to right, one pixel per decoded pixel, scaled by a whole
 // number so it stays crisp) and the oscilloscope strip under it (the raw signal of the line being drawn).
 
 import { effect } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { cachedSamples } from '../../game/decoderService';
 import { decoder as D, type Picture } from '../../game/state';
+import { DECODED_LINES } from '../../dsp/params';
 
-const PLACEHOLDER = { w: 512, h: 355 };
+// The placeholder has the decoded picture's own size: resizing a canvas clears it, so a placeholder of
+// another width would wipe a picture painted before the resize.
+const PLACEHOLDER = { w: DECODED_LINES, h: 355 };
 
 export function PictureCanvas() {
   const wrap = useRef<HTMLDivElement>(null);
