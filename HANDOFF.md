@@ -1,6 +1,6 @@
 # HANDOFF: start here
 
-_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 to M3 complete, M4 at its gate (step 7e in flight), M5 planned and researched. Whoever stops next updates this block,
+_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 to M4 complete; M5 planned, researched and starting. Whoever stops next updates this block,
 "Where things stand", and anything below that changed._
 
 ## For Stewart: how to start the next session
@@ -64,8 +64,8 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
   (`src/chapters/shared/epochModel.ts`), sound for the new moments, whole-game bots (31 of 31 from a
   fresh save), a science audit and its fixes (honest measured values and cuts on The Trail, coverage
   tests), no dead ends (D-A28: 99.9% acceptance where noise gates progress, and validated seeds),
-  messages in the alien's units, a QA audit, and a blind critic review whose fixes are step 7e. 142
-  checks pass. M5 is planned (`docs/plans/M5.md`) with research in `docs/research/teaching-frames.md`
+  messages in the alien's units, a QA audit, two blind critic passes and step 7e (staged moments,
+  headline results, the heavy science in a Worker). 147 checks pass; M4 closed. M5 is planned (`docs/plans/M5.md`) with research in `docs/research/teaching-frames.md`
   and `voices.md`.
 - **How session 2 worked (keep doing this):** every helper got a written spec saved in
   `docs/plans/Mx_specs/` before launch; the lead reviewed every report, looked at every picture and

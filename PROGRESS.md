@@ -1,16 +1,19 @@
 # PROGRESS
 
-_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 to M3 complete; M4 at its gate (step 7e in
-flight); M5 planned and researched. Update after every meaningful chunk._
+_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 to M4 complete; M5 starting. Update after
+every meaningful chunk._
 
 ## Current milestone
 
-**M4: Where and when (The Map, The Spot, The Trail, the reframed dating).** Plan: `docs/plans/M4.md`;
-specs in `docs/plans/M4_specs/`. Steps 1 to 7d and 7c are committed and deployed; `npm run check` green
-(319 unit tests, 142 checks); live check passes. The gate's reviews are in: the blind player-critic
-(`docs/reviews/2026-10-16-M4-player-critic.md`) and the QA audit (summarised under Known issues). In
-flight: step 7e (staged discoveries, quieter screens, no long freezes, old saves' seeds), the last M4
-step before the gate closes. M5 is planned (`docs/plans/M5.md`) with its research done.
+**M5: The pictures complete, and The Voices.** Plan: `docs/plans/M5.md` (research done:
+`docs/research/teaching-frames.md`, `voices.md`). First, in this order: the identification's hard age
+window (an M4 science issue, below), whether the tape carries the right edge our decode cuts on L004 and
+L005, and the M4 polish batch from the blind critic's second pass; then the M5 specs and builds.
+
+**M4 closed (2026-10-16):** The Map, The Spot and The Trail playable after The Key; 31 deductions from a
+fresh save (bot.game); a science audit, a QA audit and two blind critic passes, every finding fixed or
+carried with a decision; `npm run check` green (328 unit tests, 19 browser tests, 147 checks); deployed
+and live-checked.
 
 **Preview (the slice and M4):** https://the-finder.stewartgregerson.workers.dev/play/
 
@@ -111,20 +114,22 @@ step before the gate closes. M5 is planned (`docs/plans/M5.md`) with its researc
   `trail.origin`); every checker message writes quantities as tokens rendered in the alien's units (0
   unit words in 121 rendered messages with the gloss off); past rejections marked "your last proposal".
 
+- **M4 step 7e and the gate (2026-10-16):** five staged moments for the big discoveries, results led by a
+  headline with the working folded, the epoch model's heavy parts in a Worker (entering The Trail: the
+  longest task fell from 996 ms to under 65 ms), scroll cues, quiet tallies, the Spot's low lamp, chart
+  label declutter, old saves moved to validated seeds (D-A29); the browser-test runner retries a dropped
+  page load. Second blind critic pass: satisfaction 8, layout 6 (from 4), would keep playing 8.
+
 ## In flight
 
-- M4 step 7e (`docs/plans/M4_specs/step7e-staging-and-quiet-screens.md`, builder-opus): results led by a
-  headline with the working folded, five staged moments, a bigger Map chart, scroll cues, quiet tallies,
-  The Spot's low lamp, chart labels; and from the QA audit: no main-thread task over 100 ms on entering
-  an M4 chapter, old saves' seeds moved to validated ones, contour text, the Trail chart's labels.
+- Nothing running. Next: M5's first three items (see Next).
 
 ## Known issues and open questions
 
-- **QA audit (M3 and M4 gate, 2026-10-16), still open until 7e lands:** The Trail blocks the main thread
-  for about 1 s on entering (a laptop would freeze longer); M4 screens clip content at 1440x900 with
-  accumulated results (the 8b one-screen claim held for the slice only); old saves keep time-based seeds
-  that may fail a check; "100.000% contour" text; Trail chart labels collide. Fixed already: How it's
-  checked's "[object Object]" cell and stale status lines, SPEND's date, credits for the M5 research.
+- **QA audit (M3 and M4 gate, 2026-10-16):** all its code items are fixed (7e: no long freeze entering a
+  chapter, old saves' seeds, contour text, Trail chart labels; the doc items earlier). Still open from it:
+  M4 screens can need an inner scroll at 1440x900 once results accumulate (scroll cues now mark it), and
+  the Map's tool panel can cover up to half the chart until folded (both in the M5 polish batch).
 - **A stray folder from the QA script** (`C:\Users\stewa\Documents\Claude\Golden%20Record\`, five PNGs,
   outside the repo): left for Stewart to delete or keep (`docs/NEEDS_STEWART.md`).
 
@@ -156,9 +161,12 @@ step before the gate closes. M5 is planned (`docs/plans/M5.md`) with its researc
 
 ## Next (exact)
 
-1. When 7e reports: look at its captures (the five moments, the quieter screens), check the long-task
-   numbers, commit, `npm run check`, deploy, live check; then close the M4 gate (PROGRESS and HANDOFF).
-2. M5 step 1 follow-up: does the tape carry the right edge our decode cuts on L004 and L005 (register
-   against NASA's clean images in a test; check the decoder's horizontal extent)?
-3. M5 specs and builds (`docs/plans/M5.md`): the identification's hard age window first (open issue
-   above), then the pictures complete and The Voices.
+1. **The identification's age window** (science, builder-opus spec): replace the hard window
+   `U[t_lo, 2 t_hi]` from the Arrival clock with the clock's posterior and its tails in
+   `src/science/pulsarIdentify.ts`; re-run `identify.epoch` over many seeds (target: the right pulsar on
+   every line for all seeds, or an honest recorded rate); rebuild `data/seeds.json`; science audit.
+2. **L004 and L005's right edge:** register our decoded frames against NASA's clean images in a test
+   (tests only) and check the decoder's horizontal extent; if the tape carries more, fix the decode; if
+   not, record that the tape itself ends there.
+3. **The M4 polish batch** (`docs/plans/M5.md` "Carried in"): one builder.
+4. Then M5 steps 2 to 7 (`docs/plans/M5.md`), specs first in `docs/plans/M5_specs/`.
