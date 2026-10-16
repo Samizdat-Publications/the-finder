@@ -220,6 +220,15 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
   to Stewart instead (a stray folder `C:\Users\stewa\Documents\Claude\Golden%20Record\` left by a QA
   script is waiting for his decision).
 
+- **Deductions can be defined before they are playable:** a node with `later: true` (in
+  `src/game/nodesM5.ts` and future node files) stays out of `NODES` (play, gating, counts, notebook) and
+  sits in `ALL_NODES`; its builder clears the flag once its checker and instrument pass, as `built` does
+  for a chapter. Add a milestone's nodes yourself before parallel builders start, so two never edit the
+  graph at once.
+- **The dev server sometimes drops or times out a request under load** (connection reset on a page,
+  `ERR_CONNECTION_TIMED_OUT` on a module); the browser-test runner retries a page open three times and
+  each test once, and reports FLAKY. A test that fails twice is real.
+
 ## End-of-session protocol
 
 1. Finish or safely stop the current step; `npm run check` green or the failure written down.

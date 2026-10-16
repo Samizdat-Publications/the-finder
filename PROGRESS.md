@@ -5,10 +5,10 @@ every meaningful chunk._
 
 ## Current milestone
 
-**M5: The pictures complete, and The Voices.** Plan: `docs/plans/M5.md` (research done:
-`docs/research/teaching-frames.md`, `voices.md`). First, in this order: the identification's hard age
-window (an M4 science issue, below), whether the tape carries the right edge our decode cuts on L004 and
-L005, and the M4 polish batch from the blind critic's second pass; then the M5 specs and builds.
+**M5: The pictures complete, and The Voices.** Plan: `docs/plans/M5.md`; specs in `docs/plans/M5_specs/`.
+Step 0 done (the identification's age window, the decoders' full raster, the M4 polish batch). The twelve
+M5 deductions are in the graph, kept out of play (`later`) until their checkers land. In flight: step 3
+(The Pictures complete) and step 4 (The Voices), two builders in parallel.
 
 **M4 closed (2026-10-16):** The Map, The Spot and The Trail playable after The Key; 31 deductions from a
 fresh save (bot.game); a science audit, a QA audit and two blind critic passes, every finding fixed or
@@ -120,9 +120,16 @@ and live-checked.
   label declutter, old saves moved to validated seeds (D-A29); the browser-test runner retries a dropped
   page load. Second blind critic pass: satisfaction 8, layout 6 (from 4), would keep playing 8.
 
+- **M5 step 0 (2026-10-16):** the identification draws the map's age from the Arrival clock's own error
+  model and models each pulsar's timing noise (14 of 14 lines in 500 of 500 seeds; validated seeds 1,993
+  of 2,000); the decoders take the tape's whole raster, 536 lines per picture (D-A30: the cover's 512 cut
+  the planets table's last column; Pluto's column now whole and, read in full, breaking the table's own
+  order); the M4 polish batch (D-A31). Deployed and live-checked; 342 unit tests, 149 checks.
+
 ## In flight
 
-- Nothing running. Next: M5's first three items (see Next).
+- M5 step 3, The Pictures complete (`docs/plans/M5_specs/step3-pictures-complete.md`, builder-opus).
+- M5 step 4, The Voices (`docs/plans/M5_specs/step4-the-voices.md`, builder-opus).
 
 ## Known issues and open questions
 
@@ -163,12 +170,9 @@ and live-checked.
 
 ## Next (exact)
 
-1. **The identification's age window** (science, builder-opus spec): replace the hard window
-   `U[t_lo, 2 t_hi]` from the Arrival clock with the clock's posterior and its tails in
-   `src/science/pulsarIdentify.ts`; re-run `identify.epoch` over many seeds (target: the right pulsar on
-   every line for all seeds, or an honest recorded rate); rebuild `data/seeds.json`; science audit.
-2. **L004 and L005's right edge:** register our decoded frames against NASA's clean images in a test
-   (tests only) and check the decoder's horizontal extent; if the tape carries more, fix the decode; if
-   not, record that the tape itself ends there.
-3. **The M4 polish batch** (`docs/plans/M5.md` "Carried in"): one builder.
-4. Then M5 steps 2 to 7 (`docs/plans/M5.md`), specs first in `docs/plans/M5_specs/`.
+1. As steps 3 and 4 report: look at their captures, run `npm run check`, commit each, deploy, live check.
+2. M5 step 5 (graph and gating: Portrait in M6 needs the home world and the height) and step 6 (sound
+   for the album and the voices, bot.game through all 43, the blind critic, an Edge run).
+3. M5 gate: science audit of the teaching-frame readings and the voice analyses, QA audit, PROGRESS and
+   HANDOFF, `docs/plans/M6.md` (Portrait, Our Frame, hints and accessibility; the critic's flat-finish
+   note), and the Firefox checklist for Stewart.
