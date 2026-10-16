@@ -65,6 +65,7 @@ sources below are planned; each gets its final line (with checksum and date) whe
   (free to use under NASA's media guidelines; no endorsement implied). Planned.
 - The Golden Record cover photo: NASA/JPL, GPN-2000-001978 (public domain), via Wikimedia Commons. Fetched 2026-10-15.
 - NASA/JPL "Explanation of Recording Cover Diagram" (science.nasa.gov). Fetched 2026-10-15.
+- NASA "Images on the Golden Record" gallery (science.nasa.gov; JPL scans, most likely from Murmurs of Earth): ten images used ONLY in tests, as clean references for the decoder's independent geometry check (sources nasa-gr-* in tools/sources.json); never shown in the experience. Fetched 2026-10-15.
 - Pioneer plaque vector drawing by Mysid (2006), public domain, via Wikimedia Commons (Pioneer_plaque.svg). Fetched 2026-10-15.
 - Gaia EDR3 all-sky colour map: ESA/Gaia/DPAC, CC BY-SA 3.0 IGO (acknowledgement: A. Moitinho). Planned.
 

@@ -10,10 +10,15 @@ on the tape, and the numbers below come from `build/ref/metrics.json`, written b
 From the project root (`C:\Users\stewa\Documents\Claude\Golden Record`):
 
 ```powershell
-cd "C:\Users\stewa\Documents\Claude\Golden Record"; python -P tools/ref-decoder/decode_all.py; python -P tools/ref-decoder/make_slices.py; python -P tools/ref-decoder/checks.py
+cd "C:\Users\stewa\Documents\Claude\Golden Record"; python -P tools/ref-decoder/decode_all.py; python -P tools/ref-decoder/make_slices.py; python -P tools/ref-decoder/geometry_check.py; python -P tools/ref-decoder/checks.py
 ```
 
-`decode_all.py` takes about 8 minutes, `make_slices.py` about 40 s, `checks.py` about 5 s. Outputs:
+`geometry_check.py` needs the clean NASA gallery images, fetched once with
+`node tools/fetch-sources.mjs nasa-gr-001 nasa-gr-003 nasa-gr-004 nasa-gr-005 nasa-gr-014 nasa-gr-015 nasa-gr-032 nasa-gr-037 nasa-gr-039 nasa-gr-040`
+(tests only; never shipped or shown in the experience).
+
+`decode_all.py` takes about 8 minutes, `make_slices.py` about 50 s, `geometry_check.py` about 1 minute,
+`checks.py` about 5 s. Outputs:
 `build/ref/` (frames, colour composites, contact sheets, circle fit, wrong-result proofs,
 `frame_starts.json`, `metrics.json`, `edges.npz`), `build/slices/` (96 kHz WAV slices and
 `index.json`) and `build/ref96/` (pictures decoded from the slices). All are gitignored.
@@ -32,7 +37,8 @@ window (about 1.8 M samples) at a time. Nothing is random.
 | `aspect.py` | Finds the calibration circle's ring and fits an ellipse to it. |
 | `decode_all.py` | Entry: everything, in passes. |
 | `make_slices.py` | Entry: 96 kHz slices for the browser, and the decode from them. |
-| `checks.py` | Entry: fast PASS/FAIL checks. |
+| `geometry_check.py` | Entry: independent geometry check, by registration against clean published images. |
+| `checks.py` | Entry: fast PASS/FAIL checks; records results for How it's checked (`tools/checkrecord.py`). |
 
 ## What a line looks like
 
@@ -154,11 +160,44 @@ staggered while the picture runs on an even clock.
 down the active part of each line. The active window is **258 to 2898 samples after the edge (2640
 samples)**: where the across-line spread of the droop-corrected signal (line-integral tau), median over all frames, is at least a quarter
 of its level inside the picture. The number of rows was chosen so that an ellipse fitted to the
-calibration circle's ring is round: **355 rows (7.44 samples per row)**, fitted axis ratio
-**1.0002** with all final settings (horizontal over vertical; target 1.00 +/- 0.01), rms point
-residual 1.1 px. Frame:
-**512 x 355, aspect 1.44**. The same geometry is used for all 156 frames. (The 1992 CD-ROM images
-were 512 x 384; Barry used 540 x 364, about 7.4 samples per row, close to ours.)
+calibration circle's ring has equal horizontal and vertical extents: **355 rows (7.44 samples per
+row)**, hx/hy **1.0002** with all final settings. One row changes hx/hy by 0.28%, so the aspect is set
+to about +/- 0.14%. Because the row count is chosen to make hx/hy equal 1, the circle check in
+`checks.py` is a **procedure self-test**, not a test of the geometry. The fitted ellipse itself is not a
+perfect circle: **minor/major 0.9934, major axis at 137 degrees** (a diagonal, about 0.65%), which is
+a shear no row count can remove. Frame: **512 x 355, aspect 1.44**; the same geometry for all 156
+frames. (The 1992 CD-ROM images were 512 x 384; Barry used 540 x 364, about 7.4 samples per row.)
+
+**Independent geometry check** (`geometry_check.py`). Nine other record images with clear line art
+(images 3, 4, 5, 14, 15, 32, 37, 39, 40: definitions, DNA, the male and female figures, family ages,
+continental drift, Earth's structure) were registered against NASA's clean gallery copies (640 x 480
+GIFs; tests only), after turning our frames upright with Barry's table: ORB features and a seeded RANSAC
+affine fit to start, then the six affine parameters refined to maximise the normalised
+cross-correlation. Overlays: `build/ref/geometry_check/`. From the metric of each fitted map, in our
+native axes:
+
+| Measure | Median | Mean | Image-to-image std | Std error | Range |
+|---|---|---|---|---|---|
+| x/y scale (1 = our aspect agrees) | 0.9915 | 0.9908 | 0.0098 | 0.0033 | 0.972 to 1.004 |
+| Shear (cosine of the true angle between our axes) | -0.0138 | -0.0140 | 0.0025 | 0.0008 | -0.018 to -0.011 |
+
+- **Aspect.** The calibration circle, compared the same way with the gallery's own circle, gives x/y
+  1.0004. That is within the image-to-image scatter of the nine others (0.9 std from their median), so
+  the circle-defined aspect passes; the nine together lean 0.85% (about 3 rows) the other way, which is
+  2.6 standard errors, so a small aspect error cannot be ruled out. Each slide and scan has its own
+  geometry (the scatter is 3.5 rows).
+- **Shear.** Our frames are sheared by about 1.4% against all nine clean images, with a scatter of only
+  0.25%, and with the same sign in the two frames Barry rotates (L039, L052). A distortion in the
+  gallery scans would turn with those images and flip sign in our axes; it does not, so the shear is
+  fixed in the record's raster: in the 1977 camera and scan converter (content drifts about 0.1 sample
+  per line against the sync), or in our decode. The calibration circle does not reveal it: the gallery's
+  own calibration circle is elliptical too (minor/major 0.986 at 137 degrees), so the artwork (or its
+  copy) is not perfectly round, and our decoded circle against the gallery circle gives shear -0.0075.
+- **Decision: the decode is left unsheared.** The lead's rule was to fit a shear on the circle only if
+  the clean images showed none and ours did. The circle cannot be used (it disagrees in size and
+  sign: +0.0066 if the artwork were round), and fitting the decoder to clean published images would
+  make the record's own decoding depend on outside pictures. The measured shear is recorded here and in
+  `geometry_check.json` for the lead to decide on.
 
 **8. Orientation.** Native frames are as decoded (line 1 at the left, time downward). Nothing on the
 record says which way is up. `contact_upright.png` applies Barry's orientation table, as a labelled
@@ -176,7 +215,10 @@ correlation (0.14), so its registration is not meaningful.
 
 ## Meaningful wrong results (for the M2 browser tests)
 
-All on the circle frame L000, measured with one slant meter: for each decoded line, the real falling
+These are **self-tests of the slant meter**: once the sync edges are regular, decoding free-running at
+(1 + e) times the period gives a slant of -e times the period by arithmetic, so agreement confirms the
+meter and the free-running code work, not anything about the tape. All on the circle frame L000,
+measured with one slant meter: for each decoded line, the real falling
 edge is found within half a line of the line start actually used, the offsets are unwrapped and fitted
 against the line number.
 
@@ -204,6 +246,15 @@ and rate. Every frame was then decoded from its WAV file at 96 kHz with the same
 the index's first-line offset: SSIM against the 384 kHz decode **0.986 mean, 0.970 worst (L009, a
 dark spectrum separation)**;
 edge times agree to 0.6 samples (384 kHz) rms in the median frame, 1.0 at worst.
+
+## Checks recorded for How it's checked
+
+`checks.py` records, through `tools/checkrecord.py`: `decoder.ref.circle` (procedure self-test, with the
+true ellipse ratio and tilt), `decoder.ref.slant` (slant-meter self-test), `decoder.ref.linePeriod` (L000 3197.42
+samples = 8.3266 ms against the research's independent 3197.4 samples, +/- 0.05; median 8.3204 ms; the
+cover's 8.3396 ms, so the tape runs 0.16% to 0.23% fast), `decoder.ref.frameStarts` (155 of 156 within one
+line of Barry's table, the exception explained), `decoder.ref.ssim96` (informational) and
+`decoder.ref.aspectIndependent` (the geometry check above).
 
 ## Known limits
 

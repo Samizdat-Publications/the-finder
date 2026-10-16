@@ -20,6 +20,8 @@ import sync
 import tape as tapemod
 
 ROOT = tapemod.project_root()
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+from checkrecord import record_check  # noqa: E402
 REF = os.path.join(ROOT, "build", "ref")
 SLICES = os.path.join(ROOT, "build", "slices")
 RATE = tapemod.HEADER_RATE  # Hz (images-and-audio.md section 2)
@@ -34,6 +36,15 @@ SLANT_TOL = 0.10
 # Browser slice size limit, bytes (spec: under 2 MB).
 SLICE_MAX = 2_000_000
 FRAMES_TOTAL = 156  # 78 per channel (images-and-audio.md section 1, "Frames and channels")
+# Research's measured line period (images-and-audio.md section 1, "Samples per line": 3197.4 samples at
+# 384 kHz, aizquier's 3197 plus 0.4; the same table's "8.326 ms" is that value truncated, 3197.4 samples
+# being 8.32656 ms). Quoted to 0.1 sample, so the tolerance is the rounding, +/- 0.05 samples. Compared
+# with the first frame, L000, because the period drifts along the reel and earlier decoders
+# calibrated on the opening frames.
+RESEARCH_START_SAMPLES = 3197.4
+RESEARCH_START_TOL = 0.05
+# Cover line time, ms (24-bit binary x 0.70402 ns; images-and-audio.md section 1, "Line time").
+COVER_MS = 8.3396
 
 results = []
 
@@ -66,8 +77,19 @@ def main():
 
     fit, dstart = circle_live(m)
     r = fit["axis_ratio"]
-    check("circle axis ratio 1.00 +/- 0.01 (live decode of L000)", abs(r - 1.0) <= AXIS_TOL,
-          f"{r:.4f}, {m['aspect']['columns']} x {m['aspect']['rows']}, re-detected start differs by {dstart:.2f} samples")
+    rows = m["aspect"]["rows"]
+    ok = abs(r - 1.0) <= AXIS_TOL
+    txt = (f"hx/hy {r:.4f} (one row = {100 / rows:.2f}%), true ellipse minor/major {fit['axes_ratio_minor_major']:.4f} "
+           f"with its major axis at {fit['theta_deg']:.0f} deg, {m['aspect']['columns']} x {rows}, "
+           f"re-detected start differs by {dstart:.2f} samples")
+    check("PROCEDURE SELF-TEST circle: live decode of L000 reproduces hx/hy 1.00 +/- 0.01 (the row count was "
+          "chosen for this, so it confirms the procedure, not the geometry)", ok, txt)
+    record_check("decoder.ref.circle",
+                 "Procedure self-test: decoding the calibration circle live from the tape with the stored geometry "
+                 "reproduces a horizontal-to-vertical extent ratio of 1.00 (the row count was chosen to make it so).",
+                 txt, "hx/hy 1.00", "+/- 0.01 (the spec; one row changes it by 0.28%)", ok,
+                 "Not an independent geometry test: see decoder.aspectIndependent. The fitted ellipse is not a perfect "
+                 "circle: minor/major 0.993 with a diagonal major axis, a shear no row count removes.")
 
     frames = m["frames"]
     pngs = [f for f in frames if os.path.exists(os.path.join(REF, "frames", f["id"] + ".png"))]
@@ -99,14 +121,42 @@ def main():
         notes.append(f"{fid}: Barry {bl:+.2f} lines from the comb end")
         if not (bl < 0 or bl >= 1.5):
             unexplained.append(fid)
+    record_check("decoder.ref.frameStarts",
+                 "All 156 frames are found from the signal alone, and their starts agree with Ron Barry's hand-made "
+                 "2017 table.",
+                 f"{b['within_1_line_after_median']} of 156 within 1 line after the median offset "
+                 f"({b['median_offset_samples']:.0f} samples); exceptions: {', '.join(notes) or 'none'}",
+                 "every start within 1 line of Barry's", "1 line (Barry's own starts spread over 2.5 lines)",
+                 bool(m["all_found_independently"]) and not unexplained,
+                 "Barry's table is validation only, never a seed. L041: his start lies inside the start-of-picture comb.")
     check("every start within 1 line of Barry after the median offset, or the exception explained",
           not unexplained,
           f"median offset {b['median_offset_samples']:.1f} samples, {b['within_1_line_after_median']}/156 within; "
           f"exceptions {notes or 'none'}; unexplained {unexplained or 'none'}; histogram (lines) {b['diff_lines_histogram']}")
 
     lp = m["line_period"]
-    check("median line period within 0.01 ms of 8.326 ms", abs(lp["median_ms"] - RESEARCH_LINE_MS) <= LINE_MS_TOL,
+    ok_med = abs(lp["median_ms"] - RESEARCH_LINE_MS) <= LINE_MS_TOL
+    check("median line period within 0.01 ms of 8.326 ms", ok_med,
           f"{lp['median_ms']:.5f} ms ({lp['median_samples']:.2f} samples), tape speed vs cover {lp['tape_speed_vs_cover']:.5f}")
+    byid_p = {f["id"]: f["period_samples"] for f in frames}
+    p_start = float(byid_p["L000"])
+    ok_start = abs(p_start - RESEARCH_START_SAMPLES) <= RESEARCH_START_TOL
+    fast_start = COVER_MS / (p_start / RATE * 1e3) - 1
+    fast_med = COVER_MS / lp["median_ms"] - 1
+    txt = (f"first frame L000: {p_start:.3f} samples = {p_start / RATE * 1e3:.5f} ms (R000 "
+           f"{byid_p['R000'] / RATE * 1e3:.5f} ms); median of 156 frames "
+           f"{lp['median_ms']:.4f} ms; cover {COVER_MS} ms, so the tape runs {100 * fast_start:.2f}% (start) to "
+           f"{100 * fast_med:.2f}% (median) fast; the period falls steadily along the reel")
+    check("line period at the start of the reel (L000) matches the research's independent 3197.4 samples",
+          ok_start, txt)
+    record_check("decoder.ref.linePeriod",
+                 "The tape's line period, locked to the falling sync edges, matches an independent earlier measurement "
+                 "and runs slightly fast against the cover's 8.3396 ms.",
+                 txt, "3197.4 samples (8.3266 ms) on the master (images-and-audio.md section 1)",
+                 "+/- 0.05 samples (the rounding of the quoted value) at L000; median within 0.01 ms of 8.326",
+                 ok_start and ok_med,
+                 "The period drifts from 3197.4 to about 3193.9 samples along the reel, the same on both channels "
+                 "(a tape transport effect); the median is 8.3204 ms.")
 
     bad = []
     for w in m["wrong_results"]["free_run"]:
@@ -117,7 +167,13 @@ def main():
             bad.append(w["e"])
     txt = ", ".join(f"e={w['e']:+.2f}: {w['slant_measured_samples_per_line']:.2f} vs {w['slant_predicted_samples_per_line']:.2f}"
                     for w in m["wrong_results"]["free_run"])
-    check("wrong-period slants within 10% of prediction", not bad, txt)
+    check("PROCEDURE SELF-TEST slant meter: free-running decodes at (1+e) x period give slant -e x period within 10% "
+          "(arithmetic once the edges are regular; it confirms the meter works)", not bad, txt)
+    record_check("decoder.ref.slant",
+                 "Slant-meter self-test: decoding the circle free-running with the line time 1%, 5% and 20% too long "
+                 "slants the picture by e x the line period per line, as measured by the sync-edge slant meter.",
+                 txt, "-e x period samples per line", "within 10%", not bad,
+                 "A self-test of the meter the browser tests reuse, not an independent measurement.")
 
     idx_path = os.path.join(SLICES, "index.json")
     ok = os.path.exists(idx_path)
@@ -133,10 +189,41 @@ def main():
 
     s = m.get("slices")
     if s:
-        print(f"INFO  96 kHz vs 384 kHz SSIM: mean {s['ssim_96_vs_384_mean']:.4f}, worst {s['ssim_96_vs_384_min']:.4f} "
-              f"({s['ssim_worst_frame']})")
+        txt = (f"mean {s['ssim_96_vs_384_mean']:.4f}, worst {s['ssim_96_vs_384_min']:.4f} ({s['ssim_worst_frame']}); "
+               f"sync edges agree to {s['edge_rms_diff_samples_384k_median']:.2f} samples rms (384 kHz) in the median frame")
+        print(f"INFO  96 kHz vs 384 kHz SSIM: {txt}")
+        record_check("decoder.ref.ssim96",
+                     "Decoding the 96 kHz browser slices loses little against decoding the 384 kHz tape.",
+                     txt, "reported; no threshold yet (M2 sets the browser's)", "none (informational)", True,
+                     "Same decoder and geometry at both rates; the 96 kHz decode is seeded only by the slice index.")
     else:
         check("96 kHz SSIM reported", False, "run make_slices.py")
+
+    # Independent geometry: registration against NASA's clean gallery images (geometry_check.py).
+    gpath = os.path.join(REF, "geometry_check.json")
+    if os.path.exists(gpath):
+        with open(gpath, encoding="utf-8") as fh:
+            g = json.load(fh)
+        xs, sh = g["x_over_y_scale"], g["shear"]
+        circ = g["circle_vs_gallery_circle"]["x_over_y_scale"]
+        # The calibration circle sets our aspect. Is it consistent with the other images? Each image has its
+        # own slide and scan geometry, so the tolerance is twice their measured image-to-image scatter.
+        tol = 2 * xs["std"]
+        ok = abs(circ - xs["median"]) <= tol
+        txt = (f"{len(g['used'])} images: x/y scale median {xs['median']:.4f} (std {xs['std']:.4f}, sem {xs['sem']:.4f}); "
+               f"the circle against the gallery circle {circ:.4f}; shear median {sh['median']:+.4f} "
+               f"(std {sh['std']:.4f}, sem {sh['sem']:.4f}), same sign in the 2 frames Barry rotates")
+        check("independent aspect: the circle-defined aspect agrees with registration against clean images", ok, txt)
+        record_check("decoder.ref.aspectIndependent",
+                     "Our picture geometry, set by the calibration circle, agrees with clean published copies of nine "
+                     "other record images.",
+                     txt, "x/y scale of the circle within the scatter of the other images",
+                     f"2 x the image-to-image std ({tol:.4f})", ok,
+                     "Clean images: NASA's Images on the Golden Record gallery (tests only). Our frames show a shear of "
+                     f"{sh['median']:+.4f} +/- {sh['sem']:.4f} against them, fixed in the record's raster (also in rotated "
+                     "frames), which the calibration circle does not reveal; see the decoder README.")
+    else:
+        check("independent geometry check run", False, "run geometry_check.py")
     print(f"INFO  checks took {time.time() - t0:.1f} s")
     sys.exit(0 if all(results) else 1)
 

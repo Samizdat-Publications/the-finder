@@ -593,6 +593,116 @@
       "credit": "The Voyager Golden Record: 40th Anniversary Edition (Ozma Records, 2017; remastered from the original analog master tapes), unofficial lossless CD rip on the Internet Archive, item voyager-golden-record-cd-ozma",
       "usedFor": "per-track record audio (M2 media pipeline)",
       "research": "docs/research/images-and-audio.md section 4"
+    },
+    {
+      "id": "nasa-gr-001",
+      "file": "calibration-circle-31325346536-o.gif",
+      "url": "https://science.nasa.gov/wp-content/uploads/2024/03/calibration-circle-31325346536-o.gif",
+      "bytes": 14700,
+      "md5": null,
+      "sha256": "8a44e9a339ef0d2d1601ec57a017668b8b404f48553c1cc0bb8c5d7deff70369",
+      "credit": "NASA Science, Images on the Golden Record gallery (image 1, calibration circle); JPL copies most likely scanned from Murmurs of Earth (Pescovitz)",
+      "usedFor": "Tests only: independent geometry check of the reference decoder (aspect and shear by affine registration); never shown in the experience",
+      "research": "docs/research/images-and-audio.md section 5"
+    },
+    {
+      "id": "nasa-gr-003",
+      "file": "mathematical-definitions-30539954574-o.gif",
+      "url": "https://science.nasa.gov/wp-content/uploads/2024/03/mathematical-definitions-30539954574-o.gif",
+      "bytes": 20873,
+      "md5": null,
+      "sha256": "224e9396a7740edd8156cee16d89394223614f3f91b5db8e1fcf3ec3fb5f4a94",
+      "credit": "NASA Science, Images on the Golden Record gallery (image 3, mathematical definitions); JPL copies most likely scanned from Murmurs of Earth (Pescovitz)",
+      "usedFor": "Tests only: independent geometry check of the reference decoder (aspect and shear by affine registration); never shown in the experience",
+      "research": "docs/research/images-and-audio.md section 5"
+    },
+    {
+      "id": "nasa-gr-004",
+      "file": "physical-unit-definitions-30554003853-o.gif",
+      "url": "https://science.nasa.gov/wp-content/uploads/2024/03/physical-unit-definitions-30554003853-o.gif",
+      "bytes": 24986,
+      "md5": null,
+      "sha256": "dd16d4c527709d85c1f44af0e87d899f41f8a1575aed37a4b53f5b84090b4f0b",
+      "credit": "NASA Science, Images on the Golden Record gallery (image 4, physical unit definitions); JPL copies most likely scanned from Murmurs of Earth (Pescovitz)",
+      "usedFor": "Tests only: independent geometry check of the reference decoder (aspect and shear by affine registration); never shown in the experience",
+      "research": "docs/research/images-and-audio.md section 5"
+    },
+    {
+      "id": "nasa-gr-005",
+      "file": "solar-system-parameters-30554017073-o.gif",
+      "url": "https://science.nasa.gov/wp-content/uploads/2024/03/solar-system-parameters-30554017073-o.gif",
+      "bytes": 17952,
+      "md5": null,
+      "sha256": "10d726dd8d0855c01c3a6a6d4ddee641fca068fb5241dcc06fac104815bb133a",
+      "credit": "NASA Science, Images on the Golden Record gallery (image 5, solar system parameters sun mars); JPL copies most likely scanned from Murmurs of Earth (Pescovitz)",
+      "usedFor": "Tests only: independent geometry check of the reference decoder (aspect and shear by affine registration); never shown in the experience",
+      "research": "docs/research/images-and-audio.md section 5"
+    },
+    {
+      "id": "nasa-gr-014",
+      "file": "chemical-definitions-31218371762-o.gif",
+      "url": "https://science.nasa.gov/wp-content/uploads/2024/03/chemical-definitions-31218371762-o.gif",
+      "bytes": 35749,
+      "md5": null,
+      "sha256": "3f43aac3a19fb560627b0a5805a1280a22405f09e3ea18b552839176d56b9d02",
+      "credit": "NASA Science, Images on the Golden Record gallery (image 14, chemical definitions); JPL copies most likely scanned from Murmurs of Earth (Pescovitz)",
+      "usedFor": "Tests only: independent geometry check of the reference decoder (aspect and shear by affine registration); never shown in the experience",
+      "research": "docs/research/images-and-audio.md section 5"
+    },
+    {
+      "id": "nasa-gr-015",
+      "file": "dna-structure-31362211895-o.gif",
+      "url": "https://science.nasa.gov/wp-content/uploads/2024/03/dna-structure-31362211895-o.gif",
+      "bytes": 32438,
+      "md5": null,
+      "sha256": "b3ca12d29531ce129c423fe39b9f5d295c06778c49ec2f31e140ac7aa6746c21",
+      "credit": "NASA Science, Images on the Golden Record gallery (image 15, dna structure); JPL copies most likely scanned from Murmurs of Earth (Pescovitz)",
+      "usedFor": "Tests only: independent geometry check of the reference decoder (aspect and shear by affine registration); never shown in the experience",
+      "research": "docs/research/images-and-audio.md section 5"
+    },
+    {
+      "id": "nasa-gr-032",
+      "file": "diagram-of-male-and-female-31326553496-o.gif",
+      "url": "https://science.nasa.gov/wp-content/uploads/2024/03/diagram-of-male-and-female-31326553496-o.gif",
+      "bytes": 20168,
+      "md5": null,
+      "sha256": "01ff9c316748039c854d036ecf946b149f3baae5734fcd32d55b1c250a2d792c",
+      "credit": "NASA Science, Images on the Golden Record gallery (image 32, diagram of male and female); JPL copies most likely scanned from Murmurs of Earth (Pescovitz)",
+      "usedFor": "Tests only: independent geometry check of the reference decoder (aspect and shear by affine registration); never shown in the experience",
+      "research": "docs/research/images-and-audio.md section 5"
+    },
+    {
+      "id": "nasa-gr-037",
+      "file": "diagram-of-family-ages-31326608936-o.gif",
+      "url": "https://science.nasa.gov/wp-content/uploads/2024/03/diagram-of-family-ages-31326608936-o.gif",
+      "bytes": 38576,
+      "md5": null,
+      "sha256": "cb8ed95e13a7038e707e7fd0e61663655254f9f49ec58b854f6f5a5dc231145c",
+      "credit": "NASA Science, Images on the Golden Record gallery (image 37, diagram of family ages); JPL copies most likely scanned from Murmurs of Earth (Pescovitz)",
+      "usedFor": "Tests only: independent geometry check of the reference decoder (aspect and shear by affine registration); never shown in the experience",
+      "research": "docs/research/images-and-audio.md section 5"
+    },
+    {
+      "id": "nasa-gr-040",
+      "file": "structure-of-earth-31247834881-o.gif",
+      "url": "https://science.nasa.gov/wp-content/uploads/2024/03/structure-of-earth-31247834881-o.gif",
+      "bytes": 29590,
+      "md5": null,
+      "sha256": "d61ba33354ae0a4020c47f8d582c133f0ab6bb0a94547e417f356b0554058749",
+      "credit": "NASA Science, Images on the Golden Record gallery (image 40, structure of earth); JPL copies most likely scanned from Murmurs of Earth (Pescovitz)",
+      "usedFor": "Tests only: independent geometry check of the reference decoder (aspect and shear by affine registration); never shown in the experience",
+      "research": "docs/research/images-and-audio.md section 5"
+    },
+    {
+      "id": "nasa-gr-039",
+      "file": "diagram-of-continental-drift-31247808951-o.gif",
+      "url": "https://science.nasa.gov/wp-content/uploads/2024/03/diagram-of-continental-drift-31247808951-o.gif",
+      "bytes": 20021,
+      "md5": null,
+      "sha256": "655ca5a345498d452c05a5e4f3862f3ae4000459d9838a7d917e8c5259cf2b96",
+      "credit": "NASA Science, Images on the Golden Record gallery (image 39, diagram of continental drift); JPL copies most likely scanned from Murmurs of Earth (Pescovitz)",
+      "usedFor": "Tests only: independent geometry check of the reference decoder (aspect and shear by affine registration); never shown in the experience",
+      "research": "docs/research/images-and-audio.md section 5"
     }
   ]
 }
