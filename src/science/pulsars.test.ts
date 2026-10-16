@@ -90,22 +90,35 @@ describe('dating the map today (clocks.md 3a)', () => {
     const vela = dating.rows.find((r) => r.line.bname === 'B0833-45') as MapDatingRow;
     // Vela's systematic, computed: the PEPOCH glitch changed F1 by df1/f1 (Jodrell Bank table); re-solving
     // with the pre-glitch slope F1 / (1 + df1/f1) shows how much the date depends on which F1 is used.
-    const pepochGlitch = (glitches[vela.line.jname] ?? []).find((g) => Math.abs(g.mjd - (vela.pulsar.pepoch as number)) <= 1);
+    const vg = glitches[vela.line.jname] ?? [];
+    const pepoch = vela.pulsar.pepoch as number;
+    // Physics of the PEPOCH glitch: ATNF's Vela F0 is the post-glitch value, Dodson, McCulloch and Lewis
+    // 2002 (ApJ 564, 905) Table 1 pre-glitch nu 11.194615396005 Hz plus the permanent jump
+    // 3.45435e-5 Hz. Tolerance: the catalogue's quoted F0 uncertainty, or 1e-9 Hz if larger.
+    const postGlitchF0 = 11.194615396005 + 3.45435e-5;
+    const f0Tol = Math.max(vela.pulsar.f0Err ?? 0, 1e-9);
+    const f0Diff = Math.abs((vela.pulsar.f0 as number) - postGlitchF0);
+    expect(f0Diff).toBeLessThanOrEqual(f0Tol);
+    // So the PEPOCH glitch must be added back: the date with it excluded (the old rule) must differ.
+    const excluded = impliedEpoch(vela.pulsar, vela.pMap, { glitches: vg.filter((g) => g.mjd < pepoch) });
+    const dExcl = Math.abs(excluded.decimalYear - vela.corrected.decimalYear);
+    expect(dExcl).toBeGreaterThan(0.05);
+    // One-sided systematic: the PEPOCH glitch also changed F1; re-solving with the pre-glitch slope
+    // F1 / (1 + df1/f1) (Jodrell Bank table) bounds how far the date can move.
+    const pepochGlitch = vg.find((g) => Math.abs(g.mjd - pepoch) <= 1);
     const df1 = pepochGlitch?.df1OverF1 ?? 0;
-    const pre = impliedEpoch({ ...vela.pulsar, f1: (vela.pulsar.f1 as number) / (1 + df1) }, vela.pMap, { glitches: glitches[vela.line.jname] ?? [] });
-    const sys = Math.abs(pre.decimalYear - vela.corrected.decimalYear);
+    const pre = impliedEpoch({ ...vela.pulsar, f1: (vela.pulsar.f1 as number) / (1 + df1) }, vela.pMap, { glitches: vg });
+    const lo = Math.min(pre.decimalYear, vela.corrected.decimalYear);
+    const hi = Math.max(pre.decimalYear, vela.corrected.decimalYear);
     const dVelaCrab = Math.abs(vela.corrected.decimalYear - crab.raw.decimalYear);
-    // Independent check: glitch-corrected Vela agrees with the Crab (no glitch correction needed) within
-    // that systematic plus the 0.05 yr research rounding.
-    expect(dVelaCrab).toBeLessThanOrEqual(sys + 0.05);
     recordCheck({
       id: 'dating.today',
-      claim: 'Today the map dates itself to about 1971: the Crab and the glitch-corrected Vela pulsar agree on late 1971, and 13 pulsars average 1969.7.',
-      measured: `Crab ${crab.raw.decimalYear.toFixed(2)}; Vela glitch-corrected ${vela.corrected.decimalYear.toFixed(2)} +/- ${sys.toFixed(2)} (systematic; ${vela.corrected.glitchesAdded} glitches, sum ${vela.corrected.sumDfOverF.toExponential(4)}; pre-glitch F1 gives ${pre.decimalYear.toFixed(2)}), ${dVelaCrab.toFixed(2)} yr from the Crab; mean of ${dating.usable.length} usable ${dating.rawMean.toFixed(2)} (s.d. ${dating.rawSd.toFixed(2)}), glitch-corrected ${dating.correctedMean.toFixed(2)} (s.d. ${dating.correctedSd.toFixed(2)}). ${lines.join('; ')}`,
-      expected: 'docs/research/clocks.md section 3a (ATNF v2.9.0 ephemerides; Jodrell Bank glitch table); for Vela, agreement with the Crab',
-      tolerance: 'each raw epoch (and B1727-47 corrected) within 0.05 yr; Vela corrected within its computed systematic plus 0.05 yr of the Crab; mean within 0.3 yr of 1969.7',
-      pass: worst <= 0.05 && dVelaCrab <= sys + 0.05,
-      notes: 'F0 and F1 only, except where F2 implies a physical braking index (only the Crab). Glitches added back after the solved epoch up to and including PEPOCH (a glitch within 1 day after PEPOCH counts as at PEPOCH: the ephemeris is the post-glitch fit; for Vela, ATNF F0 is Dodson, McCulloch and Lewis 2002 pre-glitch nu plus the permanent jump), iterated until stable. The research value 1971.77 added back a glitch (#2, MJD 41192) that precedes the date it solved for and omitted the January 2000 glitch at PEPOCH.',
+      claim: `Today the map dates itself to about 1971: the Crab (${crab.raw.decimalYear.toFixed(2)}) and the glitch-corrected Vela pulsar (${vela.corrected.decimalYear.toFixed(2)}) agree on late 1971, and ${dating.usable.length} pulsars average ${dating.rawMean.toFixed(1)}.`,
+      measured: `Crab ${crab.raw.decimalYear.toFixed(2)}; Vela glitch-corrected ${vela.corrected.decimalYear.toFixed(2)} (ATNF post-glitch F1); ${pre.decimalYear.toFixed(2)} with the pre-glitch F1 (range ${lo.toFixed(2)} to ${hi.toFixed(2)}); ${vela.corrected.glitchesAdded} glitches, sum ${vela.corrected.sumDfOverF.toExponential(4)}; without the PEPOCH glitch ${excluded.decimalYear.toFixed(2)}; ATNF F0 minus Dodson et al. post-glitch nu ${f0Diff.toExponential(1)} Hz; mean of ${dating.usable.length} usable ${dating.rawMean.toFixed(2)} (s.d. ${dating.rawSd.toFixed(2)}), glitch-corrected ${dating.correctedMean.toFixed(2)} (s.d. ${dating.correctedSd.toFixed(2)}). ${lines.join('; ')}`,
+      expected: 'docs/research/clocks.md section 3a (ATNF v2.9.0 ephemerides; Jodrell Bank glitch table); Vela: Dodson, McCulloch and Lewis 2002 Table 1',
+      tolerance: 'each raw epoch (and B1727-47 corrected) within 0.05 yr; Vela F0 equal to the post-glitch nu within its quoted error; the corrected date more than 0.05 yr from the date without the PEPOCH glitch; mean within 0.3 yr of 1969.7',
+      pass: worst <= 0.05 && f0Diff <= f0Tol && dExcl > 0.05,
+      notes: `F0 and F1 only, except where F2 implies a physical braking index (only the Crab). Glitches added back after the solved epoch up to and including PEPOCH (a glitch within 1 day after PEPOCH counts as at PEPOCH: the ephemeris is the post-glitch fit), iterated until stable. Consistency: glitch-corrected Vela lies ${dVelaCrab.toFixed(2)} yr from the Crab, which needs no correction. The research value 1971.77 added back a glitch (#2, MJD 41192) that precedes the date it solved for and omitted the January 2000 glitch at PEPOCH.`,
     });
   });
 
@@ -161,7 +174,7 @@ describe('identification today', () => {
     const ok = ids.every((r) => r.candidates.length === 1 && r.candidates[0]?.view.jname === r.line.jname);
     recordCheck({
       id: 'identify.today',
-      claim: 'Using direction and period together, each map line matches exactly one pulsar in the modern catalogue of 4,503, and it is the right one.',
+      claim: `Using direction and period together, each map line matches exactly one pulsar in the modern catalogue of ${cat.pulsars.length.toLocaleString('en-US')}, and it is the right one.`,
       measured: summary.join('; '),
       expected: 'the identities in Sagan et al. 1972 and Johnston (docs/research/clocks.md section 2)',
       tolerance: 'longitude within 5 deg; map age between 0 and 59 years for some braking index 0.9 to 4, with each period trusted to max(its stated digits, 0.4 ppm)',

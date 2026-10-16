@@ -12,19 +12,32 @@ import type { PulsarCatalogue, PulsarRecord } from './types';
 import { C_KM_S, JULIAN_YEAR_S, PARSEC_KM } from './units';
 
 /**
- * Timing noise (an assumption, stated as one): a spin-down rate measured over a few years is the
+ * Timing noise (the stated model; D-A16 follow-up): a spin-down rate measured over a few years is the
  * long-term rate times (1 + s z), z standard normal. Spin-down rates switch between two states (Lyne
  * et al. 2010, Science 329, 408, Table 1, peak-to-peak dnudot/nudot); for two-state switching the rms
  * is half the peak-to-peak. Map pulsars in that table: B1642-03 2.53% (rms 1.265%) and B0950+08
- * 0.84% (rms 0.42%); no other map pulsar is listed. Every other pulsar takes the median rms of Lyne's
- * 17 (median peak-to-peak 1.69%, B2148+63, so rms 0.845%).
+ * 0.84% (rms 0.42%); no other map pulsar is listed. Every other pulsar's true amplitude is drawn per
+ * realization from Lyne's 17 peak-to-peak values (rms = p-p / 2); the nominal realization uses their
+ * median, 0.85% (B1818-04, the 9th of 17 sorted), so rms 0.425%. The alien monitors its pulsars over
+ * decades and so measures each amplitude itself, with the log-normal error below.
  */
 export const TIMING_NOISE_RMS_BY_JNAME: Readonly<Record<string, number>> = { 'J1645-0317': 0.0253 / 2, 'J0953+0755': 0.0084 / 2 };
-export const TIMING_NOISE_RMS_DEFAULT = 0.0169 / 2;
+export const TIMING_NOISE_RMS_DEFAULT = 0.0085 / 2;
+
+/** Lyne et al. 2010 Table 1 peak-to-peak dnudot/nudot of the 17 pulsars of its Fig. 2 (B1931+24 excluded). */
+export const LYNE2010_PEAK_TO_PEAK: readonly number[] = [
+  0.1328, 0.068, 0.0591, 0.0328, 0.0253, 0.02, 0.0171, 0.0169, 0.0085, 0.0084, 0.0079, 0.0075, 0.0071, 0.0068, 0.0068, 0.0066, 0.0031,
+];
 
 export function timingNoiseSigma(jname: string): number {
   return TIMING_NOISE_RMS_BY_JNAME[jname] ?? TIMING_NOISE_RMS_DEFAULT;
 }
+
+/**
+ * Precision of the alien's own measurement of each pulsar's noise amplitude: log-normal, sigma_ln 0.3
+ * (a model input, a choice labelled as one: the precision of a multi-decade measurement like Lyne's).
+ */
+export const AMPLITUDE_MEAS_LN_SIGMA = 0.3;
 
 /** Characteristic age dividing young from old pulsars, yr (spec; clocks.md 3b: n matters for tau_c below about 1 Myr). */
 export const OLD_TAU_C_YEARS = 300_000;
@@ -79,6 +92,8 @@ export interface AlienPulsar {
   /** Proper motion as the observer measures it (relative to itself), mas/yr (pmra includes cos dec). */
   pmraObs: number | null;
   pmdecObs: number | null;
+  /** The alien's measured timing-noise rms of this pulsar (fractional, on Pdot). */
+  timingNoiseRmsMeas: number;
   /** The catalogue's 1-sigma proper-motion and parallax errors, carried as the alien's own measurement errors. */
   pmraErr: number | null;
   pmdecErr: number | null;
@@ -100,6 +115,8 @@ export interface AlienPulsar {
     /** Change of Pdot between the SSB and the observer: P (|v_t,rel|^2 - |v_t|^2) / (c d). */
     shklovskiiChange: number;
     pdotObs: number | null;
+    /** True timing-noise rms. */
+    timingNoiseRms: number;
     distKpc: number | null;
     pmra: number | null;
     pmdec: number | null;
@@ -121,6 +138,8 @@ export interface ProjectOptions {
   nOldRange?: readonly [number, number];
   /** 'twoState': the measured Pdot sits in one of two switching states, (1 +/- rms), equally likely (red noise). */
   timingNoiseModel?: 'gaussian' | 'twoState';
+  /** The alien's amplitude-measurement error in the truth (default AMPLITUDE_MEAS_LN_SIGMA). */
+  amplitudeMeasLnSigma?: number;
   /** Cumulative glitch spin-up per year (fractional frequency) left in the truth, by J name. */
   glitchSpinUpPerYear?: Readonly<Record<string, number>>;
 }
@@ -185,7 +204,7 @@ const PC_PER_LIGHT_YEAR = (C_KM_S * JULIAN_YEAR_S) / PARSEC_KM;
  * - Shklovskii: the catalogue Pdot contains P v_t^2 / (c d) for the SSB's transverse velocity; the
  *   observer sees P |v_t,rel|^2 / (c d) instead, v_t,rel the pulsar's velocity relative to the
  *   observer, perpendicular to the observer's line of sight.
- * - Timing noise: Pdot_meas = Pdot_obs (1 + s z), s per pulsar (timingNoiseSigma). The period itself is measured to about 1e-12 of
+ * - Timing noise: Pdot_meas = Pdot_obs (1 + s z), s the pulsar's true rms (see timingNoiseSigma). The period itself is measured to about 1e-12 of
  *   P in a year of timing, against the 1e-6 effects modelled here, so it is exact.
  */
 export function projectPulsar(r: PulsarRecord, observer: Observer, opts: ProjectOptions): AlienPulsar | null {
@@ -261,7 +280,11 @@ export function projectPulsar(r: PulsarRecord, observer: Observer, opts: Project
   const pdotObs = pdotSsb === null ? null : pdotSsb + shk;
   const tnRng = measRng.fork('timingNoise');
   const z = opts.timingNoise === false ? 0 : opts.timingNoiseModel === 'twoState' ? (tnRng.uniform() < 0.5 ? -1 : 1) : tnRng.normal();
-  const pdotMeas = pdotObs === null ? null : pdotObs * (1 + timingNoiseSigma(r.jname) * z);
+  const listed = TIMING_NOISE_RMS_BY_JNAME[r.jname];
+  const amp = listed ?? (nominal ? TIMING_NOISE_RMS_DEFAULT
+    : (LYNE2010_PEAK_TO_PEAK[Math.floor(truthRng.fork('noiseAmplitude').uniform() * LYNE2010_PEAK_TO_PEAK.length)] as number) / 2);
+  const ampMeas = amp * Math.exp((opts.amplitudeMeasLnSigma ?? AMPLITUDE_MEAS_LN_SIGMA) * measRng.fork('noiseAmplitude').normal());
+  const pdotMeas = pdotObs === null ? null : pdotObs * (1 + amp * z);
 
   // What the observer measures on the sky.
   const sph = toSpherical(nObs);
@@ -289,13 +312,14 @@ export function projectPulsar(r: PulsarRecord, observer: Observer, opts: Project
     distKpc: r.dist,
     pmraObs,
     pmdecObs,
+    timingNoiseRmsMeas: ampMeas,
     pmraErr: r.pmraErr ?? null,
     pmdecErr: r.pmdecErr ?? null,
     distance: model,
     flags: { noSpinDown: r.p1 === null, noDistance: r.dist === null, noProperMotion: !hasPm, spunDown, noEpoch, binary: r.binary },
     truth: {
       young, n, emissionYear, lightTimeYears, pSsbAtEmission: pSsb, pdotSsbAtEmission: pdotSsb, dopplerFactor, parallaxFactor,
-      shklovskiiChange: shk, pdotObs, distKpc: dTrueKpc, pmra, pmdec, nHatSsb: nSsb,
+      shklovskiiChange: shk, pdotObs, timingNoiseRms: amp, distKpc: dTrueKpc, pmra, pmdec, nHatSsb: nSsb,
     },
   };
 }

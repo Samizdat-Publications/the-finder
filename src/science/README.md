@@ -120,8 +120,10 @@ Tests (`coverMap.test.ts`, `pulsars.test.ts`): the 14 numbers decode to the 1972
 every map angle within 2.7 deg of the pulsar's longitude; the spin-down formula matches a step-by-step
 integration to 1e-9; every implied date in `clocks.md` Table 3a within 0.05 yr (Crab 1971.76; Vela
 1972.21 raw; mean of 13 1969.75, s.d. 1.41); the hydrogen constant changes no date by more than
-0.02 yr. Glitch-corrected Vela is 1971.75 +/- 0.24 (systematic, from the pre- versus post-glitch slope),
-in agreement with the Crab, which needs no correction. The correction adds back every glitch after the
+0.02 yr. Glitch-corrected Vela is 1971.75 with the catalogue's post-glitch slope and 1971.51 with the
+pre-glitch slope (a one-sided range), consistent with the Crab, which needs no correction. The test
+checks the physics directly: the catalogue's Vela frequency is Dodson et al.'s pre-glitch value plus the
+permanent jump, and leaving the January 2000 glitch out gives a different date (1971.82). The correction adds back every glitch after the
 solved date up to and including the catalogue epoch: Vela's catalogue values are the fit just after its
 January 2000 glitch (Dodson, McCulloch and Lewis 2002), so that glitch counts. (The research's 1971.77
 left it out and added one from before the solved date.)
@@ -132,9 +134,11 @@ Every catalogued pulsar as the observatory at Gliese 445 would measure it at the
 forward with a braking index (Crab 2.342 and Vela 1.7 as measured; others drawn from a stated range,
 or 3 in the "nominal" version); the signal's light-travel offset; the Doppler shift from Gliese 445's
 114 km/s; the small change from seeing the pulsar from a slightly different place (parallax) and its
-sideways motion (Shklovskii); timing noise on the slow-down rate (an assumption: half the measured
-peak-to-peak switching, 1.27% for B1642-03 and 0.42% for B0950+08 from Lyne et al. 2010, and 0.85%, the
-median of Lyne's 17 pulsars, for the rest); positions moved by proper
+sideways motion (Shklovskii); timing noise on the slow-down rate (the stated model: each pulsar's
+true amplitude is Lyne et al. 2010's where measured, rms 1.27% for B1642-03 and 0.42% for B0950+08,
+and otherwise drawn per realization from Lyne's 17 peak-to-peak values, rms = half the peak-to-peak;
+the alien measures each amplitude itself with a log-normal error of 0.3, a chosen model input for a
+multi-decade measurement); positions moved by proper
 motion and seen from Gliese 445. Each pulsar draws its own seeded randomness by name, so the order of
 the catalogue never matters. The true values are kept in a separate block that only tests read.
 
@@ -147,17 +151,28 @@ The old pulsars are combined by a robust rule (drop the most inconsistent pulsar
 4 sigma from the rest), the young ones serve as checks. The alternative, `fitAgeAndVelocity`, needs no
 star catalogue: it fits one age and the home star's velocity to the old pulsars together.
 
+The noise amplitude each pulsar is dated with comes from the alien's own measurement of that pulsar,
+combined with what it knows of the population (Lyne's 17 pulsars) as the prior.
+
 Tests (`pulsarEpoch.test.ts`, `pulsarAge.test.ts`): the Doppler sign and size; the light-time bound;
 glitches of the old pulsars below their timing noise; determinism; without the reframe each old
 pulsar is off by exactly the predicted -2 tau_c (V . n) / c (within 1.5%), thousands of years; with
-it, under the stated model, the combined 95% range contains the truth in 95.0% of 300 realizations
-(median half-width about 210 yr, median error 3 yr); B1240-64 is dropped in every realization; the
-young pulsars' ranges hold their truth in 93% to 100% (their braking-index range, 0.9 to 3.2, is a
-judgment call); the velocity fit's 95% region holds the true velocity in 93.5% of 200 realizations
-(vertical component weakest, about 4 km/s rms). When the truth breaks the model (old braking indices
-really 1 to 5, two-state switching noise, the old pulsars' glitches left in) the range still holds the
-truth in 91% to 97% of 100 realizations each (gate 80%). Glitch bias is one-sided and does not average
-down, but it is a few years against a combined sigma of about 110 yr.
+it, under the stated model, the combined 95% range contains the truth in 93.7% of 300 realizations
+(median half-width about 150 yr, median error 0 yr); the young pulsars' ranges hold their truth in 94%
+to 100% (their braking-index range, 0.9 to 3.2, is a judgment call); the velocity fit's 95% region
+holds the true velocity in 90.5% of 200 realizations (vertical component weakest, about 4 km/s rms).
+When the truth breaks the model (old braking indices really 1 to 5, two-state switching noise, the old
+pulsars' glitches left in, amplitudes measured twice as badly as assumed) the range still holds the
+truth in 90% to 97% of 100 realizations each (80% is a chosen floor, four times the stated miss rate).
+Glitch bias is one-sided and does not average down, but it is about 2 yr against a combined sigma of
+about 70 yr. Lesson recorded: giving every pulsar one default amplitude while real amplitudes vary
+would make the error bars too narrow (coverage about 74%).
+
+B1240-64 (the wrong map period): its mean offset, about +3,490 yr, matches the +3,373 yr predicted from
+its 1,232 ppm period error within 300 yr, and the combined coverage above already includes it. It is
+flagged as an outlier in about 81% of realizations overall and in all of those where its own noise
+amplitude is at or below the median of Lyne's 17; when its noise is large, its offset hides inside its
+error bar, and its weight is then too small to spoil the combined date.
 
 ## `triangulation.ts`: where the map was made
 
@@ -169,8 +184,8 @@ noise and redrawn pulsar distances.
 
 Tests (`triangulation.test.ts`): today and 44,000 years on the region contains the Sun (95% semi-axes
 about 15.7 by 7.1 pc, so about 31 by 14 pc across, roughly 1,000 catalogued stars, against Sagan's
-"about 20 pc, 1 in 10^3 stars"); in 200 simulated maps the region contains the true origin 93% of the
-time; the mirrored reading and a swapped identification fit far worse.
+"about 20 pc, 1 in 10^3 stars"); under the stated model, in 200 simulated maps the region contains
+the true origin 93% of the time (the re-estimated angle scatter averages 1.12 deg against a true 1.06); the mirrored reading and a swapped identification fit far worse.
 
 ## `pulsarIdentify.ts`: which pulsar is which, 44,000 years on (match quality)
 
@@ -180,14 +195,14 @@ ages drawn from the RTG clock's range, with an unknown braking index and Doppler
 predicts the number sharply, a young one smears it), its direction (moved back by its own proper
 motion), and its latitude where the map's tick shows one. Map distances are not used (scale unknown,
 off by up to 6 times). The angle scatters are the alien's own estimates from its best matches. Each
-line's answer is its most likely candidate; the margin is the likelihood ratio to the runner-up, and
-the odds compare it with all the other candidates combined.
+line's answer is its most likely candidate; it must beat all the other candidates combined by odds of
+at least 20 (the same rule picks the anchors of pass 2); the margin to the runner-up is also recorded.
 
 Identification today trusts each 1970/71 period to max(its stated digits, 0.4 ppm), the accuracy
 Johnston measured against the 1975 catalogue; with that every line has exactly one candidate.
 B2016+28's implied date, 1966.6, precedes its 1968 discovery: its period was good to about 8 figures.
 
-Pass 2 (the alien's real order of work): the lines matched with a margin of at least 20 become
+Pass 2 (the alien's real order of work): the lines matched with odds of at least 20 become
 anchors; they give the shared age (the pulsar-only fit, which drops B1240-64) and the map's origin
 (leaving a line out when scoring that line). Every line is re-scored with its direction seen from that
 origin and a weak, heavy-tailed distance factor from the map's lengths (scale and spread measured on

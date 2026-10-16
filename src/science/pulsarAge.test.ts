@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { loadCover, loadGlitches, loadPulsars, loadScenario, loadStars } from '../../tests/support/data';
 import { recordCheck } from '../../tests/support/record';
-import { dot, toGalacticCartesian, type Vec3 } from './astro';
+import { dot, mjdToDecimalYear, toGalacticCartesian, type Vec3 } from './astro';
 import { discoveryState, homeObserver } from './epoch';
 import { combineAges, datePulsar, fitAgeAndVelocity, velocityMahalanobis2, type PulsarAge } from './pulsarAge';
-import { drawObserver, projectPulsar, type AlienPulsar } from './pulsarEpoch';
-import { dateMapToday } from './pulsars';
+import { LYNE2010_PEAK_TO_PEAK, drawObserver, projectPulsar, type AlienPulsar } from './pulsarEpoch';
+import { dateMapToday, mapPeriod } from './pulsars';
 import { createRng } from './random';
-import { C_KM_S, JULIAN_YEAR_S, SAGAN_HYDROGEN_HZ } from './units';
+import { C_KM_S, HYDROGEN_HZ, JULIAN_YEAR_S, SAGAN_HYDROGEN_HZ } from './units';
 
 const cover = loadCover();
 const cat = loadPulsars();
@@ -96,6 +96,8 @@ describe('dating at the story epoch without the reframe', () => {
 });
 
 interface Trial {
+  /** True timing-noise rms of each pulsar in this realization, by J name. */
+  truthAmp: Map<string, number>;
   ages: PulsarAge[];
   combined: ReturnType<typeof combineAges>;
   combinedTruth: number;
@@ -118,7 +120,7 @@ function runTrials(n: number, tag: string, truthOpts: TruthOpts = {}): Trial[] {
     const combined = combineAges(old);
     let ct = 0;
     for (const a of combined.kept) ct += (combined.weights.get(a.jname) as number) * truthYears(lines.find((l) => l.jname === a.jname)!.bname);
-    out.push({ ages, combined, combinedTruth: ct });
+    out.push({ truthAmp: new Map(alien.map((a) => [a.jname, a.truth.timingNoiseRms])), ages, combined, combinedTruth: ct });
   }
   return out;
 }
@@ -178,8 +180,9 @@ describe('dating at the story epoch in the Sun\'s rest frame', () => {
   });
 
   it('stays honest when the truth breaks the model (misspecification)', () => {
-    // 100 realizations each: binomial s.e. about 2.2% at 95%, so the 80% gate is about 7 s.e. below
-    // the target; a dishonest interval cannot pass by luck.
+    // 100 realizations each: binomial s.e. about 2.2% at 95%. The 80% floor is a chosen floor, not a
+    // derived one: on a 95% claim it allows four times the stated miss rate. The coverages themselves
+    // are the result and are recorded whatever they are.
     const N = 100;
     // Old-pulsar glitches left in the truth: cumulative spin-up per year. B1642-03: 7 glitches of at
     // most 2.6e-9 in about 40 yr (clocks.md Table 2A, Shabanova 2009), upper size used. Others: the
@@ -197,6 +200,7 @@ describe('dating at the story epoch in the Sun\'s rest frame', () => {
       { name: 'old braking index truly U[1, 5] (estimator assumes U[2, 4])', opts: { nOldRange: [1, 5] } },
       { name: 'two-state switching timing noise (estimator assumes Gaussian)', opts: { timingNoiseModel: 'twoState' } },
       { name: 'old-pulsar glitches left in the truth (estimator ignores them)', opts: { glitchSpinUpPerYear: spin } },
+      { name: 'amplitude measured twice as badly as assumed (truth sigma_ln 0.6, estimator 0.3)', opts: { amplitudeMeasLnSigma: 0.6 } },
     ];
     const rows: string[] = [];
     let ok = true;
@@ -209,6 +213,19 @@ describe('dating at the story epoch in the Sun\'s rest frame', () => {
       if (cov < 0.8) ok = false;
       rows.push(`${c.name}: coverage ${(cov * 100).toFixed(0)}% of ${N}, median error ${medErr.toFixed(0)} yr (model: ${medErrNominal.toFixed(0)} yr), median half-width ${percentile(ts.map((t) => (t.combined.hi - t.combined.lo) / 2), 0.5).toFixed(0)} yr`);
     }
+    // The lesson run: same truth model, but the estimator uses one default amplitude for every pulsar.
+    let lessonHits = 0;
+    for (let r = 0; r < N; r++) {
+      const seed = `misspecified/lesson/${r}`;
+      const alien = realization(seed);
+      const m = drawObserver(observer, createRng(seed).fork('measure/observer'));
+      const ages = lines.map((l, i) => datePulsar(alien[i] as AlienPulsar, l, { seed: `date/${seed}`, draws: DRAWS, reframe: m, noiseAmplitude: 'default' }));
+      const c = combineAges(ages.filter((a) => !a.young));
+      let ct = 0;
+      for (const a of c.kept) ct += (c.weights.get(a.jname) as number) * truthYears(lines.find((l) => l.jname === a.jname)!.bname);
+      if (c.lo <= ct && ct <= c.hi) lessonHits++;
+    }
+    const lessonCov = lessonHits / N;
     // The glitch bias itself, deterministic: one nominal realization dated with and without the glitches.
     const datedWith = (opts: TruthOpts): ReturnType<typeof combineAges> => {
       const alien = realization('glitchShift', { nominal: true, ...opts });
@@ -223,9 +240,9 @@ describe('dating at the story epoch in the Sun\'s rest frame', () => {
       claim: "The pulsar age range stays roughly honest even when the real pulsars break the model's assumptions.",
       measured: rows.join('; '),
       expected: '95% if the model were right',
-      tolerance: 'at least 80% in each case (below that the error bars would be dishonest); 100 realizations each',
+      tolerance: 'a chosen floor of 80% in each case (four times the stated 5% miss rate); 100 realizations each; the coverages are the result',
       pass: ok,
-      notes: `Glitch spin-up rates used: ${Object.entries(spin).map(([k, v]) => `${k} ${v.toExponential(2)}/yr`).join(', ')}. Glitch bias is one-sided and does not average down.`,
+      notes: `Lesson (computed, not gated): ignoring each pulsar's measured noise and giving every pulsar one default amplitude (rms 0.425%) while the truth varies as Lyne's does would make the error bars too narrow: coverage ${(lessonCov * 100).toFixed(0)}% of ${N}. Glitch spin-up rates used: ${Object.entries(spin).map(([k, v]) => `${k} ${v.toExponential(2)}/yr`).join(', ')}. Glitch bias is one-sided and does not average down.`,
     });
     expect(ok).toBe(true);
   });
@@ -238,21 +255,36 @@ describe('dating at the story epoch in the Sun\'s rest frame', () => {
     const offsets = ts.map((t) => (t.ages.find((a) => a.jname === b1240.jname) as PulsarAge).median - truthYears('B1240-64'));
     const m = offsets.reduce((s, x) => s + x, 0) / offsets.length;
     const sdv = Math.sqrt(offsets.reduce((s, x) => s + (x - m) ** 2, 0) / (offsets.length - 1));
+    // Independent prediction: the period B1240-64 really had in 1970.0 (catalogue P0, P1 back from
+    // PEPOCH) minus the map's period, divided by Pdot, is the extra age its wrong number implies.
+    const rec = byJ.get(b1240.jname)!;
+    const pTrue1970 = (rec.p0 as number) + (rec.p1 as number) * (1970.0 - mjdToDecimalYear(rec.pepoch as number)) * JULIAN_YEAR_S;
+    const pMapB = mapPeriod(b1240, HYDROGEN_HZ);
+    const predicted = (pTrue1970 - pMapB) / (rec.p1 as number) / JULIAN_YEAR_S;
+    const ppm = ((pTrue1970 - pMapB) / pTrue1970) * 1e6;
+    // Information, not gated: the flag rate when its drawn amplitude is at or below Lyne's median.
+    const medianRms = [...LYNE2010_PEAK_TO_PEAK].sort((x, y) => x - y)[(LYNE2010_PEAK_TO_PEAK.length - 1) / 2]! / 2;
+    const quiet = ts.filter((t) => (t.truthAmp.get(b1240.jname) as number) <= medianRms);
+    const quietFrac = quiet.filter((t) => t.combined.dropped.some((d) => d.age.jname === b1240.jname)).length / quiet.length;
+    const cov = coverageOf(ts);
+    const ok = Math.abs(m - predicted) <= 300 && cov >= 0.92 && cov <= 0.98;
     recordCheck({
       id: 'dating.epoch.outlier',
-      claim: 'The one map period that was written with false precision (B1240-64) stands out and is rejected automatically.',
-      measured: `dropped in ${(droppedFrac * 100).toFixed(1)}% of ${ts.length} realizations; offset ${m.toFixed(0)} +/- ${sdv.toFixed(0)} yr; another pulsar dropped in ${others} realizations`,
-      expected: 'offset about +3,400 yr (clocks.md 3b point 6)',
-      tolerance: 'dropped in at least 99%; mean offset within 300 yr of 3,400 (spec)',
-      pass: droppedFrac >= 0.99 && Math.abs(m - 3400) <= 300,
+      claim: `The map's one wrong period (B1240-64, known in 1970 to three figures) dates the map about ${(Math.round(m / 100) * 100).toLocaleString('en-US')} years too early; it is caught as an outlier unless that pulsar's own timing noise is large, and it never spoils the combined date.`,
+      measured: `mean offset ${m.toFixed(0)} +/- ${sdv.toFixed(0)} yr over ${ts.length} realizations, predicted ${predicted.toFixed(0)} yr (period error ${ppm.toFixed(0)} ppm); combined coverage with B1240-64 in the data ${(cov * 100).toFixed(1)}% (dating.epoch.coverage). Information: flagged in ${(droppedFrac * 100).toFixed(0)}% overall and in ${(quietFrac * 100).toFixed(0)}% of the ${quiet.length} realizations where its noise rms is at or below Lyne's median (${(medianRms * 100).toFixed(3)}%); another pulsar dropped in ${others} realizations`,
+      expected: 'offset predicted from the 1970 period error, (P_true,1970 - P_map) / Pdot (clocks.md 3b point 6: about +3,400 yr)',
+      tolerance: 'mean offset within 300 yr of the prediction; combined coverage 92% to 98% (D-A20 restated claim)',
+      pass: ok,
     });
-    expect(droppedFrac).toBeGreaterThanOrEqual(0.99);
-    expect(Math.abs(m - 3400)).toBeLessThanOrEqual(300);
+    expect(Math.abs(m - predicted)).toBeLessThanOrEqual(300);
+    expect(cov).toBeGreaterThanOrEqual(0.92);
+    expect(cov).toBeLessThanOrEqual(0.98);
   });
 
   it('the young pulsars are consistent, with wide intervals', () => {
     const ts = trials();
     const out: string[] = [];
+    const widthPct: Record<string, string> = {};
     let ok = true;
     for (const name of ['B0531+21', 'B0833-45', 'B1727-47']) {
       const l = lines.find((x) => x.bname === name)!;
@@ -267,11 +299,12 @@ describe('dating at the story epoch in the Sun\'s rest frame', () => {
       const c = hits / ts.length;
       if (c < 0.9) ok = false;
       const a0 = ts[0]?.ages.find((x) => x.jname === l.jname) as PulsarAge;
+      widthPct[name] = (percentile(widths, 0.5) * 100).toFixed(0);
       out.push(`${name}: coverage ${(c * 100).toFixed(1)}%, median 95% width ${(percentile(widths, 0.5) * 100).toFixed(0)}% of the age (realization 0: [${a0.lo.toFixed(0)}, ${a0.hi.toFixed(0)}] yr, truth ${truth.toFixed(0)})`);
     }
     recordCheck({
       id: 'dating.epoch.young',
-      claim: "The young pulsars (Crab, Vela, B1727-47) agree with the old ones, but their ages are uncertain by tens of percent because their braking is not known.",
+      claim: `The young pulsars agree with the old ones, but their braking is not known, so their 95% age ranges are wide: about ${widthPct['B0531+21']}% of the age for the Crab, ${widthPct['B0833-45']}% for Vela and ${widthPct['B1727-47']}% for B1727-47 (median widths).`,
       measured: out.join('; '),
       expected: 'each interval contains its truth',
       tolerance: 'at least 90% of 300 realizations (spec)',

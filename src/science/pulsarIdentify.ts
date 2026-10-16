@@ -204,7 +204,7 @@ function rankAll(base: readonly BaseLine[]): EpochIdentification {
   return { lines: result, sigmaThetaDeg: sT, sigmaBDeg: sB, iterations };
 }
 
-/** Anchor rule: a pass-1 margin of at least 20 ("strong evidence", Kass and Raftery 1995) or no competitor. */
+/** Anchor rule: pass-1 odds against all other candidates combined of at least 20 ("strong evidence", Kass and Raftery 1995), or no competitor. */
 export const ANCHOR_LOG10_MARGIN = Math.log10(20);
 
 export interface SecondPassInfo {
@@ -239,7 +239,7 @@ export function backProjectedPositionPc(e: AlienPulsar, years: number): Vec3 | n
 }
 
 /**
- * Pass 2 (D-A16 amended), the alien's real order of work. The anchors (pass-1 margin at least 20, or
+ * Pass 2 (D-A16 amended), the alien's real order of work. The anchors (pass-1 odds at least 20, or
  * alone) give the shared age (fitAgeAndVelocity on the old anchors, which drops a wrong map period as
  * an outlier) and the map's origin (triangulation.ts from the anchors' positions back-projected by that
  * age; when scoring an anchor's own line, the fit leaves that line out). Every line is then re-scored:
@@ -252,7 +252,7 @@ export function backProjectedPositionPc(e: AlienPulsar, years: number): Vec3 | n
  * number cannot lose its line to a young impostor; latitude is unchanged.
  */
 function secondPass(base: readonly BaseLine[], pass1: EpochIdentification): { ident: EpochIdentification; info: SecondPassInfo } {
-  const anchors = pass1.lines.filter((m) => m.best !== null && m.log10Margin >= ANCHOR_LOG10_MARGIN);
+  const anchors = pass1.lines.filter((m) => m.best !== null && m.log10Odds >= ANCHOR_LOG10_MARGIN);
   const bestOf = (m: LineMatch): AlienPulsar => (m.best as ScoredCandidate).entry;
   const old = anchors.filter((m) => {
     const e = bestOf(m);

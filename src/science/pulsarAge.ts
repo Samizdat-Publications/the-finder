@@ -7,7 +7,7 @@ import { KMS_PER_MASYR_PC, add, dot, norm, scale, sub, type Vec3 } from './astro
 import type { Observer } from './epoch';
 import { characteristicAgeYears, elapsedFromSpin, mapPeriod, type CandidateView } from './pulsars';
 import {
-  MODEL_DISTANCE_LN_SIGMA, N_PRIOR_OLD, N_PRIOR_YOUNG, OLD_TAU_C_YEARS, cholesky3, drawDistanceKpc, eastNorth, timingNoiseSigma,
+  MODEL_DISTANCE_LN_SIGMA, N_PRIOR_OLD, N_PRIOR_YOUNG, OLD_TAU_C_YEARS, cholesky3, drawDistanceKpc, eastNorth, AMPLITUDE_MEAS_LN_SIGMA, LYNE2010_PEAK_TO_PEAK, TIMING_NOISE_RMS_DEFAULT,
   type AlienPulsar,
 } from './pulsarEpoch';
 import { createRng } from './random';
@@ -32,6 +32,9 @@ export interface DateOptions {
   fixedN?: number;
   /** Monte Carlo over the timing noise (default true). */
   timingNoise?: boolean;
+  /** 'measured' (default): each pulsar's own measured amplitude, marginalised over its log-normal error;
+   * 'default': one default amplitude for every pulsar (only to show why that would be wrong). */
+  noiseAmplitude?: 'measured' | 'default';
   /** Monte Carlo over the map period's one-LSB precision (default true). */
   mapPrecision?: boolean;
   /** Hydrogen frequency the alien reads the map with (default the maser value). */
@@ -48,6 +51,21 @@ export interface PulsarAge {
   sigma: number;
   lo: number;
   hi: number;
+}
+
+/**
+ * The alien's posterior for one pulsar's true noise rms, given its measured rms: the population of
+ * amplitudes (Lyne 2010's 17 peak-to-peak values, rms = p-p / 2) as the prior, times the log-normal
+ * measurement likelihood (AMPLITUDE_MEAS_LN_SIGMA). Returns the 17 rms values and their cumulative
+ * weights. This is the stated model's own generative structure, so the marginalisation is exact under it.
+ */
+export function amplitudePosterior(measRms: number): { rms: number[]; cdf: number[] } {
+  const rms = LYNE2010_PEAK_TO_PEAK.map((p) => p / 2);
+  const w = rms.map((a) => Math.exp(-0.5 * ((Math.log(measRms) - Math.log(a)) / AMPLITUDE_MEAS_LN_SIGMA) ** 2));
+  const tot = w.reduce((x, y) => x + y, 0);
+  let acc = 0;
+  const cdf = w.map((x) => (acc += x / tot));
+  return { rms, cdf };
 }
 
 function quantileSorted(xs: Float64Array, q: number): number {
@@ -95,7 +113,8 @@ const frameCache = new Map<string, { X: Vec3[]; V: Vec3[] }>();
 /**
  * Elapsed time since the map epoch for one pulsar, with a 95% interval from a seeded Monte Carlo over:
  * the braking index (old U[2, 4], young U[0.9, 3.2]; the alien does not know the Crab's or Vela's
- * long-term n), the timing noise (the long-term Pdot is Pdot_meas / (1 + s z), s per pulsar), the map period's
+ * long-term n), the timing noise (the long-term Pdot is Pdot_meas / (1 + s z), s drawn from the pulsar's
+ * amplitude posterior, amplitudePosterior), the map period's
  * one-LSB precision (N + U[-0.5, 0.5] hydrogen periods) and, when reframing, the observer's measured
  * position and velocity (drawn from their covariance, the same draw for every pulsar), the pulsar's
  * distance (parallax error, or a factor 1.3) and proper-motion errors. The reframe inverts
@@ -110,6 +129,11 @@ export function datePulsar(entry: AlienPulsar, line: CoverMapLine, opts: DateOpt
   const young = tau < OLD_TAU_C_YEARS;
   const prior = young ? N_PRIOR_YOUNG : N_PRIOR_OLD;
   const rng = createRng(opts.seed).fork(`pulsar/${entry.jname}`);
+  const post = amplitudePosterior(entry.timingNoiseRmsMeas);
+  const drawAmp = (u: number): number => {
+    const j = post.cdf.findIndex((c) => u <= c);
+    return post.rms[j < 0 ? post.rms.length - 1 : j] as number;
+  };
   const obs = opts.reframe;
   let frame: { X: Vec3[]; V: Vec3[] } | null = null;
   if (obs) {
@@ -128,10 +152,11 @@ export function datePulsar(entry: AlienPulsar, line: CoverMapLine, opts: DateOpt
   for (let k = 0; k < opts.draws; k++) {
     const nb = opts.fixedN ?? prior[0] + (prior[1] - prior[0]) * rng.uniform();
     const z = opts.timingNoise === false ? 0 : rng.normal();
+    const amp = opts.noiseAmplitude === 'default' ? TIMING_NOISE_RMS_DEFAULT : drawAmp(rng.uniform());
     const u = opts.mapPrecision === false ? 0 : rng.uniform() - 0.5;
     const pMap = (line.valueTH + u) / hz;
     let p = entry.pObs;
-    let pdot = entry.pdotMeas / (1 + timingNoiseSigma(entry.jname) * z);
+    let pdot = entry.pdotMeas / (1 + amp * z);
     let lt = 0;
     if (frame && obs) {
       const X = frame.X[k] as Vec3;
@@ -306,7 +331,7 @@ function gaussNewton(pts: readonly FitPoint[], hz: number): { theta: number[]; c
  * pulsars alone (no star catalogue; clocks.md 3b point 4: ageing scales with Pdot, the Doppler shift
  * with P cos theta, so the two separate). Each pulsar's model age uses n = 3 and the Shklovskii change
  * implied by the trial velocity and the measured relative proper motion. Its sigma combines the timing
- * noise (timingNoiseSigma of the age), the braking-index prior U[2, 4] (the spread of ages over n, divided by
+ * noise (the pulsar's measured amplitude times the age), the braking-index prior U[2, 4] (the spread of ages over n, divided by
  * sqrt(12)) and the distance uncertainty of the Shklovskii term. Light time (up to 3.5 yr) and the
  * parallax term (tens of years at most) need the observer's position, unknown here, and are left out.
  * Outliers are removed by leave-one-out prediction: the pulsar whose age is furthest from the fit of
@@ -321,7 +346,10 @@ export function fitAgeAndVelocity(entries: readonly { entry: AlienPulsar; line: 
     const pm = mapPeriod(line, hz);
     const tn = (n: number): number => elapsedFromSpin(entry.pObs, entry.pdotMeas as number, pm, n) / JULIAN_YEAR_S;
     const sN = Math.abs(tn(N_PRIOR_OLD[1]) - tn(N_PRIOR_OLD[0])) / Math.sqrt(12);
-    const sTn = timingNoiseSigma(entry.jname) * t;
+    // Posterior rms of the amplitude (amplitudePosterior): sqrt(E[s^2]).
+    const post = amplitudePosterior(entry.timingNoiseRmsMeas);
+    const es2 = post.rms.reduce((acc, a, j) => acc + a * a * ((post.cdf[j] as number) - (j > 0 ? (post.cdf[j - 1] as number) : 0)), 0);
+    const sTn = Math.sqrt(es2) * t;
     // The Shklovskii term scales as 1/d: its age effect times the relative distance error.
     const rel = entry.distance.kind === 'parallax' ? entry.distance.pxErrMas / entry.distance.pxMas : MODEL_DISTANCE_LN_SIGMA;
     const sD = Math.abs(t - modelAge(pt, V, hz, false)) * rel;

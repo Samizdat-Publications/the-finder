@@ -70,9 +70,13 @@ describe('the pulsar sky at the story epoch (a projection)', () => {
       const a = nomJ.get(l.jname)!;
       return `${b} ${((a.truth.shklovskiiChange / (a.truth.pdotSsbAtEmission as number)) * 100).toFixed(2)}%`;
     });
+    const maxShk = Math.max(...lines.map((l) => {
+      const a = nomJ.get(l.jname)!;
+      return a.truth.pdotSsbAtEmission ? Math.abs(a.truth.shklovskiiChange / a.truth.pdotSsbAtEmission) * 100 : 0;
+    }));
     recordCheck({
       id: 'epoch.pulsars.geometry',
-      claim: 'Seen from Gliese 445 44,000 years from now, the map pulsars have moved by under 2 degrees, their signals arrive up to a few years early or late, and the change in viewpoint alters their slow-down rates by under 1%.',
+      claim: `Seen from Gliese 445 ${Math.round(disc.yearsAfterLaunch).toLocaleString('en-US')} years after launch, the map pulsars have moved by at most ${Math.abs(worst.total).toFixed(1)} degrees, their signals arrive up to ${maxLt.toFixed(1)} years early or late, and the change in viewpoint alters their slow-down rates by at most ${maxShk.toFixed(1)}%.`,
       measured: `largest longitude shift ${worst.total.toFixed(2)} deg (${worst.name}), of which parallax at most ${worstPlx.parallax.toFixed(2)} deg (${worstPlx.name}); largest map-to-sky difference ${worstMap.map.toFixed(2)} deg (${worstMap.name}); largest light-time offset ${maxLt.toFixed(2)} yr (bound |X|/c = ${ltBound.toFixed(2)} yr); Shklovskii change of Pdot: ${shk.join(', ')}`,
       expected: 'clocks.md 3b point 5 (light time) and point 7 (proper motion, 1.6 deg in 40 kyr); spec: Shklovskii about 1% for B0950+08 and B2016+28',
       tolerance: 'longitude shift under the 2 deg allowed for motion in the identification',
@@ -94,12 +98,12 @@ describe('the pulsar sky at the story epoch (a projection)', () => {
     expect(glitchYears).toBeLessThan(timingNoiseYears);
     recordCheck({
       id: 'epoch.pulsars.glitches',
-      claim: "The tiny glitches of the old pulsars change the dating less than their timing noise does, so the projection leaves them out.",
+      claim: `The tiny glitches of the old pulsars change the dating less than their timing noise does (for B1642-03 at most ${glitchYears.toFixed(0)} years against ${timingNoiseYears.toFixed(0)}), so the projection leaves them out; their effect on the combined date is measured in dating.epoch.misspecified.`,
       measured: `B1642-03: at most ${glitchYears.toFixed(0)} yr from glitches over ${years.toFixed(0)} yr, against ${timingNoiseYears.toFixed(0)} yr (1 sigma) from timing noise`,
       expected: 'glitch rate and sizes from clocks.md Table 2A (Shabanova 2009); timing noise rms 1.265% for B1642-03 (half the 2.53% peak-to-peak, Lyne et al. 2010 Table 1)',
       tolerance: 'glitch effect below the timing-noise term',
       pass: glitchYears < timingNoiseYears,
-      notes: 'Glitches always spin a pulsar up, so this is a one-sided bias (the pulsar looks younger) that does not average down across realizations, bounded here by the largest observed size. Through the small weight of B1642-03 in the combined date it moves the combined age by only tens of years at most; dating.epoch.misspecified measures that shift, and the coverage, with old-pulsar glitches left in the truth.',
+      notes: 'Glitches always spin a pulsar up, so this is a one-sided bias (the pulsar looks younger) that does not average down across realizations, bounded here by the largest observed size. The shift of the combined date is measured in dating.epoch.misspecified (one nominal realization dated with and without the glitches).',
     });
   });
 
@@ -131,15 +135,15 @@ describe('identification at the story epoch (likelihood)', () => {
     for (const [k, idr] of [nominal, ...seeds].entries()) {
       for (const m of idr.lines) {
         if (m.best?.entry.jname !== m.line.jname) wrong.push(`${k === 0 ? 'nominal' : `seed ${k - 1}`} ${m.line.bname} -> ${m.best?.entry.jname ?? 'none'}`);
-        if (k > 0) minMargin.set(m.line.bname, Math.min(minMargin.get(m.line.bname) ?? Infinity, m.log10Margin));
+        if (k > 0) minMargin.set(m.line.bname, Math.min(minMargin.get(m.line.bname) ?? Infinity, m.log10Odds));
       }
     }
     // 20: "strong evidence" on the Kass and Raftery (1995, JASA 90, 773) scale of Bayes factors.
-    const weak = nominal.lines.filter((m) => m.log10Margin < Math.log10(20));
+    const weak = nominal.lines.filter((m) => m.log10Odds < Math.log10(20));
     const fmt = (x: number): string => (!Number.isFinite(x) ? 'no competitor' : x > 6 ? '> 10^6' : `10^${x.toFixed(1)}`);
     const p1 = new Map(nominal.pass1.lines.map((m) => [m.line.bname, m]));
     const rows = nominal.lines.map((m) =>
-      `${m.line.bname}: ${m.preselected} pre-selected, runner-up ${m.runnerUp?.entry.jname ?? 'none'}, margin ${fmt(m.log10Margin)}, odds against all others ${fmt(m.log10Odds)} (min over 20 seeds ${fmt(minMargin.get(m.line.bname) ?? Infinity)}; pass 1 ${fmt(p1.get(m.line.bname)?.log10Margin ?? Infinity)})`);
+      `${m.line.bname}: ${m.preselected} pre-selected, runner-up ${m.runnerUp?.entry.jname ?? 'none'}, margin ${fmt(m.log10Margin)}, odds against all others ${fmt(m.log10Odds)} (min odds over 20 seeds ${fmt(minMargin.get(m.line.bname) ?? Infinity)}; pass 1 ${fmt(p1.get(m.line.bname)?.log10Margin ?? Infinity)})`);
     const info = nominal.pass2Info;
     // The Sun in the alien's frame at the map epoch: minus the observer's position then (truth, for the report only).
     const xMap = toGalacticCartesian(sub(observer.posPc, scale(observer.velKmS, KM_S_TO_PC_PER_YEAR * info.fittedAgeYears)));
@@ -147,12 +151,12 @@ describe('identification at the story epoch (likelihood)', () => {
     const pass = wrong.length === 0 && weak.length === 0;
     recordCheck({
       id: 'identify.epoch',
-      claim: "In the alien's catalogue, 44,000 years from now, the most likely pulsar for every map line is the right one, by a strong margin over the next best.",
+      claim: `In the alien's catalogue, ${Math.round(disc.yearsAfterLaunch).toLocaleString('en-US')} years after launch, the most likely pulsar for every map line is the right one, by strong odds over all the alternatives.`,
       measured: `pass 2 (final): sigma_theta ${nominal.sigmaThetaDeg.toFixed(2)} deg, sigma_b ${nominal.sigmaBDeg.toFixed(2)} deg; anchors ${info.anchors.length} (${info.anchors.join(', ')}); fitted age ${info.fittedAgeYears.toFixed(0)} yr (dropped ${info.ageFitDropped.join(', ') || 'none'}); origin ${offset.toFixed(1)} pc from the Sun; length scale ${info.scalePcPerR0.toFixed(0)} pc per R0, sigma_ln ${info.sigmaLn.toFixed(2)}. Pass 1: sigma_theta ${nominal.pass1.sigmaThetaDeg.toFixed(2)} deg. ${rows.join('; ')}${wrong.length ? `; WRONG: ${wrong.join(', ')}` : ''}`,
       expected: 'the 14 identities (Sagan et al. 1972)',
-      tolerance: 'right pulsar on all 14 lines in the nominal and 20 seeded realizations; nominal margin at least 20 (Kass and Raftery 1995, strong evidence)',
+      tolerance: 'right pulsar on all 14 lines in the nominal and 20 seeded realizations; nominal odds against all other candidates combined at least 20 (Kass and Raftery 1995, strong evidence)',
       pass,
-      notes: 'Pass 1: period (how sharply the candidate predicts the map number; Monte Carlo over age in the RTG range, braking index and Doppler) x direction from the observer x latitude where the tick resolves. Pass 2: from the anchors (pass-1 margin at least 20), the shared age (pulsars only) and the map origin (leave-one-out for anchor lines); direction from that origin, plus a heavy-tailed distance factor from the map lengths (Student-t, 2 dof); candidates without a distance get the anchors\' mean distance density. Pre-selection: direction within 5 deg and age range overlapping the RTG age range.',
+      notes: 'Pass 1: period (how sharply the candidate predicts the map number; Monte Carlo over age in the RTG range, braking index and Doppler) x direction from the observer x latitude where the tick resolves. Pass 2: from the anchors (pass-1 odds against all others at least 20), the shared age (pulsars only) and the map origin (leave-one-out for anchor lines); direction from that origin, plus a heavy-tailed distance factor from the map lengths (Student-t, 2 dof); candidates without a distance get the anchors\' mean distance density. Pre-selection: direction within 5 deg and age range overlapping the RTG age range.',
     });
     expect(wrong, wrong.join('; ')).toEqual([]);
     expect(weak.map((m) => m.line.bname), rows.join('; ')).toEqual([]);

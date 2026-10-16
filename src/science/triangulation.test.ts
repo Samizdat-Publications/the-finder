@@ -92,7 +92,7 @@ describe('triangulation today', () => {
     const count = starsInPlane(mapEpochToday).filter((s) => s.id !== 0 && insideRegion(region, s.xy)).length;
     recordCheck({
       id: 'triangulation.today',
-      claim: "The map's 14 directions, fitted onto today's pulsar positions, point back to a small region of the galactic plane that contains the Sun.",
+      claim: `The map's ${pts.length} directions, fitted onto today's pulsar positions, point back to a region of the galactic plane about ${(2 * region.semiAxesPc[0]).toFixed(0)} by ${(2 * region.semiAxesPc[1]).toFixed(0)} pc across that contains the Sun.`,
       measured: `with lengths: ${fmtRegion(region)}; Sun at the ${(regionLevel(region, sun) * 100).toFixed(0)}% contour; ${count} catalogued stars within 30 pc fall inside it. Without lengths: ${fmtRegion(regionNoLen)}`,
       expected: "the Sun (origin of the SSB frame); Sagan's design claim about 20 pc, '1 in 10^3 stars' (cover.md section 3)",
       tolerance: 'Sun inside the 95% region (Monte Carlo over angle noise and distances, 2,000 draws)',
@@ -135,12 +135,12 @@ describe('triangulation today', () => {
     const cov = hits / N;
     recordCheck({
       id: 'triangulation.coverage',
-      claim: 'The size of the map-origin region is honest: in simulated maps it contains the true origin about 95% of the time.',
+      claim: 'Under the stated model, the size of the map-origin region is honest: in simulated maps it contains the true origin about 95% of the time.',
       measured: `coverage ${(cov * 100).toFixed(1)}% over ${N} simulated maps (sigma_theta ${sig.toFixed(2)} deg; mean re-estimated ${(sigmas.reduce((a, b) => a + b, 0) / N).toFixed(2)})`,
       expected: '95%',
       tolerance: '90% to 99% (about 3 binomial standard errors of 1.5% for 200 trials)',
       pass: cov >= 0.9 && cov <= 0.99,
-      notes: 'Simulation under the fitted angle noise and the catalogue distance errors; real map errors may not be Gaussian.',
+      notes: `Under the stated model: simulation with Gaussian angle noise at the fitted sigma_theta and the catalogue distance errors; real map errors may not be Gaussian. The re-estimated sigma_theta averages ${(sigmas.reduce((a, b) => a + b, 0) / N).toFixed(2)} deg against a true ${sig.toFixed(2)} deg in these runs.`,
     });
     expect(cov).toBeGreaterThanOrEqual(0.9);
     expect(cov).toBeLessThanOrEqual(0.99);
@@ -204,7 +204,7 @@ describe('triangulation at the story epoch', () => {
     const count = starsInPlane(disc.decimalYear - elapsed).filter((s) => s.id !== 0 && insideRegion(region, [s.xy[0] - xMapG[0], s.xy[1] - xMapG[1]])).length;
     recordCheck({
       id: 'triangulation.epoch',
-      claim: "Forty-four thousand years on, the alien's own fit of the map still points to a region that contains the Sun.",
+      claim: `${Math.round(disc.yearsAfterLaunch).toLocaleString('en-US')} years after launch, the alien's own fit of the map still points to a region that contains the Sun.`,
       measured: `elapsed ${elapsed.toFixed(0)} yr; ${fmtRegion(region)} (alien frame, origin = Gliese 445 at the map epoch); Sun at (${sun[0].toFixed(1)}, ${sun[1].toFixed(1)}) pc, at the ${(regionLevel(region, sun) * 100).toFixed(0)}% contour; Gliese 445's own map-epoch position ${homeInside ? 'inside' : 'outside'} the region (at the ${(regionLevel(region, home) * 100).toFixed(0)}% contour); ${count} catalogued stars within 30 pc of the Sun inside. Without lengths: ${fmtRegion(regionNoLen)}`,
       expected: "the Sun; Sagan's design claim about 20 pc (cover.md section 3)",
       tolerance: 'Sun inside the 95% region',

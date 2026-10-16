@@ -40,7 +40,7 @@ describe('cover map: the engraved numbers and directions', () => {
     const pass = lines.length === 14 && worst < 1e-9;
     recordCheck({
       id: 'cover.map.periods',
-      claim: "The 14 binary numbers on the map, read in units of hydrogen's 21 cm period, are the pulsar periods published in 1972.",
+      claim: `The ${lines.length} binary numbers on the map, read in units of hydrogen's 21 cm period, are the pulsar periods published in 1972.`,
       measured: `14 of 14 decoded; largest difference ${(worst * 1e9).toFixed(2)} ns`,
       expected: 'Sagan, Salzman Sagan and Drake 1972, Table 1 (1970/71 periods)',
       tolerance: '1 ns (the rounding of the published decimal to whole hydrogen periods, 0.70 ns)',
@@ -63,7 +63,7 @@ describe('cover map: the engraved numbers and directions', () => {
     const pass = worst.d <= 3;
     recordCheck({
       id: 'cover.map.angles',
-      claim: 'Each map line points within 3 degrees of its pulsar\'s galactic longitude, measured counter-clockwise from the galactic-centre line.',
+      claim: `Each map line points within ${worst.d.toFixed(1)} degrees of its pulsar's galactic longitude, measured counter-clockwise from the galactic-centre line.`,
       measured: `largest difference ${worst.d.toFixed(2)} deg (${worst.name})`,
       expected: 'ATNF v2.9.0 galactic longitudes (data/pulsars.json)',
       tolerance: '3 deg (research measurement: 0.2 to 2.7 deg, B1451-68 the largest; cover.md section 2)',
