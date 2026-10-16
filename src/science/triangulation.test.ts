@@ -7,7 +7,7 @@ import {
 } from './astro';
 import { discoveryState, homeObserver } from './epoch';
 import { combineAges, datePulsar } from './pulsarAge';
-import { distanceModel, drawObserver, eastNorth, projectPulsar, type AlienPulsar } from './pulsarEpoch';
+import { distanceModel, drawDistanceKpc, drawObserver, eastNorth, projectPulsar, type AlienPulsar } from './pulsarEpoch';
 import { dateMapToday } from './pulsars';
 import { createRng } from './random';
 import { fitMapOrigin, insideRegion, originRegion, regionLevel, type MapPoint, type OriginRegion } from './triangulation';
@@ -79,7 +79,7 @@ function starsInPlane(year: number): { id: number; xy: [number, number] }[] {
 }
 
 const fmtRegion = (r: OriginRegion): string =>
-  `centre (${r.centerPc[0].toFixed(1)}, ${r.centerPc[1].toFixed(1)}) pc, 95% semi-axes ${r.semiAxesPc[0].toFixed(1)} x ${r.semiAxesPc[1].toFixed(1)} pc (major axis toward l = ${r.majorAxisDeg.toFixed(0)} deg), sigma_theta ${r.fit.sigmaThetaDeg.toFixed(2)} deg, rms ${r.fit.rmsDeg.toFixed(2)} deg`;
+  `about ${(2 * r.semiAxesPc[0]).toFixed(0)} by ${(2 * r.semiAxesPc[1]).toFixed(0)} pc across; centre (${r.centerPc[0].toFixed(1)}, ${r.centerPc[1].toFixed(1)}) pc, 95% semi-axes ${r.semiAxesPc[0].toFixed(1)} x ${r.semiAxesPc[1].toFixed(1)} pc (major axis toward l = ${r.majorAxisDeg.toFixed(0)} deg), sigma_theta ${r.fit.sigmaThetaDeg.toFixed(2)} deg, rms ${r.fit.rmsDeg.toFixed(2)} deg`;
 
 describe('triangulation today', () => {
   const pts = pointsToday();
@@ -101,6 +101,49 @@ describe('triangulation today', () => {
     });
     expect(inside).toBe(true);
     expect(insideRegion(regionNoLen, sun)).toBe(true);
+  });
+
+  it('the 95% region is honest: it contains the true origin about 95% of the time', () => {
+    // Simulated maps drawn from today's catalogue positions with the Sun (0, 0) as the true origin and
+    // no rotation: angles = true bearings + N(0, sigma_theta) at the fitted sigma_theta; the identifier's
+    // distances drawn from their error models; lengths = true in-plane distance x exp(N(0, gamma)) at
+    // the fitted length scale. 200 realizations (binomial s.e. 1.5% at 95%), 200 bootstrap draws inside
+    // each (the 2x2 covariance then carries about 10% error per variance, about 5% on the ellipse radius,
+    // a coverage shift of about 1 point), to stay within the time budget.
+    const N = 200;
+    const sig = region.fit.sigmaThetaDeg;
+    const gam = region.fit.lengthScale;
+    const rng = createRng('triangulation.coverage');
+    let hits = 0;
+    const sigmas: number[] = [];
+    for (let k = 0; k < N; k++) {
+      const sim = pts.map((p) => {
+        const f = drawDistanceKpc(p.distKpc, p.distance, rng) / p.distKpc;
+        const r = Math.hypot(p.posPc[0], p.posPc[1]);
+        const bearing = (Math.atan2(p.posPc[1], p.posPc[0]) * 180) / Math.PI;
+        return {
+          ...p,
+          angleDeg: bearing + sig * rng.normal(),
+          rOverR0: (r / 10_000) * Math.exp(gam * rng.normal()),
+          posPc: [p.posPc[0] * f, p.posPc[1] * f, p.posPc[2] * f] as Vec3,
+        };
+      });
+      const reg = originRegion(sim, { draws: 200, seed: `triangulation.coverage/${k}` });
+      if (insideRegion(reg, [0, 0])) hits++;
+      sigmas.push(reg.fit.sigmaThetaDeg);
+    }
+    const cov = hits / N;
+    recordCheck({
+      id: 'triangulation.coverage',
+      claim: 'The size of the map-origin region is honest: in simulated maps it contains the true origin about 95% of the time.',
+      measured: `coverage ${(cov * 100).toFixed(1)}% over ${N} simulated maps (sigma_theta ${sig.toFixed(2)} deg; mean re-estimated ${(sigmas.reduce((a, b) => a + b, 0) / N).toFixed(2)})`,
+      expected: '95%',
+      tolerance: '90% to 99% (about 3 binomial standard errors of 1.5% for 200 trials)',
+      pass: cov >= 0.9 && cov <= 0.99,
+      notes: 'Simulation under the fitted angle noise and the catalogue distance errors; real map errors may not be Gaussian.',
+    });
+    expect(cov).toBeGreaterThanOrEqual(0.9);
+    expect(cov).toBeLessThanOrEqual(0.99);
   });
 
   it('the mirrored reading fits far worse', () => {

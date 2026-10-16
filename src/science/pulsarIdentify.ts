@@ -49,6 +49,8 @@ export interface LineMatch {
   runnerUp: ScoredCandidate | null;
   /** log10 of the likelihood ratio of best to runner-up; Infinity when there is no competitor. */
   log10Margin: number;
+  /** log10 of the odds of the best candidate against all the others combined (sum of their likelihoods); Infinity when alone. */
+  log10Odds: number;
 }
 
 export interface EpochIdentification {
@@ -181,7 +183,14 @@ function rankAll(base: readonly BaseLine[]): EpochIdentification {
         .sort((x, y) => (y.logLikelihood - x.logLikelihood) || (x.entry.jname < y.entry.jname ? -1 : 1));
       const best = ranked[0] ?? null;
       const runnerUp = ranked[1] ?? null;
-      return { line: b.line, preselected: b.preselected, ranked, best, runnerUp, log10Margin: best && runnerUp ? (best.logLikelihood - runnerUp.logLikelihood) / Math.LN10 : Infinity };
+      const others = ranked.slice(1).map((c) => c.logLikelihood).filter((v) => v > -Infinity);
+      const mx = others.length ? Math.max(...others) : -Infinity;
+      const lseOthers = others.length ? mx + Math.log(others.reduce((acc, v) => acc + Math.exp(v - mx), 0)) : -Infinity;
+      return {
+        line: b.line, preselected: b.preselected, ranked, best, runnerUp,
+        log10Margin: best && runnerUp ? (best.logLikelihood - runnerUp.logLikelihood) / Math.LN10 : Infinity,
+        log10Odds: best ? (best.logLikelihood - lseOthers) / Math.LN10 : -Infinity,
+      };
     });
     const lon = result.filter((r) => r.best).map((r) => (r.best as ScoredCandidate).dLonDeg);
     const lat = result.filter((r) => r.best && r.best.dLatDeg !== null).map((r) => (r.best as ScoredCandidate).dLatDeg as number);

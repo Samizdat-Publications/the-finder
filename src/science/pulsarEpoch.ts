@@ -12,12 +12,19 @@ import type { PulsarCatalogue, PulsarRecord } from './types';
 import { C_KM_S, JULIAN_YEAR_S, PARSEC_KM } from './units';
 
 /**
- * Timing noise: one-sigma fractional error of a spin-down rate measured over a few years. Spin-down
- * rates switch between discrete values, 0.84% (B0950+08) to 2.53% (B1642-03) peak to peak, "about 1%
- * of the mean value" (Lyne et al. 2010, Science 329, 408; clocks.md 3b point 3). One sigma of 1% is
- * conservative against an rms of about half the peak-to-peak.
+ * Timing noise (an assumption, stated as one): a spin-down rate measured over a few years is the
+ * long-term rate times (1 + s z), z standard normal. Spin-down rates switch between two states (Lyne
+ * et al. 2010, Science 329, 408, Table 1, peak-to-peak dnudot/nudot); for two-state switching the rms
+ * is half the peak-to-peak. Map pulsars in that table: B1642-03 2.53% (rms 1.265%) and B0950+08
+ * 0.84% (rms 0.42%); no other map pulsar is listed. Every other pulsar takes the median rms of Lyne's
+ * 17 (median peak-to-peak 1.69%, B2148+63, so rms 0.845%).
  */
-export const TIMING_NOISE_SIGMA = 0.01;
+export const TIMING_NOISE_RMS_BY_JNAME: Readonly<Record<string, number>> = { 'J1645-0317': 0.0253 / 2, 'J0953+0755': 0.0084 / 2 };
+export const TIMING_NOISE_RMS_DEFAULT = 0.0169 / 2;
+
+export function timingNoiseSigma(jname: string): number {
+  return TIMING_NOISE_RMS_BY_JNAME[jname] ?? TIMING_NOISE_RMS_DEFAULT;
+}
 
 /** Characteristic age dividing young from old pulsars, yr (spec; clocks.md 3b: n matters for tau_c below about 1 Myr). */
 export const OLD_TAU_C_YEARS = 300_000;
@@ -33,9 +40,11 @@ export const MEASURED_BRAKING_INDEX: Readonly<Record<string, number>> = { 'J0534
  * Braking-index priors (also the truth draws for unmeasured pulsars).
  * Old: U[2, 4], a broad range around the magnetic-dipole value 3; for tau_c above 1 Myr the age
  * changes by at most about 1.1% per unit n (clocks.md 3b table).
- * Young: U[0.9, 3.2], the range of measured young-pulsar braking indices: lowest 0.9 +/- 0.2 for
- * PSR J1734-3333 (Espinoza et al. 2011, ApJL 741, L13), highest 3.15 +/- 0.03 for PSR J1640-4631
- * (Archibald et al. 2016, ApJL 819, L16); compilation in Hamil, Stone and Urbanec 2015 (PRD 91, 063007).
+ * Young: U[0.9, 3.2], a judgment call spanning most measured young-pulsar braking indices: 0.9 +/- 0.2
+ * for PSR J1734-3333 (Espinoza et al. 2011, ApJL 741, L13) to 3.15 +/- 0.03 for PSR J1640-4631
+ * (Archibald et al. 2016, ApJL 819, L16); compilation in Hamil, Stone, Urbanec and Urbancova 2015
+ * (PRD 91, 063007). Lower values exist after outbursts (J1846-0258 about 0.65, Archibald et al. 2015;
+ * B0540-69 near 0 after 2011), so the range is not exhaustive.
  */
 export const N_PRIOR_OLD: readonly [number, number] = [2, 4];
 export const N_PRIOR_YOUNG: readonly [number, number] = [0.9, 3.2];
@@ -107,6 +116,13 @@ export interface ProjectOptions {
   parallax?: boolean;
   shklovskii?: boolean;
   timingNoise?: boolean;
+  // Misspecification options (truth differs from the estimator's model; dating.epoch.misspecified):
+  /** Truth braking-index range for old pulsars instead of N_PRIOR_OLD. */
+  nOldRange?: readonly [number, number];
+  /** 'twoState': the measured Pdot sits in one of two switching states, (1 +/- rms), equally likely (red noise). */
+  timingNoiseModel?: 'gaussian' | 'twoState';
+  /** Cumulative glitch spin-up per year (fractional frequency) left in the truth, by J name. */
+  glitchSpinUpPerYear?: Readonly<Record<string, number>>;
 }
 
 /** How a catalogue distance was obtained, and so how uncertain it is. */
@@ -169,7 +185,7 @@ const PC_PER_LIGHT_YEAR = (C_KM_S * JULIAN_YEAR_S) / PARSEC_KM;
  * - Shklovskii: the catalogue Pdot contains P v_t^2 / (c d) for the SSB's transverse velocity; the
  *   observer sees P |v_t,rel|^2 / (c d) instead, v_t,rel the pulsar's velocity relative to the
  *   observer, perpendicular to the observer's line of sight.
- * - Timing noise: Pdot_meas = Pdot_obs (1 + 0.01 z). The period itself is measured to about 1e-12 of
+ * - Timing noise: Pdot_meas = Pdot_obs (1 + s z), s per pulsar (timingNoiseSigma). The period itself is measured to about 1e-12 of
  *   P in a year of timing, against the 1e-6 effects modelled here, so it is exact.
  */
 export function projectPulsar(r: PulsarRecord, observer: Observer, opts: ProjectOptions): AlienPulsar | null {
@@ -209,7 +225,7 @@ export function projectPulsar(r: PulsarRecord, observer: Observer, opts: Project
   const tau = r.p1 !== null && r.p1 > 0 ? characteristicAgeYears(r.p0, r.p1) : Infinity;
   const young = tau < OLD_TAU_C_YEARS;
   const measured = MEASURED_BRAKING_INDEX[r.jname];
-  const prior = young ? N_PRIOR_YOUNG : N_PRIOR_OLD;
+  const prior = young ? N_PRIOR_YOUNG : (opts.nOldRange ?? N_PRIOR_OLD);
   const n = measured ?? (nominal ? N_NOMINAL : prior[0] + (prior[1] - prior[0]) * truthRng.fork('n').uniform());
   const tS = (emissionYear - tPe) * JULIAN_YEAR_S;
   let pSsb: number;
@@ -223,7 +239,8 @@ export function projectPulsar(r: PulsarRecord, observer: Observer, opts: Project
     pdotSsb = r.p1;
   } else {
     const s = spinForward(r.p0, r.p1, n, tS);
-    pSsb = s.p;
+    // Optional glitches left in the truth: the cumulative spin-up shortens the period.
+    pSsb = s.p / (1 + (opts.glitchSpinUpPerYear?.[r.jname] ?? 0) * (emissionYear - tPe));
     pdotSsb = s.pdot;
   }
   const spunDown = !Number.isFinite(pSsb);
@@ -242,8 +259,9 @@ export function projectPulsar(r: PulsarRecord, observer: Observer, opts: Project
     shk = (pSsb * (dot(vtRel, vtRel) - dot(vt, vt))) / (C_KM_S * dPc * PARSEC_KM);
   }
   const pdotObs = pdotSsb === null ? null : pdotSsb + shk;
-  const z = opts.timingNoise === false ? 0 : measRng.fork('timingNoise').normal();
-  const pdotMeas = pdotObs === null ? null : pdotObs * (1 + TIMING_NOISE_SIGMA * z);
+  const tnRng = measRng.fork('timingNoise');
+  const z = opts.timingNoise === false ? 0 : opts.timingNoiseModel === 'twoState' ? (tnRng.uniform() < 0.5 ? -1 : 1) : tnRng.normal();
+  const pdotMeas = pdotObs === null ? null : pdotObs * (1 + timingNoiseSigma(r.jname) * z);
 
   // What the observer measures on the sky.
   const sph = toSpherical(nObs);

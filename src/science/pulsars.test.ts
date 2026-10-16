@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadCover, loadGlitches, loadPulsars } from '../../tests/support/data';
 import { recordCheck } from '../../tests/support/record';
 import {
-  catalogueViewToday, dateMapToday, elapsedFromSpin, honestHalfWidth1970, identifyLines, impliedEpoch, mapPeriod, spinForward,
+  catalogueViewToday, dateMapToday, type MapDatingRow, elapsedFromSpin, honestHalfWidth1970, identifyLines, impliedEpoch, mapPeriod, spinForward,
 } from './pulsars';
 import { HYDROGEN_HZ, JULIAN_YEAR_S, SAGAN_HYDROGEN_HZ } from './units';
 
@@ -12,10 +12,12 @@ const byJ = new Map(cat.pulsars.map((p) => [p.jname, p]));
 const glitches = loadGlitches().pulsars;
 
 // docs/research/clocks.md section 3a table ("Implied epoch"), decimal years. Crab: 1971.76 (the
-// research's F0-F3 solution; dating.py prints 1971.75 with F2). Vela and B1727-47 also glitch-corrected.
+// research's F0-F3 solution; dating.py prints 1971.75 with F2). B1727-47 also glitch-corrected. Vela's
+// glitch-corrected value is checked against the Crab instead (see below): the research's 1971.77 omitted
+// the January 2000 glitch at PEPOCH and included one that precedes the date it solved for.
 const TABLE_3A: Record<string, { raw: number; corrected?: number }> = {
   'B0531+21': { raw: 1971.76 },
-  'B0833-45': { raw: 1972.21, corrected: 1971.77 },
+  'B0833-45': { raw: 1972.21 },
   'B1727-47': { raw: 1970.64, corrected: 1970.09 },
   'B0525+21': { raw: 1968.94 },
   'B1933+16': { raw: 1970.19 },
@@ -84,16 +86,26 @@ describe('dating the map today (clocks.md 3a)', () => {
       }
       lines.push(s);
     }
-    const crab = dating.rows.find((r) => r.line.bname === 'B0531+21');
-    const vela = dating.rows.find((r) => r.line.bname === 'B0833-45');
+    const crab = dating.rows.find((r) => r.line.bname === 'B0531+21') as MapDatingRow;
+    const vela = dating.rows.find((r) => r.line.bname === 'B0833-45') as MapDatingRow;
+    // Vela's systematic, computed: the PEPOCH glitch changed F1 by df1/f1 (Jodrell Bank table); re-solving
+    // with the pre-glitch slope F1 / (1 + df1/f1) shows how much the date depends on which F1 is used.
+    const pepochGlitch = (glitches[vela.line.jname] ?? []).find((g) => Math.abs(g.mjd - (vela.pulsar.pepoch as number)) <= 1);
+    const df1 = pepochGlitch?.df1OverF1 ?? 0;
+    const pre = impliedEpoch({ ...vela.pulsar, f1: (vela.pulsar.f1 as number) / (1 + df1) }, vela.pMap, { glitches: glitches[vela.line.jname] ?? [] });
+    const sys = Math.abs(pre.decimalYear - vela.corrected.decimalYear);
+    const dVelaCrab = Math.abs(vela.corrected.decimalYear - crab.raw.decimalYear);
+    // Independent check: glitch-corrected Vela agrees with the Crab (no glitch correction needed) within
+    // that systematic plus the 0.05 yr research rounding.
+    expect(dVelaCrab).toBeLessThanOrEqual(sys + 0.05);
     recordCheck({
       id: 'dating.today',
       claim: 'Today the map dates itself to about 1971: the Crab and the glitch-corrected Vela pulsar agree on late 1971, and 13 pulsars average 1969.7.',
-      measured: `Crab ${crab?.raw.decimalYear.toFixed(2)}, Vela glitch-corrected ${vela?.corrected.decimalYear.toFixed(2)}; mean of ${dating.usable.length} usable ${dating.rawMean.toFixed(2)} (s.d. ${dating.rawSd.toFixed(2)}), glitch-corrected ${dating.correctedMean.toFixed(2)} (s.d. ${dating.correctedSd.toFixed(2)}). ${lines.join('; ')}`,
-      expected: 'docs/research/clocks.md section 3a (ATNF v2.9.0 ephemerides; Jodrell Bank glitch table)',
-      tolerance: 'each epoch within 0.05 yr; mean within 0.3 yr of 1969.7',
-      pass: worst <= 0.05,
-      notes: 'F0 and F1 only, except where F2 implies a physical braking index (only the Crab); glitches added back strictly between the solved epoch and PEPOCH, iterated until stable. Vela: 13 glitches give 1971.82; the research value 1971.77 also added back glitch #2 (MJD 41192), which precedes the date it solved for (MJD 41234), so it is not self-consistent (D-A16).',
+      measured: `Crab ${crab.raw.decimalYear.toFixed(2)}; Vela glitch-corrected ${vela.corrected.decimalYear.toFixed(2)} +/- ${sys.toFixed(2)} (systematic; ${vela.corrected.glitchesAdded} glitches, sum ${vela.corrected.sumDfOverF.toExponential(4)}; pre-glitch F1 gives ${pre.decimalYear.toFixed(2)}), ${dVelaCrab.toFixed(2)} yr from the Crab; mean of ${dating.usable.length} usable ${dating.rawMean.toFixed(2)} (s.d. ${dating.rawSd.toFixed(2)}), glitch-corrected ${dating.correctedMean.toFixed(2)} (s.d. ${dating.correctedSd.toFixed(2)}). ${lines.join('; ')}`,
+      expected: 'docs/research/clocks.md section 3a (ATNF v2.9.0 ephemerides; Jodrell Bank glitch table); for Vela, agreement with the Crab',
+      tolerance: 'each raw epoch (and B1727-47 corrected) within 0.05 yr; Vela corrected within its computed systematic plus 0.05 yr of the Crab; mean within 0.3 yr of 1969.7',
+      pass: worst <= 0.05 && dVelaCrab <= sys + 0.05,
+      notes: 'F0 and F1 only, except where F2 implies a physical braking index (only the Crab). Glitches added back after the solved epoch up to and including PEPOCH (a glitch within 1 day after PEPOCH counts as at PEPOCH: the ephemeris is the post-glitch fit; for Vela, ATNF F0 is Dodson, McCulloch and Lewis 2002 pre-glitch nu plus the permanent jump), iterated until stable. The research value 1971.77 added back a glitch (#2, MJD 41192) that precedes the date it solved for and omitted the January 2000 glitch at PEPOCH.',
     });
   });
 

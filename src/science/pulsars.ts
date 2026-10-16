@@ -71,6 +71,9 @@ export function f2BrakingIndex(p: Pick<PulsarRecord, 'f0' | 'f1' | 'f2'>): numbe
   return (p.f0 * p.f2) / (p.f1 * p.f1);
 }
 
+/** A glitch this many days after PEPOCH is taken as at PEPOCH (post-glitch ephemeris; see impliedEpoch). */
+export const POST_GLITCH_EPOCH_DAYS = 1;
+
 export interface ImpliedEpoch {
   mjd: number;
   decimalYear: number;
@@ -82,10 +85,13 @@ export interface ImpliedEpoch {
 
 /**
  * The date when the ATNF ephemeris nu(t) = F0 + F1 dt + F2 dt^2 / 2 + F3 dt^3 / 6 equals 1 / pMap.
- * Optional glitch correction (clocks.md 3a, Vela and B1727-47): every glitch strictly between the
- * solved epoch and PEPOCH raised nu by dfOverF x nu, so before it the pulsar spun slower than the
+ * Optional glitch correction (clocks.md 3a, Vela and B1727-47): every glitch after the solved epoch,
+ * up to and including PEPOCH, raised nu by dfOverF x nu, so before it the pulsar spun slower than the
  * back-extrapolation; adding those jumps to the target and re-solving, until the set of glitches in
- * the window stops changing, gives the corrected epoch.
+ * the window stops changing, gives the corrected epoch. A glitch up to POST_GLITCH_EPOCH_DAYS after
+ * PEPOCH counts as at PEPOCH: an ephemeris referenced to a glitch epoch is the post-glitch fit (an
+ * assumption, true for Vela: ATNF's F0 at MJD 51559.319 is Dodson, McCulloch and Lewis 2002's
+ * pre-glitch nu plus the permanent jump of the January 2000 glitch).
  */
 export function impliedEpoch(p: PulsarRecord, pMap: number, opts: { glitches?: readonly GlitchRecord[] } = {}): ImpliedEpoch {
   if (p.f0 === null || p.f1 === null || p.pepoch === null) throw new Error(`impliedEpoch: ${p.jname} lacks F0, F1 or PEPOCH`);
@@ -115,7 +121,7 @@ export function impliedEpoch(p: PulsarRecord, pMap: number, opts: { glitches?: r
   const glitches = opts.glitches ?? [];
   for (let iter = 0; iter < 50; iter++) {
     const mjd = pepoch + dt / 86_400;
-    const inWindow = glitches.filter((g) => g.mjd > mjd && g.mjd < pepoch);
+    const inWindow = glitches.filter((g) => g.mjd > mjd && g.mjd <= pepoch + POST_GLITCH_EPOCH_DAYS);
     const same = inWindow.length === used.length && inWindow.every((g, i) => g === used[i]);
     if (same && iter > 0) break;
     used = inWindow;

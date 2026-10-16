@@ -9,7 +9,7 @@ import type { Vec3 } from './astro';
 import { drawDistanceKpc, type DistanceModel } from './pulsarEpoch';
 import { wrapDeg } from './pulsars';
 import { createRng } from './random';
-import { chiSquareCdf } from './stats';
+import { chiSquareCdf, erfc } from './stats';
 
 const DEG = Math.PI / 180;
 
@@ -56,6 +56,17 @@ export interface OriginFit {
  * capping the pull of any one line (Huber 1964; the standard choice).
  */
 export const HUBER_K = 1.345;
+
+/**
+ * E[psi(Z)^2] for psi the Huber function at HUBER_K and Z standard normal:
+ * 2 Phi(k) - 1 - 2 k phi(k) + 2 k^2 (1 - Phi(k)) (Huber 1981, Robust Statistics, section 7.7).
+ */
+export const HUBER_BETA = (() => {
+  const k = HUBER_K;
+  const phi = Math.exp(-0.5 * k * k) / Math.sqrt(2 * Math.PI);
+  const Phi = 1 - 0.5 * erfc(k / Math.SQRT2);
+  return 2 * Phi - 1 - 2 * k * phi + 2 * k * k * (1 - Phi);
+})();
 
 function residuals(points: readonly MapPoint[], th: readonly number[]): { ang: number[]; len: number[]; dAng: number[][]; dLen: number[][] } {
   const [x, y, a, ls] = th as [number, number, number, number];
@@ -105,7 +116,8 @@ function solve4(A: number[][], b: number[]): number[] {
 /**
  * One robust fit by iteratively reweighted Gauss-Newton: Huber weights on the angle residuals
  * (scale sigma_theta), Cauchy weights on the log-length residuals (scale gamma). When not given,
- * sigma_theta is re-estimated each pass from the weighted residuals, sqrt(sum w r^2 / (sum w - 3)),
+ * sigma_theta is re-estimated each pass by Huber's Proposal 2 (consistent for Gaussian errors, with
+ * n - 3 degrees of freedom for the origin and rotation),
  * and gamma as the median absolute log-length residual (the Cauchy scale is its MAD).
  */
 function fitOnce(points: readonly MapPoint[], start: number[], opts: FitOptions): OriginFit {
@@ -121,8 +133,10 @@ function fitOnce(points: readonly MapPoint[], start: number[], opts: FitOptions)
     const r = residuals(points, th);
     const wA = r.ang.map((v) => Math.min(1, (HUBER_K * sig) / Math.max(Math.abs(v), 1e-12)));
     if (opts.sigmaThetaDeg === undefined) {
-      const sw = wA.reduce((s, w) => s + w, 0);
-      sig = Math.max(1e-3, Math.sqrt(r.ang.reduce((s, v, i) => s + (wA[i] as number) * v * v, 0) / Math.max(sw - 3, 1)));
+      // Huber's Proposal 2: sigma^2 = sum psi(r / sigma)^2 sigma^2 / ((n - 3) beta), psi(u) = clip(u, -k, k),
+      // beta = E[psi(Z)^2] for a standard normal Z, which makes the scale consistent for Gaussian errors.
+      const psi2 = r.ang.reduce((acc, v) => acc + Math.min((v / sig) ** 2, HUBER_K * HUBER_K), 0);
+      sig = Math.max(1e-3, sig * Math.sqrt(psi2 / (Math.max(r.ang.length - 3, 1) * HUBER_BETA)));
     }
     if (useL && opts.lengthScale === undefined) gam = Math.max(1e-3, median(r.len.map((v) => Math.abs(v - median(r.len)))));
     const wL = r.len.map((v) => 1 / (1 + (v / gam) ** 2));

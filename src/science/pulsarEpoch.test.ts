@@ -4,7 +4,7 @@ import { recordCheck } from '../../tests/support/record';
 import { KM_S_TO_PC_PER_YEAR, dot, scale, sub, toGalacticCartesian } from './astro';
 import { ageFromTh230U234, rtgState, simulateRtgMeasurement } from './clocks';
 import { discoveryState, homeObserver } from './epoch';
-import { TIMING_NOISE_SIGMA, projectCatalogue, projectPulsar } from './pulsarEpoch';
+import { projectCatalogue, projectPulsar, timingNoiseSigma } from './pulsarEpoch';
 import { identifyAtEpoch } from './pulsarIdentify';
 import { wrapDeg } from './pulsars';
 import { createRng } from './random';
@@ -90,16 +90,16 @@ describe('the pulsar sky at the story epoch (a projection)', () => {
     const fracUpper = (7 / 40) * years * 2.6e-9;
     const tauC = (p.p0 as number) / (2 * (p.p1 as number)) / JULIAN_YEAR_S;
     const glitchYears = fracUpper * 2 * tauC;
-    const timingNoiseYears = TIMING_NOISE_SIGMA * years;
+    const timingNoiseYears = timingNoiseSigma('J1645-0317') * years;
     expect(glitchYears).toBeLessThan(timingNoiseYears);
     recordCheck({
       id: 'epoch.pulsars.glitches',
       claim: "The tiny glitches of the old pulsars change the dating less than their timing noise does, so the projection leaves them out.",
       measured: `B1642-03: at most ${glitchYears.toFixed(0)} yr from glitches over ${years.toFixed(0)} yr, against ${timingNoiseYears.toFixed(0)} yr (1 sigma) from timing noise`,
-      expected: 'glitch rate and sizes from clocks.md Table 2A (Shabanova 2009); timing noise 1% (Lyne et al. 2010)',
+      expected: 'glitch rate and sizes from clocks.md Table 2A (Shabanova 2009); timing noise rms 1.265% for B1642-03 (half the 2.53% peak-to-peak, Lyne et al. 2010 Table 1)',
       tolerance: 'glitch effect below the timing-noise term',
       pass: glitchYears < timingNoiseYears,
-      notes: 'Glitches always spin a pulsar up, so this is a one-sided bias (the pulsar looks younger), bounded here by the largest observed size.',
+      notes: 'Glitches always spin a pulsar up, so this is a one-sided bias (the pulsar looks younger) that does not average down across realizations, bounded here by the largest observed size. Through the small weight of B1642-03 in the combined date it moves the combined age by only tens of years at most; dating.epoch.misspecified measures that shift, and the coverage, with old-pulsar glitches left in the truth.',
     });
   });
 
@@ -139,7 +139,7 @@ describe('identification at the story epoch (likelihood)', () => {
     const fmt = (x: number): string => (!Number.isFinite(x) ? 'no competitor' : x > 6 ? '> 10^6' : `10^${x.toFixed(1)}`);
     const p1 = new Map(nominal.pass1.lines.map((m) => [m.line.bname, m]));
     const rows = nominal.lines.map((m) =>
-      `${m.line.bname}: ${m.preselected} pre-selected, runner-up ${m.runnerUp?.entry.jname ?? 'none'}, margin ${fmt(m.log10Margin)} (min over 20 seeds ${fmt(minMargin.get(m.line.bname) ?? Infinity)}; pass 1 ${fmt(p1.get(m.line.bname)?.log10Margin ?? Infinity)})`);
+      `${m.line.bname}: ${m.preselected} pre-selected, runner-up ${m.runnerUp?.entry.jname ?? 'none'}, margin ${fmt(m.log10Margin)}, odds against all others ${fmt(m.log10Odds)} (min over 20 seeds ${fmt(minMargin.get(m.line.bname) ?? Infinity)}; pass 1 ${fmt(p1.get(m.line.bname)?.log10Margin ?? Infinity)})`);
     const info = nominal.pass2Info;
     // The Sun in the alien's frame at the map epoch: minus the observer's position then (truth, for the report only).
     const xMap = toGalacticCartesian(sub(observer.posPc, scale(observer.velKmS, KM_S_TO_PC_PER_YEAR * info.fittedAgeYears)));
