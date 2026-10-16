@@ -8,11 +8,11 @@ reviewed (layout pass in flight); M4 started. Update after every meaningful chun
 **M4: Where and when (The Map, The Spot, The Trail, the reframed dating).** Plan: `docs/plans/M4.md`;
 specs in `docs/plans/M4_specs/`. Done: D-A23 (the spot's position), step 2 (the galaxy and neighbourhood
 charts), the 13 M4 deductions in the graph (chapters still "later"), the shared epoch model
-(`src/chapters/shared/epochModel.ts`), and the specs for steps 3 to 5. Next: the three chapters, built in
-parallel once M3's layout pass (step 8b) lands.
+(`src/chapters/shared/epochModel.ts`), the specs for steps 3 to 5, and the star data's companion rule.
+In flight: steps 3, 4 and 5 (The Map, The Spot, The Trail), three builders in parallel.
 
-M3 is complete except its layout pass (8b, in flight) and the gate (QA audit), which runs with M4's
-first deploy.
+M3 is complete except its gate (QA audit), which runs with M4's first deploy. The layout pass (8b) is
+committed, deployed and live-checked.
 
 **Preview (the M3 slice):** https://the-finder.stewartgregerson.workers.dev/play/
 
@@ -78,11 +78,17 @@ first deploy.
   combined map age 44,068 yr, 95% 43,930 to 44,210; the motion fit alone 44,050 +/- 92 yr);
   `mapPointsAtEpoch` moved into the science core (same numbers).
 
+- **M3 step 8b (2026-10-16):** the layout pass: one screen per instrument at 1440x900 and 1366x768, clue
+  text 13/15 px at 4.5:1 or better (contrast test over the theme tokens), one unit system with powers of
+  ten, a ring legend and a glow on finished chapters, the encounter scene filling Arrival (D-A25).
+  Deployed; live game check passes. Research note on the galaxy chart's constants. Star data: 187 near
+  companions take their primary's radial velocity (85 stars within 10 pc of the craft still lack one,
+  down from 105; the trail still picks out only the Sun).
+
 ## In flight
 
-- M3 step 8b, the layout pass (`docs/plans/M3_specs/step8b-layout-pass.md`, builder).
-- A scout verifying the galaxy chart's constants (GRAVITY 2021 Galactic-centre distance, Sgr A*
-  position, the millisecond-pulsar cut) for a research note.
+- M4 steps 3 to 5: The Map, The Spot, The Trail (`docs/plans/M4_specs/step3` to `step5`, three
+  builder-opus helpers in parallel, none committing).
 
 ## Known issues and open questions
 
@@ -91,20 +97,19 @@ first deploy.
 - **Colour channel order** cannot be proven from the record: shown as "probable".
 - **The decoded pictures' small geometry error** (D-A19) is detected but its origin is unresolved.
 - **Nearby stars without radial velocities:** companions now take their primary's (Sirius B, Procyon B
-  and others; `tools/data/build_stars.py`, rebuild pending until the layout pass lands); GJ 1245 A and B
-  have none in HYG and stay hollow on the neighbourhood chart, handled by the no-RV bound.
-- **Shell counter** says "N of 31 deductions" now that M4's nodes exist; count only built chapters'
-  nodes (after the layout pass, which owns `src/ui/Shell.tsx`).
+  and 185 others); GJ 1245 A and B have none in HYG and stay hollow on the neighbourhood chart, handled
+  by the no-RV bound.
+- **Layout leftovers (8b):** Arrival and Key result messages still print SI units in their text; The
+  Pictures at 1440x900 with the notebook open needs an inner scroll to reach Propose; ring labels are
+  9 to 12 px on phones; the `sound` browser test was flaky once.
 - **Firefox and Safari are untested** (no Playwright browsers here); the audio probe ran in Chrome only.
 - Python packages live in the user site-packages, so run Python as `python -P` (not `-I`).
 
 ## Next (exact)
 
-1. When the layout pass reports: look at its captures, check the targets, commit, redeploy, live check.
-2. Rebuild the star data with the companion rule (`python -P tools/data/build_stars.py`), run the data
-   and science checks, commit.
-3. Launch The Map, The Spot and The Trail (`docs/plans/M4_specs/step3` to `step5`, builder-opus, in
-   parallel). Review each report and its captures; flip any chapter left "later"; run the Trail's
-   region and reframe browser steps once The Map is in.
-4. M4 steps 6 to 8: gating check, sound for the new moments, bots through the three chapters, captures,
-   the player-critic, Stewart's feedback, the gate (with M3's QA audit), `docs/plans/M5.md`.
+1. As each chapter helper reports: read its report, look at its captures, run its tests, commit it.
+   When all three are in: run The Trail's region and reframe browser steps (they need The Map built),
+   `npm run check`, deploy, live check.
+2. M4 steps 6 to 8: gating check, sound for the new moments (the ages snapping together; the Sun
+   found), bots through the three chapters (right and wrong answers), captures, the player-critic,
+   Stewart's feedback, the gate (with M3's QA audit), `docs/plans/M5.md`.
