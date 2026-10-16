@@ -6,11 +6,10 @@ reviewed (layout pass in flight); M4 started. Update after every meaningful chun
 ## Current milestone
 
 **M4: Where and when (The Map, The Spot, The Trail, the reframed dating).** Plan: `docs/plans/M4.md`;
-specs in `docs/plans/M4_specs/`. Steps 1 to 7 and the science audit's fixes (7b) are committed; `npm
-run check` green (292 unit tests, 135 checks). In flight: 7d (no dead ends from measurement noise,
-D-A28) then 7c (result messages in the alien's units; past verdicts marked as past), one builder. Then
-the player-critic, deploy and the gate (step 8). M5 is planned (`docs/plans/M5.md`) with its research
-done (`docs/research/teaching-frames.md`, `voices.md`).
+specs in `docs/plans/M4_specs/`. Steps 1 to 7 with the audit fixes (7b), no dead ends (7d, D-A28) and
+messages in the alien's units (7c) are committed and deployed; `npm run check` green (319 unit tests,
+142 checks); live check passes. In flight: the blind player-critic on a fresh whole-game capture. Then
+the gate (step 8: QA audit, HANDOFF). M5 is planned with its research done.
 
 **Preview (the slice and M4):** https://the-finder.stewartgregerson.workers.dev/play/
 
@@ -103,12 +102,31 @@ done (`docs/research/teaching-frames.md`, `voices.md`).
   table; the last column cut at our decode's edge) and The Voices (silence cannot count the 55
   greetings; no cutoff in the recorded band).
 
+- **M4 steps 7d and 7c (2026-10-16):** `trail.origin` and `trail.where` accept the right star at 99.9%
+  (refusal 0.15% and 0 of 2,000), drawn bars stay 95%; Start over cycles through 1,974 validated seeds
+  (`data/seeds.json`, 26 of 2,000 candidates excluded: 19 by `map.identify`, 5 by `map.motion`, 4 by
+  `trail.origin`); every checker message writes quantities as tokens rendered in the alien's units (0
+  unit words in 121 rendered messages with the gloss off); past rejections marked "your last proposal".
+
 ## In flight
 
-- M4 steps 7d and 7c (`docs/plans/M4_specs/step7d-no-dead-ends.md`, then
-  `step7c-messages-in-alien-units.md`), one builder-opus run.
+- The blind player-critic on `review/inbox/2026-10-16T08-08-55-m4/` (older captures moved to
+  `review/archive/inbox-2026-10-16/`).
 
 ## Known issues and open questions
+
+- **Identification at the epoch fails for about 1% of seeds** (19 of 2,000 candidate seeds): when the
+  Arrival clock's 95% interval sits above the true age, its hard age window `U[t_lo, 2 t_hi]` leaves a
+  documented pulsar (B1727-47, B1933+16 or B0525+21) out of the pre-selection and another wins. Seeds
+  are excluded for now (D-A28); the science fix is to use the clock's posterior with its tails instead
+  of a hard window (`src/science/pulsarIdentify.ts`), then re-run `identify.epoch` over many seeds and
+  rebuild `data/seeds.json` (M5).
+- **The Trail's chart** draws its velocity arrows and the tint-by-angle overlay from catalogue
+  directions; only the labels are measured values.
+- **Readings (not messages)** still hold a few human units: one Trail reading key says "radial velocity
+  up to 100 km/s"; The Key's glyph readouts show "(1080000 km)" with the gloss on.
+- **`data/seeds.json` must be rebuilt** (`node tools/seeds/build-seeds.mjs`, about 8 minutes) after any
+  change to a checker, the epoch model or its data.
 
 - **Side break of the record** after music #11 is an inference (D-A17); alternatives logged.
 - **Uranium spot position** is not on the cover diagram: our documented choice (M4).
@@ -125,9 +143,8 @@ done (`docs/research/teaching-frames.md`, `voices.md`).
 
 ## Next (exact)
 
-1. When 7d and 7c report: review, commit, `npm run check`, deploy, live check.
-2. Run the `player-critic` on a fresh capture of the whole game (`node tools/harness/browser-tests.mjs
-   game` writes `review/inbox/<timestamp>-m4/`); record its review and decisions in `docs/reviews/`;
-   fix what is clear.
-3. Gate (step 8): QA audit (also M3's), PROGRESS and HANDOFF; then M5 step 1's follow-up (does the tape
-   carry the right edge our decode cuts on L004 and L005?) and the M5 specs.
+1. When the player-critic reports: record its review and decisions in `docs/reviews/`; fix what is
+   clear (a builder), then capture again only if the fixes change what it saw.
+2. Gate (step 8): QA audit (also covers M3's gate) against PROGRESS and HANDOFF; update HANDOFF with
+   this session's gotchas (seed rebuilds, the message tokens, the capture folders).
+3. M5: the right-edge question on L004 and L005 first, then the specs (`docs/plans/M5.md` steps).
