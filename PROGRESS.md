@@ -7,7 +7,8 @@ M3 started. Update after every meaningful chunk._
 
 **M3: Vertical slice (Arrival, The Key, The Player, The Pictures to the circle).** Plan:
 `docs/plans/M3.md` (steps 1 to 9; specs go in `docs/plans/M3_specs/`). Step 2 (the cover as exact SVG)
-is in flight. M1 (ground truth) and M2 (engines and scaffold) are built, checked and audited.
+is in flight. M1 (ground truth) and M2 (engines and scaffold) are built, checked and audited: two science audits
+and a QA gate audit (2026-10-16) passed, their findings fixed.
 
 **Preview (M2 bench, not the game):** https://the-finder.stewartgregerson.workers.dev/play/
 
@@ -25,7 +26,7 @@ is in flight. M1 (ground truth) and M2 (engines and scaffold) are built, checked
       156), and registration against nine clean NASA images (aspect -0.92 +/- 0.33%, shear -1.40 +/-
       0.08%: detected, invisible, left uncorrected, D-A19). Pictures sent to Stewart
       (`docs/progress/2026-10-15-*`).
-    - The data (`data/`, `tools/data/`, 130 data checks): cover, 4,503 pulsars, glitches, Crab, 3,934
+    - The data (`data/`, `tools/data/`, 133 data checks): cover, 4,503 pulsars, glitches, Crab, 3,934
       stars within 30 pc (Gaia DR3 for Gliese 445), 8,338 naked-eye stars, Voyager ephemeris (Hermite
       max error 1.75 km), scenario; byte-identical rebuilds.
     - The science core (`src/science/`): units, seeded randomness, statistics, coordinates, nuclides,
@@ -47,12 +48,13 @@ is in flight. M1 (ground truth) and M2 (engines and scaffold) are built, checked
     and first deploy; `Play The Finder.bat`; Playwright harness (captures, audio probe, browser-test
     runner, live smoke test); media pipeline (31 Opus tracks, the picture side, 156 FLAC slices,
     `data/record.json` with the side break as an inference, D-A17, D-A18); the browser decoder
-    (`src/dsp/`: all 156 frames pixel-identical to the reference; 41 to 62 ms per frame in the Worker);
+    (`src/dsp/`: all 156 frames pixel-identical to the reference; about 40 to 80 ms per frame in the Worker, load-dependent);
     the turntable (`src/record/`: pitch exact to 3e-8, reverse, run-out, the real record); the
     instrument bench on `/play/` with the command bus and the harness API.
 
 ## In flight
 
+- M3 step 1, the shell, deduction graph, codex, saves and hints (`docs/plans/M3_specs/step1-shell-graph-codex.md`, builder).
 - M3 step 2, the cover as exact SVG (`docs/plans/M3_specs/step2-cover-svg.md`, asset-smith).
 
 ## Known issues and open questions
@@ -69,9 +71,9 @@ is in flight. M1 (ground truth) and M2 (engines and scaffold) are built, checked
 
 ## Next (exact)
 
-1. Finish the M1 and M2 gates: `qa-auditor` on this file's claims; fix what it finds; push.
-2. M3 step 1 (shell, deduction graph, codex v1, saves, hint plumbing, chapter routing; the bench moves
-   to `/play/bench/`): write its spec in `docs/plans/M3_specs/` and delegate (`builder` for the shell,
-   `builder-opus` for the deduction graph if it carries science).
-3. Then M3 steps 3 to 9 in order (Arrival scene and workbenches, The Key, The Player, The Pictures,
-   sound, bots and critics, deploy and Stewart's playtest link, gate).
+1. M3 step 1 (shell, deduction graph, codex v1, saves, hints, chapter routing; the bench moves to
+   `/play/bench/`) and step 2 (the cover SVG) are in flight: review each report, look at the captures,
+   run `npm run check`, commit.
+2. Then M3 steps 3 to 9 in order (Arrival scene and workbenches, The Key, The Player, The Pictures,
+   sound, bots and critics, deploy and Stewart's playtest link, gate), each with a spec in
+   `docs/plans/M3_specs/` first.
