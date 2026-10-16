@@ -1,15 +1,16 @@
 # PROGRESS
 
-_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 and M2 complete; M3 slice built, deployed and
-reviewed (layout pass in flight); M4 started. Update after every meaningful chunk._
+_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 to M3 complete; M4 at its gate (step 7e in
+flight); M5 planned and researched. Update after every meaningful chunk._
 
 ## Current milestone
 
 **M4: Where and when (The Map, The Spot, The Trail, the reframed dating).** Plan: `docs/plans/M4.md`;
-specs in `docs/plans/M4_specs/`. Steps 1 to 7 with the audit fixes (7b), no dead ends (7d, D-A28) and
-messages in the alien's units (7c) are committed and deployed; `npm run check` green (319 unit tests,
-142 checks); live check passes. In flight: the blind player-critic on a fresh whole-game capture. Then
-the gate (step 8: QA audit, HANDOFF). M5 is planned with its research done.
+specs in `docs/plans/M4_specs/`. Steps 1 to 7d and 7c are committed and deployed; `npm run check` green
+(319 unit tests, 142 checks); live check passes. The gate's reviews are in: the blind player-critic
+(`docs/reviews/2026-10-16-M4-player-critic.md`) and the QA audit (summarised under Known issues). In
+flight: step 7e (staged discoveries, quieter screens, no long freezes, old saves' seeds), the last M4
+step before the gate closes. M5 is planned (`docs/plans/M5.md`) with its research done.
 
 **Preview (the slice and M4):** https://the-finder.stewartgregerson.workers.dev/play/
 
@@ -27,7 +28,7 @@ the gate (step 8: QA audit, HANDOFF). M5 is planned with its research done.
       156), and registration against nine clean NASA images (aspect -0.92 +/- 0.33%, shear -1.40 +/-
       0.08%: detected, invisible, left uncorrected, D-A19). Pictures sent to Stewart
       (`docs/progress/2026-10-15-*`).
-    - The data (`data/`, `tools/data/`, 133 data checks): cover, 4,503 pulsars, glitches, Crab, 3,934
+    - The data (`data/`, `tools/data/`, 133 data checks then; 135 now): cover, 4,503 pulsars, glitches, Crab, 3,934
       stars within 30 pc (Gaia DR3 for Gliese 445), 8,338 naked-eye stars, Voyager ephemeris (Hermite
       max error 1.75 km), scenario; byte-identical rebuilds.
     - The science core (`src/science/`): units, seeded randomness, statistics, coordinates, nuclides,
@@ -39,7 +40,8 @@ the gate (step 8: QA audit, HANDOFF). M5 is planned with its research done.
       with the PEPOCH glitch, 1971.51 with the pre-glitch slope; at the epoch: reframed coverage 93.7%,
       median half-width 153 yr, misspecification runs 90 to 97%; per-pulsar timing noise, D-A20;
       B1240-64's wrong period about 3,500 yr early as predicted; likelihood identification right on all
-      14 lines, D-A16), triangulation (95% region about 31 by 14 pc holding the Sun and about 1,070
+      14 lines, D-A16), triangulation (95% region about 31 by 14 pc holding the Sun and about 1,070 (now 30 by 14 pc and 1,012 after
+      the companion radial velocities and the Birge scaling; The Map's own region holds 1,007)
       stars; coverage 93%).
     - How it's checked: generated from the tests; 65 checks, all passing. Two science audits (the
       second scoped to the fixes) with every finding fixed or recorded.
@@ -54,7 +56,7 @@ the gate (step 8: QA audit, HANDOFF). M5 is planned with its research done.
     instrument bench on `/play/` with the command bus and the harness API.
 
 - **M3 steps 1 to 7 (2026-10-16):** the game shell (hub ring, workbenches, codex, settings, hints, saves,
-  no-spoilers questions); the cover as exact SVG (533 binary digits verified, 0.26 mm against NASA's
+  no-spoilers questions); the cover as exact SVG (533 binary digits verified, 0.26 mm against NASA's (measured once in M3 step 2 from a gitignored landmark file; not a recorded check)
   photo); NASA's Voyager model at 465 KB; the encounter scene under the sky computed for AD 46,078 (the
   Sun at -0.82 in Orion; Milky Way from Gaia; D-A21 physical star colours); Arrival (four computed
   deductions), The Key (strokes, the hydrogen atlas, times not lengths; D-A22 alien units), The Player
@@ -72,7 +74,7 @@ the gate (step 8: QA audit, HANDOFF). M5 is planned with its research done.
   alien's pulsar catalogue at the epoch, the map overlay, the origin region) and the neighbourhood chart
   (the trail, star by star); the 13 deductions of The Map, The Spot and The Trail; the shared epoch model
   (identification, ages in both frames, motion fit, region, trail; default seed: 14 of 14 lines right,
-  combined map age 44,068 yr, 95% 43,930 to 44,210; the motion fit alone 44,050 +/- 92 yr);
+  combined map age 44,068 yr, 95% 43,930 to 44,210; the motion fit alone 44,050 +/- 92 yr then, +/- 141 yr after the Birge scaling in step 7b);
   `mapPointsAtEpoch` moved into the science core (same numbers).
 
 - **M3 step 8b (2026-10-16):** the layout pass: one screen per instrument at 1440x900 and 1366x768, clue
@@ -87,7 +89,8 @@ the gate (step 8: QA audit, HANDOFF). M5 is planned with its research done.
   origin region: 14 of 14 lines, region 30 by 14 pc with 1,007 stars, the alien's own star inside), The
   Spot (detector sweep to the hidden spot, alpha counting with error bars that narrow, the two-clock purity
   test: about a day of counting gives 44,124 yr, 95% 42,786 to 45,506; natural uranium rejected at
-  p < 1e-12; detector D-A24), The Trail (only the warm-white star fits, 0.0043 +/- 0.20 deg, next 8.58 deg;
+  p < 1e-12; detector D-A24), The Trail (only the warm-white star fits: its catalogue angle is 0.0043 deg; the player sees a measured
+  angle, 0.511 deg against a 0.574 deg cut for the default seed, and the next star 8.55 deg against 0.063;
   distance over speed 44,100 yr; the neighbour twist; the region view; the reframe: 44,068 yr, 95% 43,930
   to 44,210, the motion agreeing within about 1 sigma). Measured quantities from a million up read as
   powers of ten; captions in the top bar. D-A26, D-A27.
@@ -104,16 +107,26 @@ the gate (step 8: QA audit, HANDOFF). M5 is planned with its research done.
 
 - **M4 steps 7d and 7c (2026-10-16):** `trail.origin` and `trail.where` accept the right star at 99.9%
   (refusal 0.15% and 0 of 2,000), drawn bars stay 95%; Start over cycles through 1,974 validated seeds
-  (`data/seeds.json`, 26 of 2,000 candidates excluded: 19 by `map.identify`, 5 by `map.motion`, 4 by
+  (`data/seeds.json`, 26 of 2,000 candidates excluded, failing 28 checks between them: 19 by `map.identify`, 5 by `map.motion`, 4 by
   `trail.origin`); every checker message writes quantities as tokens rendered in the alien's units (0
   unit words in 121 rendered messages with the gloss off); past rejections marked "your last proposal".
 
 ## In flight
 
-- The blind player-critic on `review/inbox/2026-10-16T08-08-55-m4/` (older captures moved to
-  `review/archive/inbox-2026-10-16/`).
+- M4 step 7e (`docs/plans/M4_specs/step7e-staging-and-quiet-screens.md`, builder-opus): results led by a
+  headline with the working folded, five staged moments, a bigger Map chart, scroll cues, quiet tallies,
+  The Spot's low lamp, chart labels; and from the QA audit: no main-thread task over 100 ms on entering
+  an M4 chapter, old saves' seeds moved to validated ones, contour text, the Trail chart's labels.
 
 ## Known issues and open questions
+
+- **QA audit (M3 and M4 gate, 2026-10-16), still open until 7e lands:** The Trail blocks the main thread
+  for about 1 s on entering (a laptop would freeze longer); M4 screens clip content at 1440x900 with
+  accumulated results (the 8b one-screen claim held for the slice only); old saves keep time-based seeds
+  that may fail a check; "100.000% contour" text; Trail chart labels collide. Fixed already: How it's
+  checked's "[object Object]" cell and stale status lines, SPEND's date, credits for the M5 research.
+- **A stray folder from the QA script** (`C:\Users\stewa\Documents\Claude\Golden%20Record\`, five PNGs,
+  outside the repo): left for Stewart to delete or keep (`docs/NEEDS_STEWART.md`).
 
 - **Identification at the epoch fails for about 1% of seeds** (19 of 2,000 candidate seeds): when the
   Arrival clock's 95% interval sits above the true age, its hard age window `U[t_lo, 2 t_hi]` leaves a
@@ -143,8 +156,9 @@ the gate (step 8: QA audit, HANDOFF). M5 is planned with its research done.
 
 ## Next (exact)
 
-1. When the player-critic reports: record its review and decisions in `docs/reviews/`; fix what is
-   clear (a builder), then capture again only if the fixes change what it saw.
-2. Gate (step 8): QA audit (also covers M3's gate) against PROGRESS and HANDOFF; update HANDOFF with
-   this session's gotchas (seed rebuilds, the message tokens, the capture folders).
-3. M5: the right-edge question on L004 and L005 first, then the specs (`docs/plans/M5.md` steps).
+1. When 7e reports: look at its captures (the five moments, the quieter screens), check the long-task
+   numbers, commit, `npm run check`, deploy, live check; then close the M4 gate (PROGRESS and HANDOFF).
+2. M5 step 1 follow-up: does the tape carry the right edge our decode cuts on L004 and L005 (register
+   against NASA's clean images in a test; check the decoder's horizontal extent)?
+3. M5 specs and builds (`docs/plans/M5.md`): the identification's hard age window first (open issue
+   above), then the pictures complete and The Voices.

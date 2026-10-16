@@ -1,6 +1,6 @@
 # HANDOFF: start here
 
-_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 and M2 complete, M3 started. Whoever stops next updates this block,
+_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 to M3 complete, M4 at its gate (step 7e in flight), M5 planned and researched. Whoever stops next updates this block,
 "Where things stand", and anything below that changed._
 
 ## For Stewart: how to start the next session
@@ -59,6 +59,14 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
   too small, circular decoder checks, model-conditional coverage); decisions D-A13 to D-A20 record
   every science-driven change. M3 is planned (`docs/plans/M3.md`) and its step 2 (the cover as exact
   SVG) was in flight at the end of the session: see PROGRESS.md "In flight" for whether it landed.
+- **Later in build session 2 (2026-10-16):** M3 finished (the slice bots, a blind critic review, the
+  layout pass 8b); M4 built: The Map, The Spot and The Trail on a shared epoch model
+  (`src/chapters/shared/epochModel.ts`), sound for the new moments, whole-game bots (31 of 31 from a
+  fresh save), a science audit and its fixes (honest measured values and cuts on The Trail, coverage
+  tests), no dead ends (D-A28: 99.9% acceptance where noise gates progress, and validated seeds),
+  messages in the alien's units, a QA audit, and a blind critic review whose fixes are step 7e. 142
+  checks pass. M5 is planned (`docs/plans/M5.md`) with research in `docs/research/teaching-frames.md`
+  and `voices.md`.
 - **How session 2 worked (keep doing this):** every helper got a written spec saved in
   `docs/plans/Mx_specs/` before launch; the lead reviewed every report, looked at every picture and
   capture, ran the tests itself before each commit, and resumed the same helper (SendMessage) for
@@ -194,6 +202,23 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
 - **Recovering a stopped helper's spec:** its prompt is the first user message in
   `~/.claude/projects/C--Users-stewa-Documents-Claude-Golden-Record/<session>/subagents/agent-<id>.jsonl`.
   Save specs into `docs/plans/` before launching long helpers so a session switch never loses them.
+
+- **`data/seeds.json` holds the validated playthrough seeds** (D-A28). Rebuild it with
+  `node tools/seeds/build-seeds.mjs` (about 8 minutes, 15 worker processes) after any change to a
+  checker, the epoch model or its data; `src/chapters/seedCheck.test.ts` replays a sample.
+- **Checker messages carry quantity tokens** (`{{q|dim|SI|digits}}`, `src/ui/message.ts`); every place
+  that shows a message renders it with `renderMessage(text, gloss)`. Test logs print the raw tokens;
+  that is expected. `src/ui/messageUnits.*.test.ts` fails on any human unit word with the gloss off.
+- **The blind critic reads everything in `review/inbox/`:** before running it, move older capture
+  folders to `review/archive/` so it sees one build; `node tools/harness/browser-tests.mjs game` writes
+  a fresh whole-game capture (`<timestamp>-m4/` with `shots.txt` for the critic).
+- **The epoch model's heavy parts** (identification, region, trail rows) take 0.2 to 1 s on the RTX
+  machine; anything new that calls them on the main thread must go through step 7e's off-thread path.
+- **Backslashes in Bash heredocs get mangled** (seen twice in session 2): write scripts with the Write
+  tool and edit code with the Edit tool.
+- **A helper that cannot delete something must not ask the lead to do it for it:** surface the request
+  to Stewart instead (a stray folder `C:\Users\stewa\Documents\Claude\Golden%20Record\` left by a QA
+  script is waiting for his decision).
 
 ## End-of-session protocol
 

@@ -10,16 +10,20 @@ record's real 1977 image tape, right in your browser.
 
 ## Where it stands (2026-10-16)
 
-- **What you can try now:** the instrument bench (an early preview, not the game yet). Drop a needle on
-  the real record (the Ozma 2017 remaster from the master tapes), at the right speed or a wrong one, and
-  decode any of the 156 picture frames live from the 1977 image master tape. Turn the decoder's knobs to
-  see what a wrong setting does to the picture. Best in desktop Chrome or Edge, with headphones.
-- **What is finished underneath:** the real picture signal decoded and checked frame by frame; every
-  etched number on the cover transcribed and verified; the science of every "when" and "where"
-  deduction (pulsar dating and triangulation, the radioactive clocks, the craft's trail back to the
-  Sun, the stars as they will be 44,100 years from now), each with honest error bars.
-- **Next:** the first playable chapters (the arrival, the key, the record player, the pictures), then the
-  rest of the story. See `PROGRESS.md` for exactly where the build is and `PLAN.md` for the roadmap.
+- **What you can play now:** seven chapters, 31 deductions, start to finish of the first two thirds of
+  the story. Arrival (what the machine is and how old its fuel is), The Key (the cover's binary and its
+  hydrogen unit), The Player (the record played at the right speed, the right way round), The Pictures
+  (the 1977 picture signal decoded live until the calibration circle comes out round and the first
+  pictures develop), The Map (the 14 pulsars, the map's age, where it was drawn), The Spot (a hidden
+  speck of uranium dated by counting its alphas) and The Trail (the star the machine came from, how long
+  ago it left, and when the map was made). Best in desktop Chrome or Edge, with headphones.
+- **How it plays:** you work on the instruments (drag a map line onto a pulsar, sweep a detector, pick a
+  star) and every answer is judged by the real science; a wrong answer shows what it would really mean.
+  Hints come in three steps, only when you ask.
+- **Next:** all 156 pictures in colour and the right way up, the senders' numerals, units, planets and
+  height read from their teaching pictures, and The Voices (greetings, sounds and music); then the
+  portrait of the senders and the epilogue. See `PROGRESS.md` for exactly where the build is and
+  `PLAN.md` for the roadmap.
 
 ## How it's checked
 
