@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { recordCheck } from '../../tests/support/record';
 import { dispatch } from './bus';
 import { chapterOpen, chapterStatus, clearCheckers, installTestCheckers, nodeStatus, registerChecker, testCheckersEnabled } from './deductions';
-import { CHAPTERS, NODES, nodeDef, parseChapterHash } from './graph';
+import { ALL_NODES, CHAPTERS, NODES, nodeDef, parseChapterHash } from './graph';
 import { resetAll, setClock } from './gameService';
 import { confirmedSet, game, hintsUsed, snapshot } from './state';
 
@@ -23,12 +23,15 @@ describe('the graph data', () => {
   it('has the slice nodes with stable ids, real prerequisites and a row of the deduction table each', () => {
     const ids = new Set(NODES.map((n) => n.id));
     expect(ids.size).toBe(NODES.length);
-    expect(NODES.length).toBe(31); // 18 slice nodes and 13 for M4 (map, spot, trail)
-    for (const n of NODES) {
+    expect(NODES.length).toBe(31); // 18 slice nodes and 13 for M4 (map, spot, trail) in play
+    expect(ALL_NODES.length).toBe(43); // and 12 for M5 (pictures, voices), kept `later` until built
+    const allIds = new Set(ALL_NODES.map((n) => n.id));
+    for (const n of ALL_NODES) {
       expect(n.id.startsWith(`${n.chapter}.`)).toBe(true);
-      for (const r of n.requires) expect(ids.has(r), `${n.id} requires unknown ${r}`).toBe(true);
+      for (const r of n.requires) expect(allIds.has(r), `${n.id} requires unknown ${r}`).toBe(true);
+      if (!n.later) for (const r of n.requires) expect(ids.has(r), `${n.id} in play requires ${r}, which is not`).toBe(true);
       expect(n.checkedRow).toBeGreaterThanOrEqual(1);
-      expect(n.checkedRow).toBeLessThanOrEqual(15);
+      expect(n.checkedRow).toBeLessThanOrEqual(16);
       expect(n.hints.every((h) => h.length > 10)).toBe(true);
     }
     for (const c of CHAPTERS) for (const r of c.requires) expect(ids.has(r)).toBe(true);
@@ -67,7 +70,7 @@ describe('the graph data', () => {
   });
 
   it('hint texts have no em dash and the hash parser knows the chapters and the hub', () => {
-    for (const n of NODES) for (const t of [n.gloss, ...n.hints]) expect(t.includes(String.fromCharCode(0x2014))).toBe(false);
+    for (const n of ALL_NODES) for (const t of [n.gloss, ...n.hints]) expect(t.includes(String.fromCharCode(0x2014))).toBe(false);
     expect(parseChapterHash('#arrival')).toBe('arrival');
     expect(parseChapterHash('#hub')).toBe('hub');
     expect(parseChapterHash('#/pictures')).toBe('pictures');
@@ -110,9 +113,21 @@ describe('no spoilers', () => {
     'trail.neighbour': ['nearest', 'neighbour', 'brightest'],
     'trail.where': ['inside', 'region', 'home'],
     'trail.when': ['rest frame', 'agree'],
+    'pictures.album': ['album', 'whole side'],
+    'pictures.colour': ['colour', 'primaries', 'stacked'],
+    'pictures.down': ['turned', 'stand', 'upright'],
+    'pictures.numerals': ['numerals', 'digit'],
+    'pictures.units': ['units', 'hydrogen'],
+    'pictures.home': ['every number is one', 'measured the others'],
+    'pictures.slip': ['slip', 'breaks'],
+    'pictures.height': ['heights', 'reaches'],
+    'voices.many': ['few dozen', 'speakers'],
+    'voices.hearing': ['band', 'frequencies'],
+    'voices.octave': ['doubled', 'steps'],
+    'voices.others': ['animals'],
   };
   it('every node has a question that gives away neither its conclusion nor its key terms', () => {
-    for (const n of NODES) {
+    for (const n of ALL_NODES) {
       const q = n.question.toLowerCase();
       expect(q.endsWith('?'), `${n.id} question`).toBe(true);
       expect(q.includes(n.gloss.toLowerCase().slice(0, 25)), `${n.id} repeats its conclusion`).toBe(false);
@@ -157,6 +172,7 @@ describe('gating (D-A06)', () => {
       await expect(dispatch({ type: 'chapter.enter', chapter: c })).rejects.toThrow(/later/);
     }
     for (const c of ['voices', 'portrait', 'epilogue'] as const) expect(NODES.some((n) => n.chapter === c)).toBe(false);
+    expect(ALL_NODES.filter((n) => n.later).every((n) => !NODES.includes(n))).toBe(true);
   });
 
   it('orders the nodes inside a chapter, and the pictures line-time work needs player.speed', async () => {

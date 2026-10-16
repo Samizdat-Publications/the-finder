@@ -3,6 +3,7 @@
 // answer); a number inside a hint is computed from the cover's own data (data/cover.json), never typed.
 
 import coverJson from '../../data/cover.json';
+import { M5_NODES, M5_QUESTIONS } from './nodesM5';
 import { binaryToMetres, binaryToSeconds } from '../science/units';
 
 export type ChapterId =
@@ -34,6 +35,8 @@ export interface ChapterDef {
 export type HintTiers = [nudge: string, method: string, answer: string];
 
 export interface NodeDef {
+  /** True while the deduction's instrument and checker are not built: kept out of NODES (so out of play, gating, counts and the notebook) until the builder clears it, as `built` does for a chapter. */
+  later?: boolean;
   id: string;
   chapter: ChapterId;
   /** English key for the glyph label. */
@@ -390,9 +393,13 @@ const RAW_NODES: readonly Omit<NodeDef, 'question'>[] = [
   },
 ];
 
-export const NODES: readonly NodeDef[] = RAW_NODES.map((n) => ({ ...n, question: QUESTIONS[n.id] ?? '' }));
+/** Every deduction defined so far, playable or not (tests, and builders looking up a node they are building). */
+export const ALL_NODES: readonly NodeDef[] = [...RAW_NODES, ...M5_NODES].map((n) => ({ ...n, question: QUESTIONS[n.id] ?? M5_QUESTIONS[n.id] ?? '' }));
 
-const nodeById = new Map(NODES.map((n) => [n.id, n]));
+/** The deductions in play: every node not marked `later`. */
+export const NODES: readonly NodeDef[] = ALL_NODES.filter((n) => !n.later);
+
+const nodeById = new Map(ALL_NODES.map((n) => [n.id, n]));
 const chapterById = new Map(CHAPTERS.map((c) => [c.id, c]));
 
 export function nodeDef(id: string): NodeDef | undefined {
