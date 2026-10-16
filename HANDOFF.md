@@ -1,6 +1,6 @@
 # HANDOFF: start here
 
-_Last updated: 2026-10-15 by build session 1 (Opus 5.5), stopped early for a session switch. Whoever stops next updates this block,
+_Last updated: 2026-10-16 by build session 2 (Opus 5.5): M1 and M2 complete, M3 started. Whoever stops next updates this block,
 "Where things stand", and anything below that changed._
 
 ## For Stewart: how to start the next session
@@ -9,7 +9,7 @@ Start it whenever you like (after your weekly limit resets if you are near it).
 
 **Option A, Claude desktop app (Code tab):**
 1. Start a new session in the folder `C:\Users\stewa\Documents\Claude\Golden Record`.
-2. Model: **Opus 5.5**. Effort: **xhigh** (why: see "Effort" below).
+2. Model: **Opus 5.5**. Effort: **high** from M3 on (why: see "Effort" below).
 3. Permission mode: **Auto**, so it can work through the plan without stopping to ask about each
    command.
 4. Paste the prompt below as the first message, then let it run.
@@ -17,7 +17,7 @@ Start it whenever you like (after your weekly limit resets if you are near it).
 **Option B, Windows Terminal (PowerShell):**
 
 ```powershell
-cd "C:\Users\stewa\Documents\Claude\Golden Record"; claude --model claude-opus-5-5 --effort xhigh --permission-mode auto
+cd "C:\Users\stewa\Documents\Claude\Golden Record"; claude --model claude-opus-5-5 --effort high --permission-mode auto
 ```
 
 Then paste the prompt below.
@@ -50,23 +50,20 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
 ## Where things stand
 
 - 2026-10-15: plan approved (`PLAN.md`). Research in `docs/research/` (start with its README).
-- **Build session 1 (2026-10-15), stopped early at Stewart's request:** M1 step 0 is done and committed
-  (Node and TypeScript skeleton, `npm run check`, `Run Checks.bat`, the source manifest and fetch
-  script). Every M1 source is downloaded and checksum-verified in `sources/`, including the 1.46 GB image
-  tape (MD5 matches). Specs for M1 steps 1 to 4 are saved in `docs/plans/M1_specs/`: relaunch them as
-  the first thing (PROGRESS.md "Next"). Nothing is running.
-- **Command holds:** a "blast-radius" mod was loaded in session 1 (Stewart has since removed it). It held
-  and then refused ONE lead command (no answer within 5 minutes; it misread it as overwriting 1,498
-  files): the final handoff commit and push. **Redo it first in the next session:** run `npm run check`,
-  then `git add` exactly these paths, commit ("Session 1 handoff: M1 step 0 done, sources verified, step
-  1-4 specs saved") and `git push origin main`: `PROGRESS.md`, `HANDOFF.md`, `docs/CREDITS.md`,
-  `docs/plans/M1.md`, `docs/plans/M1_specs/step1-reference-decoder.md`,
-  `docs/plans/M1_specs/steps2-3-data-builders.md`, `docs/plans/M1_specs/step4a-science-units-clocks.md`,
-  `docs/plans/M1_specs/step4b-design-notes.md`, `tests/support/record.ts`, `tools/ref-decoder/tape.py`,
-  `tools/ref-decoder/sync.py`, `tools/ref-decoder/decode.py`. (Commit f66c87f, step 0, was committed
-  locally but also never pushed.) The three stopped helpers never reported back, so whether any of
-  their commands were held is unknown; nothing depends on them (their work restarts from the saved
-  specs).
+- **Build session 1 (2026-10-15):** M1 step 0 (skeleton, check runner, sources downloaded and verified).
+- **Build session 2 (2026-10-15/16):** M1 (ground truth) and M2 (engines and scaffold) built, checked and
+  audited; the first preview is live at https://the-finder.stewartgregerson.workers.dev/play/ (the
+  instrument bench: the real record on a turntable, and the 156 pictures decoded live from the 1977
+  tape). `npm run check` runs 7 steps, all green; How it's checked has 65 checks, all passing. Two
+  science audits found and fixed real problems (Vela's glitch rule, a Th-230 uncertainty typed 10 times
+  too small, circular decoder checks, model-conditional coverage); decisions D-A13 to D-A20 record
+  every science-driven change. M3 is planned (`docs/plans/M3.md`) and its step 2 (the cover as exact
+  SVG) was in flight at the end of the session: see PROGRESS.md "In flight" for whether it landed.
+- **How session 2 worked (keep doing this):** every helper got a written spec saved in
+  `docs/plans/Mx_specs/` before launch; the lead reviewed every report, looked at every picture and
+  capture, ran the tests itself before each commit, and resumed the same helper (SendMessage) for
+  follow-ups so its context carried over. Science helpers were told to leave a failing test failing and
+  report rather than tune; three real findings came from that.
 
 ## Delegation playbook
 
