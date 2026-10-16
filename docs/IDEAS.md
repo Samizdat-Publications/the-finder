@@ -1,7 +1,7 @@
 # Ideas for after the main version
 
 Things Stewart wants considered once the main version (M6 and M7 of PLAN.md) is complete. Not scheduled;
-plan them in a session on high or xhigh effort, starting with a short plan for Stewart to approve. Newest at
+plan them in a session on xhigh or max effort (the thinking-heavy part; building to the plan can then run on high or medium), starting with a short plan for Stewart to approve. Newest at
 the top.
 
 ## The younger version (Stewart, 2026-10-16)
