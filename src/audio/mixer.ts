@@ -2,10 +2,11 @@
 // layer plays. Nothing starts before the first user gesture (autoplay): the context is created, and resumed,
 // inside the first pointer, key or touch event. Browser module.
 //
-// Sharing with the turntable: the record engine (src/game/turntableService.ts) makes its own AudioContext
-// today. Two contexts work, but one is better (one clock, one output). The smallest change is for the
-// turntable service to call sharedContext() instead of `new AudioContext()` (it is only ever called after a
-// gesture). That file is outside step 7, so the lead decides; see the step 7 report.
+// Sharing with the turntable (M3 step 8): the record engine (src/game/turntableService.ts) runs on this same
+// context through sharedContext(), and its own level node feeds `output` beside the master. So there is one
+// clock and one output: interface sounds -> master -> output -> speakers, and record -> turntable level ->
+// output -> speakers. The master volume and mute act on the interface sounds only, as before; `output` is a
+// unity gain that the harness audio tap (src/harness/audioTap.ts) listens to, so a filmed run hears both.
 
 import { signal } from '@preact/signals';
 
@@ -19,6 +20,8 @@ const GESTURES = ['pointerdown', 'keydown', 'touchend'];
 export class Mixer {
   ctx: AudioContext | null = null;
   master: GainNode | null = null;
+  /** Unity gain in front of the speakers: everything audible passes through it (see the header). */
+  output: GainNode | null = null;
   private volume = 0.8;
   private muted = false;
   private readonly readyListeners: Array<(ctx: AudioContext, master: GainNode) => void> = [];
@@ -33,11 +36,14 @@ export class Mixer {
   start(): void {
     if (!this.ctx) {
       const ctx = this.factory();
+      const output = ctx.createGain();
+      output.connect(ctx.destination);
       const master = ctx.createGain();
       master.gain.value = this.level();
-      master.connect(ctx.destination);
+      master.connect(output);
       this.ctx = ctx;
       this.master = master;
+      this.output = output;
       for (const fn of this.readyListeners) fn(ctx, master);
     }
     if (this.ctx.state === 'suspended') void this.ctx.resume().catch(() => undefined);
@@ -89,4 +95,10 @@ export const mixer = new Mixer();
 export function sharedContext(): AudioContext {
   mixer.start();
   return mixer.ctx as AudioContext;
+}
+
+/** The node in front of the speakers on the shared context, for sources outside the master (the record). */
+export function sharedOutput(): AudioNode {
+  mixer.start();
+  return mixer.output as GainNode;
 }

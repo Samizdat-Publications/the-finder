@@ -1,6 +1,8 @@
 // The turntable's side of the command bus: owns the Web Audio engine (created on first use, which is
-// always after a click in the interface) and writes the turntable signals. Browser only.
+// always after a click in the interface) and writes the turntable signals. Browser only. The engine runs on
+// the one shared AudioContext (src/audio/mixer.ts) with its own level node, outside the interface master.
 
+import { sharedContext, sharedOutput } from '../audio/mixer';
 import { Turntable, type NeedleState } from '../record/engine';
 import type { Direction } from '../record/groove';
 import { groove, timeline } from './model';
@@ -32,10 +34,10 @@ function prefetchNeighbour(itemId: string): void {
 
 function engine(): Turntable {
   if (tt) return tt;
-  ctx = new AudioContext();
+  ctx = sharedContext();
   master = ctx.createGain();
   master.gain.value = T.volume.value;
-  master.connect(ctx.destination);
+  master.connect(sharedOutput());
   tt = new Turntable(ctx, { destination: master });
   tt.setDirection(T.direction.value);
   tt.setSpeed(1 / T.secondsPerTurn.value);

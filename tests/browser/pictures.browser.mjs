@@ -126,7 +126,13 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   const ci = await propose('pictures.circle', await settings());
   assert(ci.ok && /They see\./.test(ci.message), `the circle is true (${ci.message})`);
   await page.waitForSelector('.pic-they');
-  assert((await page.locator('.pic-caption-sound').count()) === 1, 'the swell is captioned');
+  // The swell is the sound layer's cue for pictures.circle (src/audio/cues.ts), captioned in its strip.
+  const swellLogged = await page.evaluate(async () =>
+    (await import('/src/audio/cues.ts')).cueLog().some((c) => c.kind === 'swell'),
+  );
+  assert(swellLogged, 'the sound layer played the swell when the circle came out true');
+  await page.waitForSelector('.caption');
+  assert(/chord rising/.test(await page.locator('.caption').innerText()), 'the swell is captioned in the caption strip');
   await page.evaluate(() => window.__finder.dispatch({ type: 'decoder.run', speed: 'fast' }));
   await shot('6-round-circle');
 

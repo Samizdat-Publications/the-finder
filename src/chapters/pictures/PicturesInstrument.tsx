@@ -21,7 +21,6 @@ import { Scope } from './Scope';
 import { keepThumb, trackWatching } from './seen';
 import { ensureSignal, ensureSignals, getSignal, signalsLoaded } from './signal';
 import { resumeSettings } from './start';
-import { playSwell } from './swell';
 import './pictures.css';
 
 const plate = picturesPlate(svgText);
@@ -66,7 +65,6 @@ export function PicturesInstrument() {
   const [lamp, setLamp] = useState<Lamp>({ azimuthDeg: 135, elevationDeg: 70 });
   const [hover, setHover] = useState<string | null>(null);
   const [selected, setSelected] = useState<StrokeRef | null>(null);
-  const [caption, setCaption] = useState<string | null>(null);
   const confirmed = confirmedSet.value;
   const circleDone = confirmed.has('pictures.circle');
   const frame = D.frame.value;
@@ -86,17 +84,12 @@ export function PicturesInstrument() {
     if (circleDone) void ensureSignals(CHECKER_FRAMES.filter((f) => FIRST_FRAMES.includes(f))).catch(() => undefined);
   }, [circleDone]);
 
-  // the circle comes out true: the swell (placeholder) and the circle kept as the first thing seen
+  // the circle comes out true: keep it as the first thing seen (the swell and its caption come from the
+  // sound layer, src/audio/cues.ts, which hears pictures.circle confirm)
   const [wasDone] = useState(circleDone);
   useEffect(() => {
     if (!circleDone || wasDone) return;
-    playSwell(game.settings.value.masterVolume);
     if (D.picture.value?.frame === CIRCLE_FRAME) keepThumb();
-    if (game.settings.value.soundCaptions) {
-      setCaption('[a rising harmonic swell]');
-      const t = window.setTimeout(() => setCaption(null), 6000);
-      return () => window.clearTimeout(t);
-    }
     return undefined;
   }, [circleDone]);
 
@@ -111,7 +104,6 @@ export function PicturesInstrument() {
             They see.
           </p>
         )}
-        {caption && <p class="pic-caption-sound">{caption}</p>}
         <Scope sig={sig} />
         <Seen />
       </div>
