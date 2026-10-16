@@ -6,9 +6,11 @@ every meaningful chunk._
 ## Current milestone
 
 **M5: The pictures complete, and The Voices.** Plan: `docs/plans/M5.md`; specs in `docs/plans/M5_specs/`.
-Step 0 done (the identification's age window, the decoders' full raster, the M4 polish batch). The twelve
-M5 deductions are in the graph, kept out of play (`later`) until their checkers land. In flight: step 3
-(The Pictures complete) and step 4 (The Voices), two builders in parallel.
+Steps 0, 3 and 4 are committed, deployed and live-checked: The Pictures complete (eight deductions) and The
+Voices (four); 43 deductions in play, bot.game plays them all from a fresh save; `npm run check` green
+(371 unit tests, 21 browser tests, the Voices reference checks, 183 checks). In flight for the gate: the
+M5 science audit and a run of every browser test in Edge. Then the blind critic, the QA audit and
+`docs/plans/M6.md`.
 
 **M4 closed (2026-10-16):** The Map, The Spot and The Trail playable after The Key; 31 deductions from a
 fresh save (bot.game); a science audit, a QA audit and two blind critic passes, every finding fixed or
@@ -126,10 +128,20 @@ and live-checked.
   the planets table's last column; Pluto's column now whole and, read in full, breaking the table's own
   order); the M4 polish batch (D-A31). Deployed and live-checked; 342 unit tests, 149 checks.
 
+- **M5 steps 3 and 4 (2026-10-16):** The Pictures complete: the album of all 156 frames, colour from the
+  20 triples (Earth in colour from three passes of the tape), the 66 sideways pictures turned upright, the
+  senders' numerals matched to the Finder's own glyph numerals (the alien script given a job) and their
+  sums read back, their units from hydrogen (their second 1.148 beats, within 0.03% of the SI second), home
+  as the column of ones, the slip in Pluto's distance, their heights (1.17 and 1.13 reaches); planets'
+  test values checked against NASA's fact sheets. The Voices: the rest of the record on the turntable
+  with its spectrogram; 63 to 226 voices by silence (above NASA's 55: some greetings pause inside), their
+  hearing at least 17.1 kHz, an octave of 1199.3 cents cut into 12 equal steps, the whale song (D-A32);
+  DSP in TypeScript matched to a Python reference and to the browser Worker.
+
 ## In flight
 
-- M5 step 3, The Pictures complete (`docs/plans/M5_specs/step3-pictures-complete.md`, builder-opus).
-- M5 step 4, The Voices (`docs/plans/M5_specs/step4-the-voices.md`, builder-opus).
+- The M5 science audit (science-auditor, read-only).
+- Every browser test in the installed Edge (`FINDER_BROWSER=msedge node tools/harness/browser-tests.mjs`).
 
 ## Known issues and open questions
 
@@ -170,9 +182,10 @@ and live-checked.
 
 ## Next (exact)
 
-1. As steps 3 and 4 report: look at their captures, run `npm run check`, commit each, deploy, live check.
-2. M5 step 5 (graph and gating: Portrait in M6 needs the home world and the height) and step 6 (sound
-   for the album and the voices, bot.game through all 43, the blind critic, an Edge run).
-3. M5 gate: science audit of the teaching-frame readings and the voice analyses, QA audit, PROGRESS and
-   HANDOFF, `docs/plans/M6.md` (Portrait, Our Frame, hints and accessibility; the critic's flat-finish
-   note), and the Firefox checklist for Stewart.
+1. When the science audit reports: record it in `docs/reviews/` with a decision per finding; fix.
+2. Edge: record the result; fix anything Edge-only.
+3. A fresh whole-game capture for the blind critic (archive older inbox folders first); record its review.
+4. M5 gate: QA audit, PROGRESS and HANDOFF, `docs/plans/M6.md` (Portrait: the codex assembles into the
+   senders' portrait and a final message, the critic's flat finish; Our Frame, the epilogue; hints and
+   accessibility; the full art pass for the charts is M7), and Stewart's Firefox checklist
+   (`docs/NEEDS_STEWART.md`).

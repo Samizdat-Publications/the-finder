@@ -13,7 +13,9 @@ const GPU_ARGS = [
 
 /** Launch installed Chrome, headless. */
 export function launchChrome() {
-  return chromium.launch({ channel: 'chrome', headless: true, args: GPU_ARGS });
+  // FINDER_BROWSER=msedge runs the same tests in the installed Edge (PLAN.md promises Chrome and Edge).
+  const channel = process.env.FINDER_BROWSER === 'msedge' ? 'msedge' : 'chrome';
+  return chromium.launch({ channel, headless: true, args: GPU_ARGS });
 }
 
 /**
