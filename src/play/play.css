@@ -1,0 +1,100 @@
+/* The instrument bench. Tokens come from ../ui/theme.css; gold appears only on the record and on pictures. */
+.bench { max-width: 1480px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+.bench-head h1 { font-size: 1.5rem; font-weight: 600; margin: 0.1rem 0 0.25rem; letter-spacing: 0.01em; }
+.bench-head .note { margin: 0; }
+.narrow-only { display: none; }
+
+.bench-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 1.25rem; align-items: start; margin-top: 1rem; }
+.bench-panel { padding: 1.1rem 1.35rem 1.4rem; min-width: 0; }
+.bench-panel h2 { margin: 0 0 0.4rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-dim); font-weight: 600; }
+.bench-panel h3 { margin: 1.1rem 0 0.2rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-dim); font-weight: 600; }
+
+.help { color: var(--text-dim); font-size: 0.82rem; line-height: 1.45; margin: 0.25rem 0; }
+.help.center { text-align: center; }
+.help.sub { margin: -0.25rem 0 0.6rem; }
+.error { color: var(--danger); font-size: 0.88rem; margin: 0.4rem 0; }
+
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0.8rem; margin: 0.7rem 0; }
+
+.btn {
+  font: inherit; font-size: 0.9rem; color: var(--text); background: transparent;
+  border: 1px solid var(--line); border-radius: 6px; padding: 0.45rem 0.9rem; cursor: pointer;
+}
+.btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+.btn.primary { border-color: var(--cyan); color: var(--cyan); }
+.btn.primary:hover:not(:disabled) { background: rgba(79, 240, 196, 0.12); }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn:focus-visible, .seg button:focus-visible, select:focus-visible, input:focus-visible, .tracks button:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.85rem; color: var(--text-dim); background: transparent; border: 0; padding: 0.38rem 0.8rem; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: rgba(79, 240, 196, 0.14); color: var(--cyan); }
+.seg button:disabled { opacity: 0.4; cursor: default; }
+
+.ctl { margin: 0.7rem 0; }
+.ctl label { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.88rem; margin-bottom: 0.2rem; }
+.ctl output { color: var(--text-dim); font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+.ctl.off { opacity: 0.5; }
+.ctl input[type='range'] { width: 100%; accent-color: var(--cyan); margin: 0; }
+.ctl select {
+  width: 100%; font: inherit; font-size: 0.85rem; color: var(--text); background: var(--bg-sunk);
+  border: 1px solid var(--line); border-radius: 6px; padding: 0.45rem 0.5rem;
+}
+.switchrow { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.switchrow .lbl { font-size: 0.88rem; }
+.ctl .help { margin: 0.15rem 0 0; }
+
+.mark { position: relative; height: 1.15rem; margin-top: 0.05rem; }
+.mark i { position: absolute; top: 0; width: 1px; height: 0.45rem; background: var(--violet); }
+.mark span { position: absolute; top: 0.4rem; transform: translateX(-50%); font-size: 0.72rem; color: var(--violet); white-space: nowrap; }
+
+.inline { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; color: var(--text-dim); margin-left: auto; }
+.inline input { width: 7rem; accent-color: var(--cyan); }
+
+.disc-wrap { display: flex; justify-content: center; margin: 0.6rem 0 0.2rem; }
+.disc { width: min(100%, 440px); height: auto; touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
+.disc-label { fill: var(--text-dim); font: 600 7px var(--font-sans); letter-spacing: 0.06em; text-transform: uppercase; }
+.disc-label.small { font-size: 5px; font-weight: 400; }
+
+.loadbar { display: flex; align-items: center; gap: 0.8rem; font-size: 0.8rem; color: var(--text-dim); margin: 0.4rem 0; }
+.bar { flex: 0 0 12rem; height: 6px; background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--cyan); transition: width 0.15s; }
+
+.nowplaying { margin: 0.9rem 0 0.4rem; padding: 0.7rem 0.9rem; background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 6px; min-height: 4.2rem; }
+.np-title { font-size: 1.02rem; font-weight: 600; }
+.np-detail { color: var(--text-dim); font-size: 0.82rem; margin-top: 0.15rem; }
+
+.tracks { list-style: none; margin: 0.6rem 0 0; padding: 0; max-height: 15rem; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; }
+.tracks li + li { border-top: 1px solid var(--line); }
+.tracks button {
+  display: grid; grid-template-columns: 1.8rem 1fr auto; gap: 0.5rem; width: 100%; text-align: left;
+  font: inherit; font-size: 0.82rem; color: var(--text); background: transparent; border: 0; padding: 0.35rem 0.6rem; cursor: pointer;
+}
+.tracks button:hover { background: rgba(155, 123, 255, 0.1); }
+.tracks .n, .tracks .d { color: var(--text-dim); font-family: var(--font-mono); }
+.tracks li.now button { background: rgba(79, 240, 196, 0.12); }
+
+.stage { margin: 0.8rem 0 0.4rem; }
+.picture-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; }
+.picture-frame { position: relative; border: 1px solid var(--gold); background: var(--bg-sunk); max-width: 100%; box-shadow: 0 0 0 3px rgba(232, 182, 74, 0.08); }
+.picture-frame canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+.picture-empty { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: var(--text-dim); font-size: 0.88rem; padding: 1rem; pointer-events: none; }
+.scope { margin-top: 0.5rem; }
+.scope canvas { display: block; border: 1px solid var(--line); background: var(--bg-sunk); }
+.status { min-height: 2.6em; }
+
+.bench-foot { margin-top: 1.6rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--text-dim); font-size: 0.85rem; }
+.bench-foot p { margin: 0.2rem 0; }
+
+@media (max-width: 1000px) {
+  .bench-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .bench { padding: 1rem 0.75rem 2rem; }
+  .narrow-only { display: block; }
+  .bench-panel { padding: 0.9rem 0.9rem 1.1rem; }
+  .ctl label { flex-direction: column; gap: 0.1rem; }
+  .ctl output { text-align: left; }
+  .inline { margin-left: 0; }
+}

@@ -18,6 +18,9 @@ export default defineConfig({
   },
   optimizeDeps: {
     entries: ['index.html', 'play/index.html', 'checked/index.html', ...IGNORED.map((g) => `!${g}`)],
+    // Pre-bundle Preact and its hooks and signals together, so a mid-session dependency re-optimisation
+    // can never load two copies (the "reading '__H'" hooks error seen once in a browser test).
+    include: ['preact', 'preact/hooks', 'preact/jsx-runtime', '@preact/signals'],
   },
   build: {
     outDir: 'dist',
