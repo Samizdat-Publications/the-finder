@@ -2,22 +2,20 @@
 // src/chapters/shared/epochModel.ts) through the instrument's own helpers (mapMath.ts), as the map bot reads them
 // (tests/browser/map.browser.mjs, playMap) and the trail bot's confirmMapThroughBus.
 //
-// What is worked on the real controls: the dial (its own arrow and Page keys, until the long line points at the
-// Galactic centre), the line buttons, the step chips, the spin-down clock's slider, the axis on the sky (a press
-// on the sky plot, then the plot's own arrow keys) and the origin on the plane (a press on the plane), each step
-// then proposed with its own Propose button.
-//
-// What falls back to the bus: putting a pulsar on a line is a click on the WebGL galaxy chart, and the chart's
-// projection is not reachable in-page on the live site (window.__mapChart is installed only with the harness).
-// So map.periods and map.identify are proposed with deduction.propose (the answer the Propose button would send
-// once the lines carry those pulsars), after the line is chosen on the instrument; map.old likewise, after the
-// clock's slider is set on the instrument (its answer carries the matched line, as the button's would).
+// Everything is worked on the real controls: the dial (its own arrow and Page keys, until the long line points at
+// the Galactic centre), the line buttons, the pulsars on the galaxy chart (clicked where the chart's own handle,
+// chartHandle() from GalaxyPane.tsx, projects them, after framing the camera on them), the step chips, the
+// spin-down clock's slider, the axis on the sky (a press on the sky plot, then the plot's own arrow keys) and the
+// origin on the plane (a press on the plane); each step is then proposed with its own Propose button, so the line
+// readouts show their pulsars afterwards. Only if a pulsar cannot be clicked (no chart, or it will not project on
+// screen) does a step fall back to deduction.propose on the bus with the answer its Propose button would send.
 
-import { dispatch } from '../../game/bus';
 import { game } from '../../game/state';
 import { ensureParts, epochModel, type EpochModel } from '../../chapters/shared/epochModel';
+import { chartHandle } from '../../chapters/map/GalaxyPane';
+import { assignments, selectedLine } from '../../chapters/map/state';
 import { bestAxisOnGrid, clockCrossingYearsAgo, isPass1Anchor, isYoung, skyAges } from '../../chapters/map/mapMath';
-import { click, ensureChapter, finish, key, press, proposeAndConfirm, proposeWith, setValue, sleep, tap, waitFor, waitVisible } from '../actionsKit';
+import { click, ensureChapter, finish, key, press, proposeOnBus, proposeWith, setValue, sleep, tap, waitFor, waitVisible } from '../actionsKit';
 
 /** The clock's slider moves in 50-year steps (SpinClock.tsx, step 50). */
 const CLOCK_STEP_YEARS = 50;
@@ -64,24 +62,58 @@ function firstAnchor(m: EpochModel): { order: number; jname: string } {
   return { order: l.order, jname: l.jname };
 }
 
+/** Choose a line on the instrument (its line button), then click its pulsar where the chart draws it. True once the line readout shows it. */
+async function assignOnChart(order: number, jname: string): Promise<boolean> {
+  if (assignments.value[String(order)] === jname) return true;
+  await press(`button.map-lb[data-line-button="${order}"]`, 10_000, `line ${order}`);
+  await waitFor(() => (selectedLine.value === order ? true : null), 5000, `line ${order} to be chosen`);
+  const h = chartHandle();
+  const canvas = document.querySelector('.map-chart canvas');
+  if (!h || !canvas) return false;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await h.frame({ jname }, { durationS: 0.01 });
+    await sleep(150);
+    const p = h.project(jname);
+    if (!p || !p.onScreen) continue;
+    const r = canvas.getBoundingClientRect();
+    tap(canvas, r.left + p.x, r.top + p.y);
+    const ok = await waitFor(() => (assignments.value[String(order)] === jname ? true : null), 3000, `${jname} on line ${order}`).then(() => true, () => false);
+    if (ok) return true;
+  }
+  return false;
+}
+
+/** Back to the whole chart after clicking pulsars close up (the chart's own "overview" frame). */
+async function overview(): Promise<void> {
+  await chartHandle()?.frame('overview').catch(() => undefined);
+}
+
 export function periods(): Promise<void> {
   return finish('map.periods', async () => {
     const m = await ready();
     await alignDial();
     const a = firstAnchor(m);
-    await press(`button.map-lb[data-line-button="${a.order}"]`, 10_000, `line ${a.order}`);
-    await proposeAndConfirm('map.periods', () => dispatch({ type: 'deduction.propose', id: 'map.periods', answer: { line: a.order, jname: a.jname } }).catch(() => undefined));
+    if (await assignOnChart(a.order, a.jname)) {
+      // The readout and the proposal are for the chosen line: choose it again if another is selected.
+      if (selectedLine.value !== a.order) await press(`button.map-lb[data-line-button="${a.order}"]`, 10_000, `line ${a.order}`);
+      await overview();
+      await proposeWith('map.periods', '[data-panel="map.periods"] [data-propose-button="map.periods"]');
+    } else {
+      // Fallback: the chart could not be clicked (no chart handle, or the pulsar would not project on screen).
+      await proposeOnBus('map.periods', { line: a.order, jname: a.jname });
+    }
   });
 }
 
 export function old(): Promise<void> {
   return finish('map.old', async () => {
     const m = await ready();
-    await step('map.old');
-    // The line map.periods accepted (its answer), else the first anchor.
+    // The line map.periods accepted (its answer), else the first anchor; on the chart if it is not there yet.
     const rec = game.records.value['map.periods'];
     const ok = rec ? [...rec.attempts].reverse().find((x) => x.ok)?.answer : null;
     const a = ok && typeof ok === 'object' && !Array.isArray(ok) && typeof ok.line === 'number' && typeof ok.jname === 'string' ? { order: ok.line, jname: ok.jname } : firstAnchor(m);
+    const onChart = await assignOnChart(a.order, a.jname);
+    await step('map.old');
     const e = m.byJ.get(a.jname);
     const line = m.lines.find((x) => x.order === a.order);
     if (!e || !line) throw new Error('The matched line is missing from the model.');
@@ -90,8 +122,12 @@ export function old(): Promise<void> {
     const slider = await waitVisible<HTMLInputElement>('input[data-clock]', 10_000, 'the spin-down clock');
     setValue(slider, -Math.round(cross / CLOCK_STEP_YEARS) * CLOCK_STEP_YEARS, 'input');
     await sleep(200);
-    const yearsAgo = -Number(slider.value);
-    await proposeAndConfirm('map.old', () => dispatch({ type: 'deduction.propose', id: 'map.old', answer: { yearsAgo, matched: { [String(a.order)]: a.jname } } }).catch(() => undefined));
+    if (onChart) {
+      await waitFor(`[data-clock-line="${a.order}"].agrees`, 5000, `line ${a.order}'s curve to meet the map's number`);
+      await proposeWith('map.old', '[data-panel="map.old"] [data-propose-button="map.old"]');
+    } else {
+      await proposeOnBus('map.old', { yearsAgo: -Number(slider.value), matched: { [String(a.order)]: a.jname } });
+    }
   });
 }
 
@@ -105,15 +141,17 @@ export function identify(): Promise<void> {
       if (!l.best) throw new Error(`Line ${l.line.order} has no likely pulsar.`);
       answer[String(l.line.order)] = l.best.entry.jname;
     }
-    // Walk the lines on the instrument as the player would, one after another.
+    // Every line, one after another: choose it, click its most likely pulsar on the chart.
+    let allOnChart = true;
     for (const l of id.lines) {
-      const b = document.querySelector(`button.map-lb[data-line-button="${l.line.order}"]`);
-      if (b) {
-        click(b);
-        await sleep(120);
+      if (!(await assignOnChart(l.line.order, answer[String(l.line.order)]!))) {
+        allOnChart = false;
+        break;
       }
     }
-    await proposeAndConfirm('map.identify', () => dispatch({ type: 'deduction.propose', id: 'map.identify', answer }).catch(() => undefined));
+    await overview();
+    if (allOnChart) await proposeWith('map.identify', '[data-panel="map.identify"] [data-propose-button="map.identify"]');
+    else await proposeOnBus('map.identify', answer);
   });
 }
 

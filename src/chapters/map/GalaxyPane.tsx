@@ -20,6 +20,12 @@ declare global {
   }
 }
 
+/** The chart mounted now (as trail's ChartPane.tsx chartHandle): the guided tour's "Do it for me" clicks pulsars where it projects them. */
+let current: GalaxyHandle | null = null;
+export function chartHandle(): GalaxyHandle | null {
+  return current;
+}
+
 export function GalaxyPane() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const handle = useRef<GalaxyHandle | null>(null);
@@ -43,6 +49,7 @@ export function GalaxyPane() {
       window.clearTimeout(start);
       if (!g) return;
       if (window.__mapChart === g) delete window.__mapChart;
+      if (current === g) current = null;
       g.dispose();
       handle.current = null;
     };
@@ -61,6 +68,7 @@ export function GalaxyPane() {
       },
     });
     handle.current = g;
+    current = g;
     if (window.__finder) window.__mapChart = g;
     g.ready
       .then((i) => {

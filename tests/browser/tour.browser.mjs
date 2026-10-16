@@ -5,7 +5,7 @@
 // ([data-tour-next]; "Finish" on the last stop). It asserts the guide's step counter ([data-tour-step]) went
 // through every stop in order and that every deduction in the script is confirmed at the end. Captures go to
 // review/inbox/<timestamp>-tour/frames/ with manifest.json and shots.txt. Console errors fail the test (the
-// harness). Id: bot.tour.
+// harness). With TOUR_ARCHIVE=1 the capture goes to review/archive/ instead. Id: bot.tour.
 import { join } from 'node:path';
 import { ROOT } from '../../tools/harness/serve.mjs';
 import { freshStart, reviewFolder, stamp } from './slice.browser.mjs';
@@ -23,7 +23,8 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   const stops = await page.evaluate(async () => (await import('/src/tour/script.ts')).STOPS.map((s) => ({ id: s.id, kind: s.kind, node: s.node ?? null, title: s.title, chapter: s.chapter })));
   const nodes = stops.filter((s) => s.node).map((s) => s.node);
   log(`${stops.length} stops, ${nodes.length} deductions`);
-  const review = reviewFolder(join(ROOT, 'review', 'inbox', `${stamp()}-tour`));
+  // TOUR_ARCHIVE=1 writes the capture to review/archive/ instead (a rerun while the critic reads review/inbox/).
+  const review = reviewFolder(join(ROOT, 'review', process.env.TOUR_ARCHIVE === '1' ? 'archive' : 'inbox', `${stamp()}-tour`));
   const shot = (name, shows, did) => review.shot(page, name, shows, did);
 
   const seen = [];
