@@ -6,13 +6,11 @@
 //   ?demo=sun | ?demo=wrong   neighbourhood: draw the Sun's trail, or a wrong star's (the nearest other)
 //   ?reduced=1 short eases; ?clean=1 hides the buttons and readout (captures)
 // Exposes window.__galaxy, window.__neighbourhood and window.__chartsDemo for the browser test.
-import { KMS_PER_MASYR_PC, KM_S_TO_PC_PER_YEAR, add, scale, sub, toGalacticCartesian, type Vec3 } from '../../science/astro';
 import { discoveryState } from '../../science/epoch';
-import { distanceModel, eastNorth } from '../../science/pulsarEpoch';
-import { originRegion, type MapPoint, type OriginRegion } from '../../science/triangulation';
+import { mapPointsAtEpoch, originRegion, type OriginRegion } from '../../science/triangulation';
 import { expandColumnar, type ColumnarStars, type CoverData, type PulsarCatalogue, type ScenarioData, type StarCatalogue, type StarRecord } from '../../science/types';
 import { mountGalaxy, type GalaxyHandle } from '../../world/galaxy';
-import { transformFromFit, type GalaxyModel } from '../../world/galaxyModel';
+import { transformFromFit } from '../../world/galaxyModel';
 import { mountNeighbourhood, type NeighbourhoodHandle } from '../../world/neighbourhood';
 
 declare global {
@@ -43,27 +41,6 @@ const button = (label: string, fn: () => void): void => {
   hud.appendChild(b);
 };
 
-/**
- * The map lines as triangulation inputs in the alien's frame at the map epoch (dev page only; the same
- * construction as triangulation.test.ts pointsEpoch): each pulsar's position from the observer, moved
- * back over the elapsed time by the proper motion the observer measures. The Map chapter builds this
- * from the player's own matches and dating.
- */
-function mapPoints(model: GalaxyModel, cover: CoverData, cat: PulsarCatalogue, elapsedYears: number): MapPoint[] {
-  return cover.pulsarMap.lines.map((l) => {
-    const a = model.pulsars.find((p) => p.jname === l.jname)!.entry;
-    const dPc = (a.distKpc as number) * 1000;
-    let pos: Vec3 = scale(a.nHat, dPc);
-    if (a.pmraObs !== null && a.pmdecObs !== null) {
-      const [e, n] = eastNorth(a.raDeg, a.decDeg);
-      const vRel = scale(add(scale(e, a.pmraObs), scale(n, a.pmdecObs)), KMS_PER_MASYR_PC * dPc);
-      pos = sub(pos, scale(vRel, KM_S_TO_PC_PER_YEAR * elapsedYears));
-    }
-    const rec = cat.pulsars.find((r) => r.jname === l.jname)!;
-    return { name: l.bname, angleDeg: l.mapAngleDeg, rOverR0: l.rOverR0, posPc: toGalacticCartesian(pos), distKpc: a.distKpc as number, distance: distanceModel(rec) };
-  });
-}
-
 async function main(): Promise<{ region?: OriginRegion; elapsedYears?: number; wrongStarId?: number }> {
   const [sc, st, sk, ps, cv] = await Promise.all([
     import('../../../data/scenario.json'),
@@ -91,7 +68,7 @@ async function main(): Promise<{ region?: OriginRegion; elapsedYears?: number; w
     button('Perspective', () => void g.setViewMode('perspective'));
     if (demo === 'map') {
       const elapsed = discoveryState(scenario, stars).yearsAfterLaunch;
-      const region = originRegion(mapPoints(g.model(), cover, catalogue, elapsed), { draws: 300, seed: `${seed}.region` });
+      const region = originRegion(mapPointsAtEpoch(cover.pulsarMap.lines, cover.pulsarMap.lines.map((l) => g.model().pulsars.find((p) => p.jname === l.jname)!.entry), elapsed), { draws: 300, seed: `${seed}.region` });
       g.showMap(cover.pulsarMap, transformFromFit(region.fit));
       g.setMatches(cover.pulsarMap.lines.map((l) => ({ order: l.order, jname: l.jname })));
       g.showRegion(region);

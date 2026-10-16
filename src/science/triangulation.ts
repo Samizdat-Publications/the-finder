@@ -5,11 +5,12 @@
 // in-plane position at the map epoch. The map's line lengths enter only as weak, heavy-tailed
 // constraints with a free scale. Pure and deterministic: seeded streams only.
 
-import type { Vec3 } from './astro';
-import { drawDistanceKpc, type DistanceModel } from './pulsarEpoch';
+import { KMS_PER_MASYR_PC, KM_S_TO_PC_PER_YEAR, add, scale, sub, toGalacticCartesian, type Vec3 } from './astro';
+import { drawDistanceKpc, eastNorth, type AlienPulsar, type DistanceModel } from './pulsarEpoch';
 import { wrapDeg } from './pulsars';
 import { createRng } from './random';
 import { chiSquareCdf, erfc } from './stats';
+import type { CoverMapLine } from './types';
 
 const DEG = Math.PI / 180;
 
@@ -24,6 +25,30 @@ export interface MapPoint {
   /** The catalogue distance the position was built from, kpc, and its error model (for the Monte Carlo). */
   distKpc: number;
   distance: DistanceModel;
+}
+
+/**
+ * The map lines as triangulation inputs at the story epoch, in the alien's own frame: each identified
+ * pulsar's position relative to the observer, moved back over the dated elapsed time by the proper
+ * motion the observer measures (relative to itself), so the points are relative to where the observer
+ * was at the map epoch. `entries[i]` is the pulsar assigned to `lines[i]`. Radial relative velocities
+ * are unknown (up to about 110 km/s from the observer's own motion, about 5 pc along each line of sight
+ * in 44,000 yr); seen from an origin a few pc away that bends a bearing to a pulsar 200 pc off by under
+ * 0.05 deg, against a map sigma of about 1.5 deg.
+ */
+export function mapPointsAtEpoch(lines: readonly CoverMapLine[], entries: readonly AlienPulsar[], elapsedYears: number): MapPoint[] {
+  return lines.map((l, i) => {
+    const a = entries[i];
+    if (!a || a.distKpc === null) throw new Error(`line ${l.bname}: no pulsar with a distance assigned`);
+    const dPc = a.distKpc * 1000;
+    let pos = scale(a.nHat, dPc);
+    if (a.pmraObs !== null && a.pmdecObs !== null) {
+      const [e, q] = eastNorth(a.raDeg, a.decDeg);
+      const vRel = scale(add(scale(e, a.pmraObs), scale(q, a.pmdecObs)), KMS_PER_MASYR_PC * dPc);
+      pos = sub(pos, scale(vRel, KM_S_TO_PC_PER_YEAR * elapsedYears));
+    }
+    return { name: l.bname, angleDeg: l.mapAngleDeg, rOverR0: l.rOverR0, posPc: toGalacticCartesian(pos), distKpc: a.distKpc, distance: a.distance };
+  });
 }
 
 export interface FitOptions {

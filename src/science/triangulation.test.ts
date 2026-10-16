@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadCover, loadGlitches, loadPulsars, loadScenario, loadStars } from '../../tests/support/data';
 import { recordCheck } from '../../tests/support/record';
 import {
-  KMS_PER_MASYR_PC, KM_S_TO_PC_PER_YEAR, add, mjdToDecimalYear, norm, positionPc, propagateLinear, scale, spaceVelocityKmS, sub,
+  KM_S_TO_PC_PER_YEAR, add, mjdToDecimalYear, norm, positionPc, propagateLinear, scale, spaceVelocityKmS, sub,
   toGalacticCartesian, unitVector, type Vec3,
 } from './astro';
 import { discoveryState, homeObserver } from './epoch';
@@ -10,7 +10,7 @@ import { combineAges, datePulsar } from './pulsarAge';
 import { distanceModel, drawDistanceKpc, drawObserver, eastNorth, projectPulsar, type AlienPulsar } from './pulsarEpoch';
 import { dateMapToday } from './pulsars';
 import { createRng } from './random';
-import { fitMapOrigin, insideRegion, originRegion, regionLevel, type MapPoint, type OriginRegion } from './triangulation';
+import { fitMapOrigin, insideRegion, mapPointsAtEpoch, originRegion, regionLevel, type MapPoint, type OriginRegion } from './triangulation';
 import { SAGAN_HYDROGEN_HZ } from './units';
 
 const cover = loadCover();
@@ -42,28 +42,6 @@ function pointsToday(): MapPoint[] {
       name: l.bname, angleDeg: l.mapAngleDeg, rOverR0: l.rOverR0, posPc: toGalacticCartesian(scale(n, (p.dist as number) * 1000)),
       distKpc: p.dist as number, distance: distanceModel(p),
     };
-  });
-}
-
-/**
- * At the epoch, in the alien's own frame: each pulsar's position relative to the observer, moved back
- * over the dated elapsed time by the proper motion the observer measures (relative to itself), so the
- * points are relative to where the observer was at the map epoch. Radial relative velocities are
- * unknown (up to about 110 km/s from the observer's own motion, about 5 pc along each line of sight in
- * 44,000 yr); seen from an origin a few pc away that bends a bearing to a pulsar 200 pc off by under
- * 0.05 deg, against a map sigma of about 1.5 deg.
- */
-function pointsEpoch(alien: readonly AlienPulsar[], elapsedYears: number): MapPoint[] {
-  return lines.map((l, i) => {
-    const a = alien[i] as AlienPulsar;
-    const dPc = (a.distKpc as number) * 1000;
-    let pos = scale(a.nHat, dPc);
-    if (a.pmraObs !== null && a.pmdecObs !== null) {
-      const [e, q] = eastNorth(a.raDeg, a.decDeg);
-      const vRel = scale(add(scale(e, a.pmraObs), scale(q, a.pmdecObs)), KMS_PER_MASYR_PC * dPc);
-      pos = sub(pos, scale(vRel, KM_S_TO_PC_PER_YEAR * elapsedYears));
-    }
-    return { name: l.bname, angleDeg: l.mapAngleDeg, rOverR0: l.rOverR0, posPc: toGalacticCartesian(pos), distKpc: a.distKpc as number, distance: a.distance };
   });
 }
 
@@ -191,7 +169,7 @@ describe('triangulation at the story epoch', () => {
     const measured = drawObserver(observer, createRng(seed).fork('measure/observer'));
     const ages = lines.map((l, i) => datePulsar(alien[i] as AlienPulsar, l, { seed, draws: DRAWS, reframe: measured }));
     const elapsed = combineAges(ages.filter((a) => !a.young)).estimate;
-    const pts = pointsEpoch(alien, elapsed);
+    const pts = mapPointsAtEpoch(lines, alien, elapsed);
     const region = originRegion(pts, { draws: DRAWS, seed });
     const regionNoLen = originRegion(pts, { draws: DRAWS, seed: `${seed}.noLengths`, useLengths: false });
     // Where the observer was at the map epoch (truth, SSB frame) and so where the Sun sits in the alien's frame.
