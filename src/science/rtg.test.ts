@@ -72,8 +72,9 @@ describe('clocks: RTG fuel (clocks.md 4b)', () => {
     recordCheck({
       id: 'clocks.rtg.heat',
       claim:
-        `Each heat source started at about 2,400 W; 44,000 years on, the three together still give off ${h.low.toFixed(1)} to ${h.high.toFixed(1)} W, ` +
-        'depending on whether radon stays in the fuel.',
+        `Each heat source started at about 2,400 W; 44,000 years on, the three together still give off ${h.low.toFixed(1)} to ${h.high.toFixed(1)} W. ` +
+        `The range rests on two assumptions: whether radon stays in the fuel (its daughters give ${s44.radonProgenyHeatW.toFixed(2)} W) and the ` +
+        `Cassini-like split of the non-238 plutonium (Pu-239 gives ${s44.pu239HeatW.toFixed(2)} W).`,
       measured:
         `launch ${perRtg0.toFixed(0)} W per RTG; at 44,000 y ${h.low.toFixed(2)} to ${h.high.toFixed(2)} W per spacecraft ` +
         `(radon progeny ${s44.radonProgenyHeatW.toFixed(2)} W, Pu-239 ${s44.pu239HeatW.toFixed(2)} W)`,

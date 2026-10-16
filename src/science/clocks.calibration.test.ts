@@ -13,6 +13,62 @@ const rel = (a: number, b: number): number => Math.abs(a / b - 1);
 const fmt = (y: number): string => (Math.abs(y) >= 10 ? y.toFixed(0) : y.toFixed(2));
 const ACCEPT = { lo: 0.93, hi: 0.97 };
 
+// --- Independent half-life systematic (does not use the module's propagateHalfLives or solver) ---
+// LNHB 1-sigma half-lives, years (docs/research/clocks.md 4a, 4b): U-238 4.468(5)e9, U-234 2.455(6)e5,
+// Th-230 7.538(30)e4, Pu-238 87.74(3). Cheng et al. 2013: U-234 245,620, Th-230 75,584, 1 sigma = half
+// the quoted 2 sigma (260 and 110 y).
+const LNHB = { U238: [4.468e9, 0.005e9], U234: [2.455e5, 600], Th230: [7.538e4, 300], Pu238: [87.74, 0.03] } as const;
+const Z95 = 1.959963984540054; // two-sided 95% normal quantile
+
+function bisect(f: (x: number) => number, lo: number, hi: number): number {
+  let a = lo;
+  let b = hi;
+  const fa = Math.sign(f(a));
+  for (let i = 0; i < 200; i++) {
+    const m = 0.5 * (a + b);
+    if (Math.sign(f(m)) === fa) a = m;
+    else b = m;
+  }
+  return 0.5 * (a + b);
+}
+
+/** Textbook Bateman (sum of exponentials) Th-230/U-234 atom ratio from pure Pu-238; fine at t >> 100 y. */
+function puThU(t: number, T1: number, T2: number, T3: number): number {
+  const l1 = Math.LN2 / T1;
+  const l2 = Math.LN2 / T2;
+  const l3 = Math.LN2 / T3;
+  const N2 = (l1 / (l2 - l1)) * (Math.exp(-l1 * t) - Math.exp(-l2 * t));
+  const N3 =
+    l1 * l2 *
+    (Math.exp(-l1 * t) / ((l2 - l1) * (l3 - l1)) + Math.exp(-l2 * t) / ((l1 - l2) * (l3 - l2)) + Math.exp(-l3 * t) / ((l1 - l3) * (l2 - l3)));
+  return N3 / N2;
+}
+
+type HL = Record<string, number>;
+const hl = (T: HL, k: string): number => T[k] as number;
+
+/** Age from a Th/U atom ratio with given half-lives, by bisection on [1,000, 1e6] y. */
+function puAge(ratio: number, T: HL): number {
+  return bisect((t) => puThU(t, hl(T, 'Pu238'), hl(T, 'U234'), hl(T, 'Th230')) - ratio, 1e3, 1e6);
+}
+
+/** U-234 ingrowth age from A234/A238 by the closed-form two-member inversion. */
+function uAge(R: number, T: HL): number {
+  const l1 = Math.LN2 / hl(T, 'U238');
+  const l2 = Math.LN2 / hl(T, 'U234');
+  return -Math.log(1 - (R * (l2 - l1)) / l2) / (l2 - l1);
+}
+
+/** 1-sigma systematic: half the age change for T +/- sigma, per nuclide, in quadrature. */
+function fdSystematic(ageOf: (T: HL) => number, base: HL, sig: HL): number {
+  let s2 = 0;
+  for (const [k, sg] of Object.entries(sig)) {
+    const d = (ageOf({ ...base, [k]: hl(base, k) + sg }) - ageOf({ ...base, [k]: hl(base, k) - sg })) / 2;
+    s2 += d * d;
+  }
+  return Math.sqrt(s2);
+}
+
 function coverage(trial: (i: number) => boolean): number {
   let hits = 0;
   for (let i = 0; i < N; i++) if (trial(i)) hits++;
@@ -40,18 +96,29 @@ describe('clocks: calibration of the uranium-spot clock', () => {
       const sys = ageFromU234({
         u238: state.activityBq.U238, u234: state.activityBq.U234, th230: 0, countingTimeS: 1, efficiency: 1,
       }).halfLifeSystematic;
-      const pass = cov >= ACCEPT.lo && cov <= ACCEPT.hi;
+      const R = state.ratios.a234over238;
+      const indep = fdSystematic((T) => uAge(R, T), { U238: LNHB.U238[0], U234: LNHB.U234[0] }, { U238: LNHB.U238[1], U234: LNHB.U234[1] });
+      // Module and independent recomputation must agree to 1% (same definition, different code).
+      const sysOk = rel(sys.totalYears, indep) < 0.01;
+      const stat95 = median / 2;
+      const sys95 = Z95 * sys.totalYears;
+      const pass = cov >= ACCEPT.lo && cov <= ACCEPT.hi && sysOk;
       recordCheck({
         id: c.id,
         claim: `Counting the spot's alpha particles (${c.label}, 30% efficient detector) gives an age range that contains the true age 95% of the time.`,
-        measured: `coverage ${(cov * 100).toFixed(1)}% over ${N} seeded trials; median 95% interval width ${median.toPrecision(3)} years`,
-        expected: '95% (Wilson score interval on the U-234 fraction, mapped through the Bateman ratio)',
-        tolerance: '93% to 97% (3 binomial standard errors for 1,000 trials)',
+        measured:
+          `coverage ${(cov * 100).toFixed(1)}% over ${N} seeded trials; at 95%: statistical half-width ${fmt(stat95)} y (median), ` +
+          `half-life systematic ${fmt(sys95)} y, combined in quadrature ${fmt(Math.hypot(stat95, sys95))} y`,
+        expected:
+          `95% coverage (Wilson score interval mapped through the Bateman ratio); half-life systematic ${fmt(indep)} y (1 sigma) by ` +
+          'independent finite-difference recomputation from the LNHB half-life uncertainties',
+        tolerance: '93% to 97% coverage (3 binomial standard errors for 1,000 trials); systematic within 1% of the recomputation',
         pass,
         notes:
           'Pure U-238 start assumed; uranium and thorium separated before counting; same efficiency for every line. ' +
-          `Separate half-life systematic (1 sigma, LNHB): +/- ${fmt(sys.totalYears)} y (U-234 ${fmt(sys.parts.U234 ?? 0)} y, U-238 ${(sys.parts.U238 ?? 0).toExponential(1)} y).`,
+          `Half-life systematic 1 sigma (LNHB): ${fmt(sys.totalYears)} y (U-234 ${fmt(sys.parts.U234 ?? 0)} y, U-238 ${(sys.parts.U238 ?? 0).toExponential(1)} y); x 1.96 for 95%.`,
       });
+      expect(sysOk).toBe(true);
       expect(cov).toBeGreaterThanOrEqual(ACCEPT.lo);
       expect(cov).toBeLessThanOrEqual(ACCEPT.hi);
     });
@@ -111,18 +178,28 @@ describe('clocks: calibration of the RTG clock', () => {
     const exact = ageFromTh230U234({ th230OverU234: state.ratios.th230OverU234Atoms, ra226OverTh230: 0, u238OverU234: 0, relativePrecision: 0.01 });
     const sys = exact.halfLifeSystematic;
     const sysC = exact.halfLifeSystematicCheng;
-    // Science audit (2026-10-15) computed independently about 137 y (LNHB: U-234 +131.5, Th-230 -38.7)
-    // and about 29 y (Cheng 2013) at 44,100 y; allow 10% for "about" and the 100-year epoch difference.
-    const sysOk = rel(sys.totalYears, 137) < 0.1 && rel(sysC.totalYears, 29) < 0.1;
+    // Independent recomputation: textbook Bateman ratio, bisection, half-lives moved by +/- 1 sigma.
+    const ratio = state.ratios.th230OverU234Atoms;
+    const ageOf = (T: HL): number => puAge(ratio, T);
+    const base = { Pu238: LNHB.Pu238[0], U234: LNHB.U234[0], Th230: LNHB.Th230[0] };
+    const indep = fdSystematic(ageOf, base, { Pu238: LNHB.Pu238[1], U234: LNHB.U234[1], Th230: LNHB.Th230[1] });
+    const indepC = fdSystematic(ageOf, { Pu238: LNHB.Pu238[0], U234: 245_620, Th230: 75_584 }, { U234: 130, Th230: 55 });
+    // Module and independent recomputation must agree to 1% (same definition, different code).
+    const sysOk = rel(sys.totalYears, indep) < 0.01 && rel(sysC.totalYears, indepC) < 0.01;
+    halfWidths.sort((x, y) => x - y);
+    const stat95 = halfWidths[Math.floor(halfWidths.length / 2)] as number;
+    const sys95 = Z95 * sys.totalYears;
     const pass = cov >= ACCEPT.lo && cov <= ACCEPT.hi && sysOk;
     recordCheck({
       id: 'clocks.rtg.coverage',
       claim: 'The thorium clock in the heat source, measured to 1%, gives an age range that contains the true age 95% of the time.',
       measured:
-        `coverage ${(cov * 100).toFixed(1)}% over ${N} seeded trials; typical 95% statistical half-width ${(halfWidths[0] as number).toFixed(0)} years; ` +
-        `separate half-life systematic +/- ${sys.totalYears.toFixed(0)} years (1 sigma, LNHB)`,
-      expected: '95% coverage; half-life systematic about 137 y (LNHB) and 29 y (Cheng 2013), science audit',
-      tolerance: '93% to 97% (3 binomial standard errors for 1,000 trials); systematic within 10% of the audit value',
+        `coverage ${(cov * 100).toFixed(1)}% over ${N} seeded trials; at 95%: statistical half-width ${stat95.toFixed(0)} y (median), ` +
+        `half-life systematic ${sys95.toFixed(0)} y, combined in quadrature ${Math.hypot(stat95, sys95).toFixed(0)} y`,
+      expected:
+        `95% coverage; half-life systematic ${indep.toFixed(1)} y (1 sigma, LNHB) and ${indepC.toFixed(1)} y (Cheng et al. 2013) by ` +
+        'independent finite-difference recomputation (textbook Bateman ratio, half-lives moved by +/- 1 sigma)',
+      tolerance: '93% to 97% coverage (3 binomial standard errors for 1,000 trials); systematic within 1% of the recomputation',
       pass,
       notes:
         `Half-life systematic, 1 sigma, propagated per nuclide: LNHB U-234 ${(sys.parts.U234 ?? 0).toFixed(1)} y, Th-230 ${(sys.parts.Th230 ?? 0).toFixed(1)} y, ` +
