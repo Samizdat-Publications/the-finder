@@ -67,7 +67,7 @@ sources below are planned; each gets its final line (with checksum and date) whe
 - NASA "Images on the Golden Record" gallery (science.nasa.gov; JPL scans, most likely from Murmurs of Earth): ten images used ONLY in tests, as clean references for the decoder's independent geometry check (sources nasa-gr-* in tools/sources.json); never shown in the experience. Fetched 2026-10-15.
 - Pioneer plaque vector drawing by Mysid (2006), public domain, via Wikimedia Commons (Pioneer_plaque.svg). Fetched 2026-10-15.
 - The cover SVG (public/media/cover/cover.svg) is our own trace of the NASA/JPL photo GPN-2000-001978 above, with the binary numbers from data/cover.json and the pulsar-map geometry from the Pioneer vector drawing above (no new source). Built 2026-10-15 by tools/cover/.
-- Gaia EDR3 all-sky colour map: ESA/Gaia/DPAC, CC BY-SA 3.0 IGO (acknowledgement: A. Moitinho). Planned.
+- Milky Way: ESA/Gaia/DPAC, "The colour of the sky from Gaia's Early Data Release 3" (equirectangular), CC BY-SA 3.0 IGO; acknowledgement: A. Moitinho. https://sci.esa.int/web/gaia/-/the-colour-of-the-sky-from-gaia-s-early-data-release-3-equirectangular-projection (source `gaia-sky-colour` in tools/sources.json). Fetched 2026-10-16; converted to `public/media/sky/gaia-sky.webp` by `tools/sky/build-sky.mjs`.
 
 ## Prior work we learned from (no code copied)
 - Ron Barry's decoder and frame tables (2017; foodini/voyager voyager.cpp fetched 2026-10-15 as reference data only); aizquier/voyagerimb; Malte Gruber; Marc Baeuerle;

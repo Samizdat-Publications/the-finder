@@ -1,0 +1,38 @@
+{
+  "source": {
+    "id": "gaia-sky-colour",
+    "file": "sources/gaia-sky-colour/Gaia_EDR3_flux_cartesian_4k.png",
+    "bytes": 18137183,
+    "sha256": "68fef2ee355015f84a43105bbf296f5a8d8b38d2fe8fe1a068ba1402e9ce5550",
+    "url": "https://sci.esa.int/documents/33580/35361/Gaia_EDR3_flux_cartesian_4k.png/4648ec09-6c63-47a5-d0da-3ab3e0b42afe?version=1.0&t=1606986362680&download=true",
+    "credit": "ESA/Gaia/DPAC, CC BY-SA 3.0 IGO. Acknowledgement: A. Moitinho. \"The colour of the sky from Gaia's Early Data Release 3, equirectangular projection\" (3 December 2020), https://sci.esa.int/web/gaia/-/the-colour-of-the-sky-from-gaia-s-early-data-release-3-equirectangular-projection"
+  },
+  "output": {
+    "file": "public/media/sky/gaia-sky.webp",
+    "bytes": 1235182,
+    "sha256": "77141e8376b840d93541a0c482a49f9e8edc2a69f599fa0b5bd507e9a6eeda80",
+    "width": 4000,
+    "height": 2000,
+    "quality": 88,
+    "blurSigmaPx": 0.8
+  },
+  "projection": {
+    "frame": "galactic (IAU 1958, Hipparcos definition)",
+    "type": "equirectangular (plate carree)",
+    "centre": {
+      "lDeg": 0,
+      "bDeg": 0
+    },
+    "longitudeIncreases": "left",
+    "topRowBDeg": 90,
+    "u": "u = 0.5 - l / 360 (l wrapped to -180..180)",
+    "v": "v = 0.5 + b / 180 (v = 1 at the top row)"
+  },
+  "orientationCheck": {
+    "lmc": 162.82637353497165,
+    "lmcMirror": 53.07677466918721,
+    "smc": 115.24466200378076,
+    "smcMirror": 35.08811531190924
+  },
+  "builtBy": "tools/sky/build-sky.mjs"
+}

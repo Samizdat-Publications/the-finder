@@ -157,7 +157,7 @@ The real basis of every step lives in `docs/HOW_ITS_CHECKED.md`.
 
 ### 0. Arrival (about 10 minutes)
 - **See and do:** your vessel's lamps sweep a tiny machine under the real sky of that place and time:
-  the Sun a bright yellow star behind it, the Milky Way from Gaia's all-sky map. Scan it for
+  the Sun a bright, warm-white star behind it, the Milky Way from Gaia's all-sky map. Scan it for
   structure, heat and isotopes.
 - **Work out:** it was built to talk across great distances (the dish) and to sense (the booms). Three
   cylinders are faintly warm, about 9 W in all (computed: 8.7 W): mostly uranium-234 (about 11 kg) and
@@ -203,7 +203,7 @@ The real basis of every step lives in `docs/HOW_ITS_CHECKED.md`.
 
 ### 4. The Trail (about 10 minutes)
 - **See and do:** the object's measured velocity against your catalogue of nearby stars.
-- **Work out:** exactly one star has the object flying straight away from it: the bright yellow one,
+- **Work out:** exactly one star has the object flying straight away from it: the bright warm-white one,
   2.4 light-years behind. Distance divided by speed gives about 44,000 years, a third clock, and that
   star sits inside the map's region. Reframe the pulsar periods into that star's rest frame and the
   map's ages snap together too. WHERE and WHEN are complete.
@@ -239,7 +239,7 @@ The real basis of every step lives in `docs/HOW_ITS_CHECKED.md`.
 
 ### 8. Portrait (about 5 minutes)
 - The codex assembles: where they live, when they sent it, what they look like, their world, their
-  voices. You look up at the yellow star in your sky.
+  voices. You look up at that bright warm-white star in your sky.
 
 ### 9. Our frame (epilogue, about 5 minutes)
 - Today: where the Voyagers are right now (from shipped JPL tables, counting up live), Voyager 1
