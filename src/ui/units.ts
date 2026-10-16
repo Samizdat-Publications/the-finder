@@ -119,7 +119,7 @@ export function formatSI(dim: Dim, si: number): string {
     if (a < 120) return `${sig(si)} s`;
     if (a < 7200) return `${sig(si / 60)} min`;
     if (a < 172_800) return `${sig(si / 3600)} h`;
-    if (a < 100 * 86_400) return `${sig(si / 86_400)} days`;
+    if (a < 2 * JULIAN_YEAR_S) return `${sig(si / 86_400)} days`;
     return `${grouped.format(Number((si / JULIAN_YEAR_S).toPrecision(3)))} years`;
   }
   if (dim === 'length') {
