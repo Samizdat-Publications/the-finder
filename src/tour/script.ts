@@ -552,7 +552,7 @@ export const STOPS: readonly Stop[] = [
     id: 'finale.now', part: 'finale', kind: 'story', chapter: 'hub', widget: 'voyagerNow',
     title: 'Where it is right now',
     look:
-      'Back to the real world. Voyager 1 is still out there, still sending faint signals home, the most distant thing humans have ever made. Our planets\' data (from NASA\'s JPL) says where it is tonight.',
+      'Back to the real world. Voyager 1 is still out there, still sending faint signals home, the most distant thing humans have ever made. NASA\'s own tables of its path say exactly where it is tonight. Watch the numbers: it moves about 17 kilometres further every second.',
     why: 'Look up. It is out there, past the planets, carrying the record we just decoded.',
   },
 ];

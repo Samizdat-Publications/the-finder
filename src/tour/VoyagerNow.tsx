@@ -51,8 +51,11 @@ function compute(bodies: Record<string, EphemerisBody>, at: Date): Now {
   return { at, craft, lightDayMs };
 }
 
-const billions = (km: number): string => (km / 1e9).toLocaleString('en-US', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
-const hm = (h: number): string => `${Math.floor(h)} hours ${Math.round((h % 1) * 60)} minutes`;
+const wholeKm = (km: number): string => Math.round(km).toLocaleString('en-US');
+const hm = (h: number): string => {
+  const min = Math.round(h * 60);
+  return `${Math.floor(min / 60)} hours ${min % 60} minutes`;
+};
 
 export function VoyagerNow() {
   const [now, setNow] = useState<Now | null>(null);
@@ -95,7 +98,7 @@ export function VoyagerNow() {
         <div class="tour-now-craft" key={c.name}>
           <h3>{c.name}</h3>
           <p class="tour-now-big">
-            {billions(c.km)} <span>billion km from Earth</span>
+            {wholeKm(c.km)} <span>km from Earth</span>
           </p>
           <p>
             Light from Earth takes <strong>{hm(c.hours)}</strong> to reach it. It is {c.au.toFixed(1)} times as far from the Sun as Earth is, moving at{' '}
