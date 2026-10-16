@@ -34,6 +34,7 @@ export default defineConfig({
         play: here('./play/index.html'),
         bench: here('./play/bench/index.html'),
         scene: here('./play/scene/index.html'),
+        charts: here('./play/charts/index.html'),
         checked: here('./checked/index.html'),
       },
     },

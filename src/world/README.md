@@ -83,3 +83,62 @@ RTGs are 0.58 m apart, the length of one MHW-RTG.
 
 `tests/browser/encounter.browser.mjs` (ids `scene.encounter`, `scene.encounter.sun`,
 `scene.encounter.milkyway`) and `src/world/skyModel.test.ts`.
+
+# src/world: the two M4 charts
+
+Two mountable three.js charts for The Map and The Trail; no chapter logic. `/play/charts/` is the dev
+page (`?chart=galaxy|neighbourhood|both`, `?demo=map|sun|wrong`, `?seed=`, `?reduced=1`, `?clean=1`).
+
+```ts
+import { mountGalaxy } from '../world/galaxy';
+const g = mountGalaxy(canvas, { seed, pulsars?, observer?, onHover?, onPick? }); // data load on demand
+await g.ready;                         // { decimalYear, counts, gc }
+g.pick(x, y);                          // nearest pulsar within 12 CSS px: { jname, chart, entry (AlienPulsar), screen }
+g.showMap(cover.pulsarMap, { originKpc, rotationDeg, kpcPerR0 });  // the 15 lines as rays
+g.setMatches([{ order: 6, jname: 'J0332+5434' }]);                 // map line to pulsar links
+g.showRegion(originRegion(...));       // triangulation.ts OriginRegion (or any centre, 95% semi-axes, major axis)
+await g.frame('map' | 'region' | 'home' | 'gc' | 'overview' | { jname }); g.setViewMode('top' | 'perspective');
+
+import { mountNeighbourhood } from '../world/neighbourhood';
+const n = mountNeighbourhood(canvas, { seed, trail?, onPick? });
+n.pick(x, y);                          // { star (ChartStar), trail (TrailEntry | null), screen }
+n.showTrail(0);                        // the Sun's trail; returns the geometry with kinematics.trail's angle
+n.showAll(n.trailRows());              // tint every star by its trail angle; null restores
+```
+
+## Files
+
+| File | What |
+|---|---|
+| `galaxyModel.ts` | Pure. `buildGalaxy(projectCatalogue output, observer)`: each pulsar at its measured direction (`nHat`) times its catalogue distance, Galactic Cartesian kpc from Gliese 445 at the epoch; class (millisecond below 30 ms, young below tau_c 300,000 yr, old, no spin-down) from the measured P and Pdot; the Galactic centre at Sgr A* (Reid and Brunthaler 2004) and 8.275 +/- 0.034 kpc (GRAVITY Collaboration 2021). `mapRays`, `transformFromFit`, `matchSegments`, `regionOutline`. Tested in `galaxyModel.test.ts`. |
+| `neighbourhoodModel.ts` | Pure. `computeNeighbourhood`: every catalogued star within 10 pc of the craft at the epoch (`starStateAt`), Galactic axes, pc from the craft; colour from B-V (`skyModel.bvToSrgb`), size from absolute V. `trailGeometry(model, kinematics.trail row)`: the relative velocity, the star-to-craft line and the arc, carrying the row's angle. Tested in `neighbourhoodModel.test.ts`. |
+| `chartControls.ts` | three.js plumbing for both: renderer and one render loop (dt clamped to 0.1 s, pixel ratio capped at 2), orbit camera in Galactic axes (log zoom, eased framing, top view), pointer input, screen-space picking, points (filled or ring), lines, fixed-pixel labels. |
+| `galaxy.ts`, `neighbourhood.ts` | `mountGalaxy`, `mountNeighbourhood`: draw the models; handles as above; `dispose()`. |
+
+## The charts, computed (seed `chart.galaxy` / `charts.dev`)
+
+- Galaxy: 4,440 pulsars with a period in ATNF v2.9.0, 4,366 drawn (74 have no distance and cannot be
+  placed); 262 young, 2,144 old, 854 millisecond, 1,106 without a measured spin-down. The centre: l
+  359.944, b -0.046 from the Sun, about 0.007 deg different from Gliese 445 (parallax over 8 kpc).
+- The map overlay at a triangulation fit (dev page, elapsed 44,100 yr): rms 0.97 deg, 95% region 31 by
+  13 pc. The fit's R0 comes out longer than the modern 8.3 kpc (Drake's map assumed 10 kpc): the drawn
+  centre line overshoots the marked centre, which is the real thing.
+- Neighbourhood: 313 stars within 10 pc of the craft, 105 without a radial velocity (drawn as rings:
+  depth uncertain, about 0.045 pc per km/s of unknown radial velocity over 44,000 years). Sun's trail
+  angle 0.004 +/- 0.21 deg, distance over speed 44,100 yr; Ross 248 (the dev page's wrong star) 51.8 deg.
+
+## Choices that are not physics (say so in How it's checked)
+
+- Pulsar brightness falls with distance (alpha 0.8 at 0.1 kpc to 0.3 at 30 kpc, log scale) and size by
+  class (young 5 px, old 3.6, millisecond and no spin-down 2.4); colours by class.
+- Star size linear in absolute magnitude (1.6 px at M 16 to 10 px); trail tint gold (0 deg) to grey
+  (90) to blue-grey (180).
+- Arrow lengths are fixed (2.5 pc): directions only. The craft's own arrow is its velocity relative to
+  the alien's star (what the alien measures from home); a trail's arrow is relative to that star.
+- The Galactic plane is drawn as rings every 2.5 kpc around the centre, in the plane b = 0 through it.
+
+## Checked by
+
+`src/world/galaxyModel.test.ts` (`chart.galaxy`), `src/world/neighbourhoodModel.test.ts`
+(`chart.neighbourhood`), `tests/browser/charts.browser.mjs` (`chart.galaxy.view`,
+`chart.neighbourhood.view`; captures in `harness/out/charts/`).
