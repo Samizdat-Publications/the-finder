@@ -79,6 +79,11 @@ const refChecks = join(ROOT, 'tools', 'ref-decoder', 'checks.py');
 if (!existsSync(tape)) steps.push(skip('Python reference checks', 'image tape not downloaded'));
 else if (!existsSync(refChecks)) steps.push(skip('Python reference checks', 'reference checks not written yet'));
 else steps.push(await run('Python reference checks', 'python', ['-P', 'tools/ref-decoder/checks.py']));
+// The Voices' reference analysis (M5 step 4) reads the lossless Ozma transfers, which are not committed.
+const ozma = join(ROOT, 'sources', 'ozma-cd-02');
+const voicesChecks = join(ROOT, 'tools', 'voices', 'checks.py');
+if (!existsSync(ozma)) steps.push(skip('Voices reference checks', 'the Ozma transfers are not downloaded'));
+else if (existsSync(voicesChecks)) steps.push(await run('Voices reference checks', 'python', ['-P', 'tools/voices/checks.py']));
 
 console.log('\n[check] 6/7 data checks');
 const dataChecks = join(ROOT, 'tools', 'data', 'checks.py');

@@ -1,0 +1,73 @@
+/* The Voices: the rest of the disc and its spectrogram (left) beside the four listening tools (right, cyan and
+   violet, the alien's instruments). Layout as The Key's: the left column stays in view, the tools scroll. */
+.voicesinst { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 1.1rem; align-items: start; margin-bottom: 1.25rem; }
+.vo-left { position: sticky; top: 4.5rem; min-width: 0; }
+.vo-panels { display: grid; gap: 0.9rem; min-width: 0; }
+.voicesinst .plabel { font-size: var(--fs-label); color: var(--violet); }
+.vo-panel .note { margin: 0.2rem 0 0.5rem; }
+.vo-panel .dim, .vo-disc .dim { color: var(--text-dim); }
+
+/* the disc */
+.vo-tracks { display: grid; grid-template-columns: 1fr 1fr; gap: 0.2rem 1rem; max-height: 19rem; overflow-y: auto; margin-top: 0.6rem; }
+.vo-facehead { font-size: var(--fs-label); font-weight: 600; color: var(--gold); margin: 0.2rem 0 0.3rem; }
+.vo-infer { font-weight: 400; color: var(--text-dim); }
+.vo-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.1rem; }
+.vo-track { display: grid; grid-template-columns: 1.8rem 1fr auto; align-items: center; gap: 0.4rem; font-size: var(--fs-label); border-radius: 5px; padding: 0.05rem 0.2rem; }
+.vo-track.viewed { background: rgba(155, 123, 255, 0.12); }
+.vo-track.playing .vo-play { color: var(--bg); background: var(--cyan); }
+.vo-play { font: inherit; font-size: 0.7rem; width: 1.7rem; height: 1.7rem; border-radius: 50%; border: 1px solid var(--cyan); color: var(--cyan); background: transparent; cursor: pointer; }
+.vo-name { font: inherit; text-align: left; color: var(--text); background: none; border: 0; padding: 0.15rem 0; cursor: pointer; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vo-name .si { color: var(--text-dim); }
+.vo-len { color: var(--text-dim); font-size: 0.75rem; white-space: nowrap; }
+.vo-len .unitname { color: var(--text-dim); }
+
+/* the spectrogram */
+.vo-spechead { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.vo-specbox { position: relative; margin-top: 0.35rem; height: 13rem; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--bg-sunk); cursor: crosshair; touch-action: none; user-select: none; -webkit-user-select: none; }
+.vo-canvas { width: 100%; height: 100%; display: block; image-rendering: auto; }
+.vo-needle { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--gold); box-shadow: 0 0 6px var(--gold); pointer-events: none; }
+.vo-mark { position: absolute; top: 0; bottom: 0; background: rgba(155, 123, 255, 0.22); border-left: 2px solid var(--violet); border-right: 2px solid var(--violet); pointer-events: none; }
+.vo-spechelp { margin: 0.3rem 0 0; font-size: var(--fs-label); }
+
+/* the tools */
+.vo-chart { width: 100%; height: auto; display: block; margin: 0.3rem 0; background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 6px; }
+.vo-chart .grid { stroke: #2a2750; stroke-width: 0.6; }
+.vo-chart .tick { fill: var(--text-dim); font: 13px var(--font-mono); }
+.vo-trace { fill: none; stroke: var(--violet); stroke-width: 1.2; }
+.vo-seg { fill: var(--cyan); opacity: 0.85; }
+.vo-thresh { stroke: var(--gold); stroke-width: 1.5; stroke-dasharray: 5 3; }
+.vo-dot { fill: var(--cyan); opacity: 0.85; }
+.vo-ruler { fill: rgba(232, 182, 74, 0.16); stroke: var(--gold); stroke-width: 1; }
+.vo-voices { fill: none; stroke: var(--cyan); stroke-width: 1.6; }
+.vo-noise { fill: none; stroke: var(--violet); stroke-width: 1.4; stroke-dasharray: 4 3; }
+.vo-all { fill: none; stroke: var(--gold); stroke-width: 1; opacity: 0.45; }
+.vo-markline { stroke: var(--gold); stroke-width: 2; }
+.vo-hear, [data-octave-chart] { cursor: crosshair; }
+.vo-hbar { fill: var(--cyan); opacity: 0.8; }
+.vo-tooth { stroke: var(--gold); stroke-width: 1; opacity: 0.8; }
+.vo-score { fill: var(--violet); opacity: 0.55; }
+.vo-score.on { fill: var(--gold); opacity: 1; }
+.vo-legend { margin: 0.1rem 0 0.4rem; color: var(--text-dim); font-size: var(--fs-label); }
+.vo-legend .sw { display: inline-block; width: 1.1rem; height: 0; border-top: 2px solid; vertical-align: middle; margin: 0 0.25rem 0 0.6rem; }
+.vo-legend .sw.voices { border-color: var(--cyan); }
+.vo-legend .sw.noise { border-color: var(--violet); border-top-style: dashed; }
+.vo-legend .sw.all { border-color: var(--gold); opacity: 0.6; }
+.vo-controls { display: grid; gap: 0.35rem; margin: 0.3rem 0; }
+.vo-slider { display: grid; grid-template-columns: 9.5rem 1fr auto; gap: 0.6rem; align-items: center; font-size: var(--fs-label); }
+.vo-slider input { accent-color: var(--cyan); min-width: 6rem; }
+.vo-slider output { font-size: var(--fs-value); color: var(--cyan); min-width: 4.5rem; text-align: right; }
+.vo-stepper { display: flex; align-items: center; gap: 0.5rem; font-size: var(--fs-label); }
+.vo-stepper .btn { min-width: 2.25rem; padding: 0.2rem 0.6rem; }
+.vo-stepper output { font-family: var(--font-mono); font-size: 1.1rem; color: var(--cyan); min-width: 1.6rem; text-align: center; }
+.vo-count { margin: 0.35rem 0; font-size: var(--fs-value); }
+.vo-count .num { font-family: var(--font-mono); color: var(--cyan); }
+.vo-count .num.big { font-size: 1.35rem; }
+.vo-progress { display: inline-flex; align-items: center; gap: 0.5rem; }
+.vo-progress .vo-bar { display: inline-block; width: 7rem; height: 0.4rem; border-radius: 3px; background: var(--bg-sunk); border: 1px solid var(--line); overflow: hidden; }
+.vo-progress .vo-bar span { display: block; height: 100%; background: var(--cyan); transition: width 0.3s; }
+
+@media (max-width: 900px) {
+  .voicesinst { grid-template-columns: 1fr; }
+  .vo-left { position: static; }
+  .vo-tracks { grid-template-columns: 1fr; }
+}
