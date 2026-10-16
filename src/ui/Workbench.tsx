@@ -7,6 +7,7 @@ import { instrumentFor } from '../chapters/registry';
 import { chapterDef, nodeDef, nodesOf, type ChapterId, type NodeDef } from '../game/graph';
 import { confirmedSet, game } from '../game/state';
 import { GlyphLabel } from './Glyph';
+import { renderMessage } from './message';
 import { notebookOpen } from './notebook';
 import { send } from './send';
 
@@ -66,7 +67,7 @@ function NodeRow(p: { node: NodeDef }) {
           </summary>
           <ul>
             {wrong.map((a, i) => (
-              <li key={i}>{a.message}</li>
+              <li key={i}>{renderMessage(a.message, game.settings.value.humanGloss)}</li>
             ))}
           </ul>
         </details>

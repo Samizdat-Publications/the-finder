@@ -16,6 +16,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from '../../tools/harness/serve.mjs';
+import { renderedMessage } from './rendered.mjs';
 
 /** The 18 deductions of the slice (src/game/graph.ts), in the order the bot confirms them. */
 export const SLICE_IDS = [
@@ -278,13 +279,14 @@ async function rejectShown(page, assert, id, answer) {
   assert(!r.confirmed && r.last && r.last.ok === false, `${id}: ${JSON.stringify(answer)} is rejected`);
   assert(r.last.message.length > 20, `${id}: ${JSON.stringify(answer)} gives a result (${r.last.message})`);
   // The chapter's notebook lists every answer that did not hold (src/ui/Workbench.tsx), newest last.
+  const shown = await renderedMessage(page, r.last.message);
   const listed = await page.locator(`[data-node="${id}"] details.wrong li`).last().textContent();
-  assert(listed === r.last.message, `${id}: the rejected result is shown in the notebook`);
+  assert(listed === shown, `${id}: the rejected result is shown in the notebook`);
   // The instrument's own result line, where the chapter has one (Arrival, The Key).
   const line = page.locator(`[data-result="${id}"]`);
   if ((await line.count()) > 0) {
     assert(/^(0|false)$/.test((await line.getAttribute('data-ok')) ?? ''), `${id}: the instrument shows the rejection`);
-    assert(((await line.innerText()) ?? '').includes(r.last.message.slice(0, 40)), `${id}: the instrument shows the computed result`);
+    assert(((await line.innerText()) ?? '').includes(shown.slice(0, 40)), `${id}: the instrument shows the computed result`);
   }
   return r.last.message;
 }

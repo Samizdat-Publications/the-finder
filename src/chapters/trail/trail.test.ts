@@ -13,13 +13,13 @@ import { chiSquareSf } from '../../science/stats';
 import { starStateAt } from '../../science/epoch';
 import { datePulsar, velocityMahalanobis2 } from '../../science/pulsarAge';
 import { dateMapToday } from '../../science/pulsars';
-import { CHI2_2DOF_95 } from '../../science/triangulation';
+import { CHI2_2DOF_95, CHI2_2DOF_999 } from '../../science/triangulation';
 import { SAGAN_HYDROGEN_HZ } from '../../science/units';
 import { EPOCH_DRAWS, TRAIL_MAX_DIST_PC, buildEpochModel, type EpochModel } from '../shared/epochModel';
-import { AGREE_CHI2_PER_DOF, RULER_SIGMAS, makeTrailCheckers } from './checkers';
+import { AGREE_CHI2_PER_DOF, RULER_SIGMAS, checkOrigin, checkWhere, makeTrailCheckers } from './checkers';
 import { agesInFrame, judgedLines, observerRelativeTo, oldSpread } from './frames';
 import { fmtDeg } from './format';
-import { consistent, consistentRows, homeId, meeting, nextBest, originRow, regionStars, rulerReading, separationAt, starById } from './physics';
+import { consistent, consistentRows, homeId, meeting, nextBest, originRow, regionStars, rowFor, rulerReading, separationAt, starById } from './physics';
 
 const inputs = { scenario: loadScenario(), stars: loadStars(), catalogue: loadPulsars(), cover: loadCover() };
 const SEEDS = [DEFAULT_SEED, 'trail-seed-2', 'trail-seed-3'];
@@ -178,10 +178,10 @@ describe('The Trail: checkers', () => {
       console.log(`[trail] when: ${when.message}`);
       recordCheck({
         id: 'trail.check.origin',
-        claim: 'In The Trail the player picks the star the machine flies straight away from; the warm-white star (the Sun) is accepted when its measured angle lies inside the 95% cut for a star the machine truly flew from, and every other star is ruled out with its measured angle and cut.',
+        claim: 'In The Trail the player picks the star the machine flies straight away from; the warm-white star (the Sun) is accepted when its measured angle lies inside the 99.9% cut for a star the machine truly flew from (the 95% cut is drawn, and between the two the result says "consistent, at the edge"; D-A28), and every other star is ruled out with its measured angle and cuts.',
         measured: `default seed: Sun measured ${row.measuredAngleDeg.toFixed(3)} deg against a cut of ${row.nullAngle95Deg.toFixed(3)} deg (rms ${row.angleRmsDeg.toFixed(3)} deg per axis); next ${nx.row.star.name ?? nx.row.star.gl} ${nx.row.measuredAngleDeg.toFixed(2)} deg against ${nx.row.nullAngle95Deg.toFixed(3)} (${nx.cuts.toFixed(0)} times its cut); stars inside the cut for seeds ${SEEDS.join(', ')}: ${others.join('; ')}`,
         expected: 'the Sun, the star Voyager 1 was launched from (scenario.json), alone; trail.uniqueWithErrors, trail.originCoverage',
-        tolerance: 'the measured angle at most the 95th percentile of the null (a truly radial motion at the measured speed, kinematics.ts)',
+        tolerance: 'accepted at most at the 99.9th percentile of the null (20,000 draws, a truly radial motion at the measured speed, kinematics.ts trailNullQuantile); the stars listed here are those inside the drawn 95% cut',
         pass: consistent(row) && row.star.id === 0 && others.every((x) => x === '0'),
       });
       recordCheck({
@@ -202,10 +202,10 @@ describe('The Trail: checkers', () => {
       });
       recordCheck({
         id: 'trail.check.where',
-        claim: "The star the machine came from lies inside the map's 95% origin region at the map epoch, one of many stars there; the checker accepts only that star.",
+        claim: "The star the machine came from lies inside the map's origin region at the map epoch, one of many stars there; the checker accepts only that star, up to the region's 99.9% contour (the 95% region is drawn; D-A28).",
         measured: `Sun inside (contour ${whereLevel}); ${inRegion} near stars inside the region`,
         expected: 'the Sun inside the region (triangulation.epoch, HOW_ITS_CHECKED row 6)',
-        tolerance: `the 95% ellipse, chi-square ${CHI2_2DOF_95.toFixed(3)} for two dimensions`,
+        tolerance: `accepted inside the 99.9% ellipse, chi-square ${CHI2_2DOF_999.toFixed(2)} for two dimensions; the drawn region is the 95% one, chi-square ${CHI2_2DOF_95.toFixed(3)}`,
         pass: where.ok && inRegion > 1,
       });
       recordCheck({
@@ -218,6 +218,44 @@ describe('The Trail: checkers', () => {
       });
     }
   }, 120_000);
+
+  it('the 99.9% chi-square for two dimensions is -2 ln 0.001', () => {
+    // Chi-square tables, 2 degrees of freedom, upper 0.1% point: 13.816.
+    expect(CHI2_2DOF_999).toBeCloseTo(13.816, 3);
+  });
+
+  it('between the 95% and 99.9% cuts the warm-white star is accepted as consistent, at the edge; beyond the 99.9% cut it is not', () => {
+    // The default seed's own rows, with the Sun's measured angle moved: between its two cuts, then beyond the 99.9% one.
+    const sun = rowFor(m0, 0)!;
+    const cut999 = m0.trailAcceptCut(0);
+    expect(cut999).toBeGreaterThan(sun.nullAngle95Deg);
+    const withAngle = (deg: number): EpochModel => ({ ...m0, trailRows: () => m0.trailRows().map((r) => (r.star.id === 0 ? { ...r, measuredAngleDeg: deg } : r)) });
+    const edge = checkOrigin(withAngle((sun.nullAngle95Deg + cut999) / 2), { starId: 0 });
+    expect(edge.ok, edge.message).toBe(true);
+    expect(edge.message).toMatch(/between the 95% and 99\.9% cuts: consistent, at the edge/);
+    expect(edge.result.find((r) => r.key === 'where the angle falls')?.value).toBe('between the 95% and 99.9% cuts');
+    const beyond = checkOrigin(withAngle(cut999 * 1.05), { starId: 0 });
+    expect(beyond.ok).toBe(false);
+    expect(beyond.message).toMatch(/beyond the 99\.9% one/);
+  });
+
+  it("between the region's 95% and 99.9% contours the warm-white star is accepted as consistent, at the edge", () => {
+    // The default seed's model with the Sun placed along the region's major axis at a squared Mahalanobis
+    // distance of 10 (between 5.99 and 13.82), then 16 (beyond).
+    const r = m0.region();
+    const phi = (r.majorAxisDeg * Math.PI) / 180;
+    const at = (d2: number): [number, number] => {
+      const k = Math.sqrt(d2 / CHI2_2DOF_95) * r.semiAxesPc[0];
+      return [r.centerPc[0] + k * Math.cos(phi), r.centerPc[1] + k * Math.sin(phi)];
+    };
+    const placed = (d2: number): EpochModel => ({ ...m0, starInMapPlane: (star, age) => (star.id === 0 ? at(d2) : m0.starInMapPlane(star, age)) });
+    const edge = checkWhere(placed(10), { starId: 0 });
+    expect(edge.ok, edge.message).toBe(true);
+    expect(edge.message).toMatch(/inside the 99\.9% contour, consistent, at the edge/);
+    const beyond = checkWhere(placed(16), { starId: 0 });
+    expect(beyond.ok).toBe(false);
+    expect(beyond.message).toMatch(/and the 99\.9% one/);
+  });
 
   it('a nearby star at a large angle is rejected with its computed angle', () => {
     const nx = nextBest(m0).row;

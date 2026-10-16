@@ -105,7 +105,7 @@ export function StepPanel() {
             {'why' in a && <span class="map-k">{a.why}</span>}
           </div>
         )}
-        {status !== 'locked' && <LastReading id={id} />}
+        {status !== 'locked' && <LastReading id={id} current={'answer' in a ? a.answer : null} />}
       </section>
     </div>
   );

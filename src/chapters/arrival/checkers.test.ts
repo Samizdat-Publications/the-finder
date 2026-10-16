@@ -7,6 +7,7 @@ import scenarioJson from '../../../data/scenario.json';
 import { loadStars } from '../../../tests/support/data';
 import { recordCheck } from '../../../tests/support/record';
 import { DEFAULT_SEED } from '../../game/deductions';
+import { renderMessage } from '../../ui/message';
 import { discoveryState } from '../../science/epoch';
 import type { ScenarioData } from '../../science/types';
 import { checkFuelAge, checkHeat, checkMadeNotMined, checkPurpose } from './checkers';
@@ -36,8 +37,9 @@ describe('arrival checkers', () => {
     // a degree, because 44,000 years of 16.6 km/s carry the craft 0.75 pc while the 2026 offset of
     // 165 au is 0.0008 pc (voyager.md section 5): 0.0008 / 0.75 rad = 0.06 deg at most.
     const pathOk = model.dishVsPathBackDeg < 0.06;
-    const sail = r.find((x) => x.id === 'sail')?.message ?? '';
-    const radiator = r.find((x) => x.id === 'radiator')?.message ?? '';
+    // Messages carry their quantities as tokens (src/ui/message.ts); with the human gloss on they read in SI too.
+    const sail = renderMessage(r.find((x) => x.id === 'sail')?.message ?? '', true);
+    const radiator = renderMessage(r.find((x) => x.id === 'radiator')?.message ?? '', true);
     const pass = ok.length === 1 && ok[0] === 'radio' && pathOk && /m\/s²/.test(sail) && /3\.48 K/.test(radiator) && /rough|smooth/.test(r[0]!.message);
     recordCheck({
       id: 'arrival.purpose',
@@ -101,7 +103,7 @@ describe('arrival checkers', () => {
     recordCheck({
       id: 'arrival.fuelAge',
       claim: 'The decay clock dates the heat source: the plutonium-238 chain fits the thorium-230 to uranium-234 ratio at about 44,000 years, and the 95% interval contains the true age.',
-      measured: `default seed: ${mid.toFixed(0)} years (95%: ${lo.toFixed(0)} to ${hi.toFixed(0)}); natural series meets at ${wrong[0]!.message.match(/at ([\d,]+) years/)?.[1]} years but is 8 orders off in U-238; U-234-from-the-start meets inside the interval and is refused by its parentage; old ore never meets`,
+      measured: `default seed: ${mid.toFixed(0)} years (95%: ${lo.toFixed(0)} to ${hi.toFixed(0)}); natural series meets at ${renderMessage(wrong[0]!.message, true).match(/\(([\d,]+) years\)/)?.[1]} years but is 8 orders off in U-238; U-234-from-the-start meets inside the interval and is refused by its parentage; old ore never meets`,
       expected: `true elapsed time ${truthYears.toFixed(0)} years (epoch.ts discovery state); activity ratio 0.352 at 44,000 years (clocks.md 4b)`,
       tolerance: 'the computed 95% interval (1% measurement precision; calibration in clocks.rtg.coverage)',
       pass,

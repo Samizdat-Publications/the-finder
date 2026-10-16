@@ -218,7 +218,7 @@ export function CounterPanel(p: CounterProps) {
   const t = quantity('time', shownS);
   const proposed = (game.records.value[id]?.attempts.length ?? 0) > 0;
   return (
-    <Panel id={id} title="Alpha counter" glyph="counter">
+    <Panel id={id} title="Alpha counter" glyph="counter" current={{ countingTimeS: p.countedS, ageYears: Math.round(p.ageYears) }}>
       <p class="sp-small">
         A sample of the spot, uranium and thorium separated, under the same detector. Count longer and the error bars shrink.
       </p>

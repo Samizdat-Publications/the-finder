@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { recordCheck } from '../../../tests/support/record';
 import { DEFAULT_SEED } from '../../game/deductions';
+import { renderMessage } from '../../ui/message';
 import { ageFromU234, testStartHypothesis } from '../../science/clocks';
 import { naturalStartRatio, sweepRate } from '../../science/spot';
 import { checkAge, checkFind, checkPurity } from './checkers';
@@ -40,8 +41,9 @@ describe('The Spot checkers', () => {
       check(!near.ok && /rising/.test(near.message), `${seed}: near but outside (${near.message})`);
     }
     const m = spotModel(DEFAULT_SEED);
-    log.push(`find: far ${checkFind({ xMm: 150, yMm: 270 }, m).message}`);
-    log.push(`find: near ${checkFind({ xMm: cx + 18, yMm: cy }, m).message}`);
+    // Rendered with the human gloss on for the record (messages carry tokens: src/ui/message.ts).
+    log.push(`find: far ${renderMessage(checkFind({ xMm: 150, yMm: 270 }, m).message, true)}`);
+    log.push(`find: near ${renderMessage(checkFind({ xMm: cx + 18, yMm: cy }, m).message, true)}`);
   });
 
   it('spot.age: the age inside the 95% interval confirms; outside, or a count too short, does not', () => {

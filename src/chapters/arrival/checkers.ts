@@ -4,6 +4,7 @@
 
 import { registerChecker, type CheckResult, type Checker, type Reading } from '../../game/deductions';
 import { JULIAN_YEAR_S } from '../../science/units';
+import { q } from '../../ui/message';
 import { formatPower } from '../../ui/units';
 import { NATURAL_U238_OVER_U234, chainRatios, judgeChain, type ChainId } from './chains';
 import { CHOICES } from './choices';
@@ -44,7 +45,7 @@ export function checkPurpose(answer: unknown, m: ArrivalModel): CheckResult {
         result: [...base, { key: 'kind', value: 'judgement from the shapes' }],
         message:
           `Radio fits every reading. A metal paraboloid with something at its focus gathers or sends waves from one direction; ` +
-          `true to millimetres but rough to light, it works for waves of centimetres and longer; and it faces back along the path the machine came ` +
+          `true to about ${q('length', 1e-3)} but rough to light, it works for waves of ${q('length', 0.01)} and longer; and it faces back along the path the machine came ` +
           `(within ${sig(m.dishVsPathBackDeg, 2)} degrees), toward whoever it talks to. A judgement from the shapes, not a number.`,
       };
     case 'eye':
@@ -52,8 +53,8 @@ export function checkPurpose(answer: unknown, m: ArrivalModel): CheckResult {
         ok: false,
         result: base,
         message:
-          'An eye or a telescope mirror must be smooth to a small part of a wavelength of light (well under a thousandth of a millimetre). ' +
-          'The scan shows this surface true only to millimetres: it scatters your lamps diffusely instead of imaging them. It is far too rough for light.',
+          `An eye or a telescope mirror must be smooth to a small part of a wavelength of light (well under ${q('length', 1e-6)}). ` +
+          `The scan shows this surface true only to about ${q('length', 1e-3)}: it scatters your lamps diffusely instead of imaging them. It is far too rough for light.`,
       };
     case 'sail': {
       const dvPerMyr = e.sailAccelMs2 * 1e6 * JULIAN_YEAR_S;
@@ -61,8 +62,8 @@ export function checkPurpose(answer: unknown, m: ArrivalModel): CheckResult {
         ok: false,
         result: base,
         message:
-          `Starlight here pushes this ${DISH_DIAMETER_M} m dish on a craft of about 720 kg with ${sig(e.sailAccelMs2)} m/s²: ` +
-          `${sig(dvPerMyr * 1000)} mm/s of speed per million years, against the ${sig(m.passSpeedKmS)} km/s it passes your star at. ` +
+          `Starlight here pushes this ${q('length', DISH_DIAMETER_M)} dish on a craft of about ${q('mass', 720)} with ${q('acceleration', e.sailAccelMs2)}: ` +
+          `${q('speed', dvPerMyr)} of speed per ${q('time', 1e6 * JULIAN_YEAR_S)}, against the ${q('speed', m.passSpeedKmS * 1000)} it passes your star at. ` +
           'A sail must be huge and thin; this is small, heavy and rigid.',
       };
     }
@@ -71,7 +72,7 @@ export function checkPurpose(answer: unknown, m: ArrivalModel): CheckResult {
         ok: false,
         result: [...base, { key: 'dish temperature', value: e.dishK, dim: 'temperature' }],
         message:
-          `A radiator is warmer than the sky around it. The dish reads ${sig(e.dishK)} K, exactly what an unheated plate reaches out here ` +
+          `A radiator is warmer than the sky around it. The dish reads ${q('temperature', e.dishK)}, exactly what an unheated plate reaches out here ` +
           '(starlight and the cosmic background alone). The warm parts hang on a separate boom, with nothing to carry their heat to the dish.',
       };
     default:
@@ -89,15 +90,15 @@ export function checkHeat(answer: unknown, m: ArrivalModel): CheckResult {
     { key: 'surface temperature', value: e.leftover.surfaceK, dim: 'temperature' },
     { key: 'time away from every star', value: darkS, dim: 'time' },
   ];
-  const dark = `The machine has been away from every star in your catalogue for at least ${sig(m.darkYears, 2)} years`;
+  const dark = `The machine has been away from every star in your catalogue for at least ${q('time', darkS, 2)}`;
   switch (answer) {
     case 'decay':
       return {
         ok: true,
         result: base,
         message:
-          `Decay fits. A heavy decaying atom stores ${sig(e.decay.jPerKg)} J/kg, ${sig(e.decay.overChemistry, 2)} times the best chemistry, ` +
-          `so the cylinders' mass could keep ${sig(m.heatW.high, 2)} W going for up to ${sig(secondsToYears(e.decay.fullLoadSeconds), 2)} years. ` +
+          `Decay fits. A heavy decaying atom stores ${q('specificEnergy', e.decay.jPerKg)}, ${sig(e.decay.overChemistry, 2)} times the best chemistry, ` +
+          `so the cylinders' mass could keep ${q('power', m.heatW.high, 2)} going for up to ${q('time', e.decay.fullLoadSeconds, 2)}. ` +
           `${dark}, and it is still warm.`,
       };
     case 'sunlight':
@@ -105,18 +106,18 @@ export function checkHeat(answer: unknown, m: ArrivalModel): CheckResult {
         ok: false,
         result: [...base, { key: 'light absorbed', value: e.sunlight.totalW, dim: 'power' }],
         message:
-          `All the starlight here, the bright star the dish faces included, delivers ${sig(e.sunlight.totalW)} W to the three cylinders even if they absorbed every bit ` +
-          `(the bright star ${sig(e.sunlight.sunPowerW)} W, the rest of the sky ${sig(e.sunlight.skyPowerW)} W). ` +
-          `They give out at least ${sig(m.heatW.low, 2)} W: light falls short ${sig(e.sunlight.shortBy, 2)} times, about ${Math.round(Math.log10(e.sunlight.shortBy))} orders of magnitude.`,
+          `All the starlight here, the bright star the dish faces included, delivers ${q('power', e.sunlight.totalW)} to the three cylinders even if they absorbed every bit ` +
+          `(the bright star ${q('power', e.sunlight.sunPowerW)}, the rest of the sky ${q('power', e.sunlight.skyPowerW)}). ` +
+          `They give out at least ${q('power', m.heatW.low, 2)}: light falls short ${sig(e.sunlight.shortBy, 2)} times, about ${Math.round(Math.log10(e.sunlight.shortBy))} orders of magnitude.`,
       };
     case 'leftover':
       return {
         ok: false,
         result: [...base, { key: 'longest leftover warmth', value: e.leftover.maxSecondsAtThisWarmth, dim: 'time' }],
         message:
-          `Radiating ${sig(m.heatW.low, 2)} W from ${sig(g.surfaceM2, 2)} m² means a surface near ${sig(e.leftover.surfaceK, 2)} K. ` +
-          `With ${sig(g.massKg)} kg counted as beryllium, their heat-holding case (${sig(e.leftover.heatCapacityJK, 2)} J/K), they cool ${sig(e.leftover.coolingKPerDay, 2)} K a day, ` +
-          `and however hot they began, they would have fallen below this warmth within ${sig(e.leftover.maxSecondsAtThisWarmth / SECONDS_PER_DAY, 2)} days. ${dark}.`,
+          `Radiating ${q('power', m.heatW.low, 2)} from ${q('area', g.surfaceM2, 2)} means a surface near ${q('temperature', e.leftover.surfaceK, 2)}. ` +
+          `With ${q('mass', g.massKg)} counted as beryllium, their heat-holding case (${q('heatCapacity', e.leftover.heatCapacityJK, 2)}), they cool ${q('temperature', e.leftover.coolingKPerDay, 2)} every ${q('time', SECONDS_PER_DAY)}, ` +
+          `and however hot they began, they would have fallen below this warmth within ${q('time', e.leftover.maxSecondsAtThisWarmth, 2)}. ${dark}.`,
       };
     case 'chemical': {
       const fuelKg = e.chemical.fuelKgFor(darkS);
@@ -124,9 +125,9 @@ export function checkHeat(answer: unknown, m: ArrivalModel): CheckResult {
         ok: false,
         result: [...base, { key: 'fuel needed', value: fuelKg, dim: 'mass' }],
         message:
-          `The best chemistry gives ${sig(e.chemical.bestJPerKg)} J/kg. Even if all ${sig(g.massKg)} kg of the cylinders were such fuel, ` +
-          `${sig(m.heatW.low, 2)} W would use it up in ${sig(secondsToYears(e.chemical.fullLoadSeconds), 2)} years. ${dark}: ` +
-          `that needs ${sig(fuelKg / 1000, 2)} tonnes of fuel, ${sig(fuelKg / g.massKg, 2)} times their whole mass.`,
+          `The best chemistry gives ${q('specificEnergy', e.chemical.bestJPerKg)}. Even if all ${q('mass', g.massKg)} of the cylinders were such fuel, ` +
+          `${q('power', m.heatW.low, 2)} would use it up in ${q('time', e.chemical.fullLoadSeconds, 2)}. ${dark}: ` +
+          `that needs ${q('mass', fuelKg, 2)} of fuel, ${sig(fuelKg / g.massKg, 2)} times their whole mass.`,
       };
     }
     default:
@@ -180,8 +181,8 @@ export function checkFuelAge(answer: unknown, m: ArrivalModel): CheckResult {
         { key: 'half-life systematic', value: yearsS(d.halfLifeSystematicYears), dim: 'time' },
       ],
       message:
-        `The plutonium-238 chain meets the measured thorium-230 to uranium-234 ratio at ${sig(d.ageYears)} years ` +
-        `(95%: ${sig(d.lo)} to ${sig(d.hi)} years from the measurement; half-lives add ${sig(d.halfLifeSystematicYears, 2)} years, 1 sigma). ` +
+        `The plutonium-238 chain meets the measured thorium-230 to uranium-234 ratio at ${q('time', yearsS(d.ageYears))} ` +
+        `(95%: ${q('time', yearsS(d.lo))} to ${q('time', yearsS(d.hi))} from the measurement; half-lives add ${q('time', yearsS(d.halfLifeSystematicYears), 2)}, 1 sigma). ` +
         `The radium ratio agrees (chi-square p ${sig(v.pValue ?? NaN, 2)}). The heat source was made that long ago.`,
     };
   }
@@ -200,7 +201,7 @@ export function checkFuelAge(answer: unknown, m: ArrivalModel): CheckResult {
       ok: false,
       result: [...result, { key: 'uranium-238 orders of magnitude off', value: Number((v.u238OrdersOff ?? NaN).toFixed(1)) }],
       message:
-        `This curve meets the thorium ratio at ${sig(v.ageYears ?? NaN)} years, but the same chain demands ${sig(v.u238Predicted ?? NaN)} uranium-238 atoms per uranium-234 ` +
+        `This curve meets the thorium ratio at ${q('time', yearsS(v.ageYears ?? NaN))}, but the same chain demands ${sig(v.u238Predicted ?? NaN)} uranium-238 atoms per uranium-234 ` +
         `and you measure ${sig(m.measurement.u238OverU234, 2)}: ${(v.u238OrdersOff ?? NaN).toFixed(1)} orders of magnitude apart. The second ratio rules it out (chi-square ${sig(v.chi2 ?? NaN)}).`,
     };
   }
@@ -210,7 +211,7 @@ export function checkFuelAge(answer: unknown, m: ArrivalModel): CheckResult {
     ok: false,
     result: [...result, { key: 'gap to the plutonium chain', value: yearsS(gap), dim: 'time' }],
     message:
-      `This curve meets the measurement too, at ${sig(v.ageYears ?? NaN)} years, only ${sig(gap, 2)} years from the plutonium chain's age and inside its uncertainty: ` +
+      `This curve meets the measurement too, at ${q('time', yearsS(v.ageYears ?? NaN))}, only ${q('time', yearsS(gap), 2)} from the plutonium chain's age and inside its uncertainty: ` +
       `the thorium and radium ratios cannot tell the two apart. What rules it out is where the uranium-234 came from. You found it was born from a heavier element, ` +
       'and that element\'s family (plutonium-239 and -242, with their daughters uranium-235 and -236) is still in the spectrum. Uranium-234 was not there from the start.',
   };

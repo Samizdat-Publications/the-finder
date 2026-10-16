@@ -3,7 +3,7 @@ import { loadScenario, loadStars } from '../../tests/support/data';
 import { recordCheck } from '../../tests/support/record';
 import { discoveryState, homeObserver, launchYear } from './epoch';
 import type { StarRecord } from './types';
-import { TRAIL_NULL_QUANTILE, choleskyPsd, minAngleNoRv, trail, trailCensus, trailConsistent, type TrailEntry } from './kinematics';
+import { TRAIL_ACCEPT_QUANTILE, TRAIL_NULL_QUANTILE, choleskyPsd, minAngleNoRv, trail, trailCensus, trailConsistent, trailNullQuantile, type TrailEntry } from './kinematics';
 import { drawObserver } from './pulsarEpoch';
 import { createRng } from './random';
 
@@ -132,11 +132,17 @@ describe('kinematics: The Trail', () => {
     expect(passA).toBe(true);
   }, 120_000);
 
-  it('over 100 seeded measurements every other star within 10 pc is refused every time', () => {
-    // 400 draws per star per trial fix the 95th percentile to a few per cent, far inside the margins here.
+  it('over 100 seeded measurements every other star within 10 pc is refused every time, at 95% and at the 99.9% acceptance', () => {
+    // 400 draws per star per trial fix the 95th percentile to a few per cent, far inside the margins here. The
+    // 99.9% cut trail.origin accepts up to (D-A28) is estimated from 2,000 draws per star (2 beyond it, so good
+    // to tens of per cent rather than the game's few per cent with 20,000): a star counts as refused only when
+    // its measured angle exceeds 3 times that estimate, a margin wider than the estimate's own error.
     const N = 100;
+    const MARGIN999 = 3;
     let worst = { x: Infinity, name: '', seed: -1 };
+    let worst999 = { x: Infinity, name: '', seed: -1 };
     let refusedAll = true;
+    let refusedAll999 = true;
     let tested = 0;
     for (let r = 0; r < N; r++) {
       const obs = drawObserver(observer, createRng(`trail.others/${r}`).fork('measure/observer'));
@@ -146,19 +152,23 @@ describe('kinematics: The Trail', () => {
         if (trailConsistent(e)) refusedAll = false;
         const x = e.measuredAngleDeg / e.nullAngle95Deg;
         if (x < worst.x) worst = { x, name: label(e), seed: r };
+        const x999 = e.measuredAngleDeg / trailNullQuantile(d.craft, obs, e, { q: TRAIL_ACCEPT_QUANTILE, draws: 2000, seed: `trail.others/${r}/trail` });
+        if (x999 <= MARGIN999) refusedAll999 = false;
+        if (x999 < worst999.x) worst999 = { x: x999, name: label(e), seed: r };
       }
     }
-    console.log(`[trail.others] ${tested} star measurements over ${N} seeds; smallest measured angle over its cut ${worst.x.toFixed(1)} (${worst.name}, seed ${worst.seed})`);
+    console.log(`[trail.others] ${tested} star measurements over ${N} seeds; smallest measured angle over its 95% cut ${worst.x.toFixed(1)} (${worst.name}, seed ${worst.seed}); over its 99.9% cut ${worst999.x.toFixed(1)} (${worst999.name}, seed ${worst999.seed})`);
     recordCheck({
       id: 'trail.othersRefused',
-      claim: 'No other star within 10 parsecs of the craft is ever mistaken for its origin: in every seeded measurement each lies outside its 95% cut.',
-      measured: `${tested} star measurements over ${N} seeds, all refused; the closest, ${worst.name}, at ${worst.x.toFixed(1)} times its cut`,
+      claim: 'No other star within 10 parsecs of the craft is ever mistaken for its origin: in every seeded measurement each lies outside its 95% cut, and far outside the 99.9% cut trail.origin accepts up to.',
+      measured: `${tested} star measurements over ${N} seeds, all refused; the closest, ${worst.name}, at ${worst.x.toFixed(1)} times its 95% cut; the closest to its 99.9% cut, ${worst999.name}, at ${worst999.x.toFixed(1)} times it`,
       expected: 'Every star other than the Sun refused in every seed (the scenario: the craft left the Sun)',
-      tolerance: 'Exact count (no star accepted); 400 draws per star per trial for the cut',
-      pass: refusedAll,
+      tolerance: `Exact count (no star accepted); 400 draws per star per trial for the 95% cut; for the 99.9% cut 2,000 draws and a margin of ${MARGIN999} times`,
+      pass: refusedAll && refusedAll999,
     });
     expect(refusedAll).toBe(true);
-  }, 120_000);
+    expect(refusedAll999).toBe(true);
+  }, 240_000);
 
   it('stars without a radial velocity cannot mimic the Sun for any plausible radial velocity', () => {
     const sun = rows.find((e) => e.star.id === 0)!;

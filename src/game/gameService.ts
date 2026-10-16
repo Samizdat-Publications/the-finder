@@ -5,6 +5,7 @@
 
 import { DEFAULT_SEED, evaluate, nodeStatus, chapterOpen, type Answer, type Attempt } from './deductions';
 import { chapterDef, nodeDef, type ChapterView } from './graph';
+import { nextSeed } from './seeds';
 import { coerceSetting, defaultSettings, type SettingName, type Settings } from './settings';
 import { confirmedSet, game, type NodeRecord } from './state';
 
@@ -93,12 +94,13 @@ export function settingsPanel(open: boolean): void {
 
 /**
  * Start over: forget every deduction, hint and attempt, and go back to the hub. Settings stay as the player set
- * them. The new playthrough gets a new seed, from the (injectable) clock, so its measurements differ.
+ * them. The new playthrough takes the next seed from the validated list (seeds.ts, data/seeds.json; D-A28), so
+ * its measurements differ and none of its checks is unpassable.
  */
 export function resetSave(): void {
   game.error.value = null;
   game.records.value = {};
-  game.seed.value = `finder-${clock()}`;
+  game.seed.value = nextSeed(game.seed.value);
   game.chapter.value = 'hub';
   game.codexOpen.value = false;
   game.codexFocus.value = null;

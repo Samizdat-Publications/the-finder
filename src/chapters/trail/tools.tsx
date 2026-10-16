@@ -11,7 +11,7 @@ import { LastReading, PanelHead } from '../key/parts';
 import { TRAIL_MAX_DIST_PC, type EpochModel } from '../shared/epochModel';
 import { chartHandle } from './ChartPane';
 import { angleText, distText, figuresFor, speedText, yearsText } from './format';
-import { consistent, cutRatio, homeId, meeting, noRvBounds, relativeState, rowFor, rulerReading, separationAt, starById, starName } from './physics';
+import { consistent, cutRatio, homeId, meeting, noRvBounds, relativeState, rowFor, rulerReading, separationAt, starById, starName, trailLevel } from './physics';
 import { picked, rulerEnds, runYears, tintAll } from './state';
 
 const gloss = (): boolean => game.settings.value.humanGloss;
@@ -81,7 +81,9 @@ export function TrailTool(p: { m: EpochModel }) {
             <p class="note tr-verdict">
               {consistent(row)
                 ? 'Inside the 95% cut: a star the machine truly flew from would show an angle this small or smaller 95% of the time.'
-                : `${cutRatio(row) < 10 ? cutRatio(row).toFixed(1) : cutRatio(row).toFixed(0)} times the 95% cut for a star it truly flew from.`}
+                : trailLevel(m, row).level === 'edge'
+                  ? `${cutRatio(row).toFixed(2)} times the 95% cut, inside the 99.9% cut: consistent, at the edge.`
+                  : `${cutRatio(row) < 10 ? cutRatio(row).toFixed(1) : cutRatio(row).toFixed(0)} times the 95% cut for a star it truly flew from, beyond the 99.9% cut.`}
             </p>
           )}
         </div>
@@ -101,7 +103,7 @@ export function TrailTool(p: { m: EpochModel }) {
           </button>
         )}
       </div>
-      <LastReading id="trail.origin" />
+      <LastReading id="trail.origin" current={picked.value !== null ? { starId: picked.value } : null} />
     </section>
   );
 }
@@ -217,7 +219,7 @@ export function RunBackTool(p: { m: EpochModel }) {
         <p class="note tr-empty">{star ? 'This star cannot be run back: ' + (id === homeId(m) ? 'it is your own.' : 'its radial velocity is unknown.') : 'Pick a star on the chart.'}</p>
       )}
       <Propose id="trail.age" label="Propose: they met this long ago" answer={() => ({ years: runYears.value })} disabled={!can} />
-      <LastReading id="trail.age" />
+      <LastReading id="trail.age" current={{ years: runYears.value }} />
     </section>
   );
 }
@@ -249,7 +251,7 @@ export function RulerTool(p: { m: EpochModel }) {
           Clear the ruler
         </button>
       </div>
-      <LastReading id="trail.neighbour" />
+      <LastReading id="trail.neighbour" current={r ? { distancePc: r.distPc } : null} />
     </section>
   );
 }

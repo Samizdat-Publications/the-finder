@@ -79,7 +79,7 @@ function Panel(p: { id: PictureNodeId; children?: ComponentChildren }) {
           {TEXT[p.id].button}
         </button>
       )}
-      {status !== 'locked' && <LastReading id={p.id} />}
+      {status !== 'locked' && <LastReading id={p.id} current={answerFor(p.id)} />}
     </section>
   );
 }

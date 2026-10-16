@@ -154,3 +154,25 @@ The record's timeline: `sideBreak` (after music 11, an inference, D-A17) and `si
 the shipped WebM), file, bytes, sha256, source }`. Side 1 = pictures, Ozma 01 to 04, music 1 to 11
 (Ozma 05 to 15); side 2 = music 12 to 27 (Ozma 16 to 31). Performers and origins are NASA's music table
 (URL in `meta.sources`). Run `python -P tools/media/checks.py` to verify files against both data files.
+
+## seeds.json (`tools/seeds/build-seeds.mjs`)
+
+The playthrough seeds "Start over" takes (D-A28; `src/game/seeds.ts`, cycling through the list in order). Built
+by playing each candidate seed `finder-2`, `finder-3`, ... in order with every seed-reading checker's right
+answer (`src/chapters/seedCheck.ts` verifySeed: the game's own code, loaded through Vite's module runner, on
+the answers the instruments lead to, measured values and never the simulation's truth) and listing the seeds
+where all of them confirm. Deterministic: no dates or timings in the file. About 8 minutes on 15 worker
+processes for 2,000 candidates:
+
+```powershell
+cd "C:\Users\stewa\Documents\Claude\Golden Record"; node tools/seeds/build-seeds.mjs
+```
+
+`{ meta, seeds }`. `seeds[]`: the listed seeds. `meta`: `candidates`, `firstCandidate`, `lastCandidate`,
+`listed`; `excluded` `{ total, byCheck: { deduction id: seeds }, seeds: [{ seed, failed: [{ id, message }] }] }`;
+`rates`: over all candidates, how often the warm-white star (the true origin) lands beyond trail.origin's 95%
+and 99.9% cuts and outside the map region's 95% and 99.9% contours (`trailWhereContourMax`: the largest
+contour reached), and how often a pure start is refused on a one-day count (the counts' fitted start is then
+proposed, and confirms). `src/chapters/seedCheck.test.ts` replays the default seed, five listed seeds and one
+excluded seed per reason on every `npm run check`. Rebuild after any change to a checker, the epoch model or
+the data they read.

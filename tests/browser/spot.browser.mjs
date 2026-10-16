@@ -122,8 +122,16 @@ export async function playSpot(page, { assert, log, shot, label = '' }) {
   await page.waitForTimeout(300);
   await page.evaluate(() => document.querySelector('.sp-curve')?.scrollIntoView({ block: 'center' }));
   await shot('count-short', `A short count (${tShort.toFixed(0)} s): a few dozen alphas, a wide ratio band, and the wide 95% age interval drawn once an age was proposed; the wrong age is rejected.`, 'Counted 10^2 beats, set the age marker far out and proposed it.');
+  // The rejection stands for the count it judged; counting on changes the instrument, so the result is marked
+  // as the last proposal (M4 step 7c), dimmed and labelled, until the next proposal.
+  const pastOf = (id) => page.locator(`[data-result="${id}"]`).getAttribute('data-past');
+  assert((await pastOf('spot.age')) === '0', 'right after the proposal its rejection is the current verdict');
   await countFor(100_000);
   const tLong = await counted();
+  await page.waitForSelector('[data-result="spot.age"][data-past="1"] [data-past-label]', { timeout: 10_000 });
+  assert((await page.locator('[data-result="spot.age"] [data-past-label]').innerText()).toLowerCase().includes('your last proposal'), 'the old rejection is labelled as your last proposal once the counting time changes');
+  await page.evaluate(() => document.querySelector('[data-result="spot.age"]')?.scrollIntoView({ block: 'center' }));
+  await shot('count-past', 'After counting on: the rejection of the short count is dimmed and labelled as your last proposal; it judged the count of then, not the count shown now.', 'Proposed a wrong age on a short count, then counted 10^5 more beats.');
   const R = Number(await page.locator('[data-ratio]').getAttribute('data-ratio'));
   const ageYears = ageFromRatio(R);
   // Drag the marker on the curve once (the pointer control), then set it exactly with the slider (the keyboard control).
@@ -141,6 +149,7 @@ export async function playSpot(page, { assert, log, shot, label = '' }) {
   await page.locator('[data-propose="spot.age"]').click();
   await page.waitForFunction(() => window.__finder.state().game.nodes['spot.age'].confirmed);
   await page.waitForTimeout(300);
+  assert((await pastOf('spot.age')) === '0' && (await page.locator('[data-result="spot.age"] [data-past-label]').count()) === 0, 'a confirmed result is never marked as past');
   const ageRes = (await last('spot.age')).result;
   const yrs = (k) => ageRes.find((r) => r.key === k).value / 31_557_600;
 

@@ -88,7 +88,7 @@ export function PurityPanel(p: PurityProps) {
   const frac = pv === null ? 0 : Math.max(0, 1 - Math.log10(Math.max(pv, 10 ** P_FLOOR_LOG)) / P_FLOOR_LOG);
   const thr = 1 - Math.log10(REJECT_P) / P_FLOOR_LOG;
   return (
-    <Panel id={id} title="Purity test" glyph="purity">
+    <Panel id={id} title="Purity test" glyph="purity" current={{ countingTimeS: p.countedS, startA234overA238: Math.round(p.r0 * 1000) / 1000 }}>
       <p class="sp-small">
         Dial how much uranium-234 the spot held when it was laid down, for each uranium-238. Each clock then gives its own age from your counts
         ({sig(c.th230)} thorium-230 so far).

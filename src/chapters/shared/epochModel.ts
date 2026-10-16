@@ -18,7 +18,7 @@ import { arrivalModel } from '../arrival/data';
 import { KM_S_TO_PC_PER_YEAR, scale, sub, toGalacticCartesian } from '../../science/astro';
 import { ageFromTh230U234 } from '../../science/clocks';
 import { discoveryState, homeObserver, starStateAt, type DiscoveryState, type Observer } from '../../science/epoch';
-import { trail, type TrailEntry } from '../../science/kinematics';
+import { TRAIL_ACCEPT_DRAWS, TRAIL_ACCEPT_QUANTILE, trail, trailNullQuantile, type TrailEntry } from '../../science/kinematics';
 import { combineAges, datePulsar, fitAgeAndVelocity, type AgeVelocityFit, type CombinedAge, type PulsarAge } from '../../science/pulsarAge';
 import { drawObserver, projectCatalogue, type AlienPulsar } from '../../science/pulsarEpoch';
 import { identifyAtEpoch, type EpochIdentificationResult } from '../../science/pulsarIdentify';
@@ -66,6 +66,11 @@ export interface EpochModel {
   region(): OriginRegion;
   /** The craft's trail against every star within TRAIL_MAX_DIST_PC. */
   trailRows(): readonly TrailEntry[];
+  /**
+   * A trail row's 99.9% cut, deg: the null's 99.9th percentile from TRAIL_ACCEPT_DRAWS draws, computed on demand
+   * for that star only and cached (trail.origin accepts up to it; D-A28). Throws for a star with no trail row.
+   */
+  trailAcceptCut(starId: number): number;
   /** A star's in-plane position relative to the alien's star at the map epoch (elapsedYears before now), pc, as the alien measures it. */
   starInMapPlane(star: StarRecord, elapsedYears: number): [number, number];
 }
@@ -98,6 +103,7 @@ export function buildEpochModel(inputs: EpochInputs, seed: string): EpochModel {
   let fit: AgeVelocityFit | null = null;
   let region: OriginRegion | null = null;
   let rows: readonly TrailEntry[] | null = null;
+  const acceptCuts = new Map<number, number>();
 
   const ageOf = (order: number, jname: string, frame: 'own' | 'sun'): PulsarAge => {
     const key = `${order}/${jname}/${frame}`;
@@ -139,6 +145,16 @@ export function buildEpochModel(inputs: EpochInputs, seed: string): EpochModel {
     trailRows() {
       rows ??= trail(disc.craft, stars, measured, { maxDistPc: TRAIL_MAX_DIST_PC, draws: TRAIL_DRAWS, seed: `${seed}/trail` });
       return rows;
+    },
+    trailAcceptCut(starId) {
+      let c = acceptCuts.get(starId);
+      if (c === undefined) {
+        const row = model.trailRows().find((r) => r.star.id === starId);
+        if (!row) throw new Error(`star ${starId} has no trail row`);
+        c = trailNullQuantile(disc.craft, measured, row, { q: TRAIL_ACCEPT_QUANTILE, draws: TRAIL_ACCEPT_DRAWS, seed: `${seed}/trail` });
+        acceptCuts.set(starId, c);
+      }
+      return c;
     },
     starInMapPlane(star, elapsedYears) {
       // The alien's star then: its measured position relative to the Sun, moved back along its measured velocity.

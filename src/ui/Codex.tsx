@@ -7,6 +7,7 @@ import type { Attempt } from '../game/deductions';
 import { NODES, type NodeDef } from '../game/graph';
 import { confirmedSet, game } from '../game/state';
 import { GlyphLabel, GlyphSvg, Value } from './Glyph';
+import { renderMessage } from './message';
 import { useDrawerFocus } from './focus';
 import { send } from './send';
 
@@ -48,7 +49,7 @@ function Entry(p: { node: NodeDef; focused: boolean }) {
           </summary>
           <ul>
             {wrong.map((a, i) => (
-              <li key={i}>{a.message}</li>
+              <li key={i}>{renderMessage(a.message, game.settings.value.humanGloss)}</li>
             ))}
           </ul>
         </details>

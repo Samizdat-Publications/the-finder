@@ -6,6 +6,7 @@
 import type { Answer, CheckResult, Reading } from '../../game/deductions';
 import type { CoverData, PulsarCatalogue } from '../../science/types';
 import { binaryToMetres, binaryToSeconds, parseCoverBinary } from '../../science/units';
+import { q } from '../../ui/message';
 import { formatPower } from '../../ui/units';
 import { TRANSITIONS, burstRimSpeed, rimSpeed, transition, type Transition } from './physics';
 
@@ -97,21 +98,10 @@ const sig = (x: number, n = 3): string => {
   return Math.abs(v) >= 1e6 || Math.abs(v) < 1e-3 ? formatPower(v, n) : v.toLocaleString('en-US', { maximumFractionDigits: 12 });
 };
 
-/** A time in plain human units (for the checker's English message; the interface shows the alien's units). */
-export function humanTime(s: number): string {
-  if (s < 1e-6) return `${sig(s * 1e9)} ns`;
-  if (s < 1e-3) return `${sig(s * 1e6)} microseconds`;
-  if (s < 1) return `${sig(s * 1e3)} ms`;
-  if (s < 120) return `${sig(s)} s`;
-  return `${sig(s / 60)} minutes`;
-}
-
-export function humanLength(m: number): string {
-  if (m < 1) return `${sig(m * 100)} cm`;
-  if (m < 1000) return `${sig(m)} m`;
-  if (m < 1e9) return `${sig(m / 1000)} km`;
-  return `${sig(m / 1e9)} million km`;
-}
+/** A time in a checker's message: a token the interface writes in the alien's units (src/ui/message.ts). */
+export const humanTime = (s: number): string => q('time', s);
+/** A length in a checker's message, as a token. */
+export const humanLength = (m: number): string => q('length', m);
 
 function unitResult(r: UnitReading, n: number): Reading[] {
   return [
@@ -135,14 +125,14 @@ export function checkUnit(inp: KeyInputs, answer: Answer): CheckResult {
     return {
       ok: true,
       result,
-      message: `With the ${t.key} transition as the unit, all ${r.mapS.length} map numbers are periods real pulsars have (${humanTime(Math.min(...r.mapS))} to ${humanTime(Math.max(...r.mapS))}, inside the catalogue's ${range}), and the disc turns once in ${humanTime(r.turnS)}, its rim at ${sig(r.rimMS)} m/s, a speed a hand could build. The unit is hydrogen's spin flip, the transition the cover draws.`,
+      message: `With the ${t.key} transition as the unit, all ${r.mapS.length} map numbers are periods real pulsars have (${humanTime(Math.min(...r.mapS))} to ${humanTime(Math.max(...r.mapS))}, inside the catalogue's ${range}), and the disc turns once in ${humanTime(r.turnS)}, its rim at ${q('speed', r.rimMS)}, a speed a hand could build. The unit is hydrogen's spin flip, the transition the cover draws.`,
     };
   }
   const fast = r.rimMS / r.burstMS;
   return {
     ok: false,
     result,
-    message: `With the ${t.key} transition as the unit, the disc would turn once every ${humanTime(r.turnS)}: its rim at ${sig(r.rimMS)} m/s, ${sig(fast, 2)} times faster than a copper disc can spin without tearing apart. ${r.mapInRange === 0 ? 'None' : `Only ${r.mapInRange}`} of the ${r.mapS.length} map numbers fall among the ${inp.pulsars.count.toLocaleString('en-US')} known pulsars (${range}): the rest would be stars spinning impossibly fast.`,
+    message: `With the ${t.key} transition as the unit, the disc would turn once every ${humanTime(r.turnS)}: its rim at ${q('speed', r.rimMS)}, ${sig(fast, 2)} times faster than a copper disc can spin without tearing apart. ${r.mapInRange === 0 ? 'None' : `Only ${r.mapInRange}`} of the ${r.mapS.length} map numbers fall among the ${inp.pulsars.count.toLocaleString('en-US')} known pulsars (${range}): the rest would be stars spinning impossibly fast.`,
   };
 }
 

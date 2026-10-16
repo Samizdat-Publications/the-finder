@@ -7,6 +7,8 @@ import { missingFor, nodeStatus } from '../../game/deductions';
 import { nodeDef } from '../../game/graph';
 import { confirmedSet, game } from '../../game/state';
 import { GlyphLabel, Value } from '../../ui/Glyph';
+import { renderMessage } from '../../ui/message';
+import { PastLabel, isPastProposal } from '../../ui/pastProposal';
 import { send } from '../../ui/send';
 
 export function propose(id: string, answer: Answer): void {
@@ -29,7 +31,7 @@ export function lastAnswerNumber(id: string, key: string): number | null {
   return null;
 }
 
-export function Panel(p: { id: string; title: string; glyph: string; children: ComponentChildren }) {
+export function Panel(p: { id: string; title: string; glyph: string; children: ComponentChildren; current?: Answer }) {
   const confirmed = confirmedSet.value;
   const status = nodeStatus(p.id, confirmed);
   const def = nodeDef(p.id);
@@ -47,7 +49,7 @@ export function Panel(p: { id: string; title: string; glyph: string; children: C
         <>
           <p class="sp-question">{status === 'confirmed' ? def?.gloss : def?.question}</p>
           {p.children}
-          <Result id={p.id} />
+          <Result id={p.id} current={p.current} />
         </>
       )}
     </section>
@@ -55,13 +57,15 @@ export function Panel(p: { id: string; title: string; glyph: string; children: C
 }
 
 /** The checker's verdict on the latest attempt. */
-export function Result(p: { id: string }) {
+export function Result(p: { id: string; current?: Answer }) {
   const a = lastAttempt(p.id);
   if (!a) return null;
+  const past = isPastProposal(a, p.current);
   return (
-    <div class={`sp-result ${a.ok ? 'ok' : 'wrong'}`} data-result={p.id} data-ok={a.ok ? '1' : '0'} role="status">
+    <div class={`sp-result ${a.ok ? 'ok' : 'wrong'}${past ? ' is-past' : ''}`} data-result={p.id} data-ok={a.ok ? '1' : '0'} data-past={past ? '1' : '0'} role="status">
+      {past && <PastLabel />}
       <p class="sp-verdict">{a.ok ? 'This holds.' : 'This does not hold.'}</p>
-      <p>{a.message}</p>
+      <p>{renderMessage(a.message, game.settings.value.humanGloss)}</p>
       {a.ok && (
         <>
           <ul class="sp-readings" aria-label="Readings written to the codex">

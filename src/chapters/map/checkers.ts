@@ -10,6 +10,7 @@ import { ANCHOR_LOG10_MARGIN } from '../../science/pulsarIdentify';
 import { SSD72_SIG_FIGS, mapPeriod } from '../../science/pulsars';
 import { CHI2_2DOF_95, insideRegion, regionLevel } from '../../science/triangulation';
 import { HYDROGEN_HZ, JULIAN_YEAR_S, PARSEC_KM } from '../../science/units';
+import { q, rangeDigits } from '../../ui/message';
 import { epochModel, type EpochModel } from '../shared/epochModel';
 import {
   axisFromGalactic, axisLineFit, bearingResiduals, candidateReadout, galacticOf, isYoung, lengthMisfit, lineIsOld, lineOf, log10BestOver, mapPoints, matchOf,
@@ -26,6 +27,10 @@ const pcLen = (key: string, pc: number): Reading => ({ key, value: pc * PARSEC_K
 const sig = (x: number, d = 3): string => Number(x.toPrecision(d)).toLocaleString('en-US', { maximumFractionDigits: 20 });
 const deg = (x: number, d = 1): string => `${x.toFixed(d)} deg`;
 const name = (r: { bname: string | null; jname: string }): string => `PSR ${r.bname ?? r.jname}`;
+/** Quantities in messages, as tokens the interface writes in the alien's units (src/ui/message.ts). */
+const qs = (s: number, d?: number): string => q('time', s, d);
+const qy = (y: number, d?: number): string => q('time', y * JULIAN_YEAR_S, d);
+const qpc = (pc: number, d?: number): string => q('length', pc * PARSEC_KM * 1000, d);
 
 function obj(answer: Answer, what: string): Record<string, Answer> {
   if (answer === null || typeof answer !== 'object' || Array.isArray(answer)) throw new Error(`Propose ${what} as an object.`);
@@ -87,13 +92,13 @@ export function checkPeriods(model: EpochModel, answer: Answer): CheckResult {
   const result = lineReadings(r);
   const young = r.young || !lineIsOld(model, o);
   if (r.notConsidered) {
-    return { ok: false, result, message: `${name(r)} cannot be line ${o}'s star: ${NOT_CONSIDERED[r.notConsidered]}. It ticks at ${sig(r.periodNowS, 6)} s against the map's ${sig(r.mapPeriodS, 6)} s and lies ${deg(Math.abs(r.dLonDeg))} from the line.` };
+    return { ok: false, result, message: `${name(r)} cannot be line ${o}'s star: ${NOT_CONSIDERED[r.notConsidered]}. It ticks at ${qs(r.periodNowS, 6)} against the map's ${qs(r.mapPeriodS, 6)} and lies ${deg(Math.abs(r.dLonDeg))} from the line.` };
   }
   if (young) {
-    return { ok: false, result, message: `${name(r)} slows quickly (it is young): its period changes too fast to match by period alone. It ticks at ${sig(r.periodNowS, 4)} s now against the map's ${sig(r.mapPeriodS, 4)} s; come back to this line once the map's age is known.` };
+    return { ok: false, result, message: `${name(r)} slows quickly (it is young): its period changes too fast to match by period alone. It ticks at ${qs(r.periodNowS, 4)} now against the map's ${qs(r.mapPeriodS, 4)}; come back to this line once the map's age is known.` };
   }
   if (!r.best) {
-    return { ok: false, result, message: `${name(r)} fits line ${o} less well than another pulsar along it: it ticks at ${sig(r.periodNowS, 6)} s now (${ppm(r)} from the map's number), lies ${deg(Math.abs(r.dLonDeg))} from the line, and its odds against the other candidates are ${oddsText(r.log10Odds as number)}. ${NEEDS_AGE}` };
+    return { ok: false, result, message: `${name(r)} fits line ${o} less well than another pulsar along it: it ticks at ${qs(r.periodNowS, 6)} now (${ppm(r)} from the map's number), lies ${deg(Math.abs(r.dLonDeg))} from the line, and its odds against the other candidates are ${oddsText(r.log10Odds as number)}. ${NEEDS_AGE}` };
   }
   if (lm.log10Odds < ANCHOR_LOG10_MARGIN) {
     return { ok: false, result, message: `${name(r)} is the best fit to line ${o}, but not by enough: its odds against the other candidates are ${oddsText(lm.log10Odds)}, under the ${sig(10 ** ANCHOR_LOG10_MARGIN, 2)} to 1 that counts as strong evidence. ${NEEDS_AGE}` };
@@ -101,7 +106,7 @@ export function checkPeriods(model: EpochModel, answer: Answer): CheckResult {
   return {
     ok: true,
     result,
-    message: `Line ${o}'s number is a period: ${name(r)}, ${deg(Math.abs(r.dLonDeg))} from the line, ticks at ${sig(r.periodNowS, 6)} s, ${ppm(r)} slower than the map's ${sig(r.mapPeriodS, 6)} s, and by period, direction and latitude alone no other pulsar along the line comes close (odds ${oddsText(lm.log10Odds)}).`,
+    message: `Line ${o}'s number is a period: ${name(r)}, ${deg(Math.abs(r.dLonDeg))} from the line, ticks at ${qs(r.periodNowS, 6)}, ${ppm(r)} slower than the map's ${qs(r.mapPeriodS, 6)}, and by period, direction and latitude alone no other pulsar along the line comes close (odds ${oddsText(lm.log10Odds)}).`,
   };
 }
 
@@ -142,7 +147,8 @@ export function checkOld(model: EpochModel, answer: Answer): CheckResult {
   result.push(years('youngest line age', lo), years('oldest line age', hi));
   if (!hit.length) {
     const near = [...iv].sort((p, q) => Math.min(Math.abs(yearsAgo - p.lo), Math.abs(yearsAgo - p.hi)) - Math.min(Math.abs(yearsAgo - q.lo), Math.abs(yearsAgo - q.hi)))[0]!;
-    return { ok: false, result, message: `At ${sig(yearsAgo)} years ago no matched pulsar ticks at the map's number within its error. The nearest is line ${near.order} (${name(near)}), whose period met the map's ${sig(near.lo)} to ${sig(near.hi)} years ago (95%).` };
+    const dn = rangeDigits('time', near.hi * JULIAN_YEAR_S, (near.hi - near.lo) * JULIAN_YEAR_S);
+    return { ok: false, result, message: `At ${qy(yearsAgo)} ago no matched pulsar ticks at the map's number within its error. The nearest is line ${near.order} (${name(near)}), whose period met the map's ${qy(near.lo, dn)} to ${qy(near.hi, dn)} ago (95%).` };
   }
   const h = hit[0]!;
   // Do the matched lines share one age? Only if their 95% intervals have a common point.
@@ -150,12 +156,12 @@ export function checkOld(model: EpochModel, answer: Answer): CheckResult {
   const tail = iv.length < 2
     ? ' Match more old lines to see whether they all agree.'
     : agree
-      ? ` The ${iv.length} matched old lines agree so far: their ages run from ${sig(lo)} to ${sig(hi)} years, within their errors.`
-      : ` But the ${iv.length} matched old lines do not agree on one age: their ages run from ${sig(lo)} to ${sig(hi)} years, and no single time lies inside every one of their 95% ranges. Something is shifting them.`;
+      ? ` The ${iv.length} matched old lines agree so far: their ages run from ${qy(lo)} to ${qy(hi)}, within their errors.`
+      : ` But the ${iv.length} matched old lines do not agree on one age: their ages run from ${qy(lo)} to ${qy(hi)}, and no single time lies inside every one of their 95% ranges. Something is shifting them.`;
   return {
     ok: true,
     result,
-    message: `The map is old: ${sig(yearsAgo)} years ago line ${h.order}'s pulsar (${name(h)}) ticked at the map's number (95%: ${sig(h.lo)} to ${sig(h.hi)} years).${tail}`,
+    message: `The map is old: ${qy(yearsAgo)} ago line ${h.order}'s pulsar (${name(h)}) ticked at the map's number (95%: ${qy(h.lo, rangeDigits('time', h.hi * JULIAN_YEAR_S, (h.hi - h.lo) * JULIAN_YEAR_S))} to ${qy(h.hi, rangeDigits('time', h.hi * JULIAN_YEAR_S, (h.hi - h.lo) * JULIAN_YEAR_S))}).${tail}`,
   };
 }
 
@@ -226,13 +232,13 @@ export function checkMotion(model: EpochModel, answer: Answer): CheckResult {
     { key: 'chi-square from the best velocity', value: d2.toFixed(1) },
   ];
   if (d2 > CHI2_2DOF_95) {
-    return { ok: false, result, message: `Along this axis the ages still scatter by ${sig(line.rmsYears)} years about a straight line. The velocity that fits all the old lines at once lies ${deg(off)} from it: a chi-square of ${d2.toFixed(1)}, more than the ${CHI2_2DOF_95.toFixed(2)} two angles allow at 95%.` };
+    return { ok: false, result, message: `Along this axis the ages still scatter by ${qy(line.rmsYears)} about a straight line. The velocity that fits all the old lines at once lies ${deg(off)} from it: a chi-square of ${d2.toFixed(1)}, more than the ${CHI2_2DOF_95.toFixed(2)} two angles allow at 95%.` };
   }
   result.push(years('fitted age', fit.ageYears), years('age sigma', fit.ageSigma), { key: 'your speed', value: speed * 1000, dim: 'speed' }, { key: 'moving toward', value: `l ${dir.lDeg.toFixed(1)}, b ${dir.bDeg.toFixed(1)} deg` });
   return {
     ok: true,
     result,
-    message: `The ages line up along this axis: your own motion shifts every period. Fitted together, the old lines give one age, ${sig(fit.ageYears)} +/- ${sig(fit.ageSigma, 2)} years, and your velocity relative to the map's makers, ${sig(speed)} km/s toward l ${dir.lDeg.toFixed(0)}, b ${dir.bDeg.toFixed(0)} deg (${fit.dropped.length === 1 ? '1 line' : `${fit.dropped.length} lines`} left out as too rough: ${fit.dropped.map((j) => name({ jname: j, bname: model.byJ.get(j)?.bname ?? null })).join(', ') || 'none'}).`,
+    message: `The ages line up along this axis: your own motion shifts every period. Fitted together, the old lines give one age, ${qy(fit.ageYears)} +/- ${qy(fit.ageSigma, 2)}, and your velocity relative to the map's makers, ${q('speed', speed * 1000)} toward l ${dir.lDeg.toFixed(0)}, b ${dir.bDeg.toFixed(0)} deg (${fit.dropped.length === 1 ? '1 line' : `${fit.dropped.length} lines`} left out as too rough: ${fit.dropped.map((j) => name({ jname: j, bname: model.byJ.get(j)?.bname ?? null })).join(', ') || 'none'}).`,
   };
 }
 
@@ -264,7 +270,7 @@ export function checkRegion(model: EpochModel, answer: Answer): CheckResult {
   return {
     ok: true,
     result,
-    message: `The map was drawn from a region, not a point: ${sig(2 * region.semiAxesPc[0], 2)} by ${sig(2 * region.semiAxesPc[1], 2)} pc (95%), and when the map was made ${stars.inside} catalogued stars lay inside it.${stars.homeInside ? ' Your own star was one of them.' : ' Your own star was not one of them.'}`,
+    message: `The map was drawn from a region, not a point: ${qpc(2 * region.semiAxesPc[0], 2)} by ${qpc(2 * region.semiAxesPc[1], 2)} (95%), and when the map was made ${stars.inside} catalogued stars lay inside it.${stars.homeInside ? ' Your own star was one of them.' : ' Your own star was not one of them.'}`,
   };
 }
 

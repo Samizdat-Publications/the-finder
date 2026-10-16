@@ -7,6 +7,7 @@
 import framesData from '../../../data/frames.json';
 import { registerChecker, type Answer, type Checker, type CheckResult, type Reading } from '../../game/deductions';
 import { BASE_RATE, type Channel } from '../../dsp/params';
+import { q } from '../../ui/message';
 import {
   CIRCLE_FRAME, COMB_TOLERANCE_384, REFERENCE_SETTINGS, ROUND_TOLERANCE, SYNC_JITTER_RMS_384, TAPE_SPEED_OFFSET_MAX, circleFit, decodeWith,
   evenOddComb, lineTiming, mountCue, type FrameSignal, type PictureSettings, type SliceInfo,
@@ -102,7 +103,7 @@ export function checkLineTime(get: SignalProvider, answer: Answer): CheckResult 
     result,
     message: ok
       ? `This is the line time: the real line starts drift only ${fmt(Math.abs(t.slant384))} samples a line against it, within the ${fmt(t.slantLimit384)} the tape's own speed error allows (the 1977 tape runs up to ${fmt(TAPE_SPEED_OFFSET_MAX * 100, 2)}% fast). Even so, over the picture the start drifts ${fmt(driftLines, 1)} lines: no fixed clock holds this tape still.`
-      : `The line time is ${way}: each line starts ${fmt(Math.abs(t.slant384))} samples (at 384 kHz) off the last one's pulse, so over the picture the start drifts by ${fmt(driftLines, 1)} lines. The picture slants and tears.`,
+      : `The line time is ${way}: each line starts ${fmt(Math.abs(t.slant384))} samples (at ${q('frequency', BASE_RATE)}) off the last one's pulse, so over the picture the start drifts by ${fmt(driftLines, 1)} lines. The picture slants and tears.`,
   };
 }
 

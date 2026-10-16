@@ -224,6 +224,11 @@ export interface OriginRegion {
 
 /** Squared radius of the 95% ellipse for 2 degrees of freedom: -2 ln(0.05) = 5.991. */
 export const CHI2_2DOF_95 = -2 * Math.log(0.05);
+/**
+ * Squared radius of the 99.9% ellipse for 2 degrees of freedom: -2 ln(0.001) = 13.82. The level at which a
+ * noise-gated check accepts the right star (D-A28); the region is still drawn at 95%.
+ */
+export const CHI2_2DOF_999 = -2 * Math.log(0.001);
 
 /**
  * The 95% region by Monte Carlo: each draw adds Gaussian noise of sigma_theta (the fit's own estimate)
@@ -281,8 +286,9 @@ export function regionMahalanobis2(region: OriginRegion, xy: readonly [number, n
   return (d * dx * dx - 2 * b * dx * dy + a * dy * dy) / det;
 }
 
-export function insideRegion(region: OriginRegion, xy: readonly [number, number]): boolean {
-  return regionMahalanobis2(region, xy) <= CHI2_2DOF_95;
+/** Inside the region's ellipse at a chi-square level (2 dof): the drawn 95% one by default, CHI2_2DOF_999 for acceptance (D-A28). */
+export function insideRegion(region: OriginRegion, xy: readonly [number, number], chi2: number = CHI2_2DOF_95): boolean {
+  return regionMahalanobis2(region, xy) <= chi2;
 }
 
 /** Probability content of the ellipse through a point (for reports). */

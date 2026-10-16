@@ -140,7 +140,7 @@ export function RegionTool(p: { m: EpochModel }) {
           Propose: the map was drawn from this star
         </button>
       )}
-      <LastReading id="trail.where" />
+      <LastReading id="trail.where" current={pick !== null ? { starId: pick } : null} />
     </section>
   );
 }

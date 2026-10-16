@@ -6,6 +6,7 @@ import { registerChecker, type CheckResult, type Checker, type Reading } from '.
 import { acceptedStartRange, ageFromU234, fitAgeAndPurity, testStartHypothesis, type AlphaCounts } from '../../science/clocks';
 import { MAX_COUNT_S, clockAges, naturalStartRatio, sweepRate } from '../../science/spot';
 import { JULIAN_YEAR_S } from '../../science/units';
+import { q, rangeDigits } from '../../ui/message';
 import { formatPower, toAlien } from '../../ui/units';
 import { SPOT, offsetMm, type SpotModel } from './data';
 
@@ -22,10 +23,12 @@ export function beatsNumber(s: number): string {
   return sig(toAlien('time', s));
 }
 
-/** A count rate in the alien's words: counts per beat (D-A22). */
-const perBeat = (perS: number): string => `${sig(toAlien('frequency', perS))} counts per beat`;
-/** A counting time in beats. */
-const beats = (s: number): string => `${beatsNumber(s)} beats`;
+/** A count rate in a message: a token the interface writes per beat (D-A22; src/ui/message.ts). */
+const perBeat = (perS: number): string => q('frequency', perS);
+/** A counting time in a message, as a token. */
+const beats = (s: number): string => q('time', s);
+/** A time in years, as a token; `d` significant figures. */
+const yearsQ = (y: number, d?: number): string => q('time', yearsS(y), d);
 const yearsS = (y: number): number => y * JULIAN_YEAR_S;
 /** A p-value in words: below 10^-12 it is written as a bound (the chi-square tail underflows toward 0). */
 const pText = (p: number): string => (p < 1e-12 ? `p below ${formatPower(1e-12, 1)}` : `p = ${sig(p, 2)}`);
@@ -114,7 +117,8 @@ export function checkAge(answer: unknown, m: SpotModel): CheckResult {
     { key: 'age low, 95%', value: yearsS(a.lo), dim: 'time' },
     { key: 'age high, 95%', value: yearsS(a.hi), dim: 'time' },
   ];
-  const range = Number.isFinite(a.hi) ? `${sig(a.lo)} to ${sig(a.hi)} years` : `${sig(a.lo)} years upward, with no upper end`;
+  const d = Number.isFinite(a.hi) ? rangeDigits('time', yearsS(Math.max(Math.abs(a.hi), Math.abs(age))), yearsS(a.hi - a.lo)) : 3;
+  const range = Number.isFinite(a.hi) ? `${yearsQ(a.lo, d)} to ${yearsQ(a.hi, d)}` : `${yearsQ(a.lo)} upward, with no upper end`;
   if (!(a.lo > 0)) {
     return {
       ok: false,
@@ -129,20 +133,20 @@ export function checkAge(answer: unknown, m: SpotModel): CheckResult {
       ok: false,
       result: [...interval, ...countsReadings(c)],
       message:
-        `The counts (${countsText(c)}) give a uranium-234 to uranium-238 ratio of ${sig(a.ratio)}, which a pure start reaches at ${sig(a.ageYears)} years; ` +
-        `95%: ${range}. ${sig(age)} years lies outside.`,
+        `The counts (${countsText(c)}) give a uranium-234 to uranium-238 ratio of ${sig(a.ratio)}, which a pure start reaches at ${yearsQ(a.ageYears, d)}; ` +
+        `95%: ${range}. ${yearsQ(age, d)} lies outside.`,
     };
   }
   return {
     ok: true,
     result: [...interval, { key: 'half-life systematic', value: yearsS(a.halfLifeSystematic.totalYears), dim: 'time' }, ...countsReadings(c)],
     message:
-      `${countsText(c)}: the ratio ${sig(a.ratio)} grew from a pure start in ${sig(a.ageYears)} years ` +
-      `(95% from the counts: ${range}; the half-lives add ${sig(a.halfLifeSystematic.totalYears, 2)} years, 1 sigma). Count longer and the interval narrows.`,
+      `${countsText(c)}: the ratio ${sig(a.ratio)} grew from a pure start in ${yearsQ(a.ageYears, d)} ` +
+      `(95% from the counts: ${range}; the half-lives add ${yearsQ(a.halfLifeSystematic.totalYears, 2)}, 1 sigma). Count longer and the interval narrows.`,
   };
 }
 
-const clockText = (y: number | null): string => (y === null ? 'never reaches the measured ratio' : `${sig(y)} years`);
+const clockText = (y: number | null): string => (y === null ? 'never reaches the measured ratio' : yearsQ(y));
 
 /**
  * spot.purity: { countingTimeS, startA234overA238 }. Right when the counts accept that start and reject natural
@@ -197,7 +201,7 @@ export function checkPurity(answer: unknown, m: SpotModel): CheckResult {
     message:
       `A start of ${sig(r0)} fits both clocks (${pText(test.pValue)}): uranium-234 says ${clockText(clocks.u234Years)}, thorium-230 ${clockText(clocks.th230Years)}. ` +
       `Ore in balance (${sig(nat)}) is rejected by the same counts (${pText(natural.pValue)}). The counts accept starts from ${rangeText} uranium-234 per uranium-238: ` +
-      `almost none of the uranium-234 natural uranium carries. Fitting age and start together gives ${sig(fit.ageYears)} years.`,
+      `almost none of the uranium-234 natural uranium carries. Fitting age and start together gives ${yearsQ(fit.ageYears)}.`,
   };
 }
 

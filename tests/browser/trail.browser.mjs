@@ -10,6 +10,7 @@
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from '../../tools/harness/serve.mjs';
+import { renderedMessage } from './rendered.mjs';
 
 export const SAVE_KEY = 'finder.save.v1';
 export const KEY_DONE = ['arrival.purpose', 'key.binary', 'key.unit', 'key.timesNotLengths'];
@@ -122,7 +123,13 @@ export async function playTrail(page, { log, assert, shot, mapPlayable }) {
   await clickStar(ref.otherNear);
   const n0 = await propose('trail.neighbour');
   assert(!n0.ok && /Your ruler puts/.test(n0.message), `a distance to the wrong star is rejected (${n0.message})`);
+  // The rejection judged the ruler as it was; clearing it changes the instrument, so the result is marked as the
+  // last proposal (M4 step 7c) until the next proposal.
+  const pastOf = (id) => page.locator(`[data-result="${id}"]`).getAttribute('data-past');
+  assert((await pastOf('trail.neighbour')) === '0', 'right after the proposal its rejection is the current verdict');
   await page.getByRole('button', { name: 'Clear the ruler' }).click();
+  await page.waitForSelector('[data-result="trail.neighbour"][data-past="1"] [data-past-label]', { timeout: 10_000 });
+  assert((await page.locator('[data-result="trail.neighbour"] [data-past-label]').innerText()).toLowerCase().includes('your last proposal'), 'the old rejection is labelled as your last proposal once the ruler changes');
   await clickStar(ref.home);
   await clickStar(ref.origin);
   const shown = Number(await page.locator('[data-ruler]').getAttribute('data-ruler'));
@@ -130,8 +137,11 @@ export async function playTrail(page, { log, assert, shot, mapPlayable }) {
   await page.evaluate(async () => (await import('/src/chapters/trail/ChartPane.tsx')).chartHandle().frame('home', { durationS: 0.01, distPc: 4 }));
   await settle(page);
   await shot('5-ruler', `The ruler from the alien's own star to the warm-white star: ${ref.ruler.distPc.toFixed(3)} +/- ${ref.ruler.sigmaPc.toFixed(3)} pc.`);
+  assert((await pastOf('trail.neighbour')) === '1', 'measuring to another star keeps the old rejection marked as past');
+  await shot('5b-ruler-past', "The ruler re-measured to the warm-white star: the earlier rejection, for the wrong star, is dimmed and labelled as your last proposal.");
   const n1 = await propose('trail.neighbour');
   assert(n1.ok && /nearest/.test(n1.message) && /5th-brightest/.test(n1.message), `the neighbour twist (${n1.message})`);
+  assert((await pastOf('trail.neighbour')) === '0' && (await page.locator('[data-result="trail.neighbour"] [data-past-label]').count()) === 0, 'a confirmed result is never marked as past');
 
   // ---- trail.where and trail.when: need The Map's region and motion ----
   let whereMsg = 'SKIPPED (map not built yet)';
@@ -265,8 +275,8 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   log(`frame time at ${perf.w} x ${perf.h}: ${perf.bench.toFixed(2)} ms back to back; live ${perf.live?.meanIntervalMs.toFixed(2)} ms over ${perf.live?.frames} frames; long calls ${Object.entries(perf.timings).map(([k, v]) => `${k} ${v.toFixed(0)} ms`).join(', ')}`);
   const longest = Math.max(...Object.values(perf.timings));
   assert(longest < 1000, `no single measurement blocks the page for more than 1 s (${longest.toFixed(0)} ms)`);
-  log(`trail.where: ${r.whereMsg}`);
-  log(`trail.when: ${r.whenMsg}`);
+  log(`trail.where: ${await renderedMessage(page, r.whereMsg)}`);
+  log(`trail.when: ${await renderedMessage(page, r.whenMsg)}`);
   record({
     id: 'chapter.trail',
     claim: 'The Trail plays in the browser through its instrument: a wrong star, a short run-back and a wrong distance are each rejected with their computed results; the warm-white star, the meeting and the ruler\'s distance confirm; with The Map built, the region view and the reframe confirm WHERE and WHEN.',

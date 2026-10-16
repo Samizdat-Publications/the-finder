@@ -8,6 +8,7 @@ import { registerChecker, type Answer, type CheckResult, type Checker, type Read
 import { groove } from '../../game/model';
 import { PLAYING_DIRECTION, type Direction, type Region } from '../../record/groove';
 import { binaryToSeconds } from '../../science/units';
+import { q } from '../../ui/message';
 import { LISTEN_S, LINES_HEARD_S, PLAYER_SIDE, SPEED_STEP_S } from './constants';
 import { FIRST_LINE_S, TRUE_PERIOD_S, grooveDrift, hear, semitones, speedRatio, spotAt, type TurntableReading } from './physics';
 
@@ -90,7 +91,7 @@ export function checkStart(answer: Answer): CheckResult {
     off: 'The needle is past the edge of the disc: there is nothing under it.',
     rim: 'The stylus rests on the smooth rim outside the groove. Nothing carries it, and nothing plays.',
     music: `This is ${fmt((t ?? 0) / TRUE_PERIOD_S, 0)} turns into the side: whatever plays here started long before the needle arrived. The cover draws the stylus at the outer edge.`,
-    runout: `The stylus drops into the locked groove inside the last of the music. It plays nothing but a click once every turn, every ${fmt(s)} s at this speed, for ever.`,
+    runout: `The stylus drops into the locked groove inside the last of the music. It plays nothing but a click once every turn, every ${q('time', s)} at this speed, for ever.`,
     label: 'The stylus lands on the smooth label at the centre: no groove, no sound. It is lifted again with a soft thump.',
   };
   if (spot === 'runout') result.push({ key: 'click every', value: s, dim: 'time' });
@@ -164,7 +165,7 @@ export function checkFirstSound(answer: Answer): CheckResult {
       result,
       message:
         'Not music and not speech: a steady pattern, the same short shape over and over, each a little different from the last, ' +
-        `once every ${(h.periodS! * 1000).toFixed(2)} ms. The cover's picture diagrams give a time just like it. The first sound is a picture, sent line by line.`,
+        `once every ${q('time', h.periodS!, 3)}. The cover's picture diagrams give a time just like it. The first sound is a picture, sent line by line.`,
     };
   }
   let message: string;
@@ -177,7 +178,7 @@ export function checkFirstSound(answer: Answer): CheckResult {
   // The tape opens with about 3.7 s of near-silence, then a tone until about 9.9 s (images-and-audio.md section 1).
   else if (h.kind === 'opening') message = 'The opening of the side: quiet, then a long steady tone. The first repeating pattern has not reached the needle yet. Keep listening.';
   else if (h.kind === 'content') message = 'Something plays, but not from the start of the side: the needle came down partway in.';
-  else message = `The pattern has only just begun. Listen for at least ${LISTEN_S} s at steady settings.`;
+  else message = `The pattern has only just begun. Listen for at least ${q('time', LISTEN_S)} at steady settings.`;
   return { ok: false, result, message };
 }
 

@@ -191,7 +191,7 @@ export function ReframeTool(p: { m: EpochModel }) {
           Propose: the map was made this long ago
         </button>
       )}
-      <LastReading id="trail.when" />
+      <LastReading id="trail.when" current={c !== null ? { yearsAgo: c, frame: fr } : null} />
     </section>
   );
 }

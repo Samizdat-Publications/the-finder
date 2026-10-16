@@ -32,7 +32,9 @@
 // above): the measured angle and distance over speed. It judges "flying straight away" against the null
 // distribution, the angles the same model produces when the star's relative velocity is made exactly
 // radial at the measured speed (built around the measured state, so it uses nothing the alien lacks): a
-// star passes when its measured angle is at most the null's 95th percentile. The error is effectively
+// star is inside the 95% cut when its measured angle is at most the null's 95th percentile (the error bar the
+// instrument draws), and trail.origin accepts it up to the 99.9th percentile (trailNullQuantile; D-A28: a 95%
+// test would stop 1 playthrough in 20 for good, and every other star sits far beyond either). The error is effectively
 // two-dimensional (an angle from a direction), so a "2 sigma" cut on a one-dimensional spread is only an
 // 84% cut; the percentile is the honest one. The distance-over-speed interval is built around the
 // measured value from draws about the measured state (the basic bootstrap: 2 m - q97.5 to 2 m - q2.5).
@@ -46,6 +48,16 @@ import type { StarCatalogue, StarRecord } from './types';
 
 /** The share of the null distribution a star from which the craft truly flew stays inside: 95%. */
 export const TRAIL_NULL_QUANTILE = 0.95;
+/**
+ * The level at which trail.origin accepts a star (D-A28): the null's 99.9th percentile. The instrument still
+ * draws the 95% cut; a star between the two is consistent, at the edge.
+ */
+export const TRAIL_ACCEPT_QUANTILE = 0.999;
+/**
+ * Null draws for the 99.9% cut, computed on demand for one star: 20,000 leave 20 draws beyond it, so the cut
+ * is stable to a few per cent (the spec's example; kinematics.test.ts trail.acceptCutStable measures it).
+ */
+export const TRAIL_ACCEPT_DRAWS = 20_000;
 
 /** Step of the radial-velocity grid in minAngleNoRv, km/s (kinematics.test.ts, trail.uniqueNoRv). */
 const NO_RV_GRID_KMS = 0.25;
@@ -182,6 +194,30 @@ export function trailCensus(craft: BodyState, stars: StarCatalogue, maxDistPc: n
   return { within: near.length, fullVelocity: full, noRadialVelocity: near.length - full };
 }
 
+type Noise = (pos: Vec3) => (rng: Rng) => { dp: Vec3; dv: Vec3 };
+
+/** The measurement errors for a star at pos: Gaia's ellipsoids aimed along the line of sight, position error scaled by distance squared (the model above). */
+function measurementNoise(observer: Observer): Noise {
+  const measPosCov = observer.measPosCov ?? observer.posCov;
+  const measDist = observer.measDistPc ?? norm(observer.posPc);
+  const Lp = choleskyPsd(measPosCov);
+  const Lv = choleskyPsd(observer.velCov);
+  // Gaia's line of sight: the principal axis of the parallax-only position covariance (Sun to home star).
+  const losAxis = principalAxis(measPosCov);
+  return (pos) => {
+    const from = sub(pos, observer.posPc);
+    const dist = norm(from);
+    const R = rotationOnto(losAxis, scale(from, 1 / dist));
+    const ps = dist / measDist;
+    const posScale = ps * ps;
+    return (rng) => {
+      const zp: Vec3 = [rng.normal(), rng.normal(), rng.normal()];
+      const zv: Vec3 = [rng.normal(), rng.normal(), rng.normal()];
+      return { dp: scale(matVec(R, matVec(Lp, zp)), posScale), dv: matVec(R, matVec(Lv, zv)) };
+    };
+  };
+}
+
 /**
  * For every star within maxDistPc of the craft with a full velocity: the angle between the craft's
  * velocity relative to the star and the direction from the star to the craft, and distance over
@@ -201,27 +237,9 @@ export function trail(
   observer: Observer,
   opts: { maxDistPc: number; draws: number; seed: string },
 ): TrailEntry[] {
-  const measPosCov = observer.measPosCov ?? observer.posCov;
-  const measDist = observer.measDistPc ?? norm(observer.posPc);
-  const Lp = choleskyPsd(measPosCov);
-  const Lv = choleskyPsd(observer.velCov);
-  // Gaia's line of sight: the principal axis of the parallax-only position covariance (Sun to home star).
-  const losAxis = principalAxis(measPosCov);
+  const noiseAt = measurementNoise(observer);
   const root = createRng(opts.seed);
   const k = KM_S_TO_PC_PER_YEAR;
-  /** The measurement errors for a star at pos: Gaia's ellipsoids aimed along the line of sight, position error scaled by distance squared. */
-  const noiseAt = (pos: Vec3): ((rng: Rng) => { dp: Vec3; dv: Vec3 }) => {
-    const from = sub(pos, observer.posPc);
-    const dist = norm(from);
-    const R = rotationOnto(losAxis, scale(from, 1 / dist));
-    const ps = dist / measDist;
-    const posScale = ps * ps;
-    return (rng) => {
-      const zp: Vec3 = [rng.normal(), rng.normal(), rng.normal()];
-      const zv: Vec3 = [rng.normal(), rng.normal(), rng.normal()];
-      return { dp: scale(matVec(R, matVec(Lp, zp)), posScale), dv: matVec(R, matVec(Lv, zv)) };
-    };
-  };
   const angleOf = (p: Vec3, v: Vec3): number => angleBetweenDeg(sub(craft.velKmS, v), sub(craft.posPc, p));
   const dosOf = (p: Vec3, v: Vec3): number => norm(sub(craft.posPc, p)) / (norm(sub(craft.velKmS, v)) * k);
   const out: TrailEntry[] = [];
@@ -298,6 +316,34 @@ export function trail(
     });
   }
   return out.sort((a, b) => a.angleDeg - b.angleDeg || a.star.id - b.star.id);
+}
+
+/**
+ * A quantile of one star's null distribution (WHAT THE ALIEN SEES: the relative velocity made exactly radial at
+ * the measured speed, about the measured state), from `draws` draws of its own seeded fork
+ * (`accept-null/star-<id>` of `seed`, the seed the rows were measured with), so it is computed for one star on
+ * demand and does not depend on which other stars were asked for. trail.origin accepts at q = 0.999 with
+ * TRAIL_ACCEPT_DRAWS draws (D-A28). The observer's own star has no error: 0.
+ */
+export function trailNullQuantile(
+  craft: BodyState,
+  observer: Observer,
+  row: Pick<TrailEntry, 'star' | 'measuredPosPc' | 'measuredVelKmS'>,
+  opts: { q: number; draws: number; seed: string },
+): number {
+  const pM = row.measuredPosPc;
+  if (row.star.id === observer.starId || norm(sub(pM, observer.posPc)) < 1e-9) return 0;
+  const atMeas = measurementNoise(observer)(pM);
+  const dM = sub(craft.posPc, pM);
+  const vNull = sub(craft.velKmS, scale(dM, norm(sub(craft.velKmS, row.measuredVelKmS)) / norm(dM)));
+  const rng = createRng(opts.seed).fork(`accept-null/star-${row.star.id}`);
+  const nulls: number[] = [];
+  for (let i = 0; i < opts.draws; i++) {
+    const { dp, dv } = atMeas(rng);
+    nulls.push(angleBetweenDeg(sub(craft.velKmS, add(vNull, dv)), sub(craft.posPc, add(pM, dp))));
+  }
+  nulls.sort((x, y) => x - y);
+  return quantile(nulls, opts.q);
 }
 
 /** True when a row's measured angle is consistent with the craft flying straight away from its star (at most the null's 95th percentile). */

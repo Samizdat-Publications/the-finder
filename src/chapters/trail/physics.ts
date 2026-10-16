@@ -7,7 +7,7 @@
 import { KM_S_TO_PC_PER_YEAR, dot, norm, scale, sub, type Vec3 } from '../../science/astro';
 import { starStateAt } from '../../science/epoch';
 import { minAngleNoRv, trailConsistent, type TrailEntry } from '../../science/kinematics';
-import { insideRegion, regionLevel } from '../../science/triangulation';
+import { CHI2_2DOF_999, insideRegion, regionLevel } from '../../science/triangulation';
 import type { StarRecord } from '../../science/types';
 import { TRAIL_MAX_DIST_PC, type EpochModel } from '../shared/epochModel';
 
@@ -59,6 +59,18 @@ export function consistent(row: TrailEntry): boolean {
   return trailConsistent(row);
 }
 
+/**
+ * Where a star's measured angle falls against its two cuts (D-A28): inside the drawn 95% cut, at the edge
+ * (between the 95% and 99.9% cuts: still consistent, and accepted), or beyond the 99.9% cut (refused). The
+ * 99.9% cut is computed for this star on demand (EpochModel.trailAcceptCut).
+ */
+export type TrailLevel = 'inside95' | 'edge' | 'beyond';
+export function trailLevel(m: EpochModel, row: TrailEntry): { level: TrailLevel; cut999Deg: number } {
+  const cut999Deg = m.trailAcceptCut(row.star.id);
+  const level: TrailLevel = consistent(row) ? 'inside95' : row.measuredAngleDeg <= cut999Deg ? 'edge' : 'beyond';
+  return { level, cut999Deg };
+}
+
 /** The measured angle as a multiple of the star's 95% cut (under 1: consistent). */
 export function cutRatio(row: TrailEntry): number {
   return row.nullAngle95Deg > 0 ? row.measuredAngleDeg / row.nullAngle95Deg : Infinity;
@@ -72,9 +84,9 @@ export function consistentRows(m: EpochModel): TrailEntry[] {
 
 /**
  * The star the trail points back to: the row whose measured angle is smallest against its own 95% cut (the
- * one consistent row when the trail picks one out). For about 1 seed in 20 even the true origin's measured
- * angle lies beyond its cut (an honest 95% test; trail.originCoverage); the later tools still run back to
- * this star, while trail.origin itself judges only by the cut.
+ * one consistent row when the trail picks one out). For about 1 seed in 20 the true origin's measured angle
+ * lies beyond its 95% cut (an honest 95% test; trail.originCoverage); trail.origin still accepts it up to the
+ * 99.9% cut (D-A28), and the later tools run back to this star.
  */
 export function originRow(m: EpochModel): TrailEntry {
   const home = homeId(m);
@@ -145,6 +157,18 @@ export function noRvBounds(m: EpochModel, star: StarRecord): { vmaxKmS: number; 
     const r = minAngleNoRv(m.disc.craft, star, m.disc.decimalYear, vmax, TRAIL_MAX_DIST_PC);
     return { vmaxKmS: vmax, angleDeg: r?.angleDeg ?? null, vrKmS: r?.vrKmS ?? null };
   });
+}
+
+/**
+ * trail.where's acceptance for a star (D-A28): inside the drawn 95% region, at the edge (between the 95% and
+ * 99.9% contours, chi-square 13.82 for 2 dof: still consistent, and accepted for the star the machine came from),
+ * or beyond the 99.9% contour.
+ */
+export function whereLevel(m: EpochModel, star: StarRecord): { level: TrailLevel; contour: number; xy: [number, number] } {
+  const r = m.region();
+  const xy = m.starInMapPlane(star, m.motionFit().ageYears);
+  const level: TrailLevel = insideRegion(r, xy) ? 'inside95' : insideRegion(r, xy, CHI2_2DOF_999) ? 'edge' : 'beyond';
+  return { level, contour: regionLevel(r, xy), xy };
 }
 
 /** The near catalogue's stars at the map epoch, in the map's plane (pc from the alien's star then), and whether each lies in the region. */

@@ -52,7 +52,7 @@ export function SweepPanel(p: SweepProps) {
   const gloss = game.settings.value.humanGloss;
   const q = rateS === null ? null : quantity('frequency', rateS);
   return (
-    <Panel id={id} title="Detector sweep" glyph="detector">
+    <Panel id={id} title="Detector sweep" glyph="detector" current={p.mark ? { xMm: Math.round(p.mark[0] * 10) / 10, yMm: Math.round(p.mark[1] * 10) / 10 } : undefined}>
       <p class="sp-small">
         Move the probe over the plate (pointer, or the probe keys below); every alpha particle it catches clicks. Click the plate to mark a point.
       </p>

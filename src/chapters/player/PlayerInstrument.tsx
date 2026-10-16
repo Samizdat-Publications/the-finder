@@ -220,7 +220,7 @@ export function PlayerInstrument() {
                   {rd.down ? `Listening: ${formatNumber(Math.floor((listened.value / BEAT_S) * 10) / 10)} beats undisturbed.` : 'Set the turntable up, drop the needle, and listen.'}
                 </p>
               )}
-              <LastReading id={id} />
+              <LastReading id={id} current={id === 'player.speed' ? { secondsPerTurn: T.secondsPerTurn.value } : id === 'player.direction' ? { direction: T.direction.value } : undefined} />
             </section>
           ))}
         </div>

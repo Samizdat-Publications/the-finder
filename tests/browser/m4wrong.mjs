@@ -9,6 +9,7 @@
 //
 // map.periods' "weak line" is a real one: an old line that is not a pass-1 anchor (B1929+10 on line 2 for the
 // seeds tried, map.test.ts); if a seed has none, it is skipped and said so.
+import { renderedMessage } from './rendered.mjs';
 
 /** The arrival and key answers the slice bot proposes (tests/browser/slice.browser.mjs). */
 const KEY_PATH = [
@@ -37,13 +38,14 @@ export async function m4WrongPass(page, { assert, log, freshStart, baseUrl }) {
     const r = await propose(id, answer);
     assert(!r.confirmed && r.last && r.last.ok === false, `${id} ${label}: rejected (${r.last?.message})`);
     assert(r.last.message.length > 20, `${id} ${label}: gives a computed result (${r.last.message})`);
+    const shown = await renderedMessage(page, r.last.message);
     const listed = await page.locator(`[data-node="${id}"] details.wrong li`).last().textContent();
-    assert(listed === r.last.message, `${id} ${label}: the result is in the notebook`);
+    assert(listed === shown, `${id} ${label}: the result is in the notebook`);
     const line = page.locator(`[data-result="${id}"]`);
     await line.first().waitFor({ state: 'visible', timeout: 10_000 });
     assert(/^(0|false)$/.test((await line.first().getAttribute('data-ok')) ?? ''), `${id} ${label}: the instrument shows the rejection`);
     const text = (await line.first().innerText()).replace(/\s+/g, ' ');
-    assert(text.includes(r.last.message.replace(/\s+/g, ' ').slice(0, 40)), `${id} ${label}: the instrument shows the computed result`);
+    assert(text.includes(shown.replace(/\s+/g, ' ').slice(0, 40)), `${id} ${label}: the instrument shows the computed result`);
     played.push({ id, wrong: label, message: r.last.message });
   };
   const right = async (id, answer) => {

@@ -6,6 +6,7 @@
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from '../../tools/harness/serve.mjs';
+import { renderedMessage } from './rendered.mjs';
 
 const OUT = join(ROOT, 'harness', 'out', 'arrival-captures');
 
@@ -54,7 +55,7 @@ export default async function run({ page, baseUrl, record, assert, log }) {
       assert(!node.confirmed && last.ok === false, `${step.id}: ${w} is rejected`);
       assert(/\d/.test(last.message) || step.id === 'arrival.purpose', `${step.id}: ${w} shows a computed result (${last.message})`);
       const shown = await page.locator(`[data-result="${step.id}"][data-ok="0"]`).innerText();
-      assert(shown.includes(last.message.slice(0, 40)), `${step.id}: the wrong result for ${w} is shown on the panel`);
+      assert(shown.includes((await renderedMessage(page, last.message)).slice(0, 40)), `${step.id}: the wrong result for ${w} is shown on the panel`);
       wrongShown.push(`${w}: ${last.message}`);
       if (step.id === 'arrival.purpose' && w === 'sail') await shot('2-structure-wrong-sail');
       if (step.id === 'arrival.heat' && w === 'leftover') await shot('4-heat-wrong-leftover');
