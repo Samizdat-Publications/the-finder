@@ -93,7 +93,7 @@ describe.skipIf(SKIP !== null)('the calibration circle (L000)', () => {
     const pass = Math.abs(fit.axisRatio - 1) <= 0.01;
     recordCheck({
       id: 'decoder.circle',
-      claim: 'Decoded in the browser at the measured geometry (512 x 355), the calibration circle comes out round.',
+      claim: 'Procedure self-test: the browser decoder reproduces the reference geometry, so the calibration circle comes out round at 512 x 355 (the geometry was chosen to make it round; the independent check is decoder.ref.aspectIndependent).',
       measured: `axis ratio ${fit.axisRatio.toFixed(4)} (horizontal over vertical), ring fit rms ${fit.rmsResidual.toFixed(2)} px`,
       expected: `A circle: ratio 1.00 (the reference decoder measured ${ref.axisRatio.toFixed(4)} at 384 kHz)`,
       tolerance: '+/- 0.01 (the target set in tools/ref-decoder/README.md section 7)',

@@ -166,7 +166,7 @@ describe.skipIf(SKIP !== null)('browser decoder vs the Python reference (96 kHz 
     const pass = out.every((o) => o.ok) && ilOk;
     recordCheck({
       id: 'decoder.slant',
-      claim: 'Decoding with the wrong line time slants the picture by exactly the error, and dropping the interlace offset leaves the measured even/odd comb.',
+      claim: 'Procedure self-test of the slant meter: a free-running decode with the line time off by e drifts by e times the period per line, and dropping the interlace offset leaves the even/odd comb measured by the reference.',
       measured: `slant in samples per line: ${text}; even/odd shift ${without.toFixed(2)} samples without the offset, ${withOffset.toFixed(2)} with it`,
       expected: `The reference decoder on the same frame (build/ref/metrics.json wrong_results): comb ${ni.evenOddShiftWithout384k.toFixed(2)} without, ${ni.evenOddShiftWith384k.toFixed(2)} with`,
       tolerance: `Slants within 10% (spec; at e = 0 within 10% of the +1% slant); comb within ${tolIl.toFixed(2)} samples, the interquartile range of the offset across frames (README section 6)`,
