@@ -1,0 +1,36 @@
+{
+  "name": "The Finder",
+  "repo": "the-finder",
+  "pitch": "Play the alien who finds Voyager 1 and decodes the Golden Record from the cover alone, every deduction checked against real data.",
+  "status": "in-development",
+  "version": "0.5.0",
+  "kind": "game",
+  "started": "2026-10-15",
+  "updated": "2026-10-17",
+  "tech": ["TypeScript", "Vite", "three.js", "Preact", "Web Audio", "Web Workers", "Python", "Playwright", "Cloudflare Workers"],
+  "links": {
+    "landing": "https://the-finder.pages.dev",
+    "play": "https://the-finder.stewartgregerson.workers.dev/play/?tour=1",
+    "devlog": "https://github.com/Samizdat-Publications/the-finder/blob/main/PROGRESS.md"
+  },
+  "hero": {
+    "gif": "docs/media/hero.gif",
+    "poster": "site/media/hero.jpg",
+    "clip": "site/media/hero.mp4"
+  },
+  "credits": [
+    { "what": "Code, design, data builders and tests", "who": "Claude Code, directed by Stewart Gregerson", "licence": "MIT" },
+    { "what": "Voyager Golden Record image tape (1977 Colorado Video master, transfer by Ozma Records, via the Internet Archive)", "who": "NASA/JPL and the record committee chaired by Carl Sagan; Ozma Records", "licence": "Rights rest with their owners; credited, not covered by MIT" },
+    { "what": "Voyager Golden Record audio (40th Anniversary Edition remaster)", "who": "Ozma Records (2017) and the performers listed in docs/CREDITS.md", "licence": "Rights rest with their owners; credited, not covered by MIT" },
+    { "what": "Voyager 3D model", "who": "NASA Visualization Technology Applications and Development", "licence": "NASA media guidelines" },
+    { "what": "Golden Record cover photo GPN-2000-001978", "who": "NASA/JPL", "licence": "Public domain" },
+    { "what": "Pioneer plaque vector drawing", "who": "Mysid, via Wikimedia Commons", "licence": "Public domain" },
+    { "what": "Milky Way colour map from Gaia EDR3", "who": "ESA/Gaia/DPAC, A. Moitinho", "licence": "CC BY-SA 3.0 IGO" },
+    { "what": "ATNF Pulsar Catalogue v2.9.0", "who": "Manchester, Hobbs, Teoh and Hobbs (2005), CSIRO", "licence": "Free use with citation" },
+    { "what": "Pulsar glitch catalogue and Crab ephemeris", "who": "Jodrell Bank Centre for Astrophysics", "licence": "Free use with citation" },
+    { "what": "HYG Stellar Database v4.2", "who": "David Nash (astronexus)", "licence": "CC BY-SA 4.0" },
+    { "what": "Gaia DR3", "who": "ESA/Gaia/DPAC", "licence": "Free use with acknowledgement" },
+    { "what": "JPL Horizons ephemerides", "who": "NASA/JPL Solar System Dynamics", "licence": "Public US government data" },
+    { "what": "Fraunces and IBM Plex fonts (landing page)", "who": "Undercase Type; IBM, via Google Fonts", "licence": "SIL OFL 1.1" }
+  ]
+}

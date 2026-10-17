@@ -39,3 +39,6 @@ assets-src/**/raw/
 .DS_Store
 Thumbs.db
 *.log
+
+# landing page build (tools/showcase/build-site.mjs)
+site-dist/

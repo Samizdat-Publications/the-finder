@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Finder</title>
+<meta name="description" content="Play the alien who finds Voyager 1 about 44,000 years from now and decodes the Golden Record from the cover alone. Every deduction is the real one, checked against real data.">
+<meta property="og:title" content="The Finder">
+<meta property="og:description" content="Play the alien who finds Voyager 1 and decodes the Golden Record from the cover alone. Every deduction checked against real data.">
+<meta property="og:image" content="media/og.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0b0a1f">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+
+<header class="bar">
+  <a class="brand" href="#top">The Finder</a>
+  <nav>
+    <a href="#chapters">The deductions</a>
+    <a href="#checked">Checked</a>
+    <a href="#made">How it was made</a>
+    <a class="cta" href="https://the-finder.stewartgregerson.workers.dev/play/?tour=1">Play</a>
+  </nav>
+</header>
+
+<main id="top">
+
+<section class="hero">
+  <div class="hero-text">
+    <p class="pill"><span class="dot"></span>In development</p>
+    <h1>The Finder</h1>
+    <p class="pitch">About 44,000 years from now, a cold, tiny machine falls past your star. You are not human. Starting from nothing but the object, work out what it is, how old it is, how to play the gold record it carries, where it came from and who sent it.</p>
+    <p class="sub">Every answer is the real one: the pulsar map, the hydrogen key, the radioactive clocks, and the pictures decoded line by line from the record's real 1977 image tape, right in your browser.</p>
+    <p class="buttons">
+      <a class="button primary" href="https://the-finder.stewartgregerson.workers.dev/play/?tour=1">Play the guided tour</a>
+      <a class="button" href="https://github.com/Samizdat-Publications/the-finder">Source on GitHub</a>
+      <a class="button quiet" href="https://the-finder.stewartgregerson.workers.dev/checked/">How it's checked</a>
+    </p>
+    <p class="fine">Free, in the browser. Best in desktop Chrome or Edge, with headphones.</p>
+  </div>
+  <figure class="screen hero-screen">
+    <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="media/hero.jpg" aria-label="The real 1977 image tape decoding into pictures, line by line">
+      <source src="media/hero.mp4" type="video/mp4">
+    </video>
+    <figcaption>The first pictures developing from the 1977 tape, at the record's own speed.</figcaption>
+  </figure>
+</section>
+
+<section class="premise">
+  <p>The Voyager Golden Record was made in 1977 for whoever might find it. Its cover is a set of instructions written for a reader who shares nothing with us but physics. <em>The Finder</em> asks whether those instructions actually work: you play the reader, and a guide walks you through 43 deductions, one instrument at a time.</p>
+</section>
+
+<div id="chapters">
+
+<section class="chapter">
+  <figure class="screen">
+    <video data-inview muted loop playsinline preload="none" poster="media/arrival.jpg">
+      <source src="media/arrival.mp4" type="video/mp4">
+    </video>
+  </figure>
+  <div class="copy">
+    <p class="kicker">Arrival</p>
+    <h2>Something in the dark</h2>
+    <p>Scan the machine as it drifts past. A great curved dish: it was built to talk across huge distances. A warm cylinder: its heat comes from a radioactive source, and the decay products inside it say how long ago that fuel was made.</p>
+    <p class="data">Data: NASA's Voyager model; plutonium-238 decay chain half-lives (LNHB, NNDC).</p>
+  </div>
+</section>
+
+<section class="chapter flip">
+  <figure class="screen">
+    <video data-inview muted loop playsinline preload="none" poster="media/key.jpg">
+      <source src="media/key.mp4" type="video/mp4">
+    </video>
+  </figure>
+  <div class="copy">
+    <p class="kicker">The Key</p>
+    <h2>The secret code</h2>
+    <p>Two kinds of marks on the cover are ones and zeros. The drawing of two hydrogen atoms sets the unit: the spin flip of hydrogen, a time of 0.704 billionths of a second that any physicist anywhere would recognise. Every other number on the cover is a count of that tick.</p>
+    <p class="data">Data: the cover, traced from NASA/JPL's photograph; hydrogen's 1,420,405,751.768 Hz line.</p>
+  </div>
+</section>
+
+<section class="chapter">
+  <figure class="screen">
+    <video data-inview muted loop playsinline preload="none" poster="media/pictures.jpg">
+      <source src="media/pictures.mp4" type="video/mp4">
+    </video>
+  </figure>
+  <div class="copy">
+    <p class="kicker">The Pictures</p>
+    <h2>Pictures out of sound</h2>
+    <p>One side of the record carries pictures as sound. Set the line time, the sync, the stagger and the shape from the cover's diagrams until the calibration circle comes out round, and every other picture develops with the same settings. Three frames in a row, stacked as red, green and blue, give Earth in colour. These are decoded live from the real 1977 image master tape, not shown from a clean copy: all 156 frames.</p>
+    <p class="data">Data: the Colorado Video image tape (1977), transferred by Ozma Records; a decoder in a Web Worker that matches the Python reference pixel for pixel.</p>
+  </div>
+</section>
+
+<section class="chapter flip">
+  <figure class="screen">
+    <video data-inview muted loop playsinline preload="none" poster="media/spot.jpg">
+      <source src="media/spot.mp4" type="video/mp4">
+    </video>
+  </figure>
+  <div class="copy">
+    <p class="kicker">The Spot</p>
+    <h2>The uranium clock</h2>
+    <p>A tiny speck of uranium-238 sits on the cover. Count its alpha particles and two isotopes give two answers at once: how long ago it was laid down, and that it began almost pure, so it was made, not mined. The error bars narrow as the counts come in.</p>
+    <p class="data">Data: NASA's specification for the spot; uranium and thorium decay data; a real alpha detector's published figures.</p>
+  </div>
+</section>
+
+<section class="chapter">
+  <figure class="screen">
+    <video data-inview muted loop playsinline preload="none" poster="media/map.jpg">
+      <source src="media/map.mp4" type="video/mp4">
+    </video>
+  </figure>
+  <div class="copy">
+    <p class="kicker">The Map</p>
+    <h2>The pulsar map</h2>
+    <p>Fourteen lines radiate from one point, each labelled with a period. Match every line to its pulsar among thousands in the alien's own catalogue. Pulsars slow down at known rates, so the periods date the map, and the bearings point back to the region of the galaxy where it was drawn.</p>
+    <p class="data">Data: ATNF Pulsar Catalogue (4,503 pulsars); Jodrell Bank glitch catalogue and Crab ephemeris.</p>
+  </div>
+</section>
+
+<section class="chapter flip">
+  <figure class="screen">
+    <video data-inview muted loop playsinline preload="none" poster="media/trail.jpg">
+      <source src="media/trail.mp4" type="video/mp4">
+    </video>
+  </figure>
+  <div class="copy">
+    <p class="kicker">The Trail</p>
+    <h2>Where it came from</h2>
+    <p>Run every nearby star's motion backwards. Only one star has the machine flying straight away from it: a warm white star. Distance over speed says when it left, and it agrees with the uranium clock and the pulsar map.</p>
+    <p class="data">Data: HYG star database, Gaia DR3, JPL Horizons, Voyager 1's outbound path (Bailer-Jones and Farnocchia 2019).</p>
+  </div>
+</section>
+
+</div>
+
+<section class="checked" id="checked">
+  <h2>Checked against real data</h2>
+  <p class="lead">Nothing the player sees is typed in by hand. Every number comes from cited data or from the science code computing on it, and every deduction has an automated test against an independent source, with error bars that are computed, never chosen.</p>
+  <ul class="facts">
+    <li><b>156</b><span>pictures decoded from the 1977 tape in the browser, matching a separate Python decoder pixel for pixel</span></li>
+    <li><b>14 of 14</b><span>map lines matched to the right pulsar, across 500 simulated playthroughs</span></li>
+    <li><b>43</b><span>deductions, each with its own test; a bot plays every one from a fresh save</span></li>
+    <li><b>3</b><span>independent clocks (the fuel, the uranium spot, the pulsar map) that have to agree on one age</span></li>
+  </ul>
+  <p>The results page is generated from the test output, so it cannot drift from the code. It lists each deduction, the physics it rests on, the data, the test and the honest caveats.</p>
+  <p class="buttons"><a class="button" href="https://the-finder.stewartgregerson.workers.dev/checked/">Read how it's checked</a></p>
+</section>
+
+<section class="made" id="made">
+  <h2>How it was made</h2>
+  <div class="cols">
+    <div>
+      <h3>The stack</h3>
+      <p>TypeScript, Vite, three.js on WebGL2, Preact and Web Audio, served from Cloudflare Workers. The science and signal code is pure: it never touches the page, so the same functions run in the browser and in Node under Vitest.</p>
+    </div>
+    <div>
+      <h3>Ground truth first</h3>
+      <p>Before any interface, the data were built by scripts from cited sources (pulsar, star and ephemeris catalogues, the record's audio and image tape), each download checksummed. A reference decoder in Python found all 156 frames from the signal alone; the browser decoder was then held to it.</p>
+    </div>
+    <div>
+      <h3>Played by bots, reviewed blind</h3>
+      <p>The interface and the bots issue the same commands. Bots play every deduction and try dozens of wrong answers, each rejected with its computed result. Science auditors and a blind player-critic review each milestone; this page's clips were filmed by a script driving the guided tour.</p>
+    </div>
+  </div>
+  <p class="who">Designed and directed by Stewart Gregerson; built with Claude Code. The record's sounds and pictures belong to their makers and are credited in the <a href="https://github.com/Samizdat-Publications/the-finder/blob/main/docs/CREDITS.md">credits</a>.</p>
+</section>
+
+<section class="final">
+  <h2>Pick it up and find out who sent it.</h2>
+  <p class="buttons">
+    <a class="button primary" href="https://the-finder.stewartgregerson.workers.dev/play/?tour=1">Play the guided tour</a>
+    <a class="button" href="https://the-finder.stewartgregerson.workers.dev/play/">Free play</a>
+    <a class="button" href="https://github.com/Samizdat-Publications/the-finder">Source on GitHub</a>
+  </p>
+</section>
+
+</main>
+
+<footer>
+  <p>The Finder, by Samizdat Publications. Code under the MIT licence. Voyager Golden Record content: NASA/JPL, the 1977 record committee chaired by Carl Sagan, and Ozma Records' transfers. Science data: ATNF, Jodrell Bank, ESA Gaia, HYG, JPL Horizons. Full list in <a href="https://github.com/Samizdat-Publications/the-finder/blob/main/docs/CREDITS.md">CREDITS.md</a>.</p>
+</footer>
+
+<script src="site.js" defer></script>
+</body>
+</html>
