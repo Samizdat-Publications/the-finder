@@ -22,3 +22,15 @@ its "high" items was overstated).
 | 5 | Chapter select, an epilogue gallery and jukebox, social preview tags | Gallery is promised by rule 2; tags are cheap | In M6 and the V1.0 polish |
 
 Cost: about $2 at the assumed Pro preview rate (Argon's own rate is not published in the model list).
+
+## Second review (the new chapters, same day): `2026-10-22-argon-answer-m6.md`
+
+Checked against the code; again worth it. Acted on: the tour's "where all four bars overlap" (can be empty on
+some seeds: now "the bright band, in or right beside the short pulsar-map bar", with the checker's refusal and
+the tour's look text saying why that bar counts most); Our Frame's own Next and arrow keys moving under the tour
+(hidden while touring); "Back to the ring" stranding the tour (hidden while touring); a volume race on quick
+re-entry (a run token); Propose enabled without all four clocks (disabled); the garden-path sentence in
+finale.listening; the map-age sentence in Our Frame (now states the uncertainty). Carried to the science audit:
+the coverage pull against launch time versus the map's own 1971 start (the map dates about 8 years earlier),
+and one clause in row 17 on why the measured correlation is small. Already done before it reported: social
+preview tags; the seed rebuild is queued.

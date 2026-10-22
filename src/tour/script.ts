@@ -545,8 +545,8 @@ export const STOPS: readonly Stop[] = [
   {
     id: 'portrait.together', part: 'portrait', kind: 'do', chapter: 'portrait', node: 'portrait.together',
     title: 'Do the clocks agree?',
-    look: `Four separate clocks dated this machine: the **fuel** (plutonium turning into other atoms), the **uranium spot** on the cover, the **pulsar map** read from the warm-white star, and the **journey** (distance divided by speed). Each bar is one clock's answer, with its error bar. If they tell one story, there is a time that all four allow.`,
-    todo: `Drag the **round marker** under the clock bars (or click it and use the arrow keys) to the place where all four bars overlap, then press **Propose: it left this long ago**.`,
+    look: `Four separate clocks dated this machine: the **fuel** (plutonium turning into other atoms), the **uranium spot** on the cover, the **pulsar map** read from the warm-white star, and the **journey** (distance divided by speed). Each bar shows one clock's answer and how sure it is. Notice how short the pulsar map's bar is: many spinning stars together keep much sharper time than counting atoms, so that clock counts most.`,
+    todo: `Drag the **round marker** under the clock bars (or click it and use the arrow keys) into the **bright band** where the bars agree, in or right beside the short pulsar-map bar, then press **Propose: it left this long ago**.`,
     why: `Four completely different kinds of physics, nuclear decay, spinning dead stars and the machine's own motion, give **one answer**: it left about 44,000 years ago. When clocks that share nothing agree, scientists trust the answer.`,
     human: `Real scientists do exactly this. The age of the Earth, about 4.5 billion years, is agreed by uranium in tiny crystals, by meteorites and by Moon rocks: different clocks, one story.`,
     ask: 'If one clock had disagreed with the other three, what might that have told us?',
@@ -581,7 +581,7 @@ export const STOPS: readonly Stop[] = [
     id: 'finale.listening', part: 'finale', kind: 'story', chapter: 'epilogue', section: 'listening',
     title: 'Still listening',
     look: `Voyager 1 still runs **two** of its ten instruments, and Voyager 2 runs **three**. Every year their plutonium makes about 4 watts less power, so NASA switches instruments off one by one to keep the rest alive.`,
-    human: `That is the same decay we used as a clock in Arrival. The plutonium the Finder found was gone is the power supply these machines are running on today.`,
+    human: `That is the same decay we used as a clock in Arrival. By the Finder's time the plutonium-238 has all decayed away. Today it is still warm, and it is the power supply keeping both Voyagers alive.`,
     ask: 'If you could keep only one instrument running, which would you choose, and why?',
   },
   {

@@ -167,7 +167,7 @@ export function checkTogether(answer: Answer, clocks: readonly PortraitClock[]):
     ],
     message:
       `${qy(v)} ago lies outside ${out} of the four clocks' own 95% bars, and ${qy(away, 2)} ${v < c.mean ? 'too recent' : 'too long ago'} for the clocks together: ` +
-      `they agree at ${qy(c.mean)} ago (95%: ${qy(lo)} to ${qy(hi)}). Move the marker into the band where the bars overlap.`,
+      `they agree at ${qy(c.mean)} ago (95%: ${qy(lo)} to ${qy(hi)}). Move the marker into the bright band: the narrowest bar counts most, so the answer lies in it or right beside it.`,
   };
 }
 
