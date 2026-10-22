@@ -60,6 +60,9 @@ steps.push(
   ]),
 );
 
+console.log('\n[check] 1b hygiene');
+steps.push(await run('Hygiene (no em dashes, no .env, files under 20 MB)', process.execPath, [join(ROOT, 'tools', 'hygiene.mjs')]));
+
 console.log('\n[check] 2/7 unit and science tests');
 steps.push(
   await run('Unit and science tests', process.execPath, [join(ROOT, 'node_modules', 'vitest', 'vitest.mjs'), 'run']),

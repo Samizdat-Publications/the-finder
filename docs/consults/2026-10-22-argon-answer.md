@@ -60,7 +60,7 @@ Here is a second-opinion review of the repository, ordered by impact within each
 - **Do not introduce new fiddly mechanics.** After 55 stops, they have earned the payoff.
 
 **How to design Portrait:**
-- **Visual:** A single, dark, quiet canvas—the Finder's "museum exhibit" or "plaque of the senders". Around the centre sit cinco/six empty slots, each corresponding to one of the big questions: **Their Star**, **When They Sent It**, **Their World**, **Their Bodies**, **Their Minds (Numbers & Music)**, **Their Companions**.
+- **Visual:** A single, dark, quiet canvas - the Finder's "museum exhibit" or "plaque of the senders". Around the centre sit cinco/six empty slots, each corresponding to one of the big questions: **Their Star**, **When They Sent It**, **Their World**, **Their Bodies**, **Their Minds (Numbers & Music)**, **Their Companions**.
 - **The single deduction (`portrait.senders` or `portrait.who`):** *"Four clocks dated this machine. Do they tell one story, or four?"*
   - Have the instrument display the four independent timelines side-by-side on a single time bar:
     1. The RTG plutonium-to-thorium decay age (`arrival.fuelAge`)
@@ -68,7 +68,7 @@ Here is a second-opinion review of the repository, ordered by impact within each
     3. The pulsar map's reframed spin-down age (`trail.when`)
     4. The star trail's distance-over-speed travel time (`trail.age`)
   - All four error bars overlap around **44,100 years ago**. The player's action is to slide a single marker ("When it left") into the overlapping window where all four clocks agree, and press **Assemble the portrait**.
-  - Why this works scientifically and emotionally: It is the ultimate triumph of consilience—nuclear physics, pulsar astrophysics, and stellar kinematics all pointing to the exact same century—and it requires one clear, visual action.
+  - Why this works scientifically and emotionally: It is the ultimate triumph of consilience - nuclear physics, pulsar astrophysics, and stellar kinematics all pointing to the exact same century - and it requires one clear, visual action.
 - **The ending beat of Portrait:** Once confirmed, the decoded colour picture of Earth (`L013-L015`), the two human figures (`L039`) scaled next to one of the alien's "reaches", and the whale call / Bach Gavotte appear together, and the camera pans up to the encounter sky and zooms in on the bright warm-white star (-0.14 mag) sitting right next door.
 
 **How to design Our Frame (Epilogue):**
@@ -76,7 +76,7 @@ Here is a second-opinion review of the repository, ordered by impact within each
 - **Three beats on one screen:**
   1. **Right Now (Live):** Your `VoyagerNow` component (already great!) showing the live ticking distance in km and light-hours, plus which instruments are still alive (`MAG` and `PWS` on V1; `CRS`, `MAG`, `PWS` on V2) and the 18 November 2026 light-day milestone.
   2. **The 6-Year Secret:** A short note revealing what the science core found: the pulsar map on the cover dates to **1971**, six years *before* Voyager launched in 1977, because Sagan and Drake reused their 1972 Pioneer plaque periods without updating them. Kids love learning that they caught NASA taking a shortcut!
-  3. **The Hand-Etched Line:** Show the inner run-out groove of the gold disc, where Timothy Ferris had *"To the makers of music - all worlds, all times"* etched by hand—the one part of the cover not written in binary. Play *Dark Was the Night, Cold Was the Ground* or *Cavatina* softly underneath.
+  3. **The Hand-Etched Line:** Show the inner run-out groove of the gold disc, where Timothy Ferris had *"To the makers of music - all worlds, all times"* etched by hand - the one part of the cover not written in binary. Play *Dark Was the Night, Cold Was the Ground* or *Cavatina* softly underneath.
 
 ---
 
