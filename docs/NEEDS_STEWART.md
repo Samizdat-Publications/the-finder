@@ -2,26 +2,25 @@
 
 Things only Stewart can do, with click-by-click steps. Claude keeps working around them.
 
-## 1. The Gemini spending cap (optional; only for the video critic)
+## 1. The Gemini credits ran out (needed for the video critic and Argon)
 
-**What happened (2026-10-16):** the AI video critic (Google Gemini, which watches and listens to a
-filmed playthrough and reviews it like a player) could not run: Google refused the upload because the
-Gemini project has reached its monthly spending cap. Nothing was charged. The build carries on without
-it (the blind screenshot critic and your own playtest still run).
+**What happened (2026-10-22, evening):** the video critic and two Gemini 4 Argon reviews ran today (about $2.50 in
+all, logged in `C:\Users\stewa\Documents\Claude\Golden Record\docs\SPEND.md`). The last critic run, on a 7.5-minute
+film of the whole guided tour, was refused by Google: "Your prepayment credits are depleted." Nothing was charged
+for that run. The film is saved and ready.
 
-**If you want the video critic back** (each review costs about $0.34; the build logs every call in
-`C:\Users\stewa\Documents\Claude\Golden Record\docs\SPEND.md` and keeps a soft cap of about $20 per session):
+**To bring the critic back:**
 
-1. Open https://ai.studio/spend in your browser (signed in with the Google account that owns the
-   Gemini key used by Noclip).
-2. Raise the monthly spending cap by a few dollars (or wait for the monthly reset).
-3. Tell the next session "the Gemini cap is raised", or run the review yourself in Windows PowerShell:
+1. Open https://ai.studio/projects in your browser (signed in with the Google account that owns the Gemini key
+   used by Noclip), open the project, and add prepaid credit (a few dollars covers many runs; this one is
+   estimated at $0.75).
+2. Then run this in Windows PowerShell (it reviews the saved film; about two minutes):
 
 ```powershell
-cd "C:\Users\stewa\Documents\Claude\Golden Record"; python -P tools/critic_gemini/critic.py "review/archive/inbox-2026-10-16/2026-10-16T02-53-21-slice"
+cd "C:\Users\stewa\Documents\Claude\Golden Record"; python -P tools/critic_gemini/critic.py "review/inbox/2026-10-22T22-48-04-tour-film"
 ```
 
-If you would rather not spend on it, do nothing: the build does not depend on it.
+Or tell the next session "Gemini credits topped up" and it will run it and act on the review.
 
 ## 2. A stray folder to delete or keep (optional, harmless)
 
