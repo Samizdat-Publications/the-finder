@@ -143,9 +143,11 @@ export function Line() {
             <a class="btn" href="/checked/" target="_blank" rel="noopener" data-epilogue-checked>
               How every step is checked
             </a>
-            <button type="button" class="btn" data-epilogue-ring onClick={() => send({ type: 'chapter.enter', chapter: 'hub' })}>
-              Back to the ring
-            </button>
+            {!game.tour.value.on && (
+              <button type="button" class="btn" data-epilogue-ring onClick={() => send({ type: 'chapter.enter', chapter: 'hub' })}>
+                Back to the ring
+              </button>
+            )}
           </p>
         </div>
       </div>

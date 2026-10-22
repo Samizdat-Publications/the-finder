@@ -233,7 +233,7 @@ export function ClocksBand() {
             <button
               type="button"
               class="btn"
-              disabled={status !== 'open' || m === null}
+              disabled={status !== 'open' || m === null || !all}
               data-portrait-propose=""
               data-propose-button={ID}
               onClick={() => m !== null && send({ type: 'deduction.propose', id: ID, answer: { yearsAgo: m } })}
@@ -241,7 +241,7 @@ export function ClocksBand() {
               Propose: it left this long ago
             </button>
           )}
-          {!all && <p class="note small">Some clocks are not read yet: their bars wait in outline.</p>}
+          {!all && <p class="note small" data-portrait-wait="">Some clocks are not read yet: their bars wait in outline. Confirm the four clock deductions ({CLOCKS.map((c) => c.short).join(', ')}) first, then propose.</p>}
           <LastReading id={ID} current={m === null ? undefined : { yearsAgo: m }} />
         </div>
       </div>

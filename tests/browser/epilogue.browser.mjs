@@ -236,7 +236,7 @@ export async function playEpilogue(page, { assert, log, shot } = {}) {
   assert(mapInfo.dots.length === 13, `thirteen pulsars are dated (${mapInfo.dots.length})`);
   assert(mapInfo.dots.every((d) => d.y > 1966 && d.y < 1973), 'every dot lies between 1966 and 1973, before the launch');
   assert(/measured in 1970 and 1971, about six years before launch/.test(mapInfo.lead), `the map's age is stated (${mapInfo.lead})`);
-  assert(/read from the warm-white star/.test(mapInfo.yours) && /flying about/.test(mapInfo.yours), `the player's own reading is shown (${mapInfo.yours.slice(0, 120)})`);
+  assert(/Your own reading in The Trail dated the map/.test(mapInfo.yours) && /flying for/.test(mapInfo.yours) && /either way/.test(mapInfo.yours), `the player's own reading is shown (${mapInfo.yours.slice(0, 120)})`);
   assert(/clocks in Portrait disagreed by a few years/.test(mapInfo.why), 'the line tying back to Portrait is there');
   out.map = { dots: mapInfo.dots.length, mean: mapInfo.dots.reduce((s, d) => s + d.y, 0) / mapInfo.dots.length };
   await snap('map', "The map is older than the machine: each of the map's pulsars on a 1966 to 1979 timeline, the 1970/1971 epoch band, the launch line, and the player's own reading from The Map.");
@@ -263,6 +263,46 @@ export async function playEpilogue(page, { assert, log, shot } = {}) {
   assert(line.checked === '/checked/' && /Back to the ring/.test(line.ring), 'the two ways out are there');
   assert(line.next, 'Next is finished on the last section');
   await snap('line', 'The line in the run-out groove: the record\'s centre, drawn, closed in on the space between the label and the grooves, where the hand-etched line is set along the circle; Ferris\'s sentence, the credits and the two ways out.');
+
+  // The guided tour owns the sections: with it on, the chapter's own Next, dots and arrow keys are gone, and the
+  // last section's "Back to the ring" is hidden (the guide's Finish ends the tour). Off again, all of them are back.
+  const stops = await page.evaluate(async () => {
+    const { STOPS } = await import('/src/tour/script.ts');
+    return { turn: STOPS.findIndex((x) => x.id === 'finale.turn'), line: STOPS.findIndex((x) => x.id === 'finale.line') };
+  });
+  assert(stops.turn >= 0 && stops.line > stops.turn, `the finale stops are in the tour (${JSON.stringify(stops)})`);
+  await page.evaluate((step) => window.__finder.dispatch({ type: 'tour.start', step }), stops.turn);
+  await page.waitForFunction(() => window.__finder.state().game.tour.on === true, null, { timeout: 15_000 });
+  await expectSection(page, 'turn', assert);
+  const nav = () =>
+    page.evaluate(() => ({
+      next: document.querySelectorAll('[data-epilogue-next]').length,
+      dots: document.querySelectorAll('[data-epilogue-dot]').length,
+      sound: document.querySelectorAll('[data-epilogue-mute]').length,
+      ring: document.querySelectorAll('[data-epilogue-ring]').length,
+      checked: document.querySelectorAll('[data-epilogue-checked]').length,
+    }));
+  const touring = await nav();
+  assert(touring.next === 0 && touring.dots === 0 && touring.sound === 1, `on the tour Next and the dots are hidden and the sound line stays (${JSON.stringify(touring)})`);
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(300);
+  assert((await current(page)) === 'turn', 'on the tour the arrow keys do not move Our Frame on their own');
+  await page.evaluate((step) => window.__finder.dispatch({ type: 'tour.goto', step }), stops.line);
+  await expectSection(page, 'line', assert);
+  const lineTour = await nav();
+  assert(lineTour.ring === 0 && lineTour.checked === 1, `on the tour "Back to the ring" is hidden and "How every step is checked" stays (${JSON.stringify(lineTour)})`);
+  await page.evaluate(() => window.__finder.dispatch({ type: 'tour.exit' }));
+  await page.waitForFunction(() => window.__finder.state().game.chapter === 'hub', null, { timeout: 15_000 });
+  await page.evaluate(() => window.__finder.dispatch({ type: 'chapter.enter', chapter: 'epilogue' }));
+  await page.waitForSelector('[data-epilogue]', { timeout: 60_000 });
+  await expectSection(page, 'turn', assert);
+  const free = await nav();
+  assert(free.next === 1 && free.dots === 6, `off the tour Next and the dots are back (${JSON.stringify(free)})`);
+  await page.keyboard.press('ArrowRight');
+  await expectSection(page, 'now', assert);
+  await page.locator('[data-epilogue-dot="line"]').click();
+  await expectSection(page, 'line', assert);
+  assert((await nav()).ring === 1, 'off the tour "Back to the ring" is back');
 
   // Back through the dots to the first section, then leave by the button.
   await page.locator('[data-epilogue-dot="turn"]').click();

@@ -121,11 +121,16 @@ export function MapOlder() {
       )}
       {own && (
         <p class="epi-yours" data-epilogue-yours={own.yearsAgo.toFixed(1)}>
-          <b>Your own reading in The Trail:</b> read from the warm-white star, the map was made about {grouped(own.yearsAgo)} years before you found the machine
-          {own.low !== null && own.high !== null ? ` (95%: ${grouped(own.low)} to ${grouped(own.high)})` : ''}, which had by then been flying about {grouped(flown)} years.
-          {own.low !== null && own.high !== null && own.high - own.low > gap
-            ? ` The ${gapWords} years between the map and the launch sit far inside that spread: clocks like these cannot see the gap.`
-            : ''}
+          {own.low !== null && own.high !== null ? (
+            <>
+              <b>Your own reading in The Trail</b> dated the map to about {grouped(own.yearsAgo)} years ago (95%: {grouped(own.low)} to {grouped(own.high)}), while the machine has been flying for{' '}
+              {grouped(flown)} years. The clock's uncertainty is about {grouped((own.high - own.low) / 2)} years either way, so a {gapWords}-year head start is far too small for clocks like these to tell apart.
+            </>
+          ) : (
+            <>
+              <b>Your own reading in The Trail</b> dated the map to about {grouped(own.yearsAgo)} years ago, while the machine has been flying for {grouped(flown)} years.
+            </>
+          )}
         </p>
       )}
       <p class="epi-why">So when the clocks in Portrait disagreed by a few years, this is one reason: each started at a different moment.</p>

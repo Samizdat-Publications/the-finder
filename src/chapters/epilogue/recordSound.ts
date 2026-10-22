@@ -48,29 +48,45 @@ export function lastTrack(): LastTrack {
 }
 
 let volumeBefore: number | null = null;
-let playing = false;
+/** A run token: moved by every start and stop, so a late step of an older run can tell it was overtaken. */
+let run = 0;
+/** The restore a stop is still doing; a start waits for it so it never captures the lowered volume. */
+let stopping: Promise<void> | null = null;
 
 /** Start the record. Resolves when the needle is down; rejects (quietly, the caller decides) if the audio cannot load. */
 export async function startRecord(): Promise<void> {
   const t = lastTrack();
+  const mine = ++run;
+  if (stopping) await stopping;
+  if (mine !== run) return;
+  // Only the first start of a run captures the player's volume; it is restored once, by the stop that ends the run.
   if (volumeBefore === null) volumeBefore = T.volume.value;
-  playing = true;
   // Quiet, and never louder than the player left the turntable.
   await dispatch({ type: 'turntable.setVolume', value: Math.min(QUIET_VOLUME, volumeBefore) });
+  if (mine !== run) return;
   await dispatch({ type: 'turntable.setSpeed', secondsPerTurn: COVER_PERIOD_S });
+  if (mine !== run) return;
   await dispatch({ type: 'turntable.setDirection', direction: PLAYING_DIRECTION });
+  if (mine !== run) return;
   await dispatch({ type: 'turntable.load', side: t.side });
-  if (!playing) return; // left while loading
+  if (mine !== run) return; // left while loading
   await dispatch({ type: 'turntable.drop', radiusMm: t.radiusMm });
 }
 
 /** Lift the needle and put the volume back as it was. */
-export async function stopRecord(): Promise<void> {
-  playing = false;
-  await dispatch({ type: 'turntable.lift' }).catch(() => undefined);
-  if (volumeBefore !== null) {
-    const v = volumeBefore;
-    volumeBefore = null;
-    await dispatch({ type: 'turntable.setVolume', value: v }).catch(() => undefined);
-  }
+export function stopRecord(): Promise<void> {
+  const mine = ++run;
+  const task = (async () => {
+    await dispatch({ type: 'turntable.lift' }).catch(() => undefined);
+    if (volumeBefore !== null) {
+      const v = volumeBefore;
+      volumeBefore = null;
+      await dispatch({ type: 'turntable.setVolume', value: v }).catch(() => undefined);
+    }
+  })();
+  const tracked = task.finally(() => {
+    if (stopping === tracked && mine === run) stopping = null;
+  });
+  stopping = tracked;
+  return tracked;
 }

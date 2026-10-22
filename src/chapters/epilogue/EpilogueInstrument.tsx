@@ -73,6 +73,7 @@ function SoundLine() {
 export function EpilogueInstrument() {
   const i = epilogueSection.value;
   const last = SECTIONS.length - 1;
+  const touring = game.tour.value.on;
   const setI = (f: (n: number) => number): void => {
     epilogueSection.value = f(epilogueSection.value);
   };
@@ -92,7 +93,7 @@ export function EpilogueInstrument() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (leaveKey(e)) return;
+      if (leaveKey(e) || game.tour.value.on) return; // the guide sets the section while the tour is on
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') {
         e.preventDefault();
         setI((n) => Math.min(last, n + 1));
@@ -116,17 +117,21 @@ export function EpilogueInstrument() {
         <View />
       </div>
       <nav class="epi-nav" aria-label="Sections of Our Frame">
-        <ol class="epi-dots">
+        {!touring && (
+          <ol class="epi-dots">
           {SECTIONS.map((s, n) => (
             <li key={s}>
               <button type="button" class={`epi-dot${n === i ? ' here' : ''}`} aria-label={`${n + 1} of ${SECTIONS.length}: ${LABELS[s]}`} aria-current={n === i ? 'step' : undefined} data-epilogue-dot={s} onClick={() => go(n)} />
             </li>
           ))}
-        </ol>
+          </ol>
+        )}
         <SoundLine />
-        <button type="button" class="btn epi-next" data-epilogue-next disabled={i === last} onClick={() => go(i + 1)}>
-          Next
-        </button>
+        {!touring && (
+          <button type="button" class="btn epi-next" data-epilogue-next disabled={i === last} onClick={() => go(i + 1)}>
+            Next
+          </button>
+        )}
       </nav>
     </div>
   );
