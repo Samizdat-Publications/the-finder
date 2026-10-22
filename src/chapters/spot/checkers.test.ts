@@ -5,9 +5,9 @@ import { describe, expect, it } from 'vitest';
 import { recordCheck } from '../../../tests/support/record';
 import { DEFAULT_SEED } from '../../game/deductions';
 import { renderMessage } from '../../ui/message';
-import { ageFromU234, testStartHypothesis } from '../../science/clocks';
+import { START_P_95, ageFromU234, testStartHypothesis } from '../../science/clocks';
 import { naturalStartRatio, sweepRate } from '../../science/spot';
-import { checkAge, checkFind, checkPurity } from './checkers';
+import { REJECT_P, checkAge, checkFind, checkPurity } from './checkers';
 import { SPOT, spotModel, spotStream } from './data';
 import { SAMPLE_S } from './SweepPanel';
 import spotJson from '../../../data/spot.json';
@@ -72,15 +72,20 @@ describe('The Spot checkers', () => {
       const m = spotModel(seed);
       const ok = checkPurity({ countingTimeS: DAY, startA234overA238: 0 }, m);
       check(ok.ok, `${seed}: a pure start confirms (${ok.message})`);
+      // The message says the level the start reaches (D-A28): inside the 95% range, or at the edge inside 99.9%.
+      const pureP = testStartHypothesis(m.session.countsAt(DAY), 0).pValue;
+      check(pureP >= START_P_95 ? /inside the 95% range/.test(ok.message) : /at the edge/.test(ok.message), `${seed}: the level is said (p ${pureP.toFixed(3)})`);
       const natural = checkPurity({ countingTimeS: DAY, startA234overA238: nat }, m);
       check(!natural.ok && /reject a start/.test(natural.message), `${seed}: natural uranium is rejected`);
       // A refused start points to the counts' own fitted start and the range they accept (M4 science audit finding 6).
       check(/own best start/.test(natural.message) && /accept starts from/.test(natural.message), `${seed}: the refusal points to the fitted start`);
-      const shown = ok.result.find((r) => r.key === 'starts these counts accept')?.value;
-      check(typeof shown === 'string' && /^0 to /.test(shown), `${seed}: the accepted range of starts is shown (${String(shown)})`);
+      const shown = ok.result.find((r) => r.key === 'starts these counts accept, 95%')?.value;
+      // 0 is inside the drawn 95% range exactly when its own p-value is at least 0.05; else the range is open at 0.
+      const startsAt = pureP >= START_P_95 ? /^0 to / : /^just above 0 to /;
+      check(typeof shown === 'string' && startsAt.test(shown), `${seed}: the 95% range of starts is shown (${String(shown)})`);
       const tShort = firstTime(seed, (t) => {
         const c = m.session.countsAt(t);
-        return testStartHypothesis(c, nat).pValue >= 0.05 && testStartHypothesis(c, 0).pValue >= 0.05;
+        return testStartHypothesis(c, nat).pValue >= REJECT_P && testStartHypothesis(c, 0).pValue >= REJECT_P;
       });
       check(tShort !== null, `${seed}: some short count cannot tell the starts apart`);
       const short = checkPurity({ countingTimeS: tShort!, startA234overA238: 0 }, m);
@@ -96,8 +101,8 @@ describe('The Spot checkers', () => {
       id: 'spot.checkers',
       claim: 'The Spot\'s three deductions are judged by the science: a mark inside the spot, an age inside the counts\' 95% interval, and a starting purity the counts accept while rejecting natural uranium; every wrong answer says what was computed.',
       measured: `seeds ${SEEDS.join(', ')}: all right answers confirm, all wrong ones rejected. ${log.join(' | ')}`,
-      expected: 'the spot disc from data/spot.json (D-A23); the craft\'s age from the epoch model inside the one-day interval; natural uranium (activity ratio 1, secular equilibrium) rejected at p < 0.05',
-      tolerance: 'exact (verdicts); the p < 0.05 threshold is the convention the spec names',
+      expected: 'the spot disc from data/spot.json (D-A23); the craft\'s age from the epoch model inside the one-day interval; a pure start accepted when consistent at the 99.9% level, natural uranium (activity ratio 1, secular equilibrium) refused at p < 0.001; the drawn range of starts at 95%',
+      tolerance: 'exact (verdicts); accept at p >= 0.001 (D-A28, amended 2026-10-22), with the Chernoff boundary p-value at a pure start (clocks.ts startPValue)',
       pass,
     });
   });

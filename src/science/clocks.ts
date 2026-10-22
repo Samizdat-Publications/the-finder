@@ -203,10 +203,35 @@ export function fitAgeAndPurity(counts: AlphaCounts, conf = 0.95): PurityFit {
   };
 }
 
+// --- testing a proposed start: the boundary at r0 = 0 (Chernoff 1954) -----------------------------
+//
+// The free fit keeps r0 >= 0 (a negative amount of uranium-234 is not a start). For a proposed start r0 > 0
+// (inside the allowed range) the likelihood-ratio statistic follows chi-square with 1 dof (Wilks 1938). For
+// r0 = 0 the true value sits ON the boundary: half the time the unconstrained best start would be negative,
+// the constrained fit lands exactly on 0 and the statistic is exactly 0; otherwise it is chi-square 1. So
+// under a truly pure start the statistic follows the 50:50 mixture 1/2 chi2_0 + 1/2 chi2_1 (Chernoff 1954,
+// Ann. Math. Stat. 25, 573; Self & Liang 1987, JASA 82, 605), and its p-value is
+//   p = 1 when the statistic is 0, else p = 1/2 P(chi2_1 > statistic).
+// Referring the boundary statistic to plain chi2_1 (as before D-A28's 2026-10-22 amendment) halves the
+// refusal rate: conservative, it refused a pure start 2.7% of the time at the nominal 5%. With the mixture
+// the test refuses the truth at its stated rate, and the critical values at r0 = 0 are lower:
+// chi2_1 quantile at 1 - 2 alpha, i.e. 2.706 at 95% and 9.550 at 99.9% (against 3.841 and 10.828 inside).
+
+/** The p-value of a start test's statistic: the Chernoff mixture on the boundary r0 = 0, chi-square 1 inside. */
+export function startPValue(statistic: number, initialA234overA238: number): number {
+  if (initialA234overA238 > 0) return chiSquareSf(statistic, 1);
+  return statistic <= 0 ? 1 : 0.5 * chiSquareSf(statistic, 1);
+}
+
+/** The likelihood-ratio statistic that separates accepted from refused starts at p-value pMin (for reports and tests). */
+export function startCriticalValue(pMin: number, onBoundary: boolean): number {
+  const z = normalQuantile(1 - (onBoundary ? pMin : pMin / 2));
+  return z * z;
+}
+
 /**
- * Likelihood-ratio test of a fixed starting ratio A234/A238 = r0 against the free fit (age and
- * r0 >= 0). The statistic is referred to chi-square with 1 dof; when the true r0 is 0 (on the
- * boundary) the true null distribution is a 50:50 mix of 0 and chi2_1, so this p-value is conservative.
+ * Likelihood-ratio test of a fixed starting ratio A234/A238 = r0 against the free fit (age and r0 >= 0).
+ * p-value from startPValue: the Chernoff mixture at r0 = 0, chi-square 1 dof for r0 > 0.
  */
 export function testStartHypothesis(counts: AlphaCounts, initialA234overA238: number): { statistic: number; pValue: number; ageYears: number } {
   const c = countsVector(counts);
@@ -221,16 +246,28 @@ function startTest(c: readonly number[], fullF: number, r0: number): { statistic
     return multinomialLogLik(c, m.a.map((ai, i) => ai + r0 * (m.b[i] as number)));
   }, AGE_GRID);
   const stat = Math.max(0, 2 * (fullF - fixed.f));
-  return { statistic: stat, pValue: chiSquareSf(stat, 1), ageYears: fixed.x };
+  return { statistic: stat, pValue: startPValue(stat, r0), ageYears: fixed.x };
+}
+
+/** Where a start's p-value falls against the two levels the game uses (D-A28): the drawn 95% and the accepting 99.9%. */
+export type StartLevel = 'inside95' | 'edge' | 'beyond';
+/** p-value below which a start lies outside the drawn 95% range. */
+export const START_P_95 = 0.05;
+/** p-value below which a start is refused: consistent at the 99.9% level is accepted (D-A28, amended 2026-10-22). */
+export const START_P_ACCEPT = 0.001;
+
+export function startLevel(pValue: number): StartLevel {
+  return pValue >= START_P_95 ? 'inside95' : pValue >= START_P_ACCEPT ? 'edge' : 'beyond';
 }
 
 /**
- * The starting ratios A234/A238 the counts accept: every r0 >= 0 whose testStartHypothesis p-value is at
- * least pMin, as an interval [lo, hi] (the p-value falls away on both sides of the fitted start). Edges by
- * bisection to 1e-6 in r0 on the same likelihoods testStartHypothesis uses, so a start inside is accepted by
- * it and one outside refused.
+ * The starting ratios A234/A238 the counts accept at p-value pMin, as an interval [lo, hi] (the p-value falls
+ * away on both sides of the fitted start). Edges by bisection to 1e-6 in r0 on the same likelihoods
+ * testStartHypothesis uses, so a start inside is accepted by it and one outside refused. The one exception is
+ * r0 = 0 itself, tested against the Chernoff mixture: when the boundary p-value is under pMin but every start
+ * just above 0 is accepted (chi2_1 at the same statistic), the range is open at 0: lo = 0, zeroAccepted false.
  */
-export function acceptedStartRange(counts: AlphaCounts, pMin: number): { lo: number; hi: number; fitted: number } {
+export function acceptedStartRange(counts: AlphaCounts, pMin: number): { lo: number; hi: number; fitted: number; zeroAccepted: boolean } {
   const c = countsVector(counts);
   const full = gridMax((t) => profileR0(c, lineModel(t)), AGE_GRID);
   const p = (r: number): number => startTest(c, full.f, r).pValue;
@@ -246,9 +283,13 @@ export function acceptedStartRange(counts: AlphaCounts, pMin: number): { lo: num
     }
     return inside;
   };
-  if (p(fitted) < pMin) return { lo: NaN, hi: NaN, fitted }; // nothing accepted (not met for real counts; guarded)
-  const lo = p(0) >= pMin ? 0 : edge(fitted, 0);
+  if (p(fitted) < pMin) return { lo: NaN, hi: NaN, fitted, zeroAccepted: false }; // nothing accepted (not met for real counts; guarded)
+  const zero = startTest(c, full.f, 0);
+  const zeroAccepted = zero.pValue >= pMin;
+  // Just above 0 the statistic is the same (it is continuous in r0) but refers to chi-square 1.
+  const openAtZero = !zeroAccepted && chiSquareSf(zero.statistic, 1) >= pMin;
+  const lo = zeroAccepted || openAtZero ? 0 : edge(fitted, 0);
   let far = Math.max(2 * fitted, 0.01);
   while (p(far) >= pMin && far < 1e3) far *= 2;
-  return { lo, hi: edge(fitted, far), fitted };
+  return { lo, hi: edge(fitted, far), fitted, zeroAccepted };
 }

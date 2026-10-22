@@ -82,13 +82,15 @@ async function main() {
     listed: seeds.length,
     excluded: { total: excluded.length, byCheck: Object.fromEntries(Object.entries(byCheck).sort(([a], [b]) => (a < b ? -1 : 1))), seeds: excluded },
     rates: {
-      note: 'Over all candidates: how often the warm-white star (the true origin) lands beyond each cut. trail.origin and trail.where accept at 99.9% (D-A28); the drawn error bars are 95%.',
+      note: 'Over all candidates: how often the warm-white star (the true origin) lands beyond each cut. trail.origin and trail.where accept at 99.9% (D-A28); the drawn error bars are 95%. spot.purity on the one-day count: a pure start (the truth) is accepted at the 99.9% level with the Chernoff boundary p-value (D-A28, amended 2026-10-22); the drawn range of starts is 95%; spotNaturalStartPMax is the largest p-value of the natural-uranium start over all candidates.',
       trailOriginBeyond95: count((v) => v.stats.originOver95 > 1),
       trailOriginBeyond999: count((v) => v.stats.originOver999 > 1),
       trailWhereBeyond95: count((v) => v.stats.whereContour > 0.95),
       trailWhereBeyond999: count((v) => v.stats.whereContour > 0.999),
       trailWhereContourMax: Number(Math.max(...all.map((v) => v.stats.whereContour)).toFixed(4)),
-      spotPureStartRefusedAtOneDay: count((v) => v.stats.pureStartRefused),
+      spotPureBeyond95AtOneDay: count((v) => v.stats.pureStartBeyond95),
+      spotPureBeyond999AtOneDay: count((v) => v.stats.pureStartRefused),
+      spotNaturalStartPMax: Number(Math.max(...all.map((v) => v.stats.naturalStartP)).toPrecision(3)),
     },
   };
   writeFileSync(OUT, `${JSON.stringify({ meta, seeds }, null, 1)}\n`);

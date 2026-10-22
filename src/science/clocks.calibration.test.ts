@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { recordCheck } from '../../tests/support/record';
 import {
   acceptedStartRange, ageFromTh230U234, ageFromU234, ageSolutions, fitAgeAndPurity, rtgState, simulateAlphaCounts, simulateRtgMeasurement,
-  testStartHypothesis, uraniumSpotState,
+  startCriticalValue, testStartHypothesis, uraniumSpotState,
 } from './clocks';
 import { createRng } from './random';
+import { wilsonInterval } from './stats';
 import { countingSession, naturalStartRatio } from './spot';
 
 // Coverage acceptance: with N = 1,000 trials the binomial standard error of a 95% coverage is
@@ -126,9 +127,9 @@ describe('clocks: calibration of the uranium-spot clock', () => {
   }
 
   it('tells a pure start from natural uranium using the second isotope', () => {
-    // 200 trials at 44,000 y (1-hour count). Under the true (pure) start the LR p-value is at least
-    // uniform (conservative at the boundary r0 = 0), so p < 0.01 has probability <= 1%; 98% of 200
-    // allows 4 failures (Bin(200, 0.005..0.01) exceeds 4 with probability 0.4% to 5%).
+    // 200 trials at 44,000 y (1-hour count). Under the true (pure) start the boundary p-value (Chernoff
+    // mixture, clocks.ts startPValue) is asymptotically uniform, so p < 0.01 has probability about 1%; 98% of 200
+    // allows 4 failures (Bin(200, 0.01) exceeds 4 with probability 5%).
     const state = uraniumSpotState(44_000);
     const rng = createRng('clocks.uranium.purity');
     const trials = 200;
@@ -151,7 +152,7 @@ describe('clocks: calibration of the uranium-spot clock', () => {
         `free fit of age and starting U-234 (one trial): ${fit.ageYears.toFixed(0)} y (${fit.lo.toFixed(0)} to ${fit.hi.toFixed(0)}), starting A234/A238 ${fit.initialA234overA238.toPrecision(2)}; ` +
         `at 49 y: ${young.reason}`,
       expected: 'pure start accepted at least 98% of the time; natural uranium (initial A234/A238 = 1) rejected with p < 1e-6 every time',
-      tolerance: 'likelihood-ratio test, chi-square 1 dof (conservative at the boundary)',
+      tolerance: 'likelihood-ratio test; pure start on the boundary: Chernoff mixture 1/2 chi2_0 + 1/2 chi2_1',
       pass,
     });
     expect(accepted).toBeGreaterThanOrEqual(0.98 * trials);
@@ -163,49 +164,94 @@ describe('clocks: calibration of the uranium-spot clock', () => {
   });
 });
 
-describe('clocks: the purity test at the game\'s 5% level', () => {
-  it('refuses a truly pure start at most about 5% of the time, and the accepted range of starts matches the test', () => {
+describe('clocks: the purity test is calibrated at the boundary (Chernoff mixture)', () => {
+  it('refuses a truly pure start at its stated rate (5% and 0.1%), never accepts natural uranium, and the 95% range matches the test', () => {
     // The Spot's own counting (spot.ts countingSession: the real detector's efficiency, hour quanta), one day,
-    // 1,000 seeded sessions of a truly pure spot 44,100 years old; the game refuses a start when p < 0.05
-    // (src/chapters/spot/checkers.ts REJECT_P). A pure start sits on the boundary r0 = 0, where the
-    // likelihood-ratio statistic follows a 50:50 mix of 0 and chi-square 1 (Chernoff 1954), so referring it
-    // to chi-square 1 refuses the truth about 2.5% of the time, not 5%: conservative.
+    // TRIALS seeded sessions of a truly pure spot 44,100 years old. A pure start sits on the boundary r0 = 0, where the
+    // likelihood-ratio statistic follows 1/2 chi2_0 + 1/2 chi2_1 (Chernoff 1954); clocks.ts startPValue uses that
+    // mixture, so a level-alpha test should refuse the truth at alpha. Both levels the game uses are checked on the
+    // same sessions: 5% (the drawn range) and 0.1% (acceptance, D-A28 amended 2026-10-22). Referred to plain chi2_1
+    // (the old p-value) the 5% test refused 2.7% (half its level), which the 5% band below excludes.
     const state = uraniumSpotState(44_100);
     const DAY = 86_400;
-    const trials = 1000;
-    let refused = 0;
+    const TRIALS = 20_000;
+    const NATURAL_TRIALS = 2_000;
+    const crit95 = startCriticalValue(0.05, true); // 2.706: chi2_1 at 0.90
+    const crit999 = startCriticalValue(0.001, true); // 9.550: chi2_1 at 0.998
+    let refused95 = 0;
+    let refused999 = 0;
+    let pAgrees = true;
     let naturalAccepted = 0;
+    let naturalStatMin = Infinity;
     const his: number[] = [];
     let rangeOk = true;
-    for (let i = 0; i < trials; i++) {
+    let openAtZero = 0;
+    for (let i = 0; i < TRIALS; i++) {
       const c = countingSession(state, createRng(`clocks.uranium.purity05/${i}`)).countsAt(DAY);
-      if (testStartHypothesis(c, 0).pValue < 0.05) refused++;
-      if (testStartHypothesis(c, naturalStartRatio()).pValue >= 0.05) naturalAccepted++;
+      const t = testStartHypothesis(c, 0);
+      if (t.statistic > crit95) refused95++;
+      if (t.statistic > crit999) refused999++;
+      // The p-value and the critical value say the same thing (away from the cut itself).
+      if (Math.abs(t.statistic - crit999) > 1e-6) pAgrees &&= (t.pValue < 0.001) === (t.statistic > crit999);
+      if (i < NATURAL_TRIALS) {
+        const n = testStartHypothesis(c, naturalStartRatio());
+        if (n.pValue >= 0.001) naturalAccepted++;
+        naturalStatMin = Math.min(naturalStatMin, n.statistic);
+      }
       if (i < 20) {
-        // The range's edges against the test itself: just inside accepted, just outside refused (1e-5 in r0).
+        // The 95% range's edges against the test itself: just inside accepted, just outside refused (1e-5 in r0).
         const r = acceptedStartRange(c, 0.05);
         his.push(r.hi);
         rangeOk &&= testStartHypothesis(c, r.hi - 1e-5).pValue >= 0.05 && testStartHypothesis(c, r.hi + 1e-5).pValue < 0.05;
-        rangeOk &&= r.lo === 0 ? testStartHypothesis(c, 0).pValue >= 0.05 : testStartHypothesis(c, r.lo - 1e-5).pValue < 0.05;
+        rangeOk &&= r.zeroAccepted === (t.pValue >= 0.05);
+        if (r.lo === 0 && !r.zeroAccepted) openAtZero++;
+        rangeOk &&= r.lo === 0 ? testStartHypothesis(c, 1e-7).pValue >= 0.05 : testStartHypothesis(c, r.lo - 1e-5).pValue < 0.05;
       }
     }
-    const rate = refused / trials;
-    // Not anti-conservative: at most 5% plus 3 binomial standard errors (3 sqrt(0.05 x 0.95 / 1000) = 2.07 points).
-    const ceiling = 0.05 + 3 * Math.sqrt((0.05 * 0.95) / trials);
-    his.sort((a, b) => a - b);
-    const pass = rate <= ceiling && naturalAccepted === 0 && rangeOk;
-    console.log(`[purity05] pure start refused ${refused}/${trials}; natural accepted ${naturalAccepted}; accepted range upper edge (one day) median ${his[10]!.toFixed(4)}, ${his[0]!.toFixed(4)} to ${his[19]!.toFixed(4)}; natural ${naturalStartRatio().toFixed(4)}`);
+    // Binomial bands: TRIALS x alpha expected, +/- 3 binomial standard errors sqrt(TRIALS alpha (1 - alpha)).
+    const band = (alpha: number): [number, number] => {
+      const mu = TRIALS * alpha;
+      const sd = Math.sqrt(mu * (1 - alpha));
+      return [mu - 3 * sd, mu + 3 * sd];
+    };
+    const b95 = band(0.05);
+    const b999 = band(0.001);
+    const w999 = wilsonInterval(refused999, TRIALS, 0.95);
+    // Natural uranium's p-value underflows double precision; its log10 from the statistic (chi2_1 tail
+    // 2 Phi(-z) ~ 2 phi(z) / z, z = sqrt(statistic), the leading term of the Mills ratio, good to 1/z^2 this far out).
+    const zN = Math.sqrt(naturalStatMin);
+    const log10NatP = (Math.log(2) - (zN * zN) / 2 - 0.5 * Math.log(2 * Math.PI) - Math.log(zN)) / Math.LN10;
+    his.sort((x, y) => x - y);
+    const ok95 = refused95 >= b95[0] && refused95 <= b95[1];
+    const ok999 = refused999 >= b999[0] && refused999 <= b999[1];
+    const pass = ok95 && ok999 && pAgrees && naturalAccepted === 0 && rangeOk;
+    console.log(
+      `[purity] pure start refused at 5%: ${refused95}/${TRIALS} (band ${b95[0].toFixed(0)} to ${b95[1].toFixed(0)}); at 0.1%: ${refused999}/${TRIALS} ` +
+        `(band ${b999[0].toFixed(1)} to ${b999[1].toFixed(1)}; Wilson 95% ${(w999.lo * 100).toFixed(3)}% to ${(w999.hi * 100).toFixed(3)}%); ` +
+        `natural accepted ${naturalAccepted}/${NATURAL_TRIALS}, smallest statistic ${naturalStatMin.toFixed(0)} (p about 10^${log10NatP.toFixed(0)}); ` +
+        `95% range upper edge median ${his[10]!.toFixed(4)}; open at 0 in ${openAtZero}/20`,
+    );
+    const common = `The Spot's counting session (spot.ts countingSession, detector efficiency 0.0528), one day at 44,100 years; seeds clocks.uranium.purity05/0 to /${TRIALS - 1} (the first ${NATURAL_TRIALS} also test natural uranium).`;
     recordCheck({
       id: 'clocks.uranium.purity05',
-      claim: 'At the game\'s 5% level the purity test refuses a truly pure spot only rarely, never accepts natural uranium after a day\'s count, and the range of starts it accepts is computed exactly.',
-      measured: `pure start refused in ${refused} of ${trials} one-day counts (${(rate * 100).toFixed(1)}%); natural uranium (A234/A238 ${naturalStartRatio().toFixed(3)}) accepted in ${naturalAccepted}; accepted starts run from 0 up to ${his[0]!.toFixed(3)} to ${his[19]!.toFixed(3)} (median ${his[10]!.toFixed(3)}) over 20 sessions`,
-      expected: 'At most 5% refused (about 2.5% for a start on the boundary, Chernoff 1954); natural uranium never accepted; each range edge where the test\'s p-value crosses 0.05',
-      tolerance: `refusal rate at most ${(ceiling * 100).toFixed(1)}% (5% plus 3 binomial standard errors); edges to 1e-5 in the starting ratio`,
-      pass,
-      notes: 'The Spot\'s counting session (spot.ts countingSession, detector efficiency 0.0528), one day at 44,100 years; seeds clocks.uranium.purity05/0 to /999.',
+      claim: 'The purity test\'s drawn 95% range is calibrated at the boundary: with the Chernoff mixture p-value it refuses a truly pure spot 5% of the time, and the range of starts it accepts is computed exactly.',
+      measured: `pure start outside the 95% range in ${refused95} of ${TRIALS} one-day counts (${((refused95 / TRIALS) * 100).toFixed(2)}%); accepted starts run from 0 up to ${his[0]!.toFixed(3)} to ${his[19]!.toFixed(3)} (median ${his[10]!.toFixed(3)}) over 20 sessions, open at 0 in ${openAtZero}`,
+      expected: '5% refused (boundary critical value 2.706 = chi2_1 at 0.90, Chernoff 1954; plain chi2_1 would give 2.5%); each range edge where the test\'s p-value crosses 0.05',
+      tolerance: `${b95[0].toFixed(0)} to ${b95[1].toFixed(0)} refusals (5% of ${TRIALS} +/- 3 binomial standard errors); edges to 1e-5 in the starting ratio`,
+      pass: ok95 && rangeOk,
+      notes: common,
+    });
+    recordCheck({
+      id: 'clocks.uranium.purity999',
+      claim: 'The purity test accepts a start consistent with the counts at the 99.9% level (D-A28): a truly pure spot is refused about 1 time in 1,000, and natural uranium never passes after a day\'s count.',
+      measured: `pure start refused in ${refused999} of ${TRIALS} one-day counts (${((refused999 / TRIALS) * 100).toFixed(3)}%, Wilson 95% ${(w999.lo * 100).toFixed(3)}% to ${(w999.hi * 100).toFixed(3)}%); natural uranium (A234/A238 ${naturalStartRatio().toFixed(3)}) accepted in ${naturalAccepted} of ${NATURAL_TRIALS}, smallest statistic ${naturalStatMin.toFixed(0)}, p about 10^${log10NatP.toFixed(0)}`,
+      expected: '0.1% refused (boundary critical value 9.550 = chi2_1 at 0.998, Chernoff 1954); natural uranium refused (p < 0.001) every time',
+      tolerance: `${b999[0].toFixed(1)} to ${b999[1].toFixed(1)} refusals (0.1% of ${TRIALS} +/- 3 binomial standard errors)`,
+      pass: ok999 && pAgrees && naturalAccepted === 0,
+      notes: common,
     });
     expect(pass).toBe(true);
-  }, 120_000);
+  }, 900_000);
 });
 
 describe('clocks: calibration of the RTG clock', () => {

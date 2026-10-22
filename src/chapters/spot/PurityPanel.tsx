@@ -5,7 +5,7 @@
 import { useMemo } from 'preact/hooks';
 import { nodeStatus } from '../../game/deductions';
 import { confirmedSet, game } from '../../game/state';
-import { testStartHypothesis } from '../../science/clocks';
+import { START_P_95, testStartHypothesis } from '../../science/clocks';
 import { clockAges, naturalStartRatio } from '../../science/spot';
 import { JULIAN_YEAR_S } from '../../science/units';
 import { GlyphSvg } from '../../ui/Glyph';
@@ -120,7 +120,8 @@ export function PurityPanel(p: PurityProps) {
           {pv === null
             ? 'Count first.'
             : agree
-              ? `They fit: counts like these would turn up ${pv >= 0.995 ? 'nearly always' : `${sig(pv * 100, 2)}% of the time`} from this start.`
+              ? `They fit: counts like these would turn up ${pv >= 0.995 ? 'nearly always' : `${sig(pv * 100, 2)}% of the time`} from this start` +
+                (pv < START_P_95 ? ', at the edge: outside the 95% range, inside the 99.9% level.' : '.')
               : pv < 10 ** P_FLOOR_LOG
                 ? `They do not fit: from this start, counts this far off would turn up less than once in 10${superscript(-P_FLOOR_LOG)} tries.`
                 : `They do not fit: from this start, counts this far off would turn up with a chance of only ${sig(pv, 2)}.`}

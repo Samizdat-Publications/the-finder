@@ -8,7 +8,14 @@ import seedsJson from '../../data/seeds.json';
 import { loadCover, loadPulsars, loadScenario, loadStars } from '../../tests/support/data';
 import { recordCheck } from '../../tests/support/record';
 import { DEFAULT_SEED } from '../game/deductions';
+import { testStartHypothesis } from '../science/clocks';
+import { naturalStartRatio } from '../science/spot';
 import { candidateSeed, verifySeed } from './seedCheck';
+import { REJECT_P } from './spot/checkers';
+import { spotModel } from './spot/data';
+
+/** The one-day count seedCheck.ts proposes on The Spot, s. */
+const DAY_S = 86_400;
 
 interface SeedsFile {
   meta: {
@@ -89,4 +96,43 @@ describe('the validated seed list', () => {
     expect(originOk).toBe(true);
     expect(whereOk).toBe(true);
   });
+
+  it('spot.purity on every listed seed: the pure start (the truth) is accepted at 99.9%, natural uranium refused', () => {
+    // Every listed seed's one-day count (the count the bot and seedCheck.ts propose), through the same test the
+    // checker uses (clocks.ts testStartHypothesis; checkers.ts REJECT_P = 0.001, the Chernoff boundary p-value at 0).
+    const { meta, seeds } = file;
+    const r = meta.rates as Record<string, number>;
+    const N = meta.candidates;
+    let pureRefused = 0;
+    let natAccepted = 0;
+    let pureMin = 1;
+    let natStatMin = Infinity;
+    for (const seed of seeds) {
+      const c = spotModel(seed).session.countsAt(DAY_S);
+      const pure = testStartHypothesis(c, 0);
+      const nat = testStartHypothesis(c, naturalStartRatio());
+      if (pure.pValue < REJECT_P) pureRefused++;
+      if (nat.pValue >= REJECT_P) natAccepted++;
+      pureMin = Math.min(pureMin, pure.pValue);
+      natStatMin = Math.min(natStatMin, nat.statistic);
+    }
+    // Over all candidates the pure start's level is a calibration of its own: 5% beyond the drawn 95% range and
+    // 0.1% beyond the accepting 99.9% level, each within 3 binomial standard errors over N candidates.
+    const within = (k: number, a: number): boolean => Math.abs(k - N * a) <= 3 * Math.sqrt(N * a * (1 - a));
+    const excludedBySpot = meta.excluded.byCheck['spot.purity'] ?? 0;
+    const ratesOk = within(r.spotPureBeyond95AtOneDay as number, 0.05) && within(r.spotPureBeyond999AtOneDay as number, 0.001)
+      && excludedBySpot === r.spotPureBeyond999AtOneDay && (r.spotNaturalStartPMax as number) < REJECT_P;
+    const pass = pureRefused === 0 && natAccepted === 0 && ratesOk;
+    recordCheck({
+      id: 'spot.purity.seeds',
+      claim: 'No playthrough meets a dead end at the purity test: on every listed seed the true start (pure uranium-238) is accepted at the 99.9% level after a day\'s count, and natural uranium refused.',
+      measured: `${seeds.length} listed seeds: pure start refused in ${pureRefused} (smallest p ${pureMin.toFixed(4)}), natural uranium accepted in ${natAccepted} (smallest statistic ${natStatMin.toFixed(0)}); over all ${N} candidates the pure start fell outside the drawn 95% range ${r.spotPureBeyond95AtOneDay} times and beyond the 99.9% level ${r.spotPureBeyond999AtOneDay} times (excluded by spot.purity: ${excludedBySpot}); largest natural-uranium p ${r.spotNaturalStartPMax}`,
+      expected: 'pure start accepted and natural uranium refused on every listed seed; over the candidates 5% and 0.1% (the Chernoff-calibrated levels, clocks.uranium.purity05 and purity999); spot.purity exclusions are exactly the pure-start refusals',
+      tolerance: `exact on the listed seeds; candidate rates within 3 binomial standard errors (5%: ${(N * 0.05).toFixed(0)} +/- ${(3 * Math.sqrt(N * 0.05 * 0.95)).toFixed(1)}; 0.1%: ${(N * 0.001).toFixed(0)} +/- ${(3 * Math.sqrt(N * 0.001 * 0.999)).toFixed(1)})`,
+      pass,
+    });
+    expect(pureRefused).toBe(0);
+    expect(natAccepted).toBe(0);
+    expect(ratesOk).toBe(true);
+  }, 600_000);
 });

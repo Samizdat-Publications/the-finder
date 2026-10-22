@@ -3,7 +3,9 @@
 // what it computed (PLAN.md "Principles from the kickoff"). Pure apart from the registry call in install.
 
 import { registerChecker, type CheckResult, type Checker, type Reading } from '../../game/deductions';
-import { acceptedStartRange, ageFromU234, fitAgeAndPurity, testStartHypothesis, type AlphaCounts } from '../../science/clocks';
+import {
+  START_P_95, START_P_ACCEPT, acceptedStartRange, ageFromU234, fitAgeAndPurity, startLevel, testStartHypothesis, type AlphaCounts, type StartLevel,
+} from '../../science/clocks';
 import { MAX_COUNT_S, clockAges, naturalStartRatio, sweepRate } from '../../science/spot';
 import { JULIAN_YEAR_S } from '../../science/units';
 import { q, rangeDigits } from '../../ui/message';
@@ -34,11 +36,24 @@ const yearsS = (y: number): number => y * JULIAN_YEAR_S;
 const pText = (p: number): string => (p < 1e-12 ? `p below ${formatPower(1e-12, 1)}` : `p = ${sig(p, 2)}`);
 
 /**
- * p-value threshold for "the counts reject this start" (the conventional 5%, as in the spec). For a truly pure
- * start, on the boundary r0 = 0, the test is conservative: it refuses the truth 2.7% of the time over 1,000
- * one-day counts (clocks.calibration.test.ts, clocks.uranium.purity05), not 5%.
+ * p-value below which the counts refuse a start (D-A28, amended 2026-10-22): a start consistent with the counts
+ * at the 99.9% level is accepted, so measurement noise cannot refuse the true (pure) start for good; the drawn
+ * range of starts stays at 95% (START_P_95) and the message says which level the start reaches. Natural uranium
+ * must be refused at the same level. On the boundary r0 = 0 the p-value uses the Chernoff mixture (clocks.ts
+ * startPValue), so a truly pure start is refused at the stated 0.1%, not half of it.
  */
-export const REJECT_P = 0.05;
+export const REJECT_P = START_P_ACCEPT;
+
+/** The range of starts as words: "0 to 0.039", or "just above 0 to 0.041" when 0 itself is just outside it. */
+export function startRangeText(r: { lo: number; hi: number; zeroAccepted: boolean }): string {
+  return r.lo === 0 && !r.zeroAccepted ? `just above 0 to ${sig(r.hi, 2)}` : `${sig(r.lo, 2)} to ${sig(r.hi, 2)}`;
+}
+
+const LEVEL_WORDS: Record<StartLevel, string> = {
+  inside95: 'inside the 95% range',
+  edge: 'between the 95% and 99.9% levels',
+  beyond: 'beyond the 99.9% level',
+};
 
 function malformed(answer: unknown, wants: string): CheckResult {
   return {
@@ -149,9 +164,11 @@ export function checkAge(answer: unknown, m: SpotModel): CheckResult {
 const clockText = (y: number | null): string => (y === null ? 'never reaches the measured ratio' : yearsQ(y));
 
 /**
- * spot.purity: { countingTimeS, startA234overA238 }. Right when the counts accept that start and reject natural
- * uranium's. The result carries the range of starts the counts accept (clocks.ts acceptedStartRange): "pure"
- * means almost none of natural uranium's uranium-234 at the start, not exactly none (M4 science audit finding 6).
+ * spot.purity: { countingTimeS, startA234overA238 }. Right when the counts accept that start at the 99.9% level
+ * (p >= REJECT_P) and refuse natural uranium's at the same level; the message says whether the start lies inside
+ * the 95% range or between the 95% and 99.9% levels (as trail.origin does, D-A28). The result carries the 95%
+ * range of starts the counts accept (clocks.ts acceptedStartRange): "pure" means almost none of natural uranium's
+ * uranium-234 at the start, not exactly none (M4 science audit finding 6).
  */
 export function checkPurity(answer: unknown, m: SpotModel): CheckResult {
   const c = countsFor(answer, m);
@@ -160,24 +177,26 @@ export function checkPurity(answer: unknown, m: SpotModel): CheckResult {
   const nat = naturalStartRatio();
   const test = testStartHypothesis(c, r0);
   const natural = testStartHypothesis(c, nat);
+  const level = startLevel(test.pValue);
   const clocks = clockAges(c, r0);
-  const range = acceptedStartRange(c, REJECT_P);
-  const rangeText = `${sig(range.lo, 2)} to ${sig(range.hi, 2)}`;
+  const range = acceptedStartRange(c, START_P_95);
+  const rangeText = startRangeText(range);
   const base: Reading[] = [
     { key: 'starting uranium-234 per uranium-238', value: r0 },
     { key: 'p-value, this start', value: Number(test.pValue.toPrecision(3)) },
     { key: 'p-value, ore in balance', value: Number(natural.pValue.toPrecision(3)) },
-    { key: 'starts these counts accept', value: rangeText },
+    { key: 'starts these counts accept, 95%', value: rangeText },
+    { key: 'where this start falls', value: LEVEL_WORDS[level] },
     ...countsReadings(c),
   ];
-  if (test.pValue < REJECT_P) {
+  if (level === 'beyond') {
     return {
       ok: false,
       result: base,
       message:
-        `The counts (${countsText(c)}) reject a start of ${sig(r0)}: the chance of counts this far off is ${pText(test.pValue)}. ` +
+        `The counts (${countsText(c)}) reject a start of ${sig(r0)}: the chance of counts this far off is ${pText(test.pValue)}, beyond the 99.9% level. ` +
         `From that start the uranium-234 clock ${clockText(clocks.u234Years)} and the thorium-230 clock ${clockText(clocks.th230Years)}: they disagree. ` +
-        `Fitted freely, the counts' own best start is ${sig(range.fitted, 2)} uranium-234 per uranium-238, and they accept starts from ${rangeText}.`,
+        `Fitted freely, the counts' own best start is ${sig(range.fitted, 2)} uranium-234 per uranium-238, and at 95% they accept starts from ${rangeText}.`,
     };
   }
   if (natural.pValue >= REJECT_P) {
@@ -190,18 +209,22 @@ export function checkPurity(answer: unknown, m: SpotModel): CheckResult {
     };
   }
   const fit = fitAgeAndPurity(c);
+  const where =
+    level === 'inside95'
+      ? `inside the 95% range of starts the counts accept, ${rangeText}`
+      : `outside the 95% range of starts the counts accept (${rangeText}) but inside the 99.9% level: consistent, at the edge (1 count in 20 of a start that is right lands beyond the 95% range)`;
   return {
     ok: true,
     result: [
-      ...base.slice(0, 4),
+      ...base.slice(0, 5),
       { key: 'fitted age', value: yearsS(fit.ageYears), dim: 'time' },
       ...(fit.determinable ? [{ key: 'fitted age low, 95%', value: yearsS(fit.lo), dim: 'time' as const }, { key: 'fitted age high, 95%', value: yearsS(fit.hi), dim: 'time' as const }] : []),
       ...countsReadings(c),
     ],
     message:
       `A start of ${sig(r0)} fits both clocks (${pText(test.pValue)}): uranium-234 says ${clockText(clocks.u234Years)}, thorium-230 ${clockText(clocks.th230Years)}. ` +
-      `Ore in balance (${sig(nat)}) is rejected by the same counts (${pText(natural.pValue)}). The counts accept starts from ${rangeText} uranium-234 per uranium-238: ` +
-      `almost none of the uranium-234 natural uranium carries. Fitting age and start together gives ${yearsQ(fit.ageYears)}.`,
+      `It lies ${where}. Ore in balance (${sig(nat)}) is rejected by the same counts (${pText(natural.pValue)}, far beyond the 99.9% level). ` +
+      `The accepted starts hold almost none of the uranium-234 natural uranium carries. Fitting age and start together gives ${yearsQ(fit.ageYears)}.`,
   };
 }
 

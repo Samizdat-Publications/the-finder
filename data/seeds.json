@@ -79,13 +79,15 @@
    ]
   },
   "rates": {
-   "note": "Over all candidates: how often the warm-white star (the true origin) lands beyond each cut. trail.origin and trail.where accept at 99.9% (D-A28); the drawn error bars are 95%.",
+   "note": "Over all candidates: how often the warm-white star (the true origin) lands beyond each cut. trail.origin and trail.where accept at 99.9% (D-A28); the drawn error bars are 95%. spot.purity on the one-day count: a pure start (the truth) is accepted at the 99.9% level with the Chernoff boundary p-value (D-A28, amended 2026-10-22); the drawn range of starts is 95%; spotNaturalStartPMax is the largest p-value of the natural-uranium start over all candidates.",
    "trailOriginBeyond95": 101,
    "trailOriginBeyond999": 4,
    "trailWhereBeyond95": 0,
    "trailWhereBeyond999": 0,
    "trailWhereContourMax": 0.8409,
-   "spotPureStartRefusedAtOneDay": 44
+   "spotPureBeyond95AtOneDay": 94,
+   "spotPureBeyond999AtOneDay": 0,
+   "spotNaturalStartPMax": 0
   }
  },
  "seeds": [
