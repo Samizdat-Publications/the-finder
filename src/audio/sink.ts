@@ -6,7 +6,7 @@ import { Ambience } from './ambience';
 import type { CueEvent, SoundSink } from './cues';
 import type { Mixer } from './mixer';
 import { TWIST_WARM_DB, voiceFor } from './synth';
-import { breath, cadence, pluck, snap, swell, tick, warm } from './ui';
+import { agree, breath, cadence, pluck, snap, swell, tick, warm } from './ui';
 
 export class LiveSink implements SoundSink {
   private ambience: Ambience | null = null;
@@ -75,6 +75,10 @@ export class LiveSink implements SoundSink {
         break;
       case 'snap':
         snap(ctx, master, when, voice.rootHz * 2, e.scatter ?? [], rng);
+        break;
+      case 'agree':
+        // The clocks agree: every chapter's key, swelling and resolving onto Portrait's own chord.
+        agree(ctx, master, when, voiceFor('portrait').rootHz * 2, rng);
         break;
     }
   }

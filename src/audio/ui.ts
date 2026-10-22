@@ -8,9 +8,9 @@
 // on the target (see tests/browser/sound.browser.mjs, which checks it).
 
 import type { Rng } from '../science/random';
-import { LEVEL_DBFS, dbToLin, noiseBuffer, tone } from './synth';
+import { LEVEL_DBFS, dbToLin, noiseBuffer, portraitChord, tone } from './synth';
 
-export type RenderKind = 'pluck' | 'cadence' | 'tick' | 'breath' | 'swell' | 'snap' | 'warm';
+export type RenderKind = 'pluck' | 'cadence' | 'tick' | 'breath' | 'swell' | 'snap' | 'warm' | 'agree';
 
 export interface RenderedCue {
   /** Seconds from `when` until the cue has died away (the caller may stop sources after this). */
@@ -18,7 +18,7 @@ export interface RenderedCue {
 }
 
 /** Gain trims (linear) found by measuring the rendered peaks; a pure scale, so shapes are untouched. */
-const TRIM: Record<RenderKind, number> = { pluck: 1.38, cadence: 1.2, tick: 1.86, breath: 1.1, swell: 1.15, snap: 1.37, warm: 1.0 };
+const TRIM: Record<RenderKind, number> = { pluck: 1.38, cadence: 1.2, tick: 1.86, breath: 1.1, swell: 1.15, snap: 1.37, warm: 1.0, agree: 0.815 };
 
 const peakOf = (kind: RenderKind): number => dbToLin(LEVEL_DBFS[kind]) * TRIM[kind];
 
@@ -265,5 +265,49 @@ export function warm(ctx: BaseAudioContext, dest: AudioNode, when: number, hz: n
     g.setTargetAtTime(0, when + 3.4, 0.55);
     osc.stop(when + total);
   }
+  return { durationS: total };
+}
+
+/** The chord the clocks resolve onto: a major triad with its octave over Portrait's root (taste). */
+const AGREE_CHORD = [1, 5 / 4, 3 / 2, 2];
+
+/**
+ * The clocks agree (portrait.together): every chapter's key at once, the chord of Portrait's bed (synth.ts
+ * portraitChord) an octave up, entering softly one after another; then each voice glides onto the nearest tone of
+ * one major chord over Portrait's root (`rootHz`) and the chord swells, holds and fades. A slower, warmer cousin of
+ * the snap. About 8 s.
+ */
+export function agree(ctx: BaseAudioContext, dest: AudioNode, when: number, rootHz: number, rng: Rng): RenderedCue {
+  const out = ctx.createGain();
+  out.gain.value = peakOf('agree') / 2.4;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 1800;
+  lp.Q.value = 0.4;
+  lp.connect(out);
+  out.connect(dest);
+  const notes = portraitChord(rootHz);
+  const targets = AGREE_CHORD.map((r) => rootHz * r);
+  const resolve = when + 2.6;
+  const total = 8.4;
+  notes.forEach((hz, i) => {
+    const near = targets.reduce((b, t) => (Math.abs(Math.log2(t / hz)) < Math.abs(Math.log2(b / hz)) ? t : b), targets[0] as number);
+    const detune = 1 + (rng.uniform() - 0.5) * 0.002;
+    const enter = when + i * 0.22;
+    const amp = 1 / (1 + 0.15 * i);
+    for (const [mult, part] of [[1, 1], [2, 0.3]] as const) {
+      const { osc, gain } = tone(ctx, lp, hz * mult * detune, enter);
+      osc.frequency.setValueAtTime(hz * mult * detune, enter);
+      osc.frequency.setValueAtTime(hz * mult * detune, resolve - 0.9);
+      osc.frequency.exponentialRampToValueAtTime(near * mult * detune, resolve);
+      const g = gain.gain;
+      g.setValueAtTime(0, when);
+      g.setValueAtTime(0, enter);
+      g.linearRampToValueAtTime(amp * part * 0.35, enter + 1.2);
+      g.linearRampToValueAtTime(amp * part * 0.8, resolve + 0.5);
+      g.setTargetAtTime(0, resolve + 2.2, 0.8);
+      osc.stop(when + total);
+    }
+  });
   return { durationS: total };
 }

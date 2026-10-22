@@ -26,6 +26,8 @@ export interface SaveV1 {
   seed: string;
   /** The guided tour (added with the tour; a save without it loads as off, step 0, furthest 0). */
   tour?: TourState;
+  /** Chapters with no deductions that were entered (added with Our Frame; a save without it loads as none visited). */
+  visited?: string[];
 }
 
 /**
@@ -61,6 +63,14 @@ function cleanNodes(raw: unknown): Record<string, NodeRecord> {
   return out;
 }
 
+/** The chapters the player has entered: only known, built chapter ids, each once. */
+export function cleanVisited(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const out: string[] = [];
+  for (const v of raw) if (typeof v === 'string' && chapterDef(v)?.built && !out.includes(v)) out.push(v);
+  return out;
+}
+
 function cleanChapter(raw: unknown): ChapterView {
   if (typeof raw !== 'string') return 'hub';
   const v = parseChapterHash(raw);
@@ -89,6 +99,8 @@ export function migrate(raw: unknown): SaveV1 | null {
     const tour = cleanTour(raw.tour);
     const out: SaveV1 = { version: 1, nodes: cleanNodes(raw.nodes), chapter: cleanChapter(raw.chapter), settings: normalizeSettings(raw.settings), seed: cleanSeed(raw.seed) };
     if (tour) out.tour = tour;
+    const visited = cleanVisited(raw.visited);
+    if (visited.length > 0) out.visited = visited;
     return out;
   }
   return null;
@@ -103,6 +115,7 @@ export function serialize(): SaveV1 {
   const out: SaveV1 = { version: 1, nodes, chapter: game.chapter.value, settings: game.settings.value, seed: game.seed.value };
   const t = game.tour.value;
   if (t.on || t.step > 0 || t.furthest > 0) out.tour = { ...t };
+  if (game.visited.value.length > 0) out.visited = [...game.visited.value];
   return out;
 }
 
@@ -112,6 +125,7 @@ export function applySave(s: SaveV1): void {
   game.settings.value = s.settings;
   game.seed.value = s.seed;
   game.tour.value = s.tour ? { ...s.tour } : { on: false, step: 0, furthest: 0 };
+  game.visited.value = s.visited ? [...s.visited] : [];
 }
 
 /** Load from storage into the game state. Returns true when a save was found and used. */
@@ -159,7 +173,7 @@ export function startAutosave(storage: StorageLike, debounceMs = 250): () => voi
   let first = true;
   const stopEffect = effect(() => {
     // Read every part of the save so the effect re-runs when any of them changes.
-    void [game.records.value, game.chapter.value, game.settings.value, game.seed.value, game.tour.value];
+    void [game.records.value, game.chapter.value, game.settings.value, game.seed.value, game.tour.value, game.visited.value];
     if (first) {
       first = false;
       return;

@@ -5,6 +5,7 @@
 
 import coverJson from '../../data/cover.json';
 import { binaryToMetres, binaryToSeconds } from '../science/units';
+import { REASONABLE } from '../chapters/voices/data';
 import { BEAT_S } from '../ui/units';
 import type { PartDef, Stop } from './types';
 
@@ -31,7 +32,8 @@ export const PARTS: readonly PartDef[] = [
   { id: 'spot', title: 'The uranium clock' },
   { id: 'map', title: 'The pulsar map' },
   { id: 'trail', title: 'Where it came from' },
-  { id: 'finale', title: 'What we found' },
+  { id: 'portrait', title: 'Our portrait of them' },
+  { id: 'finale', title: 'Back to our time' },
 ];
 
 export const STOPS: readonly Stop[] = [
@@ -328,7 +330,7 @@ export const STOPS: readonly Stop[] = [
     id: 'voices.many', part: 'voices', kind: 'do', chapter: 'voices', node: 'voices.many',
     title: 'One voice, or many?',
     look: 'Listen to the greetings. Each speaker talks, then stops. If we count the silences between voices, we can count the speakers.',
-    todo: 'Move **Quiet below** up until it sits between the hiss and the voices, and shorten **Pause at least** so each break between speakers counts. Press **+** under **Voices\' worth of pitch** to say how many voices\' worth of high and low you see. Then press **Propose**.',
+    todo: `1. Drag **Quiet below** to anywhere from ${REASONABLE.thresholdDb[0]} to ${REASONABLE.thresholdDb[1]}: the line then sits just above the hiss between speakers. 2. Set **Pause at least** to between ${REASONABLE.gapS[0]} and ${REASONABLE.gapS[1]} seconds (the number in brackets), so each break between speakers counts. 3. The dots below are the speakers' pitches, and the ruler box is one speaker's range: press **+** under **Voices' worth of pitch** once for each box-width the dots spread over (two or more). Then press **Propose**.`,
     why: 'Many voices: dozens of speakers, one after another, high and low. This is not one creature talking. It is a crowd.',
     human:
       'The record greets the universe in **55 languages**, from ancient Akkadian, spoken in Mesopotamia 4,000 years ago, to Chinese dialects spoken today. In English, Carl Sagan\'s six-year-old son Nick says "Hello from the children of planet Earth."',
@@ -454,7 +456,7 @@ export const STOPS: readonly Stop[] = [
     id: 'map.periods', part: 'map', kind: 'do', chapter: 'map', node: 'map.periods',
     title: 'Lines and lighthouses',
     look: 'The long line without a number points to the centre of the galaxy. Each other line points to a pulsar, and its number is how fast that pulsar spins.',
-    todo: '1. Turn the dial until **long line to the centre** reads 0. 2. Click a line number on the cover map (the gold starburst in the middle). 3. On the galaxy chart on the left, click the pulsar that lies along that line and ticks at nearly its rate (the line panel shows the match odds). 4. Press **Propose: this line is this pulsar**.',
+    todo: '1. Turn the dial until **long line to the centre** reads 0. 2. Click a line number on the cover map (the gold starburst in the middle). 3. On the galaxy chart on the left, click the pulsar that lies along that line and ticks at nearly its rate. The line panel shows the match odds: pick a line where **one pulsar clearly wins**, and if it says the pulsar is too young to judge yet, try another line. 4. Press **Propose: this line is this pulsar**.',
     why: 'The numbers are **spin periods of pulsars**. The map is a set of cosmic lighthouses, each with its own unmistakable flash rate.',
   },
   {
@@ -531,28 +533,82 @@ export const STOPS: readonly Stop[] = [
     why: 'They agree. The map was made **as long ago as the machine has been travelling**. Four clocks, one answer.',
   },
 
-  // ------------------------------------------------------------------ finale
+  // ------------------------------------------------------------------ portrait
   {
-    id: 'finale.portrait', part: 'finale', kind: 'story', chapter: 'hub',
-    title: 'Who sent it?',
+    id: 'portrait.plate', part: 'portrait', kind: 'story', chapter: 'portrait',
+    title: 'Everything we know about them',
     look:
-      'Here is everything we worked out, with no shared language at all.\n\n' +
-      'The senders live on the third world of the **warm-white star**, our nearest neighbour. They launched this machine about **44,000 years ago**, and four separate clocks agree. They **count in tens**, measure with **hydrogen**, see **in colour**, stand a little taller than a reach, sing music built on **octaves cut into 12 steps**, share their world with **whales**, and they wanted to be found.',
-    human: 'Their name for themselves, which the alien will never know, is "humans". The warm-white star is the Sun, and the third world is Earth.',
+      `This plate is the Finder's portrait of the senders, and every line on it is something **we worked out ourselves**: their star, how they look, their world, their numbers, their voices and their machine. Nothing new is added here. Each little tick opens the page that shows how that step was checked.\n\n` +
+      `Take a moment to read it together. A few hours ago we had a cold machine and a gold disc. Now we know who made them.`,
+    ask: 'Which thing on the plate surprised you most?',
   },
   {
-    id: 'finale.carter', part: 'finale', kind: 'story', chapter: 'hub',
-    title: 'A present from a small, distant world',
-    look:
-      'The record also carries a printed message from US President Jimmy Carter. It begins: "This is a present from a small, distant world."\n\n' +
-      'Nobody who made the record expected it to be found soon, or maybe ever. Space is so empty that Voyager will most likely drift between the stars for billions of years without coming near anything. It is a message in a bottle thrown into the biggest ocean there is.',
-    ask: 'Why do you think people spent so much effort on a message that will probably never be found?',
+    id: 'portrait.together', part: 'portrait', kind: 'do', chapter: 'portrait', node: 'portrait.together',
+    title: 'Do the clocks agree?',
+    look: `Four separate clocks dated this machine: the **fuel** (plutonium turning into other atoms), the **uranium spot** on the cover, the **pulsar map** read from the warm-white star, and the **journey** (distance divided by speed). Each bar is one clock's answer, with its error bar. If they tell one story, there is a time that all four allow.`,
+    todo: `Drag the **round marker** under the clock bars (or click it and use the arrow keys) to the place where all four bars overlap, then press **Propose: it left this long ago**.`,
+    why: `Four completely different kinds of physics, nuclear decay, spinning dead stars and the machine's own motion, give **one answer**: it left about 44,000 years ago. When clocks that share nothing agree, scientists trust the answer.`,
+    human: `Real scientists do exactly this. The age of the Earth, about 4.5 billion years, is agreed by uranium in tiny crystals, by meteorites and by Moon rocks: different clocks, one story.`,
+    ask: 'If one clock had disagreed with the other three, what might that have told us?',
   },
   {
-    id: 'finale.now', part: 'finale', kind: 'story', chapter: 'hub', widget: 'voyagerNow',
+    id: 'portrait.sky', part: 'portrait', kind: 'story', chapter: 'portrait',
+    title: 'They live there',
+    look:
+      `Across the top of the plate is the Finder's own night sky. The ringed star is the **warm-white star**: the senders' star, our nearest neighbour and one of the brightest stars in our sky.\n\n` +
+      `Somewhere around it is a small third world full of voices, music and whales. They sent us a record of themselves, and they wanted to be found.`,
+    human: `The warm-white star is our Sun, and the third world is Earth. Their name for themselves, which the Finder will never know, is "humans".`,
+    ask: 'If you were the Finder, would you answer them? What would you send back?',
+  },
+
+  // ------------------------------------------------------------------ finale (Our Frame)
+  {
+    id: 'finale.turn', part: 'finale', kind: 'story', chapter: 'epilogue', section: 'turn',
+    title: 'Now, our side of the story',
+    look:
+      `We have been the Finder, a scientist about 44,000 years from now. Now step back into **our own time**, today, while the machine is still flying and the Finder's star is still far ahead of it.\n\n` +
+      `From here on everything is in our own units: kilometres, hours and years. Listen: the record is playing, the last piece of music on it.`,
+  },
+  {
+    id: 'finale.now', part: 'finale', kind: 'story', chapter: 'epilogue', section: 'now',
     title: 'Where it is right now',
     look:
-      'Back to the real world. Voyager 1 is still out there, still sending faint signals home, the most distant thing humans have ever made. NASA\'s own tables of its path say exactly where it is tonight. Watch the numbers: it moves about 17 kilometres further every second.',
+      `Back to the real world. Voyager 1 is still out there, still sending faint signals home, the most distant thing humans have ever made. NASA's own tables of its path say exactly where it is tonight. Watch the numbers: it moves about 17 kilometres further every second.`,
     why: 'Look up. It is out there, past the planets, carrying the record we just decoded.',
+    ask: 'A radio message takes almost a whole day to reach it. What would you say in a message that slow?',
+  },
+  {
+    id: 'finale.listening', part: 'finale', kind: 'story', chapter: 'epilogue', section: 'listening',
+    title: 'Still listening',
+    look: `Voyager 1 still runs **two** of its ten instruments, and Voyager 2 runs **three**. Every year their plutonium makes about 4 watts less power, so NASA switches instruments off one by one to keep the rest alive.`,
+    human: `That is the same decay we used as a clock in Arrival. The plutonium the Finder found was gone is the power supply these machines are running on today.`,
+    ask: 'If you could keep only one instrument running, which would you choose, and why?',
+  },
+  {
+    id: 'finale.future', part: 'finale', kind: 'story', chapter: 'epilogue', section: 'future',
+    title: 'The slow future',
+    look: `The Finder's star is real. It is called **Gliese 445**, a small red star. Voyager 1 really will pass it, about 44,000 years from now, at nearly two light-years. That is where this story was set.`,
+    human: `Even then it will not come close: nearly two light-years is about 120,000 times as far as the Earth is from the Sun. Space is very empty.`,
+  },
+  {
+    id: 'finale.map', part: 'finale', kind: 'story', chapter: 'epilogue', section: 'map',
+    title: 'The map is older than the machine',
+    look: `The pulsar periods on the cover were measured in **1970 and 1971**, about six years before Voyager launched in 1977. The makers reused the map they had drawn for the Pioneer plaque.`,
+    why: 'So the map clock in Portrait counts from 1971, not 1977: one reason the clocks differ by a few years.',
+  },
+  {
+    id: 'finale.line', part: 'finale', kind: 'story', chapter: 'epilogue', section: 'line',
+    title: 'One line by hand',
+    look: `Everything on the record was made by machines, except one line. Between the label and the grooves, someone scratched by hand: **"To the makers of music - all worlds, all times."**`,
+    human: 'Timothy Ferris, who produced the record, wanted one thing on it made directly by a human hand.',
+    ask: 'Who do you think "the makers of music" are, in all worlds?',
+  },
+  {
+    id: 'finale.carter', part: 'finale', kind: 'story', chapter: 'epilogue', section: 'line',
+    title: 'A present from a small, distant world',
+    look:
+      `The record also carries a printed message from US President Jimmy Carter. It begins: "This is a present from a small, distant world."\n\n` +
+      `Nobody who made the record expected it to be found soon, or maybe ever. Space is so empty that Voyager will most likely drift between the stars for billions of years without coming near anything. It is a message in a bottle thrown into the biggest ocean there is.`,
+    ask: 'Why do you think people spent so much effort on a message that will probably never be found?',
   },
 ];

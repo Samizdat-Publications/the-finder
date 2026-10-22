@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { recordCheck } from '../../tests/support/record';
 import { dispatch } from './bus';
 import { clearCheckers, installTestCheckers } from './deductions';
+import { chapterDef } from './graph';
 import { resetAll, setClock } from './gameService';
 import { SAVE_KEY, flushSave, loadFromStorage, migrate, saveToStorage, serialize, startAutosave, type StorageLike } from './save';
 import { defaultSettings, normalizeSettings } from './settings';
@@ -73,7 +74,8 @@ describe('the save', () => {
     expect(migrate('text')).toBeNull();
     const damaged = migrate({ version: 1, nodes: { 'arrival.purpose': { confirmed: 'yes', attempts: [{ ok: 'x' }, 5], hints: 99 } }, chapter: 'portrait', settings: { masterVolume: 'loud' } });
     expect(damaged?.nodes['arrival.purpose']).toEqual({ confirmed: false, attempts: [], hints: 3 });
-    expect(damaged?.chapter).toBe('hub'); // portrait is not built
+    // A saved chapter that is not built goes back to the hub; Portrait is built from M6 (a locked one is refused on entry).
+    expect(damaged?.chapter).toBe(chapterDef('portrait')?.built ? 'portrait' : 'hub');
     expect(damaged?.settings).toEqual(defaultSettings());
 
     const storage = fakeStorage();

@@ -5,10 +5,11 @@ import { KEY_HEADLINES } from './key/headlines';
 import { MAP_HEADLINES } from './map/headlines';
 import { PICTURES_HEADLINES } from './pictures/headlines';
 import { PLAYER_HEADLINES } from './player/headlines';
+import { PORTRAIT_HEADLINES } from './portrait/headlines';
 import { SPOT_HEADLINES } from './spot/headlines';
 import { TRAIL_HEADLINES } from './trail/headlines';
 import { VOICES_HEADLINES } from './voices/headlines';
 
 export const HEADLINES: Readonly<Record<string, HeadlineDef>> = {
-  ...ARRIVAL_HEADLINES, ...KEY_HEADLINES, ...PLAYER_HEADLINES, ...PICTURES_HEADLINES, ...MAP_HEADLINES, ...SPOT_HEADLINES, ...TRAIL_HEADLINES, ...VOICES_HEADLINES,
+  ...ARRIVAL_HEADLINES, ...KEY_HEADLINES, ...PLAYER_HEADLINES, ...PICTURES_HEADLINES, ...MAP_HEADLINES, ...SPOT_HEADLINES, ...TRAIL_HEADLINES, ...VOICES_HEADLINES, ...PORTRAIT_HEADLINES,
 };

@@ -1,7 +1,7 @@
 // The staged moments in the bots (M4 step 7e): after a deduction with a moment is confirmed, the moment covers
 // the screen; a bot skips it through the same control a player uses (its Continue button), optionally after
 // capturing it. src/ui/momentState.ts lists the deductions; this list is the same.
-export const MOMENT_IDS = ['map.region', 'spot.age', 'trail.origin', 'trail.neighbour', 'trail.when', 'pictures.colour', 'pictures.home', 'pictures.height', 'voices.octave'];
+export const MOMENT_IDS = ['map.region', 'spot.age', 'trail.origin', 'trail.neighbour', 'trail.when', 'pictures.colour', 'pictures.home', 'pictures.height', 'voices.octave', 'portrait.together'];
 
 /**
  * If a staged moment shows, optionally capture it (after settleMs, so its camera ease and text have landed),

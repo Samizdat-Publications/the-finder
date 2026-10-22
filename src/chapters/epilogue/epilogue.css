@@ -1,0 +1,123 @@
+/* Our Frame (chapter 9, the epilogue): the quiet ending, in our own voice. Plain type only (no glyphs), calm
+   colour, one section on screen at a time. Gold is for the human artifact: the record and the line on it. */
+
+/* The bench's own chapter header carries the alien glyph title and the notebook counter; this chapter has neither. */
+.bench-area[data-chapter='epilogue'] .chaphead h1,
+.bench-area[data-chapter='epilogue'] .notebook-toggle,
+.bench-area[data-chapter='epilogue'] .notebook { display: none; }
+.bench-area[data-chapter='epilogue'] .bench-body[data-notebook]:not([data-guide]) { grid-template-columns: minmax(0, 1fr); }
+
+.epi { display: flex; flex-direction: column; min-height: 0; height: 100%; max-width: 70rem; margin: 0 auto; }
+.epi-rule { flex: none; display: flex; align-items: center; gap: 1rem; margin: 0 0 0.5rem; color: var(--text-dim); font: 0.875rem var(--font-sans); letter-spacing: 0.14em; text-transform: uppercase; }
+.epi-rule::before, .epi-rule::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+.epi-stage { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; justify-content: center; padding: 0.4rem 0.5rem; }
+:root:not(.calm) .epi-stage > .epi-sec { animation: epi-in 700ms ease-out both; }
+@keyframes epi-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.epi-sec { width: 100%; max-width: 62rem; margin: 0 auto; display: grid; gap: 0.9rem; align-content: center; }
+.epi-head { margin: 0; font: 600 0.9375rem var(--font-sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--cyan); }
+.epi-lead { margin: 0; font: 300 clamp(1.45rem, 2.7vw, 2.25rem) / 1.35 var(--font-sans); color: var(--text); text-wrap: balance; }
+.epi-lead.small { font-size: clamp(1.1rem, 1.7vw, 1.4rem); line-height: 1.45; }
+.epi-small { margin: 0; color: var(--text-dim); font-size: 0.875rem; line-height: 1.5; }
+.epi-small.center { text-align: center; }
+.epi-why { margin: 0; font-size: 1rem; line-height: 1.55; color: var(--text); }
+
+/* 1. the turn */
+.epi-clock { margin: 0.4rem 0 0; display: grid; gap: 0.1rem; }
+.epi-date { font: 300 clamp(1.1rem, 2vw, 1.6rem) var(--font-sans); color: var(--text-dim); }
+.epi-time { font: 200 clamp(2.6rem, 7vw, 5.2rem) / 1.05 var(--font-sans); letter-spacing: 0.04em; font-variant-numeric: tabular-nums; color: var(--text); }
+
+/* 2. right now */
+.epi-crafts { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; }
+.epi-craft { padding: 0.9rem 1.1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-raised); }
+.epi-craft h3 { margin: 0 0 0.2rem; font: 600 1rem var(--font-sans); color: var(--cyan); }
+.epi-big { margin: 0 0 0.5rem; font: 300 clamp(1.5rem, 3vw, 2.3rem) / 1.1 var(--font-sans); font-variant-numeric: tabular-nums; }
+.epi-big span { font-size: 1rem; color: var(--text-dim); }
+.epi-craft dl { margin: 0; display: grid; gap: 0.2rem; }
+.epi-craft dl div { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.9375rem; }
+.epi-craft dt { color: var(--text-dim); }
+.epi-craft dd { margin: 0; font-variant-numeric: tabular-nums; text-align: right; }
+.epi-lightday { margin: 0; padding: 0.7rem 1rem; border-left: 3px solid var(--violet); font-size: 1rem; line-height: 1.55; background: rgba(155, 123, 255, 0.07); }
+
+/* 3. still listening */
+.epi-table-wrap { overflow-x: auto; }
+.epi-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.epi-table caption { text-align: left; padding-bottom: 0.3rem; }
+.epi-table th, .epi-table td { text-align: left; padding: 0.22rem 0.6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+.epi-table thead th { color: var(--text-dim); font-weight: 600; font-size: 0.8125rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.epi-table tbody th { font-weight: 400; color: var(--text); }
+.epi-table td.on { color: var(--cyan); font-weight: 600; }
+.epi-table td.off { color: var(--text-dim); }
+.epi-table.compact th, .epi-table.compact td { padding: 0.4rem 0.6rem; font-size: 0.9375rem; }
+
+/* 4. the slow future */
+.epi-future-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.2rem; align-items: start; }
+.epi-future-side { display: grid; gap: 0.8rem; }
+.epi-diagram { width: 100%; height: auto; max-height: 52vh; display: block; background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 8px; }
+.epi-diagram .line-of-flight { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 4; fill: none; }
+.epi-diagram .v1-path { stroke: var(--cyan); stroke-width: 2; fill: none; }
+.epi-diagram .gl-path { stroke: var(--violet); stroke-width: 2; fill: none; }
+.epi-diagram .gap { stroke: var(--gold); stroke-width: 1.6; fill: none; }
+.epi-diagram .sun { fill: var(--text); }
+.epi-diagram .v1-dot { fill: var(--cyan); }
+.epi-diagram .gl-dot { fill: var(--violet); }
+.epi-diagram .gl-dot.big { stroke: var(--text); stroke-width: 1.2; }
+.epi-diagram .lab { fill: var(--text); font: 13px var(--font-sans); }
+.epi-diagram .lab.v1 { fill: var(--cyan); }
+.epi-diagram .lab.gl { fill: #c9b8ff; }
+.epi-diagram text.gap { fill: var(--gold); stroke: none; }
+.epi-diagram .lab.dim { fill: var(--text-dim); }
+.epi-diagram .bar { stroke: var(--text-dim); stroke-width: 1.2; }
+
+/* 5. the map is older than the machine */
+.epi-strip { width: 100%; height: auto; max-height: 34vh; display: block; background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 8px; }
+.epi-strip .band { fill: rgba(155, 123, 255, 0.16); }
+.epi-strip .axis, .epi-strip .tick { stroke: var(--text-dim); stroke-width: 1; }
+.epi-strip .dot { fill: var(--cyan); opacity: 0.9; }
+.epi-strip .launch { stroke: var(--gold); stroke-width: 2; }
+.epi-strip text.launch { fill: var(--gold); stroke: none; }
+.epi-strip .lab { fill: var(--text); font: 13px var(--font-sans); }
+.epi-strip .lab.dim { fill: var(--text-dim); }
+.epi-yours { margin: 0; padding: 0.7rem 1rem; border-left: 3px solid var(--cyan); background: rgba(79, 240, 196, 0.06); font-size: 0.9375rem; line-height: 1.55; }
+
+/* 6. the line in the run-out groove */
+.epi-line-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 1.4rem; align-items: center; }
+.epi-record-stage { display: grid; gap: 0.4rem; justify-items: center; }
+.epi-record { width: min(100%, 52vh, 30rem); height: auto; aspect-ratio: 1; border-radius: 50%; background: var(--bg-sunk); box-shadow: 0 0 0 1px var(--line), 0 0 32px rgba(232, 182, 74, 0.12); }
+.epi-etched { fill: #fff3cf; stroke: #fff3cf; stroke-width: 0.12; font-family: 'Segoe Script', 'Bradley Hand', 'Snell Roundhand', 'Brush Script MT', 'Comic Sans MS', cursive; font-weight: 300; }
+.epi-line-text { display: grid; gap: 0.7rem; min-width: 0; }
+.epi-quote { margin: 0; font: italic 300 clamp(1.3rem, 2.4vw, 1.9rem) / 1.35 var(--font-sans); color: var(--gold); }
+.epi-credits h3 { margin: 0 0 0.2rem; font: 600 0.8125rem var(--font-sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+.epi-credits ul { margin: 0.3rem 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 0.1rem 1.2rem; font-size: 0.8125rem; line-height: 1.4; color: var(--text-dim); }
+.epi-credits li b { color: var(--text); font-weight: 600; }
+.epi-people { margin: 0; font-size: 0.875rem; line-height: 1.45; }
+.epi-links { margin: 0.2rem 0 0; display: flex; flex-wrap: wrap; gap: 0.7rem; }
+.epi-links .btn { text-decoration: none; display: inline-flex; align-items: center; }
+
+/* the bottom bar */
+.epi-nav { flex: none; display: flex; align-items: center; gap: 1rem; padding-top: 0.6rem; border-top: 1px solid var(--line); }
+.epi-dots { list-style: none; margin: 0; padding: 0; display: flex; gap: 0.55rem; }
+.epi-dot { width: 1rem; height: 1rem; padding: 0; border-radius: 50%; border: 1px solid var(--text-dim); background: transparent; cursor: pointer; }
+.epi-dot.here { background: var(--cyan); border-color: var(--cyan); }
+.epi-dot:hover { border-color: var(--cyan); }
+.epi-sound { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 0.8rem; flex-wrap: wrap; min-width: 0; }
+.epi-caption, .epi-loading { color: var(--text-dim); font-size: 0.8125rem; }
+.epi-next { font-size: 1.1rem; padding: 0.7rem 2.2rem; min-height: 3rem; border-color: var(--cyan); }
+.epi-next:disabled { opacity: 0.35; cursor: default; }
+.epi-next:disabled:hover { background: transparent; }
+
+/* narrower or shorter screens: stack the two-column parts, let the stage scroll */
+@media (max-width: 860px) {
+  .epi-line-body, .epi-future-body { grid-template-columns: minmax(0, 1fr); }
+  .epi-credits ul { grid-template-columns: 1fr; }
+}
+@media (max-height: 800px) {
+  .epi-sec { gap: 0.6rem; }
+  .epi-lead { font-size: clamp(1.25rem, 2.3vw, 1.9rem); }
+  .epi-diagram { max-height: 50vh; }
+  .epi-strip { max-height: 28vh; }
+  .epi-table th, .epi-table td { padding: 0.12rem 0.5rem; font-size: 0.8125rem; }
+  .epi-record { width: min(100%, 44vh, 26rem); }
+  .epi-credits ul { font-size: 0.75rem; }
+}

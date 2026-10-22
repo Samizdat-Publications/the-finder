@@ -8,4 +8,6 @@ import './map/index';
 import './spot/index';
 import './trail/index';
 import './voices/index';
+import './portrait/index';
+import './epilogue/index';
 export {};

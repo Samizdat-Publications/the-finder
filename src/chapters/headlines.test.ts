@@ -31,6 +31,7 @@ import { checkAge as checkSpotAge, checkFind, checkPurity } from './spot/checker
 import { SPOT, spotModel } from './spot/data';
 import { checkAge, checkNeighbour, checkOrigin, checkWhen, checkWhere } from './trail/checkers';
 import { meeting, originRow, rulerReading } from './trail/physics';
+import { checkTogether, clocksFrom, combine } from './portrait/checkers';
 
 const DAY_S = 86_400;
 
@@ -77,12 +78,16 @@ function confirmedResults(): Record<string, CheckResult> {
   out['trail.neighbour'] = checkNeighbour(m, { distancePc: rulerReading(m, row.star).distPc });
   out['trail.where'] = checkWhere(m, { starId: 0 });
   out['trail.when'] = checkWhen(m, { yearsAgo: Math.round(m.ages('sun').combined.estimate), frame: 0 });
+
+  // Portrait: the four clocks from the results above, proposed at their combined time.
+  const clocks = clocksFrom((id) => (out[id] ? { answer: null, ok: out[id]!.ok, result: out[id]!.result, message: out[id]!.message, at: 0 } : undefined));
+  out['portrait.together'] = checkTogether({ yearsAgo: combine(clocks).mean }, clocks);
   return out;
 }
 
 describe('result headlines', () => {
   it('every chapter table covers its deductions, and each finds its number in the real confirmed result', () => {
-    const built = NODES.filter((n) => ['arrival', 'key', 'map', 'spot', 'trail', 'player', 'pictures'].includes(n.chapter));
+    const built = NODES.filter((n) => ['arrival', 'key', 'map', 'spot', 'trail', 'player', 'pictures', 'portrait'].includes(n.chapter));
     const missing = built.filter((n) => !HEADLINES[n.id]).map((n) => n.id);
     expect(missing).toEqual([]);
     const results = confirmedResults();

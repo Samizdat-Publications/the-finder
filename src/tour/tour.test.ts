@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { dispatch } from '../game/bus';
 import { resetAll } from '../game/gameService';
 import { SAVE_KEY, loadFromStorage, migrate, saveToStorage, serialize, type StorageLike } from '../game/save';
+import { NODES } from '../game/graph';
 import { game, snapshot } from '../game/state';
 import { TOUR_OFF, cleanTour, clampStep, firstUnfinished, lastRefused, nodeUnlocked, parseText, partDots, progressFraction, startStep, stopDone } from './progress';
 import { PARTS, STOPS } from './script';
@@ -14,6 +15,11 @@ function fakeStorage(): StorageLike & { data: Map<string, string> } {
 }
 
 beforeEach(() => resetAll());
+
+/** Every deduction confirmed, so every chapter (the last stops sit in gated chapters) can be entered. */
+const confirmAll = (): void => {
+  game.records.value = Object.fromEntries(NODES.map((n) => [n.id, { confirmed: true, attempts: [], hints: 0 }]));
+};
 
 const arrivalStop = STOPS.findIndex((s) => s.chapter === 'arrival');
 
@@ -41,6 +47,7 @@ describe('tour commands', () => {
     await dispatch({ type: 'tour.goto', step: 0 });
     expect(game.tour.value).toEqual({ on: true, step: 0, furthest: arrivalStop }); // furthest never goes down
     expect(game.chapter.value).toBe(STOPS[0]?.chapter);
+    confirmAll();
     await dispatch({ type: 'tour.goto', step: 10_000 });
     expect(game.tour.value.step).toBe(STOPS.length - 1);
     await dispatch({ type: 'tour.goto', step: -5 });
@@ -67,9 +74,16 @@ describe('tour commands', () => {
     expect(game.chapter.value).toBe('arrival');
   });
 
+  it('a stop in a locked chapter is refused and the tour stays where it was', async () => {
+    await dispatch({ type: 'tour.start' });
+    await expect(dispatch({ type: 'tour.goto', step: STOPS.length - 1 })).rejects.toThrow(/locked/);
+    expect(game.tour.value.step).toBe(0);
+  });
+
   it('tour.start with a step goes there, clamped', async () => {
     await dispatch({ type: 'tour.start', step: 1 });
     expect(game.tour.value.step).toBe(1);
+    confirmAll();
     await dispatch({ type: 'tour.start', step: 999 });
     expect(game.tour.value.step).toBe(STOPS.length - 1);
   });

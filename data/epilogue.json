@@ -1,0 +1,392 @@
+{
+ "meta": {
+  "built": "2026-10-22",
+  "about": "Facts for Our Frame (chapter 9), entered by hand from the pages in `sources`; see docs/research/epilogue.md.",
+  "researched": "2026-10-16",
+  "note": "Nothing here is computed. The interface computes the positions, the light-day time, the Gliese 445 pass and the map epochs from the tables."
+ },
+ "sources": {
+  "nasa-instruments": {
+   "url": "https://science.nasa.gov/mission/voyager/instruments/",
+   "read": "2026-10-16",
+   "pageUpdated": "2026-04-17",
+   "title": "NASA Voyager: instruments"
+  },
+  "nasa-blog-2026-08-04": {
+   "url": "https://science.nasa.gov/blogs/voyager/2026/08/04/nasa-engineers-help-prolong-voyager-2s-science-mission/",
+   "read": "2026-10-16",
+   "pageUpdated": "2026-08-04",
+   "title": "NASA engineers help prolong Voyager 2's science mission"
+  },
+  "jpl-lecp-off": {
+   "url": "https://www.jpl.nasa.gov/news/nasa-shuts-off-instrument-on-voyager-1-to-keep-spacecraft-operating/",
+   "read": "2026-10-16",
+   "pageUpdated": null,
+   "title": "NASA shuts off instrument on Voyager 1 to keep spacecraft operating"
+  },
+  "nasa-where-now": {
+   "url": "https://science.nasa.gov/mission/voyager/where-are-voyager-1-and-voyager-2-now/",
+   "read": "2026-10-16",
+   "pageUpdated": "2026-10-15",
+   "title": "Where are Voyager 1 and Voyager 2 now?"
+  },
+  "nasa-making-of": {
+   "url": "https://science.nasa.gov/mission/voyager/making-of-the-golden-record/",
+   "read": "2026-10-16",
+   "pageUpdated": "2025-04-07",
+   "title": "Making of the Golden Record"
+  },
+  "jpl-inscription": {
+   "url": "https://jpl.nasa.gov/blog/2015/10/voyager-golden-record-inscription-1977",
+   "read": "2026-10-16",
+   "pageUpdated": "2015-10-29",
+   "title": "Voyager Golden Record inscription (JPL, Slice of History)"
+  },
+  "bailer-jones-2019": {
+   "url": "https://arxiv.org/abs/1912.03503",
+   "read": "2026-10-16",
+   "pageUpdated": null,
+   "title": "Bailer-Jones and Farnocchia 2019, RNAAS 3, 59"
+  },
+  "ssd72": {
+   "url": "https://doi.org/10.1126/science.175.4024.881",
+   "read": "2026-10-16",
+   "pageUpdated": null,
+   "title": "Sagan, Salzman Sagan and Drake 1972, Science 175, 881, Table 1"
+  }
+ },
+ "instruments": {
+  "asOf": "2026-08-04",
+  "asOfText": "NASA's status of 4 August 2026",
+  "source": [
+   "nasa-instruments",
+   "nasa-blog-2026-08-04",
+   "jpl-lecp-off"
+  ],
+  "craft": [
+   {
+    "id": "-31",
+    "name": "Voyager 1",
+    "instruments": [
+     {
+      "code": "ISS",
+      "name": "cameras (imaging science)",
+      "on": false,
+      "offDates": [
+       "1990-02-14"
+      ],
+      "reason": "power"
+     },
+     {
+      "code": "CRS",
+      "name": "cosmic ray subsystem",
+      "on": false,
+      "offDates": [
+       "2025-02-25"
+      ],
+      "reason": "power"
+     },
+     {
+      "code": "LECP",
+      "name": "low-energy charged particle instrument",
+      "on": false,
+      "offDates": [
+       "2026-04-17"
+      ],
+      "reason": "power",
+      "note": "A 0.5 W scan motor was left on so that a restart stays possible."
+     },
+     {
+      "code": "MAG",
+      "name": "magnetometer",
+      "on": true
+     },
+     {
+      "code": "PLS",
+      "name": "plasma science",
+      "on": false,
+      "offDates": [
+       "2007-02-01"
+      ],
+      "reason": "degraded"
+     },
+     {
+      "code": "PWS",
+      "name": "plasma wave subsystem",
+      "on": true
+     },
+     {
+      "code": "IRIS",
+      "name": "infrared interferometer spectrometer",
+      "on": false,
+      "offDates": [
+       "1998-06-03"
+      ],
+      "reason": "power"
+     },
+     {
+      "code": "PPS",
+      "name": "photopolarimeter",
+      "on": false,
+      "offDates": [
+       "1980-01-29"
+      ],
+      "reason": "degraded"
+     },
+     {
+      "code": "PRA",
+      "name": "planetary radio astronomy",
+      "on": false,
+      "offDates": [
+       "2008-01-15"
+      ],
+      "reason": "power"
+     },
+     {
+      "code": "UVS",
+      "name": "ultraviolet spectrometer",
+      "on": false,
+      "offDates": [
+       "2016-04-19"
+      ],
+      "reason": "power"
+     }
+    ]
+   },
+   {
+    "id": "-32",
+    "name": "Voyager 2",
+    "instruments": [
+     {
+      "code": "ISS",
+      "name": "cameras (imaging science)",
+      "on": false,
+      "offDates": [
+       "1989-10-10",
+       "1989-12-05"
+      ],
+      "reason": "power"
+     },
+     {
+      "code": "CRS",
+      "name": "cosmic ray subsystem",
+      "on": true
+     },
+     {
+      "code": "LECP",
+      "name": "low-energy charged particle instrument",
+      "on": false,
+      "offDates": [
+       "2025-03-24"
+      ],
+      "reason": "power"
+     },
+     {
+      "code": "MAG",
+      "name": "magnetometer",
+      "on": true
+     },
+     {
+      "code": "PLS",
+      "name": "plasma science",
+      "on": false,
+      "offDates": [
+       "2024-09-26"
+      ],
+      "reason": "power"
+     },
+     {
+      "code": "PWS",
+      "name": "plasma wave subsystem",
+      "on": true
+     },
+     {
+      "code": "IRIS",
+      "name": "infrared interferometer spectrometer",
+      "on": false,
+      "offDates": [
+       "2007-02-01"
+      ],
+      "reason": "power"
+     },
+     {
+      "code": "PPS",
+      "name": "photopolarimeter",
+      "on": false,
+      "offDates": [
+       "1991-04-03"
+      ],
+      "reason": "degraded"
+     },
+     {
+      "code": "PRA",
+      "name": "planetary radio astronomy",
+      "on": false,
+      "offDates": [
+       "2008-02-21"
+      ],
+      "reason": "power"
+     },
+     {
+      "code": "UVS",
+      "name": "ultraviolet spectrometer",
+      "on": false,
+      "offDates": [
+       "1998-11-12"
+      ],
+      "reason": "power"
+     }
+    ]
+   }
+  ],
+  "powerLossWattsPerYear": 4,
+  "powerLossSource": [
+   "nasa-blog-2026-08-04"
+  ],
+  "bigBang": {
+   "name": "Big Bang",
+   "date": "2026-08-04",
+   "text": "A power rearrangement nicknamed \"Big Bang\" worked on Voyager 2 on 4 August 2026. Without it another instrument would have gone off before the end of 2026; with it the three run \"at least an extra year\". The same change on Voyager 1 is due \"in the coming months\"."
+  }
+ },
+ "lightDay": {
+  "craft": "-31",
+  "nasaUtc": "2026-11-18T10:16:07Z",
+  "nasaLocal": "2:16:07 a.m. PST",
+  "nasaMiles": 16094000000,
+  "nasaKm": 25902000000,
+  "fromBody": "Earth",
+  "source": [
+   "nasa-where-now"
+  ]
+ },
+ "gliese445": {
+  "published": [
+   {
+    "id": "bailer-jones-2019",
+    "who": "Bailer-Jones and Farnocchia 2019 (Gaia DR2)",
+    "years": 44000,
+    "pc": 0.575,
+    "lightYears": 1.88,
+    "kmS": 116,
+    "source": [
+     "bailer-jones-2019"
+    ]
+   }
+  ],
+  "nasaPopular": {
+   "text": "NASA gives about 1.6 to 1.7 light-years in about 40,000 years.",
+   "lightYearsLow": 1.6,
+   "lightYearsHigh": 1.7,
+   "years": 40000,
+   "source": [
+    "nasa-where-now"
+   ]
+  }
+ },
+ "map": {
+  "periodsEpoch": {
+   "text": "1970/1971 epoch",
+   "years": [
+    1970,
+    1971
+   ],
+   "source": [
+    "ssd72"
+   ]
+  },
+  "launchYear": 1977,
+  "note": "Launch year here is the calendar year only, for the \"about six years\" in the research note; the interface computes the launch date from data/scenario.json."
+ },
+ "inscription": {
+  "text": "To the makers of music - all worlds, all times",
+  "etched": "Etched by hand between the label and the grooves.",
+  "ferris": "Timothy Ferris asked for one line made by a human hand.",
+  "where": "between the photoengraved label and the record grooves",
+  "source": [
+   "nasa-making-of",
+   "jpl-inscription"
+  ]
+ },
+ "credits": {
+  "people": [
+   {
+    "name": "Carl Sagan",
+    "role": "chaired the committee that made the record",
+    "check": "chaired by Carl Sagan"
+   },
+   {
+    "name": "Frank Drake",
+    "role": "committee",
+    "check": "Frank Drake"
+   },
+   {
+    "name": "Ann Druyan",
+    "role": "committee",
+    "check": "Ann Druyan"
+   },
+   {
+    "name": "Timothy Ferris",
+    "role": "committee, and the producer who asked for the hand-etched line",
+    "check": "Timothy Ferris"
+   },
+   {
+    "name": "Jon Lomberg",
+    "role": "committee",
+    "check": "Jon Lomberg"
+   },
+   {
+    "name": "Linda Salzman Sagan",
+    "role": "committee",
+    "check": "Linda Salzman Sagan"
+   }
+  ],
+  "sources": [
+   {
+    "name": "Ozma Records",
+    "what": "the 2016 transfer of the image tape and the 2017 remaster of the record audio",
+    "check": "Ozma Records"
+   },
+   {
+    "name": "NASA and JPL",
+    "what": "the Voyager model, the cover diagram and photo, the instruments and the music table",
+    "check": "NASA"
+   },
+   {
+    "name": "JPL Horizons",
+    "what": "where the Voyagers and Earth are, any day this century",
+    "check": "JPL Horizons"
+   },
+   {
+    "name": "ESA Gaia",
+    "what": "the positions and motions of the stars, and the sky picture",
+    "check": "Gaia DR3"
+   },
+   {
+    "name": "ATNF Pulsar Catalogue",
+    "what": "the fourteen pulsars of the map",
+    "check": "ATNF Pulsar Catalogue"
+   },
+   {
+    "name": "Jodrell Bank",
+    "what": "the glitch catalogue and the Crab ephemeris",
+    "check": "Jodrell Bank"
+   },
+   {
+    "name": "Bailer-Jones and Farnocchia",
+    "what": "the flybys and the Voyagers' departure directions",
+    "check": "Bailer-Jones"
+   },
+   {
+    "name": "Sagan, Salzman Sagan and Drake",
+    "what": "the 1972 table that names the map's pulsars",
+    "check": "Salzman Sagan"
+   },
+   {
+    "name": "HYG Stellar Database",
+    "what": "the nearby stars",
+    "check": "HYG Stellar Database"
+   }
+  ]
+ }
+}

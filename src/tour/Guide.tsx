@@ -14,6 +14,7 @@ import { showWhere } from './Spotlight';
 import { Text } from './text';
 import type { Stop } from './types';
 import { VoyagerNow } from './VoyagerNow';
+import { showEpilogueSection } from '../chapters/epilogue/EpilogueInstrument';
 
 function Head(p: { stop: Stop; step: number; furthest: number }) {
   const part = PARTS.find((x) => x.id === p.stop.part);
@@ -152,6 +153,10 @@ function StopView(p: { stop: Stop; step: number; layout: 'column' | 'card' }) {
   const learned = useRef<HTMLElement>(null);
   const was = useRef(done);
   const [fresh, setFresh] = useState(false);
+  // Our Frame: turn the chapter to the section this stop talks about.
+  useEffect(() => {
+    if (stop.section) showEpilogueSection(stop.section);
+  }, [stop.id]);
 
   // When the deduction gets confirmed while we are looking, bring "What we just learned" into view and give it a soft glow.
   useEffect(() => {

@@ -83,12 +83,20 @@ export function chapterOpen(chapter: ChapterId, confirmed: ReadonlySet<string>):
   return allConfirmed(def.requires, confirmed);
 }
 
-export function chapterStatus(chapter: ChapterId, confirmed: ReadonlySet<string>): ChapterStatus {
+const NO_CHAPTERS: ReadonlySet<string> = new Set();
+
+/**
+ * 'done' is every deduction of the chapter confirmed. A built, open chapter with no deductions (Our Frame, the
+ * epilogue) has nothing to confirm, so it is 'done' once the player has entered it (`visited`, saved): the ring's
+ * finished glow then means they have seen the ending, not merely that it was unlocked.
+ */
+export function chapterStatus(chapter: ChapterId, confirmed: ReadonlySet<string>, visited: ReadonlySet<string> = NO_CHAPTERS): ChapterStatus {
   const def = chapterDef(chapter);
   if (!def || !def.built) return 'later';
   if (!chapterOpen(chapter, confirmed)) return 'locked';
   const mine = NODES.filter((n) => n.chapter === chapter);
-  return mine.length > 0 && mine.every((n) => confirmed.has(n.id)) ? 'done' : 'open';
+  if (mine.length === 0) return visited.has(chapter) ? 'done' : 'open';
+  return mine.every((n) => confirmed.has(n.id)) ? 'done' : 'open';
 }
 
 export function nodeStatus(id: string, confirmed: ReadonlySet<string>): NodeStatus {

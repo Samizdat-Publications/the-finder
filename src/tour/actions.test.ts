@@ -28,8 +28,8 @@ function wellFormed(sel: string): boolean {
 }
 
 describe('tour actions', () => {
-  it('the script has do and watch stops (43 deductions)', () => {
-    expect(acting.length).toBe(43);
+  it('the script has do and watch stops (44 deductions)', () => {
+    expect(acting.length).toBe(44);
   });
 
   it('every do or watch stop has a Do it for me action', () => {

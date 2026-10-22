@@ -23,7 +23,7 @@ describe('the graph data', () => {
   it('has the slice nodes with stable ids, real prerequisites and a row of the deduction table each', () => {
     const ids = new Set(NODES.map((n) => n.id));
     expect(ids.size).toBe(NODES.length);
-    expect(ALL_NODES.length).toBe(43); // 18 slice nodes, 13 for M4 (map, spot, trail), 12 for M5 (pictures, voices)
+    expect(ALL_NODES.length).toBe(44); // 18 slice nodes, 13 for M4 (map, spot, trail), 12 for M5 (pictures, voices), 1 for M6 (portrait)
     expect(NODES.length).toBe(ALL_NODES.filter((n) => !n.later).length); // in play: every node not still `later`
     const allIds = new Set(ALL_NODES.map((n) => n.id));
     for (const n of ALL_NODES) {
@@ -31,7 +31,7 @@ describe('the graph data', () => {
       for (const r of n.requires) expect(allIds.has(r), `${n.id} requires unknown ${r}`).toBe(true);
       if (!n.later) for (const r of n.requires) expect(ids.has(r), `${n.id} in play requires ${r}, which is not`).toBe(true);
       expect(n.checkedRow).toBeGreaterThanOrEqual(1);
-      expect(n.checkedRow).toBeLessThanOrEqual(16);
+      expect(n.checkedRow).toBeLessThanOrEqual(17);
       expect(n.hints.every((h) => h.length > 10)).toBe(true);
     }
     for (const c of CHAPTERS) for (const r of c.requires) expect(ids.has(r)).toBe(true);
@@ -125,6 +125,7 @@ describe('no spoilers', () => {
     'voices.hearing': ['band', 'frequencies'],
     'voices.octave': ['doubled', 'steps'],
     'voices.others': ['animals'],
+    'portrait.together': ['warm-white', 'agree', 'sent from', 'same time'],
   };
   it('every node has a question that gives away neither its conclusion nor its key terms', () => {
     for (const n of ALL_NODES) {
@@ -171,7 +172,8 @@ describe('gating (D-A06)', () => {
       expect(chapterStatus(c, confirmedSet.value)).toBe('later');
       await expect(dispatch({ type: 'chapter.enter', chapter: c })).rejects.toThrow(/later/);
     }
-    for (const c of ['portrait', 'epilogue'] as const) expect(NODES.some((n) => n.chapter === c)).toBe(false);
+    // Our Frame has no deduction; Portrait has one (portrait.together), in play once its chapter is built.
+    expect(NODES.some((n) => n.chapter === 'epilogue')).toBe(false);
     expect(ALL_NODES.filter((n) => n.later).every((n) => !NODES.includes(n))).toBe(true);
   });
 

@@ -17,6 +17,10 @@ doc.innerHTML = `<p class="note"><a href="/">The Finder</a></p>${html}`;
 for (const table of Array.from(doc.querySelectorAll('table'))) {
   const wrap = document.createElement('div');
   wrap.className = 'table-scroll';
+  // Focusable so the keyboard can scroll a wide table sideways (WCAG 2.1.1).
+  wrap.tabIndex = 0;
+  wrap.setAttribute('role', 'region');
+  wrap.setAttribute('aria-label', 'Table, scrolls sideways');
   table.replaceWith(wrap);
   wrap.appendChild(table);
 }

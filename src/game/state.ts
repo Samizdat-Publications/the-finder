@@ -96,11 +96,15 @@ export const game = {
   tour: signal<TourState>({ ...TOUR_OFF }),
   /** The last refused command's reason, for the interface to show. */
   error: signal<string | null>(null),
+  /** Chapters with no deductions that the player has entered (saved): Our Frame. See chapterStatus. */
+  visited: signal<string[]>([]),
 };
 
 export const confirmedSet = computed<ReadonlySet<string>>(
   () => new Set(Object.entries(game.records.value).filter(([, r]) => r.confirmed).map(([id]) => id)),
 );
+
+export const visitedSet = computed<ReadonlySet<string>>(() => new Set(game.visited.value));
 
 export const hintsUsed = computed(() => Object.values(game.records.value).reduce((n, r) => n + r.hints, 0));
 
@@ -124,7 +128,7 @@ function gameSnapshot() {
         return [n.id, { confirmed: confirmed.has(n.id), attempts: r ? r.attempts.map((a) => ({ ...a })) : [], hints: r?.hints ?? 0 }];
       }),
     ) as Record<string, { confirmed: boolean; attempts: Attempt[]; hints: number }>,
-    chapterStatus: Object.fromEntries(CHAPTERS.map((c) => [c.id, chapterStatus(c.id, confirmed)])) as Record<string, ChapterStatus>,
+    chapterStatus: Object.fromEntries(CHAPTERS.map((c) => [c.id, chapterStatus(c.id, confirmed, visitedSet.value)])) as Record<string, ChapterStatus>,
   };
 }
 

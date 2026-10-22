@@ -4,6 +4,7 @@
 
 import coverJson from '../../data/cover.json';
 import { M5_NODES, M5_QUESTIONS } from './nodesM5';
+import { M6_NODES, M6_QUESTIONS, PORTRAIT_READS } from './nodesM6';
 import { binaryToMetres, binaryToSeconds } from '../science/units';
 
 export type ChapterId =
@@ -69,8 +70,9 @@ export const CHAPTERS: readonly ChapterDef[] = [
   { id: 'player', title: 'The Player', gloss: 'How the disc is meant to be played.', requires: ['key.timesNotLengths'], built: true },
   { id: 'pictures', title: 'The Pictures', gloss: 'Turning the signal into images.', requires: ['key.timesNotLengths'], built: true },
   { id: 'voices', title: 'The Voices', gloss: 'What the disc says.', requires: ['player.firstSound'], built: true },
-  { id: 'portrait', title: 'Portrait', gloss: 'Who sent it.', requires: ['pictures.firstFrames'], built: false },
-  { id: 'epilogue', title: 'Our Frame', gloss: 'Where the machines are now.', requires: ['pictures.firstFrames'], built: false },
+  { id: 'portrait', title: 'Portrait', gloss: 'Who sent it.', requires: [...PORTRAIT_READS], built: true },
+  // Our Frame has no deductions of its own: it opens after Portrait's last one and is done once entered (deductions.ts chapterStatus).
+  { id: 'epilogue', title: 'Our Frame', gloss: 'Where the machines are now.', requires: ['portrait.together'], built: true },
 ];
 
 const QUESTIONS: Record<string, string> = {
@@ -394,7 +396,7 @@ const RAW_NODES: readonly Omit<NodeDef, 'question'>[] = [
 ];
 
 /** Every deduction defined so far, playable or not (tests, and builders looking up a node they are building). */
-export const ALL_NODES: readonly NodeDef[] = [...RAW_NODES, ...M5_NODES].map((n) => ({ ...n, question: QUESTIONS[n.id] ?? M5_QUESTIONS[n.id] ?? '' }));
+export const ALL_NODES: readonly NodeDef[] = [...RAW_NODES, ...M5_NODES, ...M6_NODES].map((n) => ({ ...n, question: QUESTIONS[n.id] ?? M5_QUESTIONS[n.id] ?? M6_QUESTIONS[n.id] ?? '' }));
 
 /** The deductions in play: every node not marked `later`. */
 export const NODES: readonly NodeDef[] = ALL_NODES.filter((n) => !n.later);

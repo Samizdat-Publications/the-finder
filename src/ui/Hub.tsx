@@ -3,7 +3,7 @@
 
 import { chapterStatus, type ChapterStatus } from '../game/deductions';
 import { CHAPTERS, chapterDef, nodeDef } from '../game/graph';
-import { confirmedSet, game } from '../game/state';
+import { confirmedSet, game, visitedSet } from '../game/state';
 import { GlyphLabel, GlyphSvg } from './Glyph';
 import { send } from './send';
 
@@ -31,10 +31,11 @@ const LEGEND: readonly { status: ChapterStatus; text: string }[] = [
 
 export function Hub() {
   const confirmed = confirmedSet.value;
-  const statuses = CHAPTERS.map((c) => chapterStatus(c.id, confirmed));
+  const visited = visitedSet.value;
+  const statuses = CHAPTERS.map((c) => chapterStatus(c.id, confirmed, visited));
   const lit = statuses.map((s) => s === 'open' || s === 'done');
   // The finished ring: every chapter that is built is done. A slow glow then runs along the lit arcs.
-  const builtStatuses = CHAPTERS.filter((c) => c.built).map((c) => chapterStatus(c.id, confirmed));
+  const builtStatuses = CHAPTERS.filter((c) => c.built).map((c) => chapterStatus(c.id, confirmed, visited));
   const finished = builtStatuses.length > 0 && builtStatuses.every((s) => s === 'done');
   return (
     <section class="hub" aria-label="The ring of chapters" data-ring-finished={finished ? 'true' : 'false'}>
@@ -65,7 +66,7 @@ export function Hub() {
           <p class="gloss">or pick any lit chapter to explore on your own</p>
         </div>
         {CHAPTERS.map((c, i) => {
-          const status = chapterStatus(c.id, confirmed);
+          const status = chapterStatus(c.id, confirmed, visited);
           const a = angle(i);
           return (
             <button

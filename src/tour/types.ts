@@ -17,6 +17,7 @@ export type PartId =
   | 'spot'
   | 'map'
   | 'trail'
+  | 'portrait'
   | 'finale';
 
 export interface PartDef {
@@ -54,4 +55,6 @@ export interface Stop {
   ask?: string;
   /** A picture or live panel shown with the stop on the story stage: the cover drawing, or where the Voyagers are now (VoyagerNow.tsx). */
   widget?: 'cover' | 'voyagerNow';
+  /** Our Frame: the section of the chapter this stop talks about; the guide turns the chapter to it. */
+  section?: 'turn' | 'now' | 'listening' | 'future' | 'map' | 'line';
 }

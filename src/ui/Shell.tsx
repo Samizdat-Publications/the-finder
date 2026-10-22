@@ -6,7 +6,7 @@ import { useEffect } from 'preact/hooks';
 import { soundMuted, toggleMuted } from '../audio/mixer';
 import { chapterStatus, openNodes } from '../game/deductions';
 import { CHAPTERS, NODES, chapterDef } from '../game/graph';
-import { confirmedSet, game, hintsUsed } from '../game/state';
+import { confirmedSet, game, hintsUsed, visitedSet } from '../game/state';
 import { Codex } from './Codex';
 import { GlyphLabel } from './Glyph';
 import { Hub } from './Hub';
@@ -28,7 +28,7 @@ function MiniRing() {
       <circle r="9" class="mtrack" />
       {CHAPTERS.map((c, i) => {
         const a = (i / CHAPTERS.length) * 2 * Math.PI - Math.PI / 2;
-        const s = chapterStatus(c.id, confirmed);
+        const s = chapterStatus(c.id, confirmed, visitedSet.value);
         return <circle key={c.id} cx={9 * Math.cos(a)} cy={9 * Math.sin(a)} r="1.9" class={`mdot ${s}`} />;
       })}
     </svg>

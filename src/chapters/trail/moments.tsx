@@ -8,6 +8,7 @@
 //    ages in the origin star's frame, with that frame's combined 95% band.
 // Every position is computed from the epoch model; reduced motion shows the final picture with no movement.
 
+import type { ComponentChildren } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { sub, toGalacticCartesian, toSpherical, type Vec3 } from '../../science/astro';
 import { brightestStars, starStateAt } from '../../science/epoch';
@@ -65,7 +66,7 @@ export function OriginBackdrop(p: { m: EpochModel | null; reducedMotion: boolean
 }
 
 /** Galactic longitude and latitude to a Hammer all-sky map, longitude increasing to the left, in units of the map's half-width. */
-function hammer(lDeg: number, bDeg: number): [number, number] {
+export function hammer(lDeg: number, bDeg: number): [number, number] {
   const l = (((lDeg + 180) % 360) + 360) % 360 - 180;
   const lr = (l * Math.PI) / 180;
   const br = (bDeg * Math.PI) / 180;
@@ -73,21 +74,38 @@ function hammer(lDeg: number, bDeg: number): [number, number] {
   return [-(2 * Math.SQRT2 * Math.cos(br) * Math.sin(lr / 2)) / d / (2 * Math.SQRT2), (Math.SQRT2 * Math.sin(br)) / d / Math.SQRT2];
 }
 
-export function SkyBackdrop(p: { m: EpochModel | null }) {
+/** One star of the alien's sky: its brightness rank, magnitude, name, place on the Hammer map and colour. */
+export interface SkyStar {
+  id: number;
+  rank: number;
+  mag: number;
+  name: string;
+  xy: [number, number];
+  origin: boolean;
+  rgb: string;
+}
+
+/** The alien's own sky at the epoch: its brightest stars seen from its measured place, the origin star marked (Portrait reuses it). */
+export function skyStars(m: EpochModel, count = SKY_STARS): SkyStar[] {
+  const t = m.disc.decimalYear;
+  const home = homeId(m);
+  const origin = originRow(m).star.id;
+  const at: Vec3 = m.measured.posPc;
+  return brightestStars(m.inputs.stars, at, t, count, [home]).map((s, i) => {
+    const g = toSpherical(toGalacticCartesian(sub(starStateAt(s.star, t).posPc, at)));
+    const [cr, cg, cb] = bvToSrgb(s.star.ci);
+    return { id: s.star.id, rank: i + 1, mag: s.appMag, name: starName(s.star), xy: hammer(g.lonDeg, g.latDeg), origin: s.star.id === origin, rgb: `rgb(${Math.round(cr * 255)}, ${Math.round(cg * 255)}, ${Math.round(cb * 255)})` };
+  });
+}
+
+/**
+ * The alien's sky (trail.neighbour's moment). Portrait's moment reuses it: `ring: false` leaves the origin star
+ * unringed and unnamed, and `overlay` draws over the sky at the origin star's place (x, y, its drawn radius, and the
+ * sky's width and height).
+ */
+export function SkyBackdrop(p: { m: EpochModel | null; ring?: boolean; overlay?: (t: { x: number; y: number; r: number; w: number; h: number }) => ComponentChildren }) {
   const [ref, size] = useSize<HTMLDivElement>();
-  const sky = useMemo(() => {
-    const m = p.m;
-    if (!m) return null;
-    const t = m.disc.decimalYear;
-    const home = homeId(m);
-    const origin = originRow(m).star.id;
-    const at: Vec3 = m.measured.posPc;
-    return brightestStars(m.inputs.stars, at, t, SKY_STARS, [home]).map((s, i) => {
-      const g = toSpherical(toGalacticCartesian(sub(starStateAt(s.star, t).posPc, at)));
-      const [cr, cg, cb] = bvToSrgb(s.star.ci);
-      return { id: s.star.id, rank: i + 1, mag: s.appMag, name: starName(s.star), xy: hammer(g.lonDeg, g.latDeg), origin: s.star.id === origin, rgb: `rgb(${Math.round(cr * 255)}, ${Math.round(cg * 255)}, ${Math.round(cb * 255)})` };
-    });
-  }, [p.m]);
+  const sky = useMemo(() => (p.m ? skyStars(p.m) : null), [p.m]);
   const w = size.w;
   const h = size.h;
   const R = Math.min(w / 2.2, h / 1.25);
@@ -118,7 +136,11 @@ export function SkyBackdrop(p: { m: EpochModel | null }) {
               </g>
             );
           })}
-          {target && (() => {
+          {target && p.overlay && (() => {
+            const [x, y] = at(target.xy);
+            return p.overlay({ x, y, r: Math.max(1.6, 6.5 - 1.1 * target.mag), w, h });
+          })()}
+          {target && p.ring !== false && (() => {
             const [x, y] = at(target.xy);
             return (
               <g class="sky-target">

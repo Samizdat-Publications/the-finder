@@ -7,8 +7,8 @@ import { resetAll } from '../game/gameService';
 import { game, turntable, type NodeRecord } from '../game/state';
 import type { NeedleState } from '../record/engine';
 import { Ambience } from './ambience';
-import { HUSH_NODE, MIN_GAP_MS, SWELL_NODE, TWIST_NODE, WARM_NODE, captionFor, clearCueLog, cueLog, lastCaption, startCues, type Cues, type CueEvent, type SoundSink } from './cues';
-import { CHAPTER_VOICE, DUCK_DB, HUSH_DB, dbToLin, voiceFor } from './synth';
+import { HUSH_NODE, MIN_GAP_MS, PORTRAIT_BED_CAPTION, SWELL_NODE, TWIST_NODE, WARM_NODE, captionFor, clearCueLog, confirmationCue, cueLog, lastCaption, startCues, type Cues, type CueEvent, type SoundSink } from './cues';
+import { CHAPTER_VOICE, DUCK_DB, HUSH_DB, dbToLin, portraitChord, voiceFor } from './synth';
 
 class FakeSink implements SoundSink {
   events: CueEvent[] = [];
@@ -198,7 +198,7 @@ describe('rate limits', () => {
   });
 
   it('gives every cue with a sound a caption but the tick and the ducking', () => {
-    for (const k of ['pluck', 'cadence', 'breath', 'swell', 'hush', 'chapter', 'snap', 'warm', 'twist'] as const) expect(captionFor(k)).toBeTruthy();
+    for (const k of ['pluck', 'cadence', 'breath', 'swell', 'hush', 'chapter', 'snap', 'warm', 'twist', 'agree'] as const) expect(captionFor(k)).toBeTruthy();
     expect(captionFor('tick')).toBeNull();
   });
 });
@@ -218,6 +218,28 @@ describe('the keys', () => {
     expect(new Set(built.map((c) => CHAPTER_VOICE[c].bed)).has('hub')).toBe(false);
     expect(CHAPTER_VOICE.pictures).toEqual({ rootHz: 73.42, pluckHz: 293.66, bed: 'shimmer' });
     expect(CHAPTER_VOICE.player).toEqual({ rootHz: 49.0, pluckHz: 196.0, bed: 'warm' });
+  });
+
+  it("gives Portrait its own key and its own bed, a chord of the roots of the chapters its plate draws on", () => {
+    const built = ['arrival', 'key', 'player', 'pictures', 'map', 'spot', 'trail', 'voices'] as const;
+    expect(CHAPTER_VOICE.portrait).toEqual({ rootHz: 61.74, pluckHz: 246.94, bed: 'portrait' });
+    expect(built.map((c) => CHAPTER_VOICE[c].rootHz)).not.toContain(CHAPTER_VOICE.portrait.rootHz);
+    expect(built.map((c) => CHAPTER_VOICE[c].bed)).not.toContain('portrait');
+    // Folded into one octave from 110 Hz: every root lands on a note of the chord (within 20 cents), and the chord
+    // is those notes only (the Player's G and the Voices' G, an octave apart, are one note).
+    const chord = portraitChord(110);
+    for (const c of built) {
+      const f = CHAPTER_VOICE[c].rootHz;
+      expect(chord.some((n) => Math.abs(((1200 * Math.log2(n / f)) % 1200 + 1200) % 1200) < 20 || Math.abs(((1200 * Math.log2(n / f)) % 1200 + 1200) % 1200 - 1200) < 20), c).toBe(true);
+    }
+    expect(chord.length).toBe(7);
+    expect(chord.every((n) => n >= 110 && n < 220)).toBe(true);
+  });
+
+  it("plays the resolving swell for portrait.together, captioned, and captions Portrait's bed", () => {
+    expect(confirmationCue(['portrait.together'])).toEqual({ kind: 'agree', chapter: 'portrait', nodeId: 'portrait.together' });
+    expect(captionFor('agree')).toBe('the clocks agree');
+    expect(PORTRAIT_BED_CAPTION).toMatch(/chord/);
   });
 });
 

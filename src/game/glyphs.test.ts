@@ -5,8 +5,11 @@ import { recordCheck } from '../../tests/support/record';
 import { GLYPH_H, GLYPH_W, glyphWord } from '../ui/glyphs';
 import { BEAT_S, HEFT_KG, REACH_M, UNIT_KEY, formatNumber, formatSI, fromAlien, quantity, toAlien, unitInSI } from '../ui/units';
 import { CHAPTERS, NODES } from './graph';
+import { PANEL_TITLES } from '../chapters/portrait/panels';
+import { SENDERS_STAR } from '../chapters/portrait/moments';
 
-const KEYS = [...NODES.map((n) => n.key), ...CHAPTERS.map((c) => c.title), ...Object.values(UNIT_KEY)];
+// Portrait's panel titles and the warm-white star's new name are glyph words too (M6).
+const KEYS = [...NODES.map((n) => n.key), ...CHAPTERS.map((c) => c.title), ...Object.values(UNIT_KEY), ...Object.values(PANEL_TITLES), SENDERS_STAR];
 
 describe('glyph labels', () => {
   it('give the same glyphs for the same key, every time', () => {

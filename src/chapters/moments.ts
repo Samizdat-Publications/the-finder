@@ -12,6 +12,7 @@ import type { MomentId } from '../ui/momentState';
 import { RegionBackdrop } from './map/RegionMoment';
 import { PICTURE_MOMENTS } from './pictures/momentsM5';
 import { VOICES_MOMENTS } from './voices/moments';
+import { PORTRAIT_MOMENTS } from './portrait/moments';
 import type { EpochModel, HeavyPart } from './shared/epochModel';
 import { SpotBackdrop } from './spot/AgeMoment';
 import { OriginBackdrop, SkyBackdrop, WhenBackdrop } from './trail/moments';
@@ -118,4 +119,6 @@ export const MOMENTS: Readonly<Record<MomentId, MomentDef>> = {
   ...PICTURE_MOMENTS,
   // M5: The Voices (src/chapters/voices/moments.tsx)
   ...VOICES_MOMENTS,
+  // M6: Portrait (src/chapters/portrait/moments.tsx)
+  ...PORTRAIT_MOMENTS,
 };

@@ -54,6 +54,18 @@ export default async function run({ page, baseUrl, record, assert, log }) {
       { name: 'tick', level: 'tick', lenS: 0.2, make: (ctx, seed) => ui.tick(ctx, ctx.destination, 0, createRng(seed)) },
       { name: 'breath', level: 'breath', lenS: 2, make: (ctx, seed) => ui.breath(ctx, ctx.destination, 0, createRng(seed)) },
       { name: 'swell', level: 'swell', lenS: 8, make: (ctx, seed) => ui.swell(ctx, ctx.destination, 0, synth.voiceFor('pictures').rootHz * 2, createRng(seed)) },
+      { name: 'agree', level: 'agree', lenS: 9, make: (ctx, seed) => ui.agree(ctx, ctx.destination, 0, synth.voiceFor('portrait').rootHz * 2, createRng(seed)) },
+      // Portrait's bed (M6): its notes swell over 16 to 34 s each, so it renders long enough for every note's crest.
+      {
+        name: 'bed-portrait',
+        level: 'portraitBed',
+        lenS: 40,
+        make: (ctx, seed) => {
+          const b = amb.buildBed(ctx, 'portrait', 0, createRng(seed));
+          b.out.connect(ctx.destination);
+          return { durationS: 40 };
+        },
+      },
       ...['arrival', 'key', 'player', 'pictures'].map((c) => ({
         name: `bed-${c}`,
         level: 'bed',
@@ -181,7 +193,7 @@ export default async function run({ page, baseUrl, record, assert, log }) {
     assert(r.identical, `${r.name} renders the same samples for the same seed (largest difference ${r.maxDiff.toExponential(1)}, the browser's float rounding)`);
     assert(dev <= HIGH_DB, `${r.name} peaks at ${r.peakDbfs.toFixed(2)} dBFS, above its target ${r.targetDbfs} (+${HIGH_DB} dB)`);
     assert(dev >= -LOW_DB, `${r.name} peaks at ${r.peakDbfs.toFixed(2)} dBFS, far below its target ${r.targetDbfs}`);
-    if (r.level !== 'bed') assert(r.tailPeak < r.peak * 0.003 + 1e-7, `${r.name} ends quietly (no cut-off click)`);
+    if (r.level !== 'bed' && r.level !== 'portraitBed') assert(r.tailPeak < r.peak * 0.003 + 1e-7, `${r.name} ends quietly (no cut-off click)`);
   }
   for (const n of ['tick', 'breath', 'pluck-arrival', 'pluck-key']) {
     const r = rendered.find((x) => x.name === n);

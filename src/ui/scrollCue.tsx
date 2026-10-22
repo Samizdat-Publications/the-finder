@@ -28,6 +28,16 @@ function scan(): Cue[] {
     const above = scrolls && el.scrollTop > SLACK_PX;
     el.classList.toggle('scrolls-more', below);
     el.classList.toggle('scrolls-back', above);
+    // A box that scrolls must take focus so the keyboard can scroll it (WCAG 2.1.1; axe scrollable-region-focusable).
+    if (scrolls) {
+      if (!el.hasAttribute('tabindex')) {
+        el.setAttribute('tabindex', '0');
+        el.dataset.scrollFocus = '1';
+      }
+    } else if (el.dataset.scrollFocus) {
+      el.removeAttribute('tabindex');
+      delete el.dataset.scrollFocus;
+    }
     if (!below) continue;
     const r = el.getBoundingClientRect();
     if (r.height < 80 || r.width < 60) continue;

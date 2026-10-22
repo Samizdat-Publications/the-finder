@@ -4,7 +4,7 @@
 //
 // bot.game: the right answers in an order the gating allows: the slice (playSlice), then The Map, The Spot and
 //   The Trail through their instruments (the chapters' own play paths, exported by their browser tests). All
-//   31 deductions confirm, the codex holds 31 entries, the ring shows every built chapter done with the
+//   all 44 deductions confirm, the codex holds 44 entries, the ring shows every built chapter done with the
 //   finished glow, no console errors (the harness), and the cue log holds the M4 moments once each, at their
 //   moments. Captures for the blind critic go to review/inbox/<timestamp>-m4/frames/ at 1440x900 with
 //   manifest.json (what each shows) and shots.txt (what the player did before each, in plain words).
@@ -14,12 +14,14 @@
 import { join } from 'node:path';
 import { ROOT } from '../../tools/harness/serve.mjs';
 import { MOMENT_SHOWS, playMap } from './map.browser.mjs';
-import { MOMENT_IDS } from './moments.mjs';
+import { MOMENT_IDS, skipMoments } from './moments.mjs';
+import { PORTRAIT_IDS, playPortrait } from './portrait.browser.mjs';
 import { m4WrongPass } from './m4wrong.mjs';
 import { SLICE_IDS, freshStart, playSlice, reviewFolder, stamp } from './slice.browser.mjs';
 import { playSpot } from './spot.browser.mjs';
 import { playTrail } from './trail.browser.mjs';
 import { M5_PICTURE_IDS, playPicturesM5 } from './album.browser.mjs';
+import { playEpilogue } from './epilogue.browser.mjs';
 import { VOICES_IDS, playVoices } from './voices.browser.mjs';
 
 const M4_IDS = [
@@ -27,7 +29,7 @@ const M4_IDS = [
   'spot.find', 'spot.age', 'spot.purity',
   'trail.origin', 'trail.age', 'trail.neighbour', 'trail.where', 'trail.when',
 ];
-const ALL_IDS = [...SLICE_IDS, ...M5_PICTURE_IDS, ...VOICES_IDS, ...M4_IDS];
+const ALL_IDS = [...SLICE_IDS, ...M5_PICTURE_IDS, ...VOICES_IDS, ...M4_IDS, ...PORTRAIT_IDS];
 
 /** The frames kept for the critic: what each shows and what the player did just before, in plain words. */
 const FRAMES = {
@@ -113,13 +115,28 @@ async function playGame(page, baseUrl, { assert, log }) {
   await extra('trail-neighbour-message', "The ruler's verdict, led by its headline: the distance from the alien's star to the warm-white star, large, with one sentence; the full working (nearest catalogued star, fifth-brightest in its sky) folded under 'show working'.", 'Proposed the age in the warm-white star\'s frame, then went back to the ruler to read what it said about that star.');
   mark('trail');
 
+  // Portrait (M6): the plate read from every confirmed result; the four clocks' combined time dragged to and
+  // proposed; the sky moment (captured), then the plate with its sky strip.
+  await page.evaluate(() => window.__finder.dispatch({ type: 'chapter.enter', chapter: 'hub' }));
+  await playPortrait(page, { assert, log, shot: (n, s) => extra(`portrait-${n}`, s, 'Worked the clocks band.') });
+  await skipMoments(page, { shot: async () => extra('portrait-moment', "The sky moment: the warm-white star ringed in gold and named in the Finder's script as the senders' star.", "Proposed the clocks' combined time."), settleMs: 3500 });
+  await page.waitForSelector('[data-sky-strip="ready"]', { timeout: 30_000 });
+  await extra('portrait-after', "The finished plate: the sky strip with the senders' star, the six panels and the clocks' combined band.", 'Returned from the moment.');
+  mark('portrait');
+
+  // Our Frame (M6): no deductions; a chapter done once entered. The quiet ending, the six sections with the keyboard,
+  // the record playing under it and lifted on leaving (it ends back at the ring).
+  await page.evaluate(() => window.__finder.dispatch({ type: 'chapter.enter', chapter: 'hub' }));
+  await playEpilogue(page, { assert, log });
+  mark('epilogue');
+
   // ---- the codex near the end, then the finished ring ----
   await page.evaluate(() => window.__finder.dispatch({ type: 'codex.open', id: 'trail.when' }));
   await page.waitForTimeout(800);
   const entries = await page.locator('[data-entry]').count();
   await page.locator('[data-entry="trail.when"]').scrollIntoViewIfNeeded();
   await page.waitForTimeout(300);
-  await extra('codex-end', 'The codex near the end: 31 entries worked out over the whole game, scrolled to the last one (when the map was made, with its age and error).', 'Opened the codex and scrolled to its last entry.');
+  await extra('codex-end', 'The codex near the end: every entry worked out over the whole game, scrolled to the last one (when the map was made, with its age and error).', 'Opened the codex and scrolled to its last entry.');
   await page.evaluate(() => window.__finder.dispatch({ type: 'codex.close' }));
   await page.evaluate(() => window.__finder.dispatch({ type: 'chapter.enter', chapter: 'hub' }));
   await page.waitForSelector('[data-ring-finished="true"]', { timeout: 10_000 });
@@ -161,6 +178,10 @@ function checkCues(cues, assert) {
   assert(warm.n < twist.n && twist.n < snap.n, `the moments in play order (${warm.n}, ${twist.n}, ${snap.n})`);
   assert(whenPluck && whenPluck.n > snap.n, 'the ages snap before the map\'s age is proposed and confirmed');
   for (const c of ['map', 'spot', 'trail']) assert(cues.some((x) => x.kind === 'chapter' && x.chapter === c), `the hum changes key for ${c}`);
+  // Portrait (M6): its bed comes in with its own caption, and the clocks agreeing plays the resolving swell once.
+  const agree = one('agree');
+  assert(agree.nodeId === 'portrait.together' && agree.caption === 'the clocks agree', `the clocks agree: ${JSON.stringify(agree)}`);
+  assert(cues.some((x) => x.kind === 'chapter' && x.chapter === 'portrait' && /chord/.test(x.caption ?? '')), "Portrait's bed comes in, captioned");
 }
 
 async function renderLevels(page) {
@@ -246,8 +267,8 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   record({
     id: 'bot.game',
     claim: 'A bot plays the whole game built so far from a fresh save (no seeded save) through the command bus and the instruments: the slice, then The Map, The Spot and The Trail. Every deduction confirms, the codex holds every entry, the ring finishes, nothing errors, and the new sound moments play once each at their moments.',
-    measured: `${res.g.confirmed.length} of 31 confirmed, each result with its headline; the five staged moments once each, skipped with their button, game state unchanged by each; codex ${res.entries} entries; done: ${res.g.built.join(', ')}; cues warm, twist, snap once each in play order; ${res.seconds.toFixed(0)} s (${Object.entries(res.lap).map(([k, v]) => `${k} ${v.toFixed(0)} s`).join(', ')}); ${res.review.shots.length} frames`,
-    expected: '31 of 31 (src/game/graph.ts: 18 slice, 5 Map, 3 Spot, 5 Trail), 31 codex entries, every built chapter done, no console errors (PLAN.md How it\'s checked item 11)',
+    measured: `${res.g.confirmed.length} of ${ALL_IDS.length} confirmed, each result with its headline; the five staged moments once each, skipped with their button, game state unchanged by each; codex ${res.entries} entries; done: ${res.g.built.join(', ')}; cues warm, twist, snap once each in play order; ${res.seconds.toFixed(0)} s (${Object.entries(res.lap).map(([k, v]) => `${k} ${v.toFixed(0)} s`).join(', ')}); ${res.review.shots.length} frames`,
+    expected: '44 of 44 (src/game/graph.ts and nodesM5.ts, nodesM6.ts: every playable deduction, Portrait included, then Our Frame visited), 44 codex entries, every built chapter done, no console errors (PLAN.md How it\'s checked item 11)',
     tolerance: 'exact (interface behaviour)',
     pass: true,
   });

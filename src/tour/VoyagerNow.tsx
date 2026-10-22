@@ -3,52 +3,15 @@
 // Every number here is computed (rule 1); the table is fetched lazily so the play bundle stays small.
 
 import { useEffect, useState } from 'preact/hooks';
-import { isoUtcToJd } from '../science/astro';
-import { crossingJd, distanceKm, hermiteState, lightTimeHours } from '../science/ephemeris';
-import type { EphemerisBody } from '../science/types';
-import { AU_KM } from '../science/units';
+import { lightDayUtcMs, voyagerNow, type EphemerisBodies, type VoyagerNow as Positions } from '../science/voyagerNow';
 
-/** TT - UTC = 32.184 s + 37 leap seconds (in force since 2017); TDB - TT under 2 ms, ignored. */
-const TDB_MINUS_UTC_DAYS = 69.184 / 86_400;
-
-interface Craft {
-  name: string;
-  km: number;
-  hours: number;
-  au: number;
-  speedKmS: number;
-}
-
-interface Now {
-  at: Date;
-  craft: Craft[];
+interface Now extends Positions {
   /** Voyager 1's one-light-day moment (UTC ms), if it falls inside the tables after launch. */
   lightDayMs: number | null;
 }
 
-function compute(bodies: Record<string, EphemerisBody>, at: Date): Now {
-  const jd = isoUtcToJd(at.toISOString()) + TDB_MINUS_UTC_DAYS;
-  const earth = bodies['399']!;
-  const e = hermiteState(earth, jd);
-  const craft = (['-31', '-32'] as const).map((id, i) => {
-    const s = hermiteState(bodies[id]!, jd);
-    const km = distanceKm(s.posKm, e.posKm);
-    return {
-      name: i === 0 ? 'Voyager 1' : 'Voyager 2',
-      km,
-      hours: lightTimeHours(km),
-      au: Math.hypot(...s.posKm) / AU_KM,
-      speedKmS: Math.hypot(...s.velKmS),
-    };
-  });
-  let lightDayMs: number | null = null;
-  try {
-    const jdLd = crossingJd(bodies['-31']!, earth, 24, isoUtcToJd('2020-01-01T00:00:00Z'), isoUtcToJd('2039-12-01T00:00:00Z'));
-    lightDayMs = (jdLd - TDB_MINUS_UTC_DAYS - 2_440_587.5) * 86_400_000;
-  } catch {
-    lightDayMs = null;
-  }
-  return { at, craft, lightDayMs };
+function compute(bodies: EphemerisBodies, at: Date): Now {
+  return { ...voyagerNow(bodies, at), lightDayMs: lightDayUtcMs(bodies) };
 }
 
 const wholeKm = (km: number): string => Math.round(km).toLocaleString('en-US');
@@ -62,7 +25,7 @@ export function VoyagerNow() {
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
-    let bodies: Record<string, EphemerisBody> | null = null;
+    let bodies: EphemerisBodies | null = null;
     const tick = (): void => {
       if (!bodies || !alive) return;
       try {
@@ -73,7 +36,7 @@ export function VoyagerNow() {
     };
     import('../../data/ephemeris.json')
       .then((m) => {
-        bodies = (m.default as unknown as { bodies: Record<string, EphemerisBody> }).bodies;
+        bodies = (m.default as unknown as { bodies: EphemerisBodies }).bodies;
         tick();
       })
       .catch((err: unknown) => setError(String(err)));

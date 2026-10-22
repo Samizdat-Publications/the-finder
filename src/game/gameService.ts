@@ -5,7 +5,7 @@
 
 import { batch } from '@preact/signals';
 import { DEFAULT_SEED, evaluate, nodeStatus, chapterOpen, type Answer, type Attempt } from './deductions';
-import { chapterDef, nodeDef, type ChapterView } from './graph';
+import { NODES, chapterDef, nodeDef, type ChapterView } from './graph';
 import { runStartOver } from './resetHooks';
 import { nextSeed } from './seeds';
 import { coerceSetting, defaultSettings, type SettingName, type Settings } from './settings';
@@ -42,8 +42,8 @@ export function enterChapter(view: ChapterView): void {
   }
   game.error.value = null;
   game.chapter.value = view;
-  // Remember the visit (saved): a chapter with no deductions is done once entered (chapterStatus).
-  if (view !== 'hub' && !game.visited.value.includes(view)) game.visited.value = [...game.visited.value, view];
+  // Remember the visit (saved) for a chapter with no deductions (Our Frame): it is done once entered (chapterStatus).
+  if (view !== 'hub' && !game.visited.value.includes(view) && !NODES.some((n) => n.chapter === view)) game.visited.value = [...game.visited.value, view];
 }
 
 export function propose(id: string, answer: Answer): void {

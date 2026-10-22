@@ -30,6 +30,7 @@ const voices = (): Promise<Mod> => import('./actions/voices');
 const spot = (): Promise<Mod> => import('./actions/spot');
 const map = (): Promise<Mod> => import('./actions/map');
 const trail = (): Promise<Mod> => import('./actions/trail');
+const portrait = (): Promise<Mod> => import('./actions/portrait');
 
 export const SHOW_ME: Record<string, ShowMe> = {
   'arrival.purpose': lazy(arrival, 'purpose'),
@@ -82,6 +83,8 @@ export const SHOW_ME: Record<string, ShowMe> = {
   'trail.neighbour': lazy(trail, 'neighbour'),
   'trail.where': lazy(trail, 'where'),
   'trail.when': lazy(trail, 'when'),
+
+  'portrait.together': lazy(portrait, 'together'),
 };
 
 /** A picture work view's tab. */
@@ -158,4 +161,7 @@ export const TARGETS: Record<string, string[]> = {
   'trail.neighbour': ['[data-tool-panel="ruler"] [data-propose-button="trail.neighbour"]:not([disabled])', '.trinst[data-tool="ruler"] .tr-chart', 'button.tr-tab[data-tool-tab="ruler"]'],
   'trail.where': ['svg.tr-region', 'button.tr-tab[data-tool-tab="region"]'],
   'trail.when': ['svg.tr-reframe:not([data-frame="own"])', '[data-tool-panel="reframe"] select[data-frame-select]', 'button.tr-tab[data-tool-tab="reframe"]'],
+
+  // Portrait: the marker on the clocks band, then the band itself.
+  'portrait.together': ['[data-portrait-marker]', 'svg[data-clocks-chart]'],
 };

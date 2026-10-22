@@ -8,7 +8,7 @@ import { reframeReading } from '../chapters/trail/state';
 import { nodeDef, type ChapterId, type ChapterView } from '../game/graph';
 import { confirmedSet, game, turntable } from '../game/state';
 
-export type CueKind = 'pluck' | 'cadence' | 'tick' | 'breath' | 'swell' | 'hush' | 'chapter' | 'duck' | 'snap' | 'warm' | 'twist';
+export type CueKind = 'pluck' | 'cadence' | 'tick' | 'breath' | 'swell' | 'hush' | 'chapter' | 'duck' | 'snap' | 'warm' | 'twist' | 'agree';
 
 export interface CueEvent {
   kind: CueKind;
@@ -49,6 +49,7 @@ export const MIN_GAP_MS: Record<CueKind, number> = {
   snap: 3000,
   warm: 3000,
   twist: 3000,
+  agree: 3000,
 };
 
 const CAPTIONS: Record<CueKind, string | null> = {
@@ -63,7 +64,11 @@ const CAPTIONS: Record<CueKind, string | null> = {
   snap: 'scattered tones settle into one chord',
   warm: 'a warm low tone, held',
   twist: 'the instruments hush, then the warm tone again, softer',
+  agree: 'the clocks agree',
 };
+
+/** The caption when Portrait's bed comes in (the hum changes to a slow chord of every chapter's key). */
+export const PORTRAIT_BED_CAPTION = "a slow chord of every chapter's key";
 
 export function captionFor(kind: CueKind): string | null {
   return CAPTIONS[kind];
@@ -76,6 +81,8 @@ export const HUSH_NODE = 'player.firstSound';
 export const WARM_NODE = 'trail.origin';
 /** The neighbour twist: the hush, then the warm tone again, softer. */
 export const TWIST_NODE = 'trail.neighbour';
+/** The clocks agree (Portrait): a resolving swell. */
+export const AGREE_NODE = 'portrait.together';
 
 /**
  * The one cue a state change that confirms these deductions plays: the moments first (swell, hush, the Sun
@@ -88,6 +95,7 @@ export function confirmationCue(added: readonly string[]): CueEvent {
   if (has(HUSH_NODE)) return { kind: 'hush', chapter: 'player', nodeId: HUSH_NODE };
   if (has(WARM_NODE)) return { kind: 'warm', chapter: 'trail', nodeId: WARM_NODE };
   if (has(TWIST_NODE)) return { kind: 'twist', chapter: 'trail', nodeId: TWIST_NODE };
+  if (has(AGREE_NODE)) return { kind: 'agree', chapter: 'portrait', nodeId: AGREE_NODE };
   const first = added[0] as string;
   return { kind: 'pluck', chapter: nodeDef(first)?.chapter ?? 'hub', nodeId: first };
 }
@@ -135,7 +143,7 @@ export function startCues(opts: CuesOptions): Cues {
     const prev = lastAt.get(event.kind);
     if (prev !== undefined && t - prev < MIN_GAP_MS[event.kind]) return false;
     lastAt.set(event.kind, t);
-    const caption = CAPTIONS[event.kind];
+    const caption = event.kind === 'chapter' && event.chapter === 'portrait' ? PORTRAIT_BED_CAPTION : CAPTIONS[event.kind];
     const entry: CueLogEntry = { n: ++counter, at: t, kind: event.kind, chapter: event.chapter, caption };
     if (event.nodeId !== undefined) entry.nodeId = event.nodeId;
     log.push(entry);

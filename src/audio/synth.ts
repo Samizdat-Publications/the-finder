@@ -22,7 +22,11 @@ export const LEVEL_DBFS = {
   snap: -22,
   /** The Sun found (trail.origin): the warm low tone held under the pluck. */
   warm: -26,
+  /** The clocks agree (portrait.together): the chapters' keys swelling, then resolving onto one chord. */
+  agree: -23,
   bed: -34,
+  /** Portrait's bed, a slow chord of the chapters' keys: softer than the other beds (the plate is quiet). */
+  portraitBed: -37,
 } as const;
 
 /** The warm tone's level in the neighbour twist, relative to its level for the Sun found, dB ("softer"). */
@@ -35,7 +39,7 @@ export const HUSH_DB = -26;
 /** Seconds the hush holds before the instruments return. */
 export const HUSH_HOLD_S = 5;
 
-export type Bed = 'cold' | 'ring' | 'warm' | 'shimmer' | 'sky' | 'room' | 'drift' | 'hub';
+export type Bed = 'cold' | 'ring' | 'warm' | 'shimmer' | 'sky' | 'room' | 'drift' | 'hub' | 'portrait';
 
 export interface ChapterVoice {
   /** The chapter's drone root, Hz. */
@@ -59,9 +63,27 @@ export const CHAPTER_VOICE: Record<ChapterView, ChapterVoice> = {
   player: { rootHz: 49.0, pluckHz: 196.0, bed: 'warm' },
   pictures: { rootHz: 73.42, pluckHz: 293.66, bed: 'shimmer' },
   voices: { rootHz: 98.0, pluckHz: 392.0, bed: 'hub' },
-  portrait: { rootHz: 61.74, pluckHz: 246.94, bed: 'hub' },
+  portrait: { rootHz: 61.74, pluckHz: 246.94, bed: 'portrait' },
   epilogue: { rootHz: 55.0, pluckHz: 220.0, bed: 'hub' },
 };
+
+/** The chapters Portrait's plate draws on: its bed and its cue are built from their roots (taste, M6 portrait spec). */
+export const PORTRAIT_CHORD_FROM: readonly ChapterView[] = ['arrival', 'key', 'player', 'pictures', 'map', 'spot', 'trail', 'voices'];
+
+/**
+ * Those chapters' roots folded into one octave, [lowHz, 2 lowHz), sorted and without repeats (two chapters an
+ * octave apart share a note): the notes of Portrait's chord.
+ */
+export function portraitChord(lowHz = 110): number[] {
+  const out: number[] = [];
+  for (const c of PORTRAIT_CHORD_FROM) {
+    let f = CHAPTER_VOICE[c].rootHz;
+    while (f < lowHz) f *= 2;
+    while (f >= 2 * lowHz) f /= 2;
+    if (!out.some((x) => Math.abs(1200 * Math.log2(x / f)) < 20)) out.push(f);
+  }
+  return out.sort((a, b) => a - b);
+}
 
 export function voiceFor(view: ChapterView): ChapterVoice {
   return CHAPTER_VOICE[view] ?? CHAPTER_VOICE.hub;

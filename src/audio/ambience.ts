@@ -8,7 +8,7 @@
 
 import type { ChapterView } from '../game/graph';
 import { createRng, type Rng } from '../science/random';
-import { DUCK_DB, HUSH_DB, HUSH_HOLD_S, LEVEL_DBFS, dbToLin, noiseBuffer, tone, voiceFor, type Bed } from './synth';
+import { DUCK_DB, HUSH_DB, HUSH_HOLD_S, LEVEL_DBFS, dbToLin, noiseBuffer, portraitChord, tone, voiceFor, type Bed } from './synth';
 
 /** Seconds the old bed takes to leave and the new one to arrive (time constant is a third of it). */
 export const CROSSFADE_S = 3;
@@ -21,7 +21,10 @@ export interface BedHandle {
 }
 
 /** Gain trims (linear) from measured bed peaks, so each bed alone peaks near LEVEL_DBFS.bed. */
-const BED_TRIM: Record<Bed, number> = { hub: 1, cold: 1.1, ring: 1.17, warm: 1.5, shimmer: 1.07, sky: 1.14, room: 1.83, drift: 1.02 };
+const BED_TRIM: Record<Bed, number> = { hub: 1, cold: 1.1, ring: 1.17, warm: 1.5, shimmer: 1.07, sky: 1.14, room: 1.83, drift: 1.02, portrait: 0.88 };
+
+/** A bed's peak target, dBFS: Portrait's sits under the others (synth.ts LEVEL_DBFS.portraitBed). */
+export const bedLevelDbfs = (bed: Bed): number => (bed === 'portrait' ? LEVEL_DBFS.portraitBed : LEVEL_DBFS.bed);
 
 function lfo(ctx: BaseAudioContext, hz: number, depth: number, target: AudioParam, when: number, sources: AudioScheduledSourceNode[]): void {
   const o = ctx.createOscillator();
@@ -38,7 +41,7 @@ function lfo(ctx: BaseAudioContext, hz: number, depth: number, target: AudioPara
 export function buildBed(ctx: BaseAudioContext, view: ChapterView, when: number, rng: Rng): BedHandle {
   const voice = voiceFor(view);
   const out = ctx.createGain();
-  out.gain.value = dbToLin(LEVEL_DBFS.bed) * BED_TRIM[voice.bed];
+  out.gain.value = dbToLin(bedLevelDbfs(voice.bed)) * BED_TRIM[voice.bed];
   const sources: AudioScheduledSourceNode[] = [];
   const mix = ctx.createGain(); // the bed's parts sum here, then out
   mix.connect(out);
@@ -195,6 +198,29 @@ export function buildBed(ctx: BaseAudioContext, view: ChapterView, when: number,
       glide(r, 1.06, 0.42);
       glide(r * 1.5, 0.95, 0.14);
       add(r * 1.0009, 0.18);
+      break;
+    }
+    case 'portrait': {
+      // A slow chord of the chapters the plate draws on: each one's root, folded into one octave (synth.ts
+      // portraitChord), soft sines that each swell and fade at their own slow rate, so a few sound at a time.
+      // Notes a semitone apart breathe in opposite phase (a negative depth), so they rarely sound loud together.
+      const notes = portraitChord(110);
+      const rates = [0.029, 0.045, 0.053, 0.037, 0.061, 0.033, 0.041, 0.057];
+      let rate = rates[0] as number;
+      let sign = 1;
+      let k = 0;
+      notes.forEach((hz, i) => {
+        const g = add(hz, 0.11);
+        const close = i > 0 && 1200 * Math.log2(hz / (notes[i - 1] as number)) < 150;
+        // a note a semitone above the last breathes at its rate in opposite phase; any other starts a new rate
+        if (close) sign = -sign;
+        else {
+          sign = 1;
+          rate = rates[k++ % rates.length] as number;
+        }
+        lfo(ctx, rate, 0.1 * sign, g.gain, when, sources);
+      });
+      add(r * 2, 0.06);
       break;
     }
     case 'hub': {
