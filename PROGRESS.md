@@ -20,13 +20,14 @@ outstanding chapters, every outstanding item and a V1.0 draft for his review.
   Frame to each section and holds its own controls while it leads.
 - **Fixed today (many from Gemini 4 Argon's two reviews, D-A34, and the M6 science audit):** the Spot refusing
   the true pure start on about 2% of seeds (Chernoff boundary, 99.9%); Start over leaving chapters half-solved;
-  clicks derailing "Do it for me"; the Map entry stall (69 to 93 ms, now 0 to 61); Sounds of Earth machine tones
+  clicks derailing "Do it for me"; the Map entry stall (69 to 93 ms before; 51 to 68 ms alone after, though one full check under load recorded 100 ms, at the limit); Sounds of Earth machine tones
   counted as animals; The Key's whistling bed; a hygiene step in `npm run check`; an accessibility test (axe, 0
   violations over 17 pages) and a keyboard check; social preview tags; M5 step 6b's leftovers.
 - **The ongoing critic:** `node tools/critic_gemini/watch.mjs --chapters <parts>` films a stretch of the tour with
   sound and runs the Gemini video critic (reviews in `docs/reviews/2026-10-22-*-gemini-critic.md`).
 
-**The guided tour (2026-10-16 evening, D-A33): live.** Stewart's playtest note (docs/STEWART_FEEDBACK.md):
+**The guided tour (D-A33, extended 2026-10-22): 65 stops through all 44 deductions** (Portrait and a six-stop
+Our Frame part added; tour bot 65 of 65, 44 of 44 from a fresh save). Its first version, 2026-10-16 evening: Stewart's playtest note (docs/STEWART_FEEDBACK.md):
 he could not tell what to do or why; the audience is him walking his almost-12-year-old son through it.
 The landing page's first button now starts a guided tour: 58 stops through all 43 deductions in one fixed
 order, a guide panel in place of the notebook (what we're looking at, your turn with the control spotlit,
@@ -175,7 +176,7 @@ and live-checked.
 
 - **Edge (2026-10-16):** every browser test passes in the installed Edge, 21 of 21, audio included
   (`FINDER_BROWSER=msedge node tools/harness/browser-tests.mjs`); the whole-game bot needed one retry (a
-  click timed out at 120 s). M6 is planned (`docs/plans/M6.md`).
+  click timed out at 120 s). M6 (Portrait, Our Frame) was built 2026-10-22; see Current milestone.
 
 ## In flight
 
@@ -183,7 +184,7 @@ and live-checked.
 
 ## Known issues and open questions
 
-- **Entering The Map** can still show one 50 to 61 ms task on a cold browser (the first WebGL context; limit
+- **Entering The Map** still shows one long task: 51 to 68 ms alone, 100 ms (the limit) in the last full check under load, on a cold browser (the first WebGL context; limit
   100, passes); a context warmed at boot would remove it.
 - **The machine-tone threshold** in voices.others rests on one whale call (4 cents of gap; stretch verdicts are
   robust). **The planets' 8 discrepancies** are probably 1970s values (Argon); carried, labelled "cause UNVERIFIED".

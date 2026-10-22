@@ -53,7 +53,7 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
 - **Build session 2 (2026-10-15/16):** M1 (ground truth) and M2 (engines and scaffold) built, checked and
   audited; the first preview is live at https://the-finder.stewartgregerson.workers.dev/play/ (the
   instrument bench: the real record on a turntable, and the 156 pictures decoded live from the 1977
-  tape). `npm run check` runs 7 steps, all green; How it's checked has 65 checks, all passing. Two
+  tape). `npm run check` runs 7 steps (9 by session 4), all green; How it's checked has 65 checks, all passing. Two
   science audits found and fixed real problems (Vela's glitch rule, a Th-230 uncertainty typed 10 times
   too small, circular decoder checks, model-conditional coverage); decisions D-A13 to D-A20 record
   every science-driven change. M3 is planned (`docs/plans/M3.md`) and its step 2 (the cover as exact
@@ -73,7 +73,7 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
   `docs/NEEDS_STEWART.md` (the Gemini cap, a stray folder, the optional Firefox check).
 - **Build session 3 (2026-10-16 evening):** Stewart played the start and got lost at the gold disc. The
   audience is now explicit: Stewart walking his almost-12-year-old son through it. Built the guided tour
-  (D-A33, `src/tour/`): the landing page's first button, 58 stops over all 43 deductions in one order,
+  (D-A33, `src/tour/`): the landing page's first button, 58 stops over all 43 deductions in one order (now 65 stops, 44 deductions, session 4),
   a guide panel with "Do it for me" on every step, live Voyager-now finale; printable cover STLs in
   `print/`. Deployed and live-checked. 6a (the Voices' audit fixes) handed to a builder-opus helper.
 - **Build session 4 (2026-10-22): the V1.0 draft.** Portrait and Our Frame built (D-A36, D-A37) with tour stops,

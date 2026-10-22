@@ -16,12 +16,12 @@ it carries, what its pictures show, where it came from, when it left, and who se
 real one: the hydrogen key, the pulsar map, three radioactive clocks that have to agree, and the pictures
 decoded line by line from the record's real 1977 image tape, right in your browser. You work on the
 instruments (drag a map line onto a pulsar, sweep a detector, pick a star), every answer is judged by the
-real science, and a wrong answer shows what it would really mean. A guided tour walks you through all 43
+real science, and a wrong answer shows what it would really mean. A guided tour walks you through all 44
 deductions in order, with "Do it for me" on every step; free play leaves you on your own.
 
-**Where it stands (2026-10-17):** nine chapters are playable (Arrival, The Key, The Player, The Pictures,
-The Voices, Their Numbers, The Spot, The Map, The Trail) and the finale shows where Voyager is tonight.
-Next are the portrait of the senders and the epilogue. Best in desktop Chrome or Edge, with headphones.
+**Where it stands (2026-10-22):** the V1.0 draft. All ten chapters are playable, from Arrival to Our Frame
+(Arrival, The Key, The Player, The Pictures, The Voices, The Map, The Spot, The Trail, Portrait, Our Frame), and
+the guided tour has 65 stops. Next is polish. Best in desktop Chrome or Edge, with headphones.
 `PROGRESS.md` says exactly where the build is; `PLAN.md` is the roadmap.
 
 ## Screenshots

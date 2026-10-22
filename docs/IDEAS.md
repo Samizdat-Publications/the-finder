@@ -15,7 +15,7 @@ the hidden spot, colouring the Earth, the whales). **First target: an 8th-grade 
 Starting thoughts (for the planning session, not decisions):
 - The guided tour (D-A33, `src/tour/`) already has the shape: a script of stops plus a "Do it for me" action
   per deduction. The younger version could be a second script (for example `src/tour/scripts/young.ts`):
-  perhaps 15 to 20 stops instead of 58, most of them story or watch stops that run the real instrument
+  perhaps 15 to 20 stops instead of 65, most of them story or watch stops that run the real instrument
   while the narration explains, and a handful of do stops chosen for fun.
 - A simpler stage for that mode: the instrument big, the guide as a large caption card, the extra panels
   (readouts, notebook, show working) hidden; the alien units probably shown in our units first.

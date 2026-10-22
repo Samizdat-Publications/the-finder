@@ -4,8 +4,8 @@ Every deduction the player makes in The Finder is the real one. This page lists 
 physics or history it rests on, the data it uses, the automated test that proves it, and the honest error
 bars and caveats. It becomes a page on the site (`/checked/`).
 
-_Status, 2026-10-16: rows 1 to 12 are checked (M1 to M4, after two science audits of M1 and one of M4);
-rows 13 onward fill in with M5 (the pictures complete, The Voices). The results table below is generated
+_Status, 2026-10-22: all 17 rows are checked (M1 to M6, after science audits at every milestone, the latest
+`docs/reviews/2026-10-22-M6-science-audit.md`). The results table below is generated
 from the test output (`docs/checks/results.json`), so it cannot drift from the code._
 
 ## The deductions
