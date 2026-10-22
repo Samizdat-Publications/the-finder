@@ -43,6 +43,32 @@ const plate = (page) =>
     };
   });
 
+
+/** The clocks band's result box and the sky strip, measured: nothing clipped, "show working" inside the box, the strip's stars whole. */
+const bandFit = (page) =>
+  page.evaluate(() => {
+    const ask = document.querySelector('.pt-ask');
+    const band = document.querySelector('.pt-band');
+    const strip = document.querySelector('.pt-strip');
+    const a = ask.getBoundingClientRect();
+    const b = band.getBoundingClientRect();
+    const sum = ask.querySelector('summary')?.getBoundingClientRect() ?? null;
+    const kr = ask.querySelector('.kresult')?.getBoundingClientRect() ?? null;
+    const label = document.querySelector('.pt-combined text')?.getBoundingClientRect() ?? null;
+    const bars = [...document.querySelectorAll('.pt-clock .pt-bar')].map((e) => e.getBoundingClientRect());
+    const sr = strip?.getBoundingClientRect() ?? null;
+    const cut = strip ? [...strip.querySelectorAll('.pt-skystar')].filter((c) => { const r = c.getBoundingClientRect(); return r.top < sr.top - 0.5 || r.bottom > sr.bottom + 0.5; }).length : 0;
+    return {
+      overflow: ask.scrollHeight - ask.clientHeight,
+      hasSummary: Boolean(sum),
+      summaryInside: Boolean(sum) && sum.top >= a.top - 1 && sum.bottom <= a.bottom + 1,
+      resultInside: Boolean(kr) && kr.bottom <= a.bottom + 1 && kr.bottom <= b.bottom + 1,
+      labelOverBars: label ? bars.filter((r) => label.bottom > r.top - 2 && label.top < r.bottom + 2 && label.right > r.left && label.left < r.right).length : 0,
+      starsCut: cut,
+      panelsClipped: [...document.querySelectorAll('[data-portrait-panel] .pt-body, [data-portrait-panel] .pt-lines')].filter((e) => e.scrollHeight > e.clientHeight + 1).map((e) => `${e.closest('[data-portrait-panel]').getAttribute('data-portrait-panel')}+${e.scrollHeight - e.clientHeight}`),
+    };
+  });
+
 const last = (page, id) => page.evaluate((id) => window.__finder.state().game.nodes[id]?.attempts.at(-1) ?? null, id);
 
 /** Drag the marker's knob to a time, years before now, at the chart's own x mapping (data-axis, data-x-range). */
@@ -106,6 +132,8 @@ export default async function run({ page, baseUrl, record, assert, log }) {
     writeFileSync(join(dir, 'shots.txt'), `${shots.join('\n')}\n`);
   };
 
+  // PORTRAIT_TOUR=1 runs everything below with the guided tour's guide column open beside the plate.
+  const q = process.env.PORTRAIT_TOUR === '1' ? '?tour=1' : '';
   // ---- the save, built from the real checkers in the page ----
   await page.goto(`${baseUrl}/play/`, { waitUntil: 'load' });
   await page.waitForFunction(() => Boolean(window.__finder), null, { timeout: 30_000 });
@@ -180,7 +208,7 @@ export default async function run({ page, baseUrl, record, assert, log }) {
     },
     [SAVE_KEY, save.nodes, SEED],
   );
-  await page.goto(`${baseUrl}/play/`, { waitUntil: 'load' });
+  await page.goto(`${baseUrl}/play/${q}`, { waitUntil: 'load' });
   await page.waitForFunction(() => Boolean(window.__finder), null, { timeout: 30_000 });
   const status = await page.evaluate(async () => {
     const D = await import('/src/game/deductions.ts');
@@ -252,6 +280,11 @@ export default async function run({ page, baseUrl, record, assert, log }) {
     await page.waitForTimeout(400);
     const p = await plate(page);
     assert(p.pageScroll <= 1 && p.plateBottom <= h + 1, `${w}x${h}: after confirming, the plate still fits (${p.pageScroll}px, bottom ${p.plateBottom})`);
+    const f = await bandFit(page);
+    assert(f.hasSummary && f.overflow <= 1 && f.summaryInside && f.resultInside, `${w}x${h}: the result box is not clipped and "show working" is reachable (${JSON.stringify(f)})`);
+    assert(f.labelOverBars === 0, `${w}x${h}: the combined band's label sits clear of the clocks' bars (${f.labelOverBars} overlaps)`);
+    assert(f.starsCut === 0, `${w}x${h}: no star of the sky strip is cut off (${f.starsCut})`);
+    assert(f.panelsClipped.length === 0, `${w}x${h}: no panel's text is cut off (${f.panelsClipped.join(', ')})`);
     await shoot('plate-after', 'The plate after: the sky strip with the senders\' star ringed, the clocks\' combined 95% band in gold, the result.');
   }
   const band = await page.getAttribute('[data-combined]', 'data-combined');

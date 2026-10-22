@@ -104,8 +104,10 @@ export function SkyStrip() {
           <line class="pt-stripplane" x1={0} x2={w} y1={h / 2 - ty} y2={h / 2 - ty} />
           {sky.map((s) => {
             const [x, y] = at(s.xy);
-            if (y < -8 || y > h + 8) return null;
-            return <circle key={s.id} class="pt-skystar" cx={x} cy={y} r={Math.max(1.2, 5 - 0.9 * s.mag)} style={{ fill: s.rgb }} />;
+            const r = Math.max(1.2, 5 - 0.9 * s.mag);
+            // a star the strip's edge would cut is left out rather than drawn half
+            if (y < r + 1 || y > h - r - 1) return null;
+            return <circle key={s.id} class="pt-skystar" cx={x} cy={y} r={r} style={{ fill: s.rgb }} />;
           })}
           {(() => {
             const [x, y] = at(target.xy);

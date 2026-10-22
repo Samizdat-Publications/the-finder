@@ -22,6 +22,11 @@ describe('Our Frame formatting', () => {
     expect(sig(44123.6)).toBe('44,100');
     expect(sig(0.57312, 3)).toBe('0.573');
     expect(hoursMinutes(23.9)).toBe('23 hours 54 minutes');
+    // singular where the count is one (the card once read "20 hours 1 minutes")
+    expect(hoursMinutes(20 + 1 / 60)).toBe('20 hours 1 minute');
+    expect(hoursMinutes(1 + 1 / 60)).toBe('1 hour 1 minute');
+    expect(hoursMinutes(1)).toBe('1 hour 0 minutes');
+    expect(hoursMinutes(5.5)).toBe('5 hours 30 minutes');
   });
 
   it('says the light-day in the future tense before it and the past tense after it, with both times', () => {

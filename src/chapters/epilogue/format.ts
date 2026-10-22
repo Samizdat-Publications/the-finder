@@ -43,10 +43,12 @@ export function utcHm(ms: number): string {
   return `${two(d.getUTCHours())}:${two(d.getUTCMinutes())}`;
 }
 
-/** Light time, hours, as "23 hours 54 minutes". */
+/** Light time, hours, as "23 hours 54 minutes", with the singular where it is one ("1 hour 1 minute"). */
 export function hoursMinutes(hours: number): string {
   const min = Math.round(hours * 60);
-  return `${Math.floor(min / 60)} hours ${min % 60} minutes`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${h} ${h === 1 ? 'hour' : 'hours'} ${m} ${m === 1 ? 'minute' : 'minutes'}`;
 }
 
 /** The light-day sentences of the "Right now" section: future tense before the moment, past tense after. */

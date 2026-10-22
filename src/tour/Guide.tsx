@@ -62,7 +62,8 @@ function holdInput(e: Event): void {
   if (acting === 0 || !e.isTrusted) return;
   if (e instanceof KeyboardEvent && e.key === 'Escape') return;
   const t = e.target;
-  if (t instanceof Element && t.closest('[data-guide], .guide-col')) return;
+  // the guide itself only: NOT [data-guide], which the workbench body also carries while touring (it holds the instrument)
+  if (t instanceof Element && t.closest('.guide, .guide-col')) return;
   e.preventDefault();
   e.stopPropagation();
 }

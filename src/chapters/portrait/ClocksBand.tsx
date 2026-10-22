@@ -25,7 +25,7 @@ const ID = PORTRAIT_NODE;
 const PAD_L = 150;
 const PAD_R = 22;
 const AXIS_H = 40;
-const TOP = 8;
+const TOP = 24;
 
 /** A round step for the marker, years: about a four-hundredth of the axis, rounded to 1, 2 or 5 times a power of ten. */
 function niceStep(span: number): number {
@@ -131,8 +131,8 @@ export function ClocksBand() {
               {band && (
                 <g class="pt-combined" data-combined={`${band.lo.toFixed(1)},${band.hi.toFixed(1)}`}>
                   <rect x={x(band.lo)} y={TOP - 4} width={Math.max(2, x(band.hi) - x(band.lo))} height={rowH * CLOCKS.length + 8} />
-                  <text x={x(band.hi) + 6} y={TOP + 12}>
-                    95%, all four together
+                  <text x={x(band.hi) + 6 + 140 > w ? x(band.lo) - 6 : x(band.hi) + 6} y={TOP - 11} text-anchor={x(band.hi) + 6 + 140 > w ? 'end' : 'start'}>
+                    95%, all four combined
                   </text>
                 </g>
               )}

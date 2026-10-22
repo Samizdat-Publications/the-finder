@@ -17,3 +17,4 @@ script, not by hand play.
 - **Build and deploy:** `node tools/showcase/build-site.mjs --deploy` copies `site/` to `site-dist/`, runs
   the showcase kit's `finish-site.mjs` (headers, byte ranges for the clips through `functions/media/`, so
   Safari can play and seek them) and deploys the Pages project `the-finder`. The game stays on its Worker.
+- **Social preview image (og.jpg, 2026-10-22):** a fresh capture of the current build (the Portrait plate after the clocks are confirmed, 1440 x 900, from `tests/browser/portrait.browser.mjs`), cropped to the plate and composed with the title "The Finder" in the page's own font stack on the plate's dark ground in headless Chrome, 1200 x 630 JPEG (about 99 KB); the same file is `public/og.jpg` and `site/media/og.jpg`.

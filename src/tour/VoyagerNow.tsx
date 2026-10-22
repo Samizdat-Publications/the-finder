@@ -3,6 +3,7 @@
 // Every number here is computed (rule 1); the table is fetched lazily so the play bundle stays small.
 
 import { useEffect, useState } from 'preact/hooks';
+import { hoursMinutes } from '../chapters/epilogue/format';
 import { lightDayUtcMs, voyagerNow, type EphemerisBodies, type VoyagerNow as Positions } from '../science/voyagerNow';
 
 interface Now extends Positions {
@@ -15,10 +16,7 @@ function compute(bodies: EphemerisBodies, at: Date): Now {
 }
 
 const wholeKm = (km: number): string => Math.round(km).toLocaleString('en-US');
-const hm = (h: number): string => {
-  const min = Math.round(h * 60);
-  return `${Math.floor(min / 60)} hours ${min % 60} minutes`;
-};
+const hm = hoursMinutes;
 
 export function VoyagerNow() {
   const [now, setNow] = useState<Now | null>(null);
