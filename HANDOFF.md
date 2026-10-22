@@ -1,6 +1,6 @@
 # HANDOFF: start here
 
-_Last updated: 2026-10-16 evening by build session 3 (Opus 5.5): the guided tour is live (Stewart's playtest note); M5's Voices audit fixes resumed. Whoever stops next updates this block, "Where things stand", and anything below that changed._
+_Last updated: 2026-10-22 by build session 4 (Opus 5.5): M6 built (Portrait and Our Frame), every chapter playable, the V1.0 draft. Whoever stops next updates this block, "Where things stand", and anything below that changed._
 
 ## For Stewart: how to start the next session
 
@@ -76,6 +76,11 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
   (D-A33, `src/tour/`): the landing page's first button, 58 stops over all 43 deductions in one order,
   a guide panel with "Do it for me" on every step, live Voyager-now finale; printable cover STLs in
   `print/`. Deployed and live-checked. 6a (the Voices' audit fixes) handed to a builder-opus helper.
+- **Build session 4 (2026-10-22): the V1.0 draft.** Portrait and Our Frame built (D-A36, D-A37) with tour stops,
+  bots and audits; Gemini 4 Argon added as a second-opinion reviewer (D-A34, `tools/consult_gemini/consult.py`,
+  triage in `docs/consults/`); the Gemini video critic back and ongoing (`tools/critic_gemini/watch.mjs`); fixes
+  from Argon, the critic and the M6 science audit (`docs/reviews/2026-10-22-*`). Every chapter from a fresh save
+  to Our Frame: bot.game 44 of 44; the tour bot through all 65 stops.
 - **How session 2 worked (keep doing this):** every helper got a written spec saved in
   `docs/plans/Mx_specs/` before launch; the lead reviewed every report, looked at every picture and
   capture, ran the tests itself before each commit, and resumed the same helper (SendMessage) for
@@ -238,6 +243,15 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
   `ERR_CONNECTION_TIMED_OUT` on a module); the browser-test runner retries a page open three times and
   each test once, and reports FLAKY. A test that fails twice is real.
 
+- **Second opinions (D-A34):** `python -P tools/consult_gemini/consult.py --ask <question.md> --out <answer.md>
+  [--include a,b] [--exclude-tests]` packs the tracked text into one prompt for Gemini 4 Argon (about 1M tokens
+  whole, about $2). Check every finding against the code before acting; its physics was once overstated.
+- **The ongoing video critic:** `node tools/critic_gemini/watch.mjs --chapters <tour parts>` films that stretch of
+  the guided tour with sound (`tools/harness/film-tour.mjs`) and runs `critic.py`; on any failure it writes
+  `CRITIC_FAILED.txt` in the review folder: tell Stewart.
+- **Our Frame has no deduction:** it counts as done once visited (`game.visited`, saved); its section is a signal
+  the guide sets per stop (`showEpilogueSection`); while the tour is on, its own Next, dots, arrow keys and Back
+  to the ring are hidden.
 - **The guided tour is the main way in (D-A33).** Every deduction is a stop in `src/tour/script.ts` (the
   lead writes the narration: plain words, the real story, a question for the child) with a "Do it for me"
   in `src/tour/actions/<chapter>.ts` and spotlight selectors in `src/tour/actions.ts`; the tests fail if a

@@ -1,8 +1,30 @@
 # PROGRESS
 
-_Last updated: 2026-10-16 evening by build session 3 (Opus 5.5): the guided tour, after Stewart's playtest. Update after every meaningful chunk._
+_Last updated: 2026-10-22 by build session 4 (Opus 5.5): M6 built, every chapter playable; the V1.0 draft. Update after every meaningful chunk._
 
 ## Current milestone
+
+**V1.0 draft (2026-10-22): every chapter is built and playable, start to finish.** Stewart asked for the two
+outstanding chapters, every outstanding item and a V1.0 draft for his review.
+- **Portrait (chapter 8, D-A36):** the senders' portrait on a gold plate built only from the player's own
+  confirmed results (their star, how they look, their world, numbers, voices, machine), and one deduction, One
+  story: the four clocks (fuel, uranium spot, the map read from the warm-white star, the journey) combined by
+  inverse-variance weighting, accepted inside the 99.9% band; the bright band is the map clock's own bar. Default
+  seed 44,041 +/- 68 yr; coverage 188 of 200 seeds against each clock's own true start; the truth accepted in 200
+  of 200. Ends on the Finder's own sky with the Sun ringed as "the senders' star"; its own chord bed and cue.
+- **Our Frame (chapter 9, D-A37):** out of the fiction in six sections: the turn, both Voyagers now (live), still
+  listening (instrument lamps), the slow future (the real Gliese 445 pass), the map older than the machine, the
+  hand-etched line with credits; Beethoven's Cavatina playing quietly through the bus; sourced facts in
+  `data/epilogue.json`.
+- **The tour** has a Portrait part and a six-stop Our Frame part (65 stops, 44 deductions); the guide turns Our
+  Frame to each section and holds its own controls while it leads.
+- **Fixed today (many from Gemini 4 Argon's two reviews, D-A34, and the M6 science audit):** the Spot refusing
+  the true pure start on about 2% of seeds (Chernoff boundary, 99.9%); Start over leaving chapters half-solved;
+  clicks derailing "Do it for me"; the Map entry stall (69 to 93 ms, now 0 to 61); Sounds of Earth machine tones
+  counted as animals; The Key's whistling bed; a hygiene step in `npm run check`; an accessibility test (axe, 0
+  violations over 17 pages) and a keyboard check; social preview tags; M5 step 6b's leftovers.
+- **The ongoing critic:** `node tools/critic_gemini/watch.mjs --chapters <parts>` films a stretch of the tour with
+  sound and runs the Gemini video critic (reviews in `docs/reviews/2026-10-22-*-gemini-critic.md`).
 
 **The guided tour (2026-10-16 evening, D-A33): live.** Stewart's playtest note (docs/STEWART_FEEDBACK.md):
 he could not tell what to do or why; the audience is him walking his almost-12-year-old son through it.
@@ -12,23 +34,15 @@ what we just learned, the real story, talk about it), "Do it for me" on every st
 prologue and finale (the live where-is-Voyager-tonight panel). Free play is unchanged. Printable cover
 STLs in `print/`. Tour bot 58 of 58 stops, 43 of 43 from a fresh save; live tour check passes.
 
-**M5: The pictures complete, and The Voices (paused inside its gate).** Plan: `docs/plans/M5.md`; specs in
-`docs/plans/M5_specs/`. Live and deployed: The Pictures complete (eight deductions) and The Voices (four);
-43 deductions, bot.game plays them all from a fresh save; Edge passes every browser test. The M5 science
-audit (`docs/reviews/2026-10-16-M5-science-audit.md`) found five checkers to fix. At the pause:
-- **6b (The Pictures and the identification): code done**, committed with this update if the full check
-  passed (see the commit log); its documentation items are left: `docs/plans/M5_specs/step6b-progress.md`.
-- **6a (The Voices): partly done, not wired in**: item 1 half done (`tools/voices/others.py`, not imported),
-  the octave design found, items 3 to 5 not started: `docs/plans/M5_specs/step6a-progress.md`. Until it
-  lands, the live Voices chapter still has the audited faults (the whale check on other tracks, the octave
-  test, the "cannot give 55" claim, the hearing wording).
+**M5 closed (2026-10-22):** The Pictures complete and The Voices; the M5 science audit's fixes all landed (6a, 6b,
+and today the Sounds of Earth case by the lead's reading of the spectrogram panels: machine tones refused).
 
 **M4 closed (2026-10-16):** The Map, The Spot and The Trail playable after The Key; 31 deductions from a
 fresh save (bot.game); a science audit, a QA audit and two blind critic passes, every finding fixed or
 carried with a decision; `npm run check` green (328 unit tests, 19 browser tests, 147 checks); deployed
 and live-checked.
 
-**Preview (the slice and M4):** https://the-finder.stewartgregerson.workers.dev/play/
+**The game:** https://the-finder.stewartgregerson.workers.dev/ (guided tour from the first button; Free play from the ring)
 
 ## Done
 
@@ -165,17 +179,14 @@ and live-checked.
 
 ## In flight
 
-- Nothing running. 6a (The Voices' audit fixes) landed (6ee29da): all five items; the Sounds of Earth test
-  case stays pending until the lead reads the panels in `review/archive/2026-10-16T18-14-57-sounds-spectrograms/`
-  (see `docs/plans/M5_specs/step6a-progress.md`).
+- Nothing running at the V1.0 draft.
 
 ## Known issues and open questions
 
-- **The `enter` browser test is flaky on this machine tonight:** entering The Map shows one 86 to 166 ms
-  main-thread task (limit 100). The commit from before the tour (3ec48e9) measures the same 89 to 130 ms, so
-  it is not a regression from the tour; M4 step 7e measured under 65 ms. Investigate Thursday (machine power
-  state, or the chart's WebGL setup), then either move that work off the main thread or adjust the limit
-  with a logged decision.
+- **Entering The Map** can still show one 50 to 61 ms task on a cold browser (the first WebGL context; limit
+  100, passes); a context warmed at boot would remove it.
+- **The machine-tone threshold** in voices.others rests on one whale call (4 cents of gap; stretch verdicts are
+  robust). **The planets' 8 discrepancies** are probably 1970s values (Argon); carried, labelled "cause UNVERIFIED".
 - **Tour:** "Do it for me" works the real controls everywhere except where a canvas gesture has no in-page
   handle (none left after the Map's chartHandle). The tour's spotlight rings a group of choices, not the
   right one. Any new deduction must get a tour stop and an action, or `src/tour/*.test.ts` fails.
@@ -217,20 +228,10 @@ and live-checked.
 
 ## Next (exact)
 
-0. **Read Stewart's notes from playing the tour with his son** (docs/STEWART_FEEDBACK.md) and act on them
-   first.
-1. **6a is done except** the lead's reading of the Sounds of Earth panels (makes the pending test real;
-   decide whether machine tones count as "not theirs"). The original item, for reference: **Finish 6a** (The Voices' audit fixes) from `docs/plans/M5_specs/step6a-progress.md`: wire
-   `tools/voices/others.py` into the analysis and `checkOthers`; render the Sounds of Earth spectrogram
-   panels and read them (the lead) to give that test independent truth; decide the music-items question
-   (proposed: refuse stretches on music items); the multi-harmonic octave fold with bootstrap margins and
-   a two-sided coverage band; `voices.many` with one shared definition of reasonable settings (recompute
-   the count-against-cut table); the hearing wording within the research; row 16, D-A32 and
-   `src/game/nodesM5.ts` wording. One builder-opus, resumed from the progress note.
-2. **Finish 6b's docs** (`docs/plans/M5_specs/step6b-progress.md`): How it's checked rows 5, 13 and 14;
-   split `checkersM5.ts`; the `pictures.down` hint.
-3. `npm run check`, deploy, live check.
-4. The blind critic on a fresh whole-game capture (archive older inbox folders first); the QA audit; the
-   M5 gate (PROGRESS and HANDOFF); then M6 (`docs/plans/M6.md`; research done in
-   `docs/research/epilogue.md`), with tour stops for every new deduction.
-5. After the main version: `docs/IDEAS.md` (the younger version, 8th-grade level).
+0. **Stewart reviews the V1.0 draft** (the guided tour from the landing page, end to end, with his son if he
+   likes) and writes notes at the top of `docs/STEWART_FEEDBACK.md`. Act on them first.
+1. M7 polish, from the critics and audits: the art pass on the charts and scenes (the critic wants the interface
+   to feel more alien in Free play); laptop iGPU performance; shorter "what we just learned" boxes; a Firefox check
+   (`docs/NEEDS_STEWART.md` item 3); the planets' 1970s values with a citable table; the remaining layout
+   leftovers below.
+2. After the main version: `docs/IDEAS.md` (the younger version, 8th-grade level).

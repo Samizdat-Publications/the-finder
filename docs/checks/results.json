@@ -1,7 +1,24 @@
 {
-  "generated": "2026-10-16",
-  "count": 189,
+  "generated": "2026-10-22",
+  "count": 206,
   "checks": [
+    {
+      "id": "a11y.axe",
+      "claim": "axe-core finds no WCAG 2 A or AA violation on the landing page, the hub, the ten chapters, the codex and settings drawers, the guided tour and How it's checked",
+      "measured": "0 violating elements over 17 pages",
+      "expected": "0",
+      "tolerance": "none",
+      "pass": true,
+      "notes": "axe-core 4.13.0, tags wcag2a, wcag2aa; excluded rules: none. The save has every deduction confirmed and reduced motion on."
+    },
+    {
+      "id": "a11y.keyboard",
+      "claim": "The hub, Portrait and Our Frame work from the keyboard alone",
+      "measured": "Tab reached 10 of 10 chapter buttons and Enter opened epilogue; the Portrait marker moved 42623 to 42630 to 42640 to 42630 on the arrows and Propose took focus by Tab; Our Frame moved turn to now and back on the arrows",
+      "expected": "all ten chapter buttons reached; the marker moves; Propose reachable; sections move",
+      "tolerance": "none",
+      "pass": true
+    },
     {
       "id": "arrival.fuelAge",
       "claim": "The decay clock dates the heat source: the plutonium-238 chain fits the thorium-230 to uranium-234 ratio at about 44,000 years, and the 95% interval contains the true age.",
@@ -40,15 +57,15 @@
     {
       "id": "bot.game",
       "claim": "A bot plays the whole game built so far from a fresh save (no seeded save) through the command bus and the instruments: the slice, then The Map, The Spot and The Trail. Every deduction confirms, the codex holds every entry, the ring finishes, nothing errors, and the new sound moments play once each at their moments.",
-      "measured": "43 of 31 confirmed, each result with its headline; the five staged moments once each, skipped with their button, game state unchanged by each; codex 43 entries; done: arrival, key, map, spot, trail, player, pictures, voices; cues warm, twist, snap once each in play order; 199 s (slice 61 s, pictures 40 s, voices 34 s, map 17 s, spot 23 s, trail 21 s, end 3 s); 27 frames",
-      "expected": "31 of 31 (src/game/graph.ts: 18 slice, 5 Map, 3 Spot, 5 Trail), 31 codex entries, every built chapter done, no console errors (PLAN.md How it's checked item 11)",
+      "measured": "44 of 44 confirmed, each result with its headline; the five staged moments once each, skipped with their button, game state unchanged by each; codex 44 entries; done: arrival, key, map, spot, trail, player, pictures, voices, portrait, epilogue; cues warm, twist, snap once each in play order; 217 s (slice 62 s, pictures 40 s, voices 37 s, map 14 s, spot 22 s, trail 20 s, portrait 5 s, epilogue 14 s, end 3 s); 29 frames",
+      "expected": "44 of 44 (src/game/graph.ts and nodesM5.ts, nodesM6.ts: every playable deduction, Portrait included, then Our Frame visited), 44 codex entries, every built chapter done, no console errors (PLAN.md How it's checked item 11)",
       "tolerance": "exact (interface behaviour)",
       "pass": true
     },
     {
       "id": "bot.m4Wrong",
       "claim": "From a fresh save, every meaningful wrong result the M4 checkers distinguish (as their Node tests list them) is played once through the command bus, rejected, and its computed result shown on the instrument and in the notebook; then the right answer confirms.",
-      "measured": "27 wrong answers over 13 deductions, each with its own result (map.periods 4, map.old 2, map.identify 2, map.motion 1, map.region 1, spot.find 2, spot.age 2, spot.purity 2, trail.origin 3, trail.age 2, trail.neighbour 1, trail.where 2, trail.when 3); all 13 then confirmed; 15 s; not played: none",
+      "measured": "27 wrong answers over 13 deductions, each with its own result (map.periods 4, map.old 2, map.identify 2, map.motion 1, map.region 1, spot.find 2, spot.age 2, spot.purity 2, trail.origin 3, trail.age 2, trail.neighbour 1, trail.where 2, trail.when 3); all 13 then confirmed; 11 s; not played: none",
       "expected": "each wrong answer rejected with its result on the instrument and in the notebook (map.test.ts, spot checkers.test.ts, trail.test.ts)",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -56,7 +73,7 @@
     {
       "id": "bot.slice",
       "claim": "A bot plays the slice from a fresh save through the command bus the interface uses (Arrival, The Key, The Player, The Pictures) with the right answers: every deduction confirms, the codex holds every entry, and nothing errors.",
-      "measured": "18 of 18 deductions confirmed; codex 18 entries; chapters done: arrival, key, player, pictures; 63 s; 16 screenshots",
+      "measured": "18 of 18 deductions confirmed; codex 18 entries; chapters done: arrival, key, player, pictures; 59 s; 16 screenshots",
       "expected": "18 of 18 confirmed (src/game/graph.ts: 4 Arrival, 3 Key, 4 Player, 7 Pictures), 18 codex entries, no console errors (PLAN.md How it's checked item 11)",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -64,15 +81,15 @@
     {
       "id": "bot.tour",
       "claim": "A bot completes the guided tour from a fresh save using only the guide's buttons (Do it for me, Show me, Next): every do and watch stop is done by the guide's own action through the instruments and the command bus, and every deduction in the script confirms.",
-      "measured": "58 of 58 stops passed in order; 43 of 43 deductions confirmed; 200 s (slowest: pictures.album 23 s, player.firstSound 21 s, pictures.firstFrames 14 s)",
-      "expected": "58 stops and 43 deductions (src/tour/script.ts STOPS), no console errors",
+      "measured": "65 of 65 stops passed in order; 44 of 44 deductions confirmed; 163 s (slowest: player.firstSound 21 s, pictures.firstFrames 14 s, pictures.album 13 s)",
+      "expected": "65 stops and 44 deductions (src/tour/script.ts STOPS), no console errors",
       "tolerance": "exact (interface behaviour)",
       "pass": true
     },
     {
       "id": "bot.wrongAnswers",
       "claim": "From a fresh save, every wrong choice each slice checker offers is played once through the command bus, rejected, and its computed result shown in the notebook (and on the instrument where it has a result line); then the right answer confirms.",
-      "measured": "43 wrong answers over 18 deductions, all rejected and shown (arrival.purpose 3, arrival.heat 3, arrival.madeNotMined 1, arrival.fuelAge 3, key.binary 4, key.unit 4, key.timesNotLengths 1, player.speed 2, player.start 5, player.direction 1, player.firstSound 9, pictures.lineTime 1, pictures.sync 1, pictures.interlace 1, pictures.polarity 1, pictures.aspect 1, pictures.circle 1, pictures.firstFrames 1); all 18 then confirmed; 48 s",
+      "measured": "43 wrong answers over 18 deductions, all rejected and shown (arrival.purpose 3, arrival.heat 3, arrival.madeNotMined 1, arrival.fuelAge 3, key.binary 4, key.unit 4, key.timesNotLengths 1, player.speed 2, player.start 5, player.direction 1, player.firstSound 9, pictures.lineTime 1, pictures.sync 1, pictures.interlace 1, pictures.polarity 1, pictures.aspect 1, pictures.circle 1, pictures.firstFrames 1); all 18 then confirmed; 45 s",
       "expected": "each wrong answer rejected with its result shown; the arrival choices and hydrogen transitions read from the source; the player and picture wrong states one per distinct result",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -86,6 +103,14 @@
       "pass": true
     },
     {
+      "id": "chapter.epilogue",
+      "claim": "Our Frame steps out of the fiction into our own time: the live positions, the instruments, the Gliese 445 pass, the map older than the machine and the hand-etched line, with the record playing quietly and lifted on leaving.",
+      "measured": "1440x900: ozma-31, V1 25832782526 km, light-day 10:16:17, This game, from Gaia DR3 0.573 pc (1.9 light-years) 44,100 years after launch, about AD 46,100, 13 dated pulsars, done; 1366x768: done",
+      "expected": "two of ten instruments on Voyager 1 and three on Voyager 2; 0.573 pc at 44,100 years; thirteen dated pulsars before launch; track 27 playing quietly then lifted",
+      "tolerance": "exact counts; positions within 100 km of the shared maths; Gliese 445 numbers equal the science core",
+      "pass": true
+    },
+    {
       "id": "chapter.key",
       "claim": "The Key plays in the browser: every wrong reading of the strokes, every wrong hydrogen transition and the length reading are rejected with their computed results, the right answers confirm, and The Player and The Pictures open.",
       "measured": "census 25 strings, 0 beginning along; 4 wrong stroke readings, 4 wrong transitions (0 of 14 map numbers each), lengths rejected; spin flip 14 of 14; turn 3.59994 s",
@@ -96,7 +121,7 @@
     {
       "id": "chapter.map",
       "claim": "The Map plays in the browser through its instrument: the dial aligns the map, lines are assigned by clicking pulsars on the chart, the clock dates the map, the axis is dragged on the sky and the origin slid on the plane; every wrong proposal is refused with what it computed.",
-      "measured": "periods: young line refused, line 1 accepted (match quality log10 92.5); old: future refused, 42268 years ago accepted; identify: one wrong line refused, all 14 accepted; motion: pole refused, l 141.7 b 39.2 accepted (scatter 516 yr); region: (20, -20) pc refused, (3.6, 3.4) accepted; frames 1440x900 4.2 ms mean, 1366x768 4.2 ms mean; longest main-thread task 115 ms; identification 0 ms, region 0 ms on the main thread",
+      "measured": "periods: young line refused, line 1 accepted (match quality log10 92.5); old: future refused, 42268 years ago accepted; identify: one wrong line refused, all 14 accepted; motion: pole refused, l 141.7 b 39.2 accepted (scatter 516 yr); region: (20, -20) pc refused, (3.6, 3.4) accepted; frames 1440x900 4.3 ms mean, 1366x768 4.3 ms mean; longest main-thread task 0 ms; identification 0 ms, region 0 ms on the main thread",
       "expected": "The same results as the Node checkers for the default seed (map.periods, map.old, map.identify, map.motion, map.region); no console errors",
       "tolerance": "As each checker; the spec allows a single blocking computation up to 1 s",
       "pass": true
@@ -112,7 +137,7 @@
     {
       "id": "chapter.picturesComplete",
       "claim": "The Pictures, complete, plays in the browser on the real tape: the album fills with all 156 frames decoded from the tape, and each of the eight deductions (album, colour, down, numerals, units, home, slip, height) is refused once with its computed result and then confirmed on its work view; the three moments show once each.",
-      "measured": "8 wrong answers refused, 8 confirmed; album of 156 developed in 17.5 s; 20 captures",
+      "measured": "8 wrong answers refused, 8 confirmed; album of 156 developed in 12.9 s; 20 captures",
       "expected": "The same results as the Node checkers (pictures.album, pictures.colour, pictures.down, pictures.units, pictures.home, pictures.height); no console errors",
       "tolerance": "As each checker",
       "pass": true
@@ -120,9 +145,17 @@
     {
       "id": "chapter.player",
       "claim": "The Player plays in the browser: a wrong speed is heard shifted by exactly k, the run-out clicks once per turn, the label is silent, the wrong direction carries the groove outward and plays backward, and with all three right the first sound off side 1 is the picture signal, a pattern repeating every line.",
-      "measured": "3.47 s per turn: k 1.03745 on the engine and in the result, 0.636 semitones; run-out clicks every 2.4 s at 2.4 s per turn; ccw side time 1119.26 to 1117.81 s in 1.5 s; first sound every 8.3266 ms, confirmed 21.9 s after a drop at 147.5 mm; bench readout \"120.00 mm: the music\"",
+      "measured": "3.47 s per turn: k 1.03745 on the engine and in the result, 0.636 semitones; run-out clicks every 2.4 s at 2.4 s per turn; ccw side time 1119.26 to 1117.79 s in 1.5 s; first sound every 8.3266 ms, confirmed 21.9 s after a drop at 147.5 mm; bench readout \"120.00 mm: the music\"",
       "expected": "k = 3.59994 / 3.47 from the cover (cover.md 1b); one click per turn; the tape's 8.326 ms line period (images-and-audio.md section 1); the Node checkers' results",
       "tolerance": "k and semitones to 1e-9 (same arithmetic); line period within 0.001 ms (the research quotes it to that place)",
+      "pass": true
+    },
+    {
+      "id": "chapter.portrait",
+      "claim": "Portrait plays on its plate: six panels read from the player's confirmed results (each line linked to How it's checked), the decoded pictures arrive, the marker is a keyboard slider, a wrong time is refused with its message, the clocks' combined time is confirmed, the sky moment shows the senders' star, and the plate fits one screen at 1440 x 900 and 1366 x 768.",
+      "measured": "panels star 3 lines, look 2 lines, world 3 lines, numbers 3 lines, voices 3 lines, machine 3 lines; decoded pictures 2; slider 42623 -> 42630 -> 42640 -> 42740 -> 42730; confirmed at 44040.0 years, combined band 43908.2,44173.9; moment shown at 1440 and 1366 px wide; page scroll 0, 0 px; shots in review/archive/2026-10-22T22-37-09-portrait/",
+      "expected": "every panel filled, no page scroll at either size, the refusal naming the clocks it misses, the confirmation, the moment, no console errors",
+      "tolerance": "exact (states)",
       "pass": true
     },
     {
@@ -136,7 +169,7 @@
     {
       "id": "chapter.trail",
       "claim": "The Trail plays in the browser through its instrument: a wrong star, a short run-back and a wrong distance are each rejected with their computed results; the warm-white star, the meeting and the ruler's distance confirm; with The Map built, the region view and the reframe confirm WHERE and WHEN.",
-      "measured": "wrong star rejected (Ran 8.68 deg); Sun measured 0.162 deg (95% cut 0.575) accepted; meeting 44293 years accepted (95% 43609 to 44975); ruler 1.024 +/- 0.002 pc accepted; where and when: played; 2.09 ms per chart frame; longest measurement 68 ms",
+      "measured": "wrong star rejected (Ran 8.68 deg); Sun measured 0.162 deg (95% cut 0.575) accepted; meeting 44293 years accepted (95% 43609 to 44975); ruler 1.024 +/- 0.002 pc accepted; where and when: played; 0.61 ms per chart frame; longest measurement 28 ms",
       "expected": "the same results as the Node checkers (trail.check.*); no console errors; no measurement over 1 s on the main thread (spec)",
       "tolerance": "exact (interface behaviour); 1 s for a blocking call",
       "pass": true
@@ -144,7 +177,7 @@
     {
       "id": "chapter.voices",
       "claim": "The Voices plays in the browser: the rest of the record on the turntable through the shared audio context, the spectrogram and the four tools; each deduction rejected once with its computed result, then confirmed through the instrument, at two window sizes; the octave moment shows once and is skipped.",
-      "measured": "audio rms 0.0607 on the shared output; 4 deductions at 1440x900 and 1366x768; counted 111 voices at -30 and 0.25 s; 14 captures in C:\\Users\\stewa\\Documents\\Claude\\Golden Record\\review\\inbox\\2026-10-16T23-03-29-voices",
+      "measured": "audio rms 0.0355 on the shared output; 4 deductions at 1440x900 and 1366x768; counted 111 voices at -30 and 0.25 s; 14 captures in C:\\Users\\stewa\\Documents\\Claude\\Golden Record\\review\\inbox\\2026-10-22T22-43-24-voices",
       "expected": "audio above silence on the shared output; every wrong answer rejected and every right one confirmed; no console errors",
       "tolerance": "exact (interface behaviour)",
       "pass": true
@@ -161,7 +194,7 @@
     {
       "id": "chart.galaxy.view",
       "claim": "On the galaxy chart, pointing at a pulsar picks that pulsar, and the chart draws at 60 frames per second at 1440 x 900.",
-      "measured": "14 of 14 map pulsars picked at their projected points; 4366 pulsars drawn; 1.05 ms per frame (120 frames, each waited for)",
+      "measured": "14 of 14 map pulsars picked at their projected points; 4366 pulsars drawn; 0.55 ms per frame (120 frames, each waited for)",
       "expected": "every map pulsar picked; under 16.7 ms per frame",
       "tolerance": "pick radius 12 CSS px; frame budget 16.7 ms on this PC (headless Chrome)",
       "pass": true
@@ -177,7 +210,7 @@
     {
       "id": "chart.neighbourhood.view",
       "claim": "On the neighbourhood chart, pointing at a star picks that star, and the trail drawn for it shows the kinematics' own angle.",
-      "measured": "Sun and Ross 248 picked at their projected points (2 of 2); Sun 0.0043 deg, Ross 248 51.78 deg drawn; 315 stars; 1.77 ms per frame",
+      "measured": "Sun and Ross 248 picked at their projected points (2 of 2); Sun 0.0043 deg, Ross 248 51.78 deg drawn; 315 stars; 0.57 ms per frame",
       "expected": "kinematics.trail recomputed in the page from the science modules (seed 'charts.dev'); under 16.7 ms per frame",
       "tolerance": "1e-9 deg (same computation); pick radius 12 CSS px; frame budget 16.7 ms",
       "pass": true
@@ -266,17 +299,26 @@
       "claim": "Thorium-230 checks the starting assumption: \"began as pure uranium-238\" passes, \"began as purified natural uranium\" fails decisively.",
       "measured": "pure start accepted (p > 0.01) in 200/200 trials; natural-uranium start: largest p 0.0e+0; free fit of age and starting U-234 (one trial): 28499 y (21313 to 44863), starting A234/A238 0.044; at 49 y: not determinable: 0 Th-230 counts cannot separate the age from the starting U-234",
       "expected": "pure start accepted at least 98% of the time; natural uranium (initial A234/A238 = 1) rejected with p < 1e-6 every time",
-      "tolerance": "likelihood-ratio test, chi-square 1 dof (conservative at the boundary)",
+      "tolerance": "likelihood-ratio test; pure start on the boundary: Chernoff mixture 1/2 chi2_0 + 1/2 chi2_1",
       "pass": true
     },
     {
       "id": "clocks.uranium.purity05",
-      "claim": "At the game's 5% level the purity test refuses a truly pure spot only rarely, never accepts natural uranium after a day's count, and the range of starts it accepts is computed exactly.",
-      "measured": "pure start refused in 27 of 1000 one-day counts (2.7%); natural uranium (A234/A238 1.000) accepted in 0; accepted starts run from 0 up to 0.026 to 0.054 (median 0.039) over 20 sessions",
-      "expected": "At most 5% refused (about 2.5% for a start on the boundary, Chernoff 1954); natural uranium never accepted; each range edge where the test's p-value crosses 0.05",
-      "tolerance": "refusal rate at most 7.1% (5% plus 3 binomial standard errors); edges to 1e-5 in the starting ratio",
+      "claim": "The purity test's drawn 95% range is calibrated at the boundary: with the Chernoff mixture p-value it refuses a truly pure spot 5% of the time, and the range of starts it accepts is computed exactly.",
+      "measured": "pure start outside the 95% range in 1049 of 20000 one-day counts (5.24%); accepted starts run from 0 up to 0.026 to 0.054 (median 0.039) over 20 sessions, open at 0 in 1",
+      "expected": "5% refused (boundary critical value 2.706 = chi2_1 at 0.90, Chernoff 1954; plain chi2_1 would give 2.5%); each range edge where the test's p-value crosses 0.05",
+      "tolerance": "908 to 1092 refusals (5% of 20000 +/- 3 binomial standard errors); edges to 1e-5 in the starting ratio",
       "pass": true,
-      "notes": "The Spot's counting session (spot.ts countingSession, detector efficiency 0.0528), one day at 44,100 years; seeds clocks.uranium.purity05/0 to /999."
+      "notes": "The Spot's counting session (spot.ts countingSession, detector efficiency 0.0528), one day at 44,100 years; seeds clocks.uranium.purity05/0 to /19999 (the first 2000 also test natural uranium)."
+    },
+    {
+      "id": "clocks.uranium.purity999",
+      "claim": "The purity test accepts a start consistent with the counts at the 99.9% level (D-A28): a truly pure spot is refused about 1 time in 1,000, and natural uranium never passes after a day's count.",
+      "measured": "pure start refused in 22 of 20000 one-day counts (0.110%, Wilson 95% 0.073% to 0.167%); natural uranium (A234/A238 1.000) accepted in 0 of 2000, smallest statistic 33887, p about 10^-7361",
+      "expected": "0.1% refused (boundary critical value 9.550 = chi2_1 at 0.998, Chernoff 1954); natural uranium refused (p < 0.001) every time",
+      "tolerance": "6.6 to 33.4 refusals (0.1% of 20000 +/- 3 binomial standard errors)",
+      "pass": true,
+      "notes": "The Spot's counting session (spot.ts countingSession, detector efficiency 0.0528), one day at 44,100 years; seeds clocks.uranium.purity05/0 to /19999 (the first 2000 also test natural uranium)."
     },
     {
       "id": "clocks.uranium.ratios",
@@ -286,6 +328,14 @@
       "tolerance": "0.5% for mass and atoms, 1% for ratios (the research rounding)",
       "pass": true,
       "notes": "Assumes isotopically pure U-238 at plating (NASA: \"ultra-pure\"); 9.62 Bq from NASA's 0.00026 microcurie."
+    },
+    {
+      "id": "consilience.math",
+      "claim": "Portrait combines its clocks by inverse-variance weighting (generalised least squares when two clocks share an error) and judges their agreement by a chi-square, and both agree with cases worked by hand.",
+      "measured": "10, 12, 14 (sigmas 1, 2, 2): mean 11.000000, sigma 0.816497, chi-square 3.500000, p 0.173774; correlated pair (rho 0.5): mean 0.5, sigma 0.866025, chi-square 1.000000; asymmetric pair: mean 124.000000 after 2 passes",
+      "expected": "by hand: 11, 0.816497, 3.5, exp(-1.75) = 0.173774; 0.5, 0.866025, 1; 124 (the sides facing the combined value)",
+      "tolerance": "1e-10 (floating point; the formulas are exact)",
+      "pass": true
     },
     {
       "id": "cover.map.angles",
@@ -435,11 +485,11 @@
     {
       "id": "decoder.browser",
       "claim": "In the browser, the real path (FLAC fetched whole, decoded at 96 kHz, decoded in a Worker) gives the same pictures as the tested Node decode, fast enough to keep up with playback.",
-      "measured": "3 frames (L000, L019, R072): largest pixel difference 0 grey levels; Worker decode 72, 62, 60 ms",
+      "measured": "3 frames (L000, L019, R072): largest pixel difference 0 grey levels; Worker decode 52, 44, 42 ms",
       "expected": "The Node decode of the same slices by the same code (itself pixel-equal to the Python reference, decoder.frames)",
       "tolerance": "At most 1 grey level per pixel (spec; both run V8); under 250 ms per frame (spec target for this PC; a frame lasts 4.3 s of tape)",
       "pass": true,
-      "notes": "Installed Chrome via Playwright. Chrome's decodeAudioData returns positive 16-bit samples as w / 32767 (negatives as w / 32768); src/media/frames.ts restores the exact integers before decoding, without which up to 407 pixels per frame differed by 1 grey level. Fetch plus decodeAudioData took 24, 26, 23 ms per frame on the dev server."
+      "notes": "Installed Chrome via Playwright. Chrome's decodeAudioData returns positive 16-bit samples as w / 32767 (negatives as w / 32768); src/media/frames.ts restores the exact integers before decoding, without which up to 407 pixels per frame differed by 1 grey level. Fetch plus decodeAudioData took 18, 19, 19 ms per frame on the dev server."
     },
     {
       "id": "decoder.circle",
@@ -457,7 +507,7 @@
       "expected": "The Python reference decoder's 96 kHz decodes of the same slices (build/ref96, tools/ref-decoder)",
       "tolerance": "SSIM at least 0.98 per frame (scikit-image defaults); for scale, the reference's own 96 vs 384 kHz decodes differ by SSIM 0.970 at worst",
       "pass": true,
-      "notes": "Node decode time 311 ms per frame including WAV and PNG reading."
+      "notes": "Node decode time 295 ms per frame including WAV and PNG reading."
     },
     {
       "id": "decoder.ref.aspectIndependent",
@@ -540,11 +590,36 @@
       "pass": true
     },
     {
+      "id": "epilogue.gliese445",
+      "claim": "The real pass of Voyager 1 by Gliese 445 is about 0.57 parsecs (1.9 light-years) about 44,100 years after launch, as the published Gaia-based study says (its time counted from about 2019).",
+      "measured": "0.5734 pc (1.870 ly; Gaia DR3 1 sigma 0.00077 pc), 44100 years after launch (AD 46078), 44059 years after 2019 (DR3 1 sigma 57.4), 115.90 km/s; z -1.58 in distance and 0.83 in time against the published values",
+      "expected": "0.575 pc (5 to 95% 0.574 to 0.576), 1.88 ly, 44000 years from about 2019 (5 to 95% 44000 to 44100), 116 km/s (Bailer-Jones and Farnocchia 2019 (Gaia DR2)); NASA's popular wording, shown only: about 1.7 ly in 40000 years",
+      "tolerance": "3.29 sigma (99.9% two-sided) of our Gaia DR3 errors propagated linearly and the paper's 5 to 95% range and rounding, in quadrature; speed within 0.5 km/s (information)",
+      "pass": true,
+      "notes": "Bailer-Jones and Farnocchia count time from their \"now\" (about 2019); we count from launch (1977); the comparison uses the same year. Ours lies just outside their 5 to 95% range in distance (M6 science audit), which the combined errors measure."
+    },
+    {
+      "id": "epilogue.instruments",
+      "claim": "As of NASA's status of 4 August 2026, Voyager 1 still runs two of its ten instruments and Voyager 2 three.",
+      "measured": "V1 2 of 10 (MAG, PWS); V2 3 of 10 (CRS, MAG, PWS)",
+      "expected": "docs/research/epilogue.md section 1 (NASA instruments page updated 2026-04-17, Voyager blog 2026-08-04): V1 MAG and PWS; V2 CRS, MAG and PWS",
+      "tolerance": "exact",
+      "pass": true
+    },
+    {
       "id": "epilogue.lightDay",
       "claim": "Voyager 1 becomes one light-day from Earth on 18 November 2026.",
       "measured": "2026-11-18T10:16:18Z (geometric distance from Earth's centre; 0.2 min from NASA's time)",
-      "expected": "2026-11-18 10:16:07 UTC (NASA, voyager.md section 4); research's geometric Horizons crossing about 10:15:51 UTC",
+      "expected": "2026-11-18 10:16:07 UTC (NASA, voyager.md section 4); the research's geometric crossing from Earth's centre about 10:15:51 UTC (voyager.md section 4, the same crossing to the minute); from the Sun the light-day comes later, 2027-02-03 21:39 UTC (M6 science audit, on these tables)",
       "tolerance": "1 hour (spec)",
+      "pass": true
+    },
+    {
+      "id": "epilogue.mapOlder",
+      "claim": "The pulsar map's periods, published as the 1970/1971 epoch, date from 1966.6 to 1971.8, on average about 8 years before launch: the map is older than the machine.",
+      "measured": "mean epoch 1969.67 (s.d. 1.32) over 13 pulsars; Crab 1971.76, Vela 1971.75; launch 1977.68",
+      "expected": "clocks.md 3a: mean 1969.7, s.d. 1.4; Crab 1971.76, glitch-corrected Vela about 1971.8; SSD72 Table 1: \"1970/1971 epoch\"",
+      "tolerance": "0.4 yr on the mean and spread, 0.3 yr on the sharp clocks",
       "pass": true
     },
     {
@@ -553,6 +628,14 @@
       "measured": "V1 172.054 AU, 23.913 h; V2 144.207 AU, 19.990 h (2026-10-15 00:00 UTC)",
       "expected": "V1 172.06 AU, 23.9 h; V2 144.2 AU, 20.0 h (JPL Horizons, voyager.md sections 3 and 4)",
       "tolerance": "0.05 AU (V1), 0.1 AU (V2), 0.05 h (the research's rounding)",
+      "pass": true
+    },
+    {
+      "id": "epilogue.voyagerNow",
+      "claim": "The shared \"where they are now\" maths (used by the tour card and Our Frame) reproduces the 15 October 2026 distances.",
+      "measured": "V1 172.054 AU, 23.913 h, 16.92 km/s; V2 144.207 AU, 19.990 h, 15.26 km/s",
+      "expected": "V1 172.06 AU, 23.9 h; V2 144.2 AU, 20.0 h (JPL Horizons, docs/research/voyager.md sections 3 and 4)",
+      "tolerance": "0.05 AU (V1), 0.1 AU (V2), 0.05 h",
       "pass": true
     },
     {
@@ -621,7 +704,7 @@
     {
       "id": "game.glyphs",
       "claim": "The alien interface turns an English key into the same short glyph word every time, and shows the cover's times in hydrogen periods that convert back to seconds exactly.",
-      "measured": "61 keys give 61 different glyph words; the same key twice is identical; 3.6 s is 4.133 beats",
+      "measured": "69 keys give 69 different glyph words; the same key twice is identical; 3.6 s is 4.133 beats",
       "expected": "determinism and distinctness (logic); the D-A22 base units (0.871 s, 1.37 m, 2.29 kg, exact by convention) and their dimensional products, recomputed by hand",
       "tolerance": "exact for the glyphs; 1e-12 relative for the unit round trip",
       "pass": true
@@ -629,7 +712,7 @@
     {
       "id": "game.graph",
       "claim": "The deduction graph gates the chapters as designed: The Key opens after the first Arrival deduction, the player and the pictures after the key is read, and a wrong answer is remembered with what it showed.",
-      "measured": "43 deductions in 8 chapters, every prerequisite exists and every node is reachable; key locked at start: true; key open after arrival.purpose: true; hints reveal nudge, method, answer in order and are counted",
+      "measured": "44 deductions in 10 chapters, every prerequisite exists and every node is reachable; key locked at start: true; key open after arrival.purpose: true; hints reveal nudge, method, answer in order and are counted",
       "expected": "D-A06 hub structure and the design in docs/plans/M3_specs/step1-shell-graph-codex.md",
       "tolerance": "exact (logic, with test checkers: the real checkers arrive in steps 3 to 6)",
       "pass": true
@@ -667,6 +750,14 @@
       "pass": true
     },
     {
+      "id": "game.visited",
+      "claim": "A chapter with no deductions (Our Frame) is done once entered, and the visit is saved.",
+      "measured": "open before entering, done after, visited list [epilogue]",
+      "expected": "open, then done",
+      "tolerance": "exact",
+      "pass": true
+    },
+    {
       "id": "identify.ageModel",
       "claim": "The identification takes the map's age from the Arrival clock's own error model, not from a hard 95% range: its pre-selection keeps every age the clock allows except a two-sided 1e-6 tail, so the true age is not cut off.",
       "measured": "over 20,000 seeded 1% measurements at 44,100 yr: true age outside the 95% interval 1034 times (5.17%; below its lower bound 500, the case that used to lose a pulsar), outside the range 0 times. One measurement: central 43114 yr, 1 sigma 495 yr, 95% [42166, 44106], range [40825, 45678] yr (z_w 4.89); interpolated draws within 1.0e-3 yr of the exact age. The half-life systematic (133 yr at 1 sigma, 0.27 of the clock's sigma, not in the model) would raise the range's two-sided tail from 1e-6 to 2.0e-6: harmless. Each candidate's long-term Pdot is allowed Pdot_meas / (1 +- x) at the same tail: x 3.8% for a measured noise amplitude of 0.425%, 32.3% for 6.64% (the alien's amplitude posterior over Lyne et al. 2010)",
@@ -682,7 +773,7 @@
       "expected": "the 14 identities (Sagan et al. 1972)",
       "tolerance": "right pulsar on all 14 lines in the nominal and 500 seeded realizations; nominal odds against all other candidates combined at least 20 (Kass and Raftery 1995, strong evidence)",
       "pass": true,
-      "notes": "Pass 1: period (how sharply the candidate predicts the map number; Monte Carlo over the map's age drawn from the Arrival clock's own error model (identify.ageModel), braking index, Doppler and the candidate's timing noise on Pdot, the dating's own model) x direction from the observer x latitude where the tick resolves. Pass 2: from the anchors (pass-1 odds against all others at least 20), the shared age (pulsars only) and the map origin (leave-one-out for anchor lines); direction from that origin, plus a heavy-tailed distance factor from the map lengths (Student-t, 2 dof); candidates without a distance get the anchors' mean distance density. Pre-selection: direction within 5 deg and age range, widened by the candidate's timing-noise bound, overlapping the clock's range (each with two-sided tails of 1e-6). 500 seeds took 214 s."
+      "notes": "Pass 1: period (how sharply the candidate predicts the map number; Monte Carlo over the map's age drawn from the Arrival clock's own error model (identify.ageModel), braking index, Doppler and the candidate's timing noise on Pdot, the dating's own model) x direction from the observer x latitude where the tick resolves. Pass 2: from the anchors (pass-1 odds against all others at least 20), the shared age (pulsars only) and the map origin (leave-one-out for anchor lines); direction from that origin, plus a heavy-tailed distance factor from the map lengths (Student-t, 2 dof); candidates without a distance get the anchors' mean distance density. Pre-selection: direction within 5 deg and age range, widened by the candidate's timing-noise bound, overlapping the clock's range (each with two-sided tails of 1e-6). 500 seeds took 322 s."
     },
     {
       "id": "identify.misspecified",
@@ -691,7 +782,7 @@
       "expected": "the 14 identities (Sagan et al. 1972), as identify.epoch",
       "tolerance": "right pulsar on all 14 lines in every realization; the rate bound is the exact binomial 95% upper limit given no errors",
       "pass": true,
-      "notes": "Misspecification options of the projection (pulsarEpoch.ts ProjectOptions, as dating.epoch.misspecified uses); the identification itself unchanged. 150 seeds per case took 179 s in all."
+      "notes": "Misspecification options of the projection (pulsarEpoch.ts ProjectOptions, as dating.epoch.misspecified uses); the identification itself unchanged. 150 seeds per case took 289 s in all."
     },
     {
       "id": "identify.today",
@@ -820,6 +911,14 @@
       "measured": "69 messages from 18 deductions, right and wrong answers: 0 problems",
       "expected": "no unit word with the gloss off (45 words anywhere, 15 symbols after a number); one human reading per quantity with it on",
       "tolerance": "exact",
+      "pass": true
+    },
+    {
+      "id": "perf.enter",
+      "claim": "Entering The Map, The Spot or The Trail never freezes the page: the epoch model's heavy parts (the identification, the trail, the spot's sweep table) are computed in a Worker behind the instrument's \"measuring\" state, so no main-thread task is longer than 100 ms from entering until the instrument is ready",
+      "measured": "map: longest task 100 ms, ready in 3026 ms; spot: longest task 58 ms, ready in 837 ms; trail: longest task 63 ms, ready in 3769 ms. GPU ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti Laptop GPU (0x00002F58) Direct3D11 vs_5_0 ps_5_0, D3D11); CPU Intel(R) Core(TM) Ultra 9 285H (16 threads)",
+      "expected": "no long task over 100 ms at 1440 x 900 (spec M4 step 7e section 4; the RAIL model's 100 ms response budget)",
+      "tolerance": "100 ms per task",
       "pass": true
     },
     {
@@ -967,6 +1066,33 @@
       "pass": true
     },
     {
+      "id": "portrait.brightBand",
+      "claim": "The bright band Portrait lights, and points the player into, on the short pulsar-map bar holds only accepted times: over many playthroughs every point of the map clock's own 95% bar is accepted.",
+      "measured": "the map clock's 95% bar (both ends and its estimate) accepted in 200 of 200 seeds; the lit band (both ends and its middle) accepted in 200 of 200; the lit band is the whole map bar in 200 of 200 (cut to the acceptance band in the rest)",
+      "expected": "every seed: the lit band is the map's bar cut to the 99.9% acceptance band (checkers.ts brightBand), so it is accepted by construction; the whole map bar accepted in all 200 seeds (M6 science audit: 200 of 200)",
+      "tolerance": "none: every seed (the acceptance band is one interval about the combined value, so a bar whose two ends are accepted is accepted throughout)",
+      "pass": true,
+      "notes": "The first 200 seeds of data/seeds.json, the clocks as in portrait.coverage."
+    },
+    {
+      "id": "portrait.coverage",
+      "claim": "Over many playthroughs, the combined clocks' 95% interval holds the true time since launch about 95% of the time, and the true time is always accepted.",
+      "measured": "188 of 200 validated seeds (94.0%) hold the clocks' weighted truth in the combined 95% interval; it is refused in 0 seeds; (truth - combined) / sigma has mean -0.068 (standard error 0.071) and sd 1.030. Against years since launch alone: 188 of 200 hold it, refused in 0, pull mean -0.175 and sd 1.029. The map clock's truth runs 8.70 years longer than the time since launch on average (8.06 to 10.21); the clocks disagree at p 0.001 or below in 0 seeds",
+      "expected": "inside the two-sided binomial 95% band around 0.95 for 200 seeds: 184 to 196 hits (exact binomial tails); the weighted truth accepted (99.9% band) in every seed",
+      "tolerance": "binomial 95% band (exact tail sums of Binomial(n, 0.95))",
+      "pass": true,
+      "notes": "The first 200 seeds of data/seeds.json. Each seed's clocks are the ones a player confirms (the fuel from pu238; a one-day spot count; the map's reframed combination in the warm-white star's frame; the warm-white star's distance over speed), computed with the warm-white star's trail row alone (the same numbers, checked exactly on the default seed). The truth is the combination's weighted sum of each clock's own true time: years since launch for the fuel, the spot and the journey; for the map, the time since its periods were true (about 9, 8 to 10, years longer). The pull against years since launch alone is recorded as information."
+    },
+    {
+      "id": "portrait.together",
+      "claim": "The four clocks that dated the machine (the fuel, the uranium spot, the map read in the warm-white star's frame, the journey) agree within their errors, and their inverse-variance combination holds the true time since launch; Portrait accepts that combined time and refuses a time 1,000 years off.",
+      "measured": "default seed: fuel 43,945 (95% 42,977 to 44,959); spot 44,124 (95% 42,786 to 45,506); map 44,068 (95% 43,930 to 44,210); journey 43,507 (95% 42,827 to 44,137); combined 44041.0 years, sigma 67.8 (95% 43,908 to 44,174), weights 0.017, 0.010, 0.928, 0.044; chi-square 2.95 for 3 dof, p 0.399; the combined time accepted: true; each clock's own estimate accepted: fuel true, spot true, map true, journey false; 1,000 years either side refused: true; map and journey through a shared measurement would correlate at rho 0.0051 (combined sigma 67.84 against 67.77); the half-life systematics (136 and 108 years) would move the mean by 0.1 years and the sigma by 0.07%",
+      "expected": "the weighted truth of the four clocks, 44108.4 years (each clock's own true time: years since launch, 44100.4, for the fuel, the spot and the journey, from epoch.ts discoveryState independent of every clock; the map's 44109.0 years since its periods were true, 8.6 years longer), inside the combined 95% interval; pull against it 0.994, against years since launch 0.876; chi-square p above 0.001",
+      "tolerance": "95% interval computed from the clocks' own 95% intervals (sigma = half-width / 1.96, the side facing the combined value); acceptance band 99.9% two-sided (3.29 sigma; D-A28)",
+      "pass": true,
+      "notes": "Each clock starts at its own event (fuel made, spot laid, the map's periods true, launch). The map's periods were true from 1966.6 to 1971.8 (dateMapToday), so the map clock runs about 9 (8 to 10, over 200 seeds) years longer than the time since launch, its weighted mean depending on which pulsars the combination keeps; the truth compared against is the combination's own weighted sum of the four true times, and the pull against years since launch is recorded beside it. Both are far inside the combined sigma of about 68 years. Independence is assumed only after the shared-measurement correlation above is measured to be negligible. Whether each clock's own estimate is accepted is information only."
+    },
+    {
       "id": "record.groove",
       "claim": "Dropping the needle at a radius finds the right moment of the record: one turn every 3.6 s, from the outside in.",
       "measured": "side 1: 1023.44 turns, pitch 83.79 um; side 2: 963.19 turns, pitch 89.03 um; worst radius/time round trip 6.8e-13",
@@ -987,7 +1113,7 @@
     {
       "id": "scene.encounter",
       "claim": "The encounter scene renders Voyager 1 under the computed sky at 60 frames per second at 1440 x 900, with every hotspot on the craft.",
-      "measured": "1.44 ms per frame (120 frames back to back, each waited for with a one-pixel read-back), live loop 4.2 ms; 8828 stars drawn; hotspots within 0.297 m of a model vertex",
+      "measured": "1.38 ms per frame (120 frames back to back, each waited for with a one-pixel read-back), live loop 4.2 ms; 8828 stars drawn; hotspots within 0.297 m of a model vertex",
       "expected": "under 16.7 ms (60 fps); each hotspot within its part radius of the model (tools/world/measure-hotspots.mjs)",
       "tolerance": "frame budget 16.7 ms on this PC (RTX 5070 Ti Laptop, headless Chrome); hotspot radius per part (hotspots.ts)",
       "pass": true
@@ -1016,7 +1142,7 @@
       "expected": "every listed seed confirms (the builder's verdict, reproduced on a sample); exclusions come from measurement noise only",
       "tolerance": "exact (verdicts)",
       "pass": true,
-      "notes": "Rates over all 2000 candidates: {\"trailOriginBeyond95\":101,\"trailOriginBeyond999\":4,\"trailWhereBeyond95\":0,\"trailWhereBeyond999\":0,\"trailWhereContourMax\":0.8409,\"spotPureStartRefusedAtOneDay\":44}. The Key, The Player and The Pictures never read the seed."
+      "notes": "Rates over all 2000 candidates: {\"trailOriginBeyond95\":101,\"trailOriginBeyond999\":4,\"trailWhereBeyond95\":0,\"trailWhereBeyond999\":0,\"trailWhereContourMax\":0.8409,\"spotPureBeyond95AtOneDay\":94,\"spotPureBeyond999AtOneDay\":0,\"spotNaturalStartPMax\":0}. The Key, The Player and The Pictures never read the seed."
     },
     {
       "id": "sound.m4.levels",
@@ -1086,6 +1212,18 @@
           "centroidHz": 340,
           "durationS": 7.5
         },
+        "agree": {
+          "peakDbfs": -23.01,
+          "rmsDbfs": -35.56,
+          "centroidHz": 209,
+          "durationS": 8.4
+        },
+        "bed-portrait": {
+          "peakDbfs": -37.82,
+          "rmsDbfs": -49.96,
+          "centroidHz": 498,
+          "durationS": 40
+        },
         "bed-arrival": {
           "peakDbfs": -33.94,
           "rmsDbfs": -40.62,
@@ -1093,9 +1231,9 @@
           "durationS": 12
         },
         "bed-key": {
-          "peakDbfs": -34.03,
-          "rmsDbfs": -41.49,
-          "centroidHz": 1373,
+          "peakDbfs": -34.75,
+          "rmsDbfs": -41.56,
+          "centroidHz": 1328,
           "durationS": 12
         },
         "bed-player": {
@@ -1119,8 +1257,8 @@
       "id": "spot.checkers",
       "claim": "The Spot's three deductions are judged by the science: a mark inside the spot, an age inside the counts' 95% interval, and a starting purity the counts accept while rejecting natural uranium; every wrong answer says what was computed.",
       "measured": "seeds finder-1, spot-a, spot-b: all right answers confirm, all wrong ones rejected. find: far Barely above background here: the detector would count 1.29 × 10⁻⁴ per beat (149 µHz) from the plate at this point, against its own background of 5.44 × 10⁻⁵ per beat (62.5 µHz). Whatever gives off alphas is far from this point. | find: near Something is giving off alpha particles nearby, but not here: the detector would count 0.5954 per beat (684 mHz) at this point (background 5.44 × 10⁻⁵ per beat (62.5 µHz)), and anywhere over the source itself it counts at least 1.612 per beat (1.85 Hz). The rate is still rising toward it. | age: 1 h 44052 (37969 to 51182); 1 day 44124 (42786 to 45506); too short at 1 s | purity at 1 day: pure p 1.000, natural p 0.0e+0; starts accepted 0 to 0.034; too short at 1 s",
-      "expected": "the spot disc from data/spot.json (D-A23); the craft's age from the epoch model inside the one-day interval; natural uranium (activity ratio 1, secular equilibrium) rejected at p < 0.05",
-      "tolerance": "exact (verdicts); the p < 0.05 threshold is the convention the spec names",
+      "expected": "the spot disc from data/spot.json (D-A23); the craft's age from the epoch model inside the one-day interval; a pure start accepted when consistent at the 99.9% level, natural uranium (activity ratio 1, secular equilibrium) refused at p < 0.001; the drawn range of starts at 95%",
+      "tolerance": "exact (verdicts); accept at p >= 0.001 (D-A28, amended 2026-10-22), with the Chernoff boundary p-value at a pure start (clocks.ts startPValue)",
       "pass": true
     },
     {
@@ -1165,6 +1303,14 @@
       "tolerance": "1 keV on the lines (the mass-number approximation is good to about 0.1 keV); 1e-12 on the ratio; 1e-4 and 1e-3 on the clocks (counts rounded to integers of 1e9)",
       "pass": true,
       "notes": "Each line's counts include its weaker companion (U-238 4.151, U-234 4.722, Th-230 4.621 MeV): the clocks need only how many alphas each nuclide gives. The background is ignored in the counter: it is under a ten-thousandth of the smallest line."
+    },
+    {
+      "id": "spot.purity.seeds",
+      "claim": "No playthrough meets a dead end at the purity test: on every listed seed the true start (pure uranium-238) is accepted at the 99.9% level after a day's count, and natural uranium refused.",
+      "measured": "1993 listed seeds: pure start refused in 0 (smallest p 0.0011), natural uranium accepted in 0 (smallest statistic 34112); over all 2000 candidates the pure start fell outside the drawn 95% range 94 times and beyond the 99.9% level 0 times (excluded by spot.purity: 0); largest natural-uranium p 0",
+      "expected": "pure start accepted and natural uranium refused on every listed seed; over the candidates 5% and 0.1% (the Chernoff-calibrated levels, clocks.uranium.purity05 and purity999); spot.purity exclusions are exactly the pure-start refusals",
+      "tolerance": "exact on the listed seeds; candidate rates within 3 binomial standard errors (5%: 100 +/- 29.2; 0.1%: 2 +/- 4.2)",
+      "pass": true
     },
     {
       "id": "spot.sweepReplay",
@@ -1448,7 +1594,7 @@
     {
       "id": "ui.headlines",
       "claim": "Every confirmed result leads with a headline: each chapter names one reading (or message quantity) per deduction, the headline finds it in the checker's real confirmed result, the number is the checker's own, and the sentence under it carries no number",
-      "measured": "23 deductions confirmed in Node on the default seed, each with its headline (arrival.purpose: dish diameter = 3.66 SI length; arrival.heat: time away from every star = 12188858674.233114 SI time; arrival.madeNotMined: orders of magnitude apart = 8; arrival.fuelAge: age = 1386810507554.8916 SI time; key.binary: number round the disc = 5113380864; key.unit: one turn of the disc = 3.5999437890442922 SI time; key.timesNotLengths: smallest length over the craft = 148000; player.speed: turn time on the cover = 3.5999437890442922 SI time; player.start: needle radius = 0.14755000000000001 SI length; player.direction: groove carries the needle = inward; map.periods: match quality = about 10⁹³ to 1; map.old: years ago = 1333885909030.0837 SI time; map.identify: lines with their pulsar = 14; map.motion: your speed = 115906.95500425983 SI speed; map.region: stars inside then = 1007; spot.find: times the background = 46500; spot.age: age = 1392440633749.553 SI time; spot.purity: fitted age = 1400700676035.3213 SI time; trail.origin: star = the warm-white star; trail.age: distance over speed = 1372976024487.7686 SI time; trail.neighbour: distance from your star = 31569344554960052 SI length; trail.where: stars in the region = 1007; trail.when: map's age = 1390664945742.297 SI time); every built deduction has a table entry",
+      "measured": "24 deductions confirmed in Node on the default seed, each with its headline (arrival.purpose: dish diameter = 3.66 SI length; arrival.heat: time away from every star = 12188858674.233114 SI time; arrival.madeNotMined: orders of magnitude apart = 8; arrival.fuelAge: age = 1386810507554.8916 SI time; key.binary: number round the disc = 5113380864; key.unit: one turn of the disc = 3.5999437890442922 SI time; key.timesNotLengths: smallest length over the craft = 148000; player.speed: turn time on the cover = 3.5999437890442922 SI time; player.start: needle radius = 0.14755000000000001 SI length; player.direction: groove carries the needle = inward; map.periods: match quality = about 10⁹³ to 1; map.old: years ago = 1333885909030.0837 SI time; map.identify: lines with their pulsar = 14; map.motion: your speed = 115906.95500425983 SI speed; map.region: stars inside then = 1007; spot.find: times the background = 46500; spot.age: age = 1392440633749.553 SI time; spot.purity: fitted age = 1400700676035.3213 SI time; trail.origin: star = the warm-white star; trail.age: distance over speed = 1372976024487.7686 SI time; trail.neighbour: distance from your star = 31569344554960052 SI length; trail.where: stars in the region = 1007; trail.when: map's age = 1390664945742.297 SI time; portrait.together: when it left = 1389829557843.5684 SI time); every built deduction has a table entry",
       "expected": "a headline for every confirmed deduction (spec M4 step 7e section 1); The Pictures and player.firstSound are checked by bot.game in the browser",
       "tolerance": "exact",
       "pass": true
@@ -1481,7 +1627,7 @@
     {
       "id": "voices.browser.agree",
       "claim": "In the browser, The Voices' analyses run in a Worker on the record's runtime audio (Opus) and reach the same verdicts as the reference on the lossless transfers.",
-      "measured": "frame levels within 0.101 dB on average; silent runs [[65,34,7],[107,74,32],[118,94,49],[130,100,66]]; 63 to 226 voices over the reasonable settings (reference 63 to 226); voicing agrees on 99.72% of frames, pitch median 0.151 cents apart (95% 0.66); crossing 17.11 kHz; the codec moves the greetings' long spectrum by 5.0 kHz +0.09 dB, 10.0 kHz +0.04 dB, 15.0 kHz +0.07 dB, 17.0 kHz +0.08 dB, 19.0 kHz +0.09 dB, 20.5 kHz -46.69 dB; best fold 1198.61 cents from 409 notes; best comb 12; 9 calls 190.64 to 236.09 s; Worker ms {\"ozma-01/display\":196,\"ozma-02/display\":1026,\"ozma-02/greetings\":12431,\"ozma-02/hearing\":2351,\"ozma-03/calls\":12476,\"ozma-21/piano\":2937,\"ozma-14/violin\":8961}",
+      "measured": "frame levels within 0.101 dB on average; silent runs [[65,34,7],[107,74,32],[118,94,49],[130,100,66]]; 63 to 226 voices over the reasonable settings (reference 63 to 226); voicing agrees on 99.72% of frames, pitch median 0.151 cents apart (95% 0.66); crossing 17.11 kHz; the codec moves the greetings' long spectrum by 5.0 kHz +0.09 dB, 10.0 kHz +0.04 dB, 15.0 kHz +0.07 dB, 17.0 kHz +0.08 dB, 19.0 kHz +0.09 dB, 20.5 kHz -46.69 dB; best fold 1198.61 cents from 409 notes; best comb 12; 9 calls 190.64 to 236.09 s; Worker ms {\"ozma-01/display\":83,\"ozma-02/display\":416,\"ozma-02/greetings\":4383,\"ozma-02/hearing\":1344,\"ozma-14/violin\":3238,\"ozma-03/calls\":4418,\"ozma-21/piano\":1190}",
       "expected": "the reference (data/voices.json): [[66,34,7],[105,72,31],[115,93,51],[130,100,66]]; 63 to 226; crossing 17.13 kHz; octave 1198.805 cents; comb 12; whale 190.64 to 236.09 s",
       "tolerance": "each verdict's own error bar: crossing inside the reference's 95% band 16.57 to 17.51 kHz; best fold within 2.14 cents of the reference's and of 1200; the same comb; every call inside the whale stretch (1 s slack for the codec's onsets); at least two dozen voices. The frame levels, silent runs, voicing and pitch are reported, not judged: they show what the codec changes",
       "pass": true
@@ -1489,9 +1635,9 @@
     {
       "id": "voices.checkers",
       "claim": "The Voices' four checkers accept the readings the real record supports and reject each meaningful wrong one with what the analysis computes for it, in the alien's units.",
-      "measured": "39 answers, 25 wrong ones rejected, each with its own result; unit problems: none",
-      "expected": "voices.md 1's table (counts within one of its silent runs at all 12 settings) and 'a few dozen at least'; the crossing over 10 kHz (voices.md 3); 2:1 and 2^(1/12) (voices.md 4); the lead's reading of the whale stretch (speech to about 188 s, calls alone to about 236 s); a piece of music always refused",
-      "tolerance": "exact verdicts; segment count within one of the silent-run count (a leading or trailing silence is a run but bounds no segment); the reading of the whale stretch within 2 s (read by eye to about a second). The Sounds of Earth case is pending the lead's reading",
+      "measured": "46 answers, 28 wrong ones rejected, each with its own result; unit problems: none",
+      "expected": "voices.md 1's table (counts within one of its silent runs at all 12 settings) and 'a few dozen at least'; the crossing over 10 kHz (voices.md 3); 2:1 and 2^(1/12) (voices.md 4); the lead's reading of the whale stretch (speech to about 188 s, calls alone to about 236 s); the lead's reading of the Sounds of Earth (2026-10-22, docs/plans/M6_specs/voices-others-machines.md, panels in review/archive/2026-10-16T18-14-57-sounds-spectrograms/): animals at 293 to 298, 303 to 313 and 620 to 675 s accepted, machine tones at 417 to 474 s (a flat 3.7 kHz line in the tools' hammering, which the call finder tracks an octave down at 1,851 Hz, and the Morse code of docs/research/voices.md 2) refused, the message giving their steadiness from the data (within a ratio of 1.0080 to 1, 13.8 cents, at most; the machine-tone gap rests on one whale call, the steadiest creature call at 17.79 cents, and moves no verdict); a piece of music always refused",
+      "tolerance": "exact verdicts; segment count within one of the silent-run count (a leading or trailing silence is a run but bounds no segment); the reading of the whale stretch within 2 s (read by eye to about a second); the Sounds of Earth stretches are the reference's own bounds (0.01 s), so exact",
       "pass": true
     },
     {
@@ -1580,13 +1726,22 @@
       "notes": "The voices' pitches form a wide continuum, not two clean groups: the deduction is the spread, not a two-group split."
     },
     {
+      "id": "voices.ref.sounds",
+      "claim": "On the Sounds of Earth the held calls of animals are accepted as other creatures' voices and the machine tones are not: a call whose pitch holds machine-steady is the senders' own making.",
+      "measured": "accepted stretches [(293.11, 296.77, 1), (296.98, 298.38, 2), (302.95, 312.62, 1), (620.26, 675.18, 2)]; 417.37 to 473.56 s not accepted (10 calls there, all machine-steady); pitch spread (10 to 90% range, cents): machine calls 3.86 to 13.77, creature calls 17.79 to 422.55 (16 calls on Ozma 03 and 04); gap 13.77 to 17.79 cents (ratios 1.0080 to 1.0103), threshold 15.78 cents; leave-one-out misclassified: ozma-03 234.77 s",
+      "expected": "the lead's reading of the Sounds of Earth panels (docs/plans/M6_specs/voices-others-machines.md; review/archive/2026-10-16T18-14-57-sounds-spectrograms/): animals at 293.11 to 296.77, 296.98 to 298.38, 302.95 to 312.62 and 620.26 to 675.18 s; machines (a flat 3.7 kHz line in the tools' hammering, and the Morse code that docs/research/voices.md 2 lists between the riveter and the ship's horn) at 417.37 to 473.56 s",
+      "tolerance": "exact: stretch bounds within one 10 ms frame (0.01 s); every machine flag as the reading says; the threshold strictly inside the measured gap",
+      "pass": true,
+      "notes": "The threshold is placed with these labels (the middle of the gap between the calls read as machines and every other call), so the split itself is not independent of the reading; the accepted animal stretches are (they come from the speech finder and call finder, unchanged). The gap is narrow: its low edge is the call at ozma-04 464.07 s, its high edge the call at ozma-03 234.77 s. Leave-one-out lists the calls a threshold placed without them would misclassify."
+    },
+    {
       "id": "voices.ref.speech",
       "claim": "The speech finder (voiced at a speaking pitch, broadband, in runs) finds speech where people speak and none where only the whale calls: a stretch with held calls and no speech is not theirs.",
       "measured": "UN greetings track: last speech ends 187.44 s; speech runs between 190 and 234 s: 0; accepted stretches [(187.44, 244.09, 9)]; 4 s windows holding speech: Waldheim 10 of 10, the 55 greetings 56 of 56",
       "expected": "the lead's reading of the spectrograms (speech to about 188 s; calls alone about 189 to 236 s; moans to about 239.5 s); speech in every stretch of the two all-speech tracks",
       "tolerance": "2 s for the reading (a spectrogram read by eye to about a second, with faint calls under the last speakers from about 182 s): last speech within 188 +/- 2 s, none from 190 to 234 s, one accepted stretch covering 190 to 234 s; every 4 s window of Ozma 01 and 02",
       "pass": true,
-      "notes": "The rule's thresholds were set on this track against this reading, so its part of the check is not independent of the rule; Ozma 01 and 02 are (and the Sounds of Earth will be, once the lead reads its spectrograms: pending)."
+      "notes": "The rule's thresholds were set on this track against this reading, so its part of the check is not independent of the rule; Ozma 01 and 02 are, and so are the Sounds of Earth's animal stretches (voices.ref.sounds, the lead's reading of 2026-10-22)."
     },
     {
       "id": "voices.ref.step",
@@ -1650,7 +1805,7 @@
     {
       "id": "voices.ts.pitch",
       "claim": "The browser's pitch tracker (YIN) follows the greetings and a single speaker exactly as the reference does.",
-      "measured": "greetings: voicing agrees on 100.000% of frames, pitch within 0.0e+0 cents, 0 frames on another dip; Waldheim: 100.000%, 0.0e+0 cents, 0 on another dip; speakers' ceiling 378.327 Hz; three passes in 34.4 s",
+      "measured": "greetings: voicing agrees on 100.000% of frames, pitch within 0.0e+0 cents, 0 frames on another dip; Waldheim: 100.000%, 0.0e+0 cents, 0 on another dip; speakers' ceiling 378.327 Hz; three passes in 38.9 s",
       "expected": "the reference's tracks (data/voices.json) and ceiling 378.33 Hz",
       "tolerance": "voicing on 99.9% of frames (a CMND within rounding of 0.1 may fall either side); pitch within 0.01 cents after the same 0.01 Hz rounding, except at most 5 frames that take another CMND dip (a value within rounding of a neighbour; about 1 in 5,000 voiced frames)",
       "pass": true
