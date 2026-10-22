@@ -23,6 +23,10 @@ outstanding chapters, every outstanding item and a V1.0 draft for his review.
   clicks derailing "Do it for me"; the Map entry stall (69 to 93 ms before; 51 to 68 ms alone after, though one full check under load recorded 100 ms, at the limit); Sounds of Earth machine tones
   counted as animals; The Key's whistling bed; a hygiene step in `npm run check`; an accessibility test (axe, 0
   violations over 17 pages) and a keyboard check; social preview tags; M5 step 6b's leftovers.
+- **Last fixes before the draft (QA audit):** the tour's click-hold now really holds a child's clicks on the
+  instrument during "Do it for me" (it let them through before; `bot.tourHold` uses real clicks); Portrait fits
+  at 1366x768; a current social preview image; the final full check 207 of 207; deployed and live-checked (the
+  game and the landing page at https://the-finder.pages.dev).
 - **The ongoing critic:** `node tools/critic_gemini/watch.mjs --chapters <parts>` films a stretch of the tour with
   sound and runs the Gemini video critic (reviews in `docs/reviews/2026-10-22-*-gemini-critic.md`).
 
@@ -186,6 +190,10 @@ and live-checked.
 
 - **Entering The Map** still shows one long task: 51 to 68 ms alone, 100 ms (the limit) in the last full check under load, on a cold browser (the first WebGL context; limit
   100, passes); a context warmed at boot would remove it.
+- **Portrait with the guide open at 1366x768:** the "Their world" panel scrolls inside itself (a letter clipped
+  at its edge); nothing is unreachable.
+- **The critics' layout notes for M7** (`docs/reviews/2026-10-22-V1-player-critic.md`): dense instrument screens,
+  the tour's prologue as plain text cards, scene art (Arrival's labels and the galaxy view's centre label clip).
 - **The machine-tone threshold** in voices.others rests on one whale call (4 cents of gap; stretch verdicts are
   robust). **The planets' 8 discrepancies** are probably 1970s values (Argon); carried, labelled "cause UNVERIFIED".
 - **Tour:** "Do it for me" works the real controls everywhere except where a canvas gesture has no in-page
