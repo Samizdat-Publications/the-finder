@@ -89,9 +89,10 @@ export function Listening() {
         </div>
       </div>
       <p class="epi-why">
-        Their power falls by about {powerLossWattsPerYear} watts a year as the plutonium decays.{' '}
+        Their power falls by about {powerLossWattsPerYear} watts a year, partly because the plutonium decays and partly because the generators' thermocouples, which turn its heat into
+        electricity, wear out.{' '}
         <a href={`/checked/#row-${FUEL_CLOCK_ROW}`} target="_blank" rel="noopener" data-epilogue-fuel-link>
-          This is the same decay you used as a clock in Arrival
+          The decay is the same one you used as a clock in Arrival
         </a>
         .
       </p>

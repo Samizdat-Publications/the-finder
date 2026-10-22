@@ -33,6 +33,9 @@ describe('Our Frame formatting', () => {
     );
     const after = lightDaySentence(computed, nasa, Date.parse('2027-01-01T00:00:00Z'));
     expect(after).toContain('became one light-day from Earth');
+    // After the crossing the one-way light time from the craft stays under a day for about 16 hours (by up to
+    // 4.9 s at the crossing; M6 science audit, review/archive/science/m6audit/lightday.txt), so "to within seconds".
+    expect(after).toContain('takes a full day or more (to within seconds) to cross the gap');
     expect(after).toContain('NASA gives 10:16:07; these tables give 10:16:18.');
     expect(before + after).not.toContain(String.fromCharCode(0x2014));
   });

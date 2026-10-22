@@ -193,7 +193,7 @@ export async function playEpilogue(page, { assert, log, shot } = {}) {
   assert(counts.v1on === 2 && counts.v1all === 10, `Voyager 1 runs 2 of 10 (${counts.v1on} of ${counts.v1all})`);
   assert(counts.v2on === 3 && counts.v2all === 10, `Voyager 2 runs 3 of 10 (${counts.v2on} of ${counts.v2all})`);
   assert(/Voyager 1 runs 2 of its 10 instruments, Voyager 2 runs 3/.test(counts.sentence), `the sentence says it (${counts.sentence})`);
-  assert(/about 4 watts a year as the plutonium decays/.test(counts.why), `the power loss is stated (${counts.why})`);
+  assert(/about 4 watts a year, partly because the plutonium decays and partly because the generators' thermocouples/.test(counts.why), `the power loss and both its causes are stated (${counts.why})`);
   assert(/^\/checked\/#row-\d+$/.test(counts.link), `the fuel-clock link opens a row of How it's checked (${counts.link})`);
   assert(/4 August 2026/.test(counts.asOf), `the table says when NASA's status is from (${counts.asOf})`);
   await snap('listening', 'Still listening: the ten instruments of each Voyager, two running on the first and three on the second, the rest with the date each was switched off and why.');
@@ -217,8 +217,8 @@ export async function playEpilogue(page, { assert, log, shot } = {}) {
   });
   assert(pass.ours.includes(`${sig3(sci.pc)} pc`) && pass.ours.includes(`${sig3(sci.years)} years after launch`) && pass.ours.includes(`AD ${sig3(sci.ad)}`), `our pass is the science's (${pass.ours.replace(/\s+/g, ' ')})`);
   assert(/0\.573 pc/.test(pass.ours) && /44,100 years/.test(pass.ours), `0.573 pc at 44,100 years (${pass.ours.replace(/\s+/g, ' ')})`);
-  assert(/0\.575 pc/.test(pass.published) && /44\.0 thousand years/.test(pass.published), `the published numbers sit beside it (${pass.published.replace(/\s+/g, ' ')})`);
-  assert(/1\.6 to 1\.7 light-years/.test(pass.nasa) && /40,000/.test(pass.nasa), `NASA's wording too (${pass.nasa.replace(/\s+/g, ' ')})`);
+  assert(/0\.575 pc/.test(pass.published) && /44\.0 thousand years from about 2019/.test(pass.published), `the published numbers sit beside it, counted from about 2019 (${pass.published.replace(/\s+/g, ' ')})`);
+  assert(/about 1\.7 light-years/.test(pass.nasa) && /40,000/.test(pass.nasa), `NASA's wording too (${pass.nasa.replace(/\s+/g, ' ')})`);
   assert(/That is where this story was set/.test(pass.lead), 'the premise is said aloud');
   out.future = { ours: pass.ours.replace(/\s+/g, ' '), pc: sci.pc, years: sci.years, ad: sci.ad };
   await snap('future', "The slow future: the drawing of the Sun, Voyager 1's path, Gliese 445's path and the closest approach, with our number beside the published ones.");
@@ -235,9 +235,9 @@ export async function playEpilogue(page, { assert, log, shot } = {}) {
   }));
   assert(mapInfo.dots.length === 13, `thirteen pulsars are dated (${mapInfo.dots.length})`);
   assert(mapInfo.dots.every((d) => d.y > 1966 && d.y < 1973), 'every dot lies between 1966 and 1973, before the launch');
-  assert(/measured in 1970 and 1971, about six years before launch/.test(mapInfo.lead), `the map's age is stated (${mapInfo.lead})`);
+  assert(/published as the 1970\/1971 epoch; the periods themselves date from 1966\.6 to 1971\.8, on average about eight years before launch/.test(mapInfo.lead), `the map's age is stated (${mapInfo.lead})`);
   assert(/Your own reading in The Trail dated the map/.test(mapInfo.yours) && /flying for/.test(mapInfo.yours) && /either way/.test(mapInfo.yours), `the player's own reading is shown (${mapInfo.yours.slice(0, 120)})`);
-  assert(/clocks in Portrait disagreed by a few years/.test(mapInfo.why), 'the line tying back to Portrait is there');
+  assert(/far too small to see beside clocks each uncertain by a century or more/.test(mapInfo.why), `the line tying back to Portrait is there (${mapInfo.why})`);
   out.map = { dots: mapInfo.dots.length, mean: mapInfo.dots.reduce((s, d) => s + d.y, 0) / mapInfo.dots.length };
   await snap('map', "The map is older than the machine: each of the map's pulsars on a 1966 to 1979 timeline, the 1970/1971 epoch band, the launch line, and the player's own reading from The Map.");
 

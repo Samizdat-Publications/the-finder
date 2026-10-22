@@ -24,7 +24,7 @@ export const M6_NODES: readonly Omit<NodeDef, 'question'>[] = [
     hints: [
       'Each clock drew its own bar of when. Look where the bars overlap.',
       'Weigh each clock by how narrow its bar is: the narrow ones say most. Where the weighted clocks meet is when it left.',
-      'Drag the marker "When it left" into the bright band where the clocks agree, or step it there with the arrow keys, then press Propose.',
+      'Drag the marker "When it left" into the bright band on the short pulsar-map bar (the narrowest clock, which counts most), or step it there with the arrow keys, then press Propose.',
     ],
   },
 ];

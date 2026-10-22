@@ -1,6 +1,7 @@
 // The centre band of Portrait's plate: the deduction portrait.together ("One story"). A time axis (before now, in
 // the Finder's beats, more to the right) with four bars, each one clock's own 95% interval from the player's
-// confirmed result, a soft light where three overlap and a bright one where all four do. The player moves one marker, "When it left" (drag, a
+// confirmed result, and a bright band on the map clock's bar (checkers.ts brightBand: the map's own 95% bar cut to
+// the acceptance band, so every lit point is accepted, and the words point into it). The player moves one marker, "When it left" (drag, a
 // click on the axis, or the keyboard: it is a focusable slider, arrows step, Page keys step ten times, Home and
 // End go to the ends) and proposes it through the command bus. Once confirmed, the clocks' combined 95% band is
 // drawn in gold. Every bar comes from the player's own results (state.ts playerClocks); nothing is typed.
@@ -16,7 +17,7 @@ import { alienText, humanText, rangeDigits } from '../../ui/message';
 import { send } from '../../ui/send';
 import { LastReading } from '../key/parts';
 import { beatTicks, linear, useSize } from '../map/plot';
-import { CLOCKS, DRAWN_LEVEL, PORTRAIT_NODE, combine } from './checkers';
+import { CLOCKS, DRAWN_LEVEL, PORTRAIT_NODE, brightBand, combine } from './checkers';
 import { PORTRAIT_HEADLINES } from './headlines';
 import { lastOk, marker, playerClocks, setAxis } from './state';
 
@@ -31,20 +32,6 @@ function niceStep(span: number): number {
   const raw = span / 400;
   const e = 10 ** Math.floor(Math.log10(raw));
   return ([1, 2, 5, 10].map((k) => k * e).find((s) => s >= raw) ?? 10 * e) as number;
-}
-
-/** Segments of the axis by how many of the bars cover them (drawn lit where three or all four clocks agree). */
-function coverage(bars: readonly { lo: number; hi: number }[]): { a: number; b: number; n: number }[] {
-  const edges = [...new Set(bars.flatMap((b) => [b.lo, b.hi]))].sort((x, y) => x - y);
-  const out: { a: number; b: number; n: number }[] = [];
-  for (let i = 0; i + 1 < edges.length; i++) {
-    const a = edges[i] as number;
-    const b = edges[i + 1] as number;
-    const mid = (a + b) / 2;
-    const n = bars.filter((k) => k.lo <= mid && mid <= k.hi).length;
-    if (n > 0) out.push({ a, b, n });
-  }
-  return out;
 }
 
 export function ClocksBand() {
@@ -106,7 +93,7 @@ export function ClocksBand() {
   const digits = axis ? rangeDigits('time', axis.hi * JULIAN_YEAR_S, step * 10 * JULIAN_YEAR_S) : 3;
   const mText = m === null ? '' : `${alienText('time', m * JULIAN_YEAR_S, digits)}${gloss ? ` (${humanText('time', m * JULIAN_YEAR_S, Math.max(3, Math.ceil(Math.log10(Math.max(1, m)))))})` : ''} ago`;
   const ticks = axis && w > 0 ? beatTicks(axis.lo, axis.hi, Math.max(3, Math.floor((w - PAD_L) / 110))) : [];
-  const cov = coverage(clocks.filter((c) => Number.isFinite(c.hi)));
+  const lit = useMemo(() => (all ? brightBand(clocks) : null), [all, clocks.map((c) => `${c.estimate},${c.lo},${c.hi}`).join()]);
   const band = combined ? { lo: combined.mean - bandHalfWidth(combined.sigma, DRAWN_LEVEL), hi: combined.mean + bandHalfWidth(combined.sigma, DRAWN_LEVEL) } : null;
   const def = nodeDef(ID);
 
@@ -138,11 +125,9 @@ export function ClocksBand() {
                 if ((e.currentTarget as SVGSVGElement).hasPointerCapture(e.pointerId)) setFromPx(e.clientX);
               }}
             >
-              {cov
-                .filter((s) => s.n >= CLOCKS.length - 1)
-                .map((s) => (
-                  <rect key={`${s.a}`} class="pt-cover" x={x(s.a)} y={TOP} width={Math.max(0.5, x(s.b) - x(s.a))} height={rowH * CLOCKS.length} rx={3} style={{ opacity: s.n === CLOCKS.length ? 0.2 : 0.05 }} />
-                ))}
+              {lit && (
+                <rect class="pt-cover" data-bright-band={`${lit.lo},${lit.hi}`} x={x(lit.lo)} y={TOP} width={Math.max(0.5, x(lit.hi) - x(lit.lo))} height={rowH * CLOCKS.length} rx={3} style={{ opacity: 0.2 }} />
+              )}
               {band && (
                 <g class="pt-combined" data-combined={`${band.lo.toFixed(1)},${band.hi.toFixed(1)}`}>
                   <rect x={x(band.lo)} y={TOP - 4} width={Math.max(2, x(band.hi) - x(band.lo))} height={rowH * CLOCKS.length + 8} />

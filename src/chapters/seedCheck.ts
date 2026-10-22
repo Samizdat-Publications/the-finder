@@ -11,8 +11,13 @@
 //   The Trail: the warm-white star (the scenario's truth: the craft left the Sun) for trail.origin and
 //     trail.where; the run-back's meeting time; the ruler's distance; the age in the origin star's frame.
 //   Portrait: the four clocks' combined time (portrait.together), from the results above.
-// Measured answers are what the instrument shows, never the simulation's truth, so the seed list does not
-// select seeds whose intervals happen to hold the truth (that would bias every coverage claim in the game).
+// Measured answers (the ages, distances, times) are what the instrument shows, never the simulation's truth, so
+// the list does not select seeds whose measured intervals happen to hold the truth. It does select on the truth
+// in one way: a few answers ARE the truth (the documented identities, the warm-white star for trail.origin and
+// trail.where, a pure start for spot.purity), and a seed where one of them is refused at the 99.9% level is
+// excluded. That removes about 1 seed in 1,000 per such check and hides those refusals from the list (their rates
+// are measured on unselected trials instead, e.g. clocks.uranium.purity999); any coverage claim made over the list
+// carries that small selection.
 // The 14 checkers of The Key, The Player and The Pictures never read the seed (their checkers take no model
 // for it), so a seed cannot block them.
 // Pure: no DOM. The model of each chapter is built for the seed by the same functions the game uses.

@@ -212,8 +212,10 @@ export function checkOthers(answer: Answer): CheckResult {
   if (creatures.length && !m.speech.length) {
     const longest = Math.max(...creatures.map((c) => c.endS - c.startS));
     const glide = Math.max(...creatures.map((c) => c.glide));
+    // How steady the machine-steady calls held: the widest of their 10 to 90% pitch ranges, as a ratio (cents in
+    // the data; the alien reads ratios).
     const plus = machines.length
-      ? ` (${machines.length} more held one pitch exactly, like a machine, and do not count: ${creatures.length} call${creatures.length === 1 ? '' : 's'} remain${creatures.length === 1 ? 's' : ''})`
+      ? ` (${machines.length} more held one pitch to within a ratio of ${ratioText(Math.max(...machines.map((c) => c.spread)), 4)} to 1, like a machine, and do not count: ${creatures.length} call${creatures.length === 1 ? '' : 's'} remain${creatures.length === 1 ? 's' : ''})`
       : '';
     return {
       ok: true,
@@ -231,7 +233,7 @@ export function checkOthers(answer: Answer): CheckResult {
       ok: false,
       result,
       message:
-        `Nobody speaks here and ${calls}, but every one of them held one pitch exactly, like a machine: the middle eight tenths of each call's pitch track stay within a ratio of ${r4(most)} to 1, ` +
+        `Nobody speaks here and ${calls}, but every one of them held one pitch to within a ratio of ${r4(most)} to 1, like a machine: that is the widest the middle eight tenths of any of these calls' pitch tracks wander, ` +
         `where the steadiest call of any animal measured on the record wanders by ${r4(MACHINE.gapCents[1])} to 1 or more (the line is drawn at ${r4(MACHINE.thresholdCents)} to 1). ` +
         "A tone that steady is something of their own making, not another creature's voice. Listen on.",
     };

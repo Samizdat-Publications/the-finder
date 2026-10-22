@@ -26,8 +26,15 @@ export interface CraftInstruments {
 export interface PublishedPass {
   id: string;
   who: string;
+  /** Years to the encounter, counted from `fromYear` (the paper's "now"), not from launch. */
   years: number;
+  fromYear: number;
+  /** The paper's 5th and 95th percentiles. */
+  yearsLow: number;
+  yearsHigh: number;
   pc: number;
+  pcLow: number;
+  pcHigh: number;
   lightYears: number;
   kmS: number;
 }
@@ -44,7 +51,7 @@ export interface EpilogueData {
   lightDay: { nasaUtc: string; nasaLocal: string; nasaKm: number; fromBody: string };
   gliese445: {
     published: PublishedPass[];
-    nasaPopular: { text: string; lightYearsLow: number; lightYearsHigh: number; years: number };
+    nasaPopular: { text: string; lightYears: number; years: number };
   };
   map: { periodsEpoch: { text: string; years: number[] }; launchYear: number };
   inscription: { text: string; etched: string; ferris: string; where: string };

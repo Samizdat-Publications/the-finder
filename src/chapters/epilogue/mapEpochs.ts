@@ -33,3 +33,9 @@ export function mapEpochs(cover: CoverData, pulsars: PulsarCatalogue, glitches: 
   const rows = dating.rows.map((r): MapEpochRow => ({ bname: r.line.bname, jname: r.line.jname, year: r.corrected.decimalYear, usable: r.usable }));
   return { rows, mean: dating.correctedMean, sd: dating.correctedSd, sharp: rows.filter((r) => r.usable && SHARP_JNAMES.includes(r.jname)) };
 }
+
+/** What Our Frame says of the span: the first and last usable epochs and how long before launch they are on average. */
+export function mapSpan(m: MapEpochs, launchYear: number): { first: number; last: number; meanYearsBefore: number } {
+  const ys = m.rows.filter((r) => r.usable).map((r) => r.year);
+  return { first: Math.min(...ys), last: Math.max(...ys), meanYearsBefore: launchYear - m.mean };
+}

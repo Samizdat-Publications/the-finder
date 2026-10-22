@@ -545,10 +545,10 @@ export const STOPS: readonly Stop[] = [
   {
     id: 'portrait.together', part: 'portrait', kind: 'do', chapter: 'portrait', node: 'portrait.together',
     title: 'Do the clocks agree?',
-    look: `Four separate clocks dated this machine: the **fuel** (plutonium turning into other atoms), the **uranium spot** on the cover, the **pulsar map** read from the warm-white star, and the **journey** (distance divided by speed). Each bar shows one clock's answer and how sure it is. Notice how short the pulsar map's bar is: many spinning stars together keep much sharper time than counting atoms, so that clock counts most.`,
-    todo: `Drag the **round marker** under the clock bars (or click it and use the arrow keys) into the **bright band** where the bars agree, in or right beside the short pulsar-map bar, then press **Propose: it left this long ago**.`,
-    why: `Four completely different kinds of physics, nuclear decay, spinning dead stars and the machine's own motion, give **one answer**: it left about 44,000 years ago. When clocks that share nothing agree, scientists trust the answer.`,
-    human: `Real scientists do exactly this. The age of the Earth, about 4.5 billion years, is agreed by uranium in tiny crystals, by meteorites and by Moon rocks: different clocks, one story.`,
+    look: `Four separate clocks dated this machine: the **fuel** (plutonium turning into other atoms), the **uranium spot** on the cover, the **pulsar map** read from the warm-white star, and the **journey** (distance divided by speed). Each bar shows one clock's answer and how sure it is. Notice how short the pulsar map's bar is: many spinning stars together keep much sharper time than counting atoms, so that clock counts most. The **bright band** is lit on that short bar: every time inside it fits all four clocks together.`,
+    todo: `Drag the **round marker** under the clock bars (or click it and use the arrow keys) into the **bright band** on the short pulsar-map bar, then press **Propose: it left this long ago**.`,
+    why: `Four completely different kinds of physics, nuclear decay, spinning dead stars and the machine's own motion, give **one answer**: it left about 44,000 years ago. When clocks that share almost nothing agree, scientists trust the answer.`,
+    human: `Real scientists do exactly this. The age of the Earth: meteorites give 4.5 billion years, and the oldest crystals and Moon rocks agree. Different clocks, one story.`,
     ask: 'If one clock had disagreed with the other three, what might that have told us?',
   },
   {
@@ -573,15 +573,15 @@ export const STOPS: readonly Stop[] = [
     id: 'finale.now', part: 'finale', kind: 'story', chapter: 'epilogue', section: 'now',
     title: 'Where it is right now',
     look:
-      `Back to the real world. Voyager 1 is still out there, still sending faint signals home, the most distant thing humans have ever made. NASA's own tables of its path say exactly where it is tonight. Watch the numbers: it moves about 17 kilometres further every second.`,
+      `Back to the real world. Voyager 1 is still out there, still sending faint signals home, the most distant thing humans have ever made. NASA's own tables of its path say exactly where it is tonight. Watch the numbers: it moves about 17 kilometres further from the Sun every second.`,
     why: 'Look up. It is out there, past the planets, carrying the record we just decoded.',
-    ask: 'A radio message takes almost a whole day to reach it. What would you say in a message that slow?',
+    ask: 'A radio message takes about a day to reach it. What would you say in a message that slow?',
   },
   {
     id: 'finale.listening', part: 'finale', kind: 'story', chapter: 'epilogue', section: 'listening',
     title: 'Still listening',
-    look: `Voyager 1 still runs **two** of its ten instruments, and Voyager 2 runs **three**. Every year their plutonium makes about 4 watts less power, so NASA switches instruments off one by one to keep the rest alive.`,
-    human: `That is the same decay we used as a clock in Arrival. By the Finder's time the plutonium-238 has all decayed away. Today it is still warm, and it is the power supply keeping both Voyagers alive.`,
+    look: `Voyager 1 still runs **two** of its ten instruments, and Voyager 2 runs **three**. Every year their power supply gives about 4 watts less, partly because the plutonium decays and partly because the generators' thermocouples (the parts that turn its heat into electricity) wear out, so NASA switches instruments off one by one to keep the rest alive.`,
+    human: `The decay part is the same decay we used as a clock in Arrival. By the Finder's time the plutonium-238 has all decayed away. Today it is still warm, and it is the power supply keeping both Voyagers alive.`,
     ask: 'If you could keep only one instrument running, which would you choose, and why?',
   },
   {
@@ -593,8 +593,8 @@ export const STOPS: readonly Stop[] = [
   {
     id: 'finale.map', part: 'finale', kind: 'story', chapter: 'epilogue', section: 'map',
     title: 'The map is older than the machine',
-    look: `The pulsar periods on the cover were measured in **1970 and 1971**, about six years before Voyager launched in 1977. The makers reused the map they had drawn for the Pioneer plaque.`,
-    why: 'So the map clock in Portrait counts from 1971, not 1977: one reason the clocks differ by a few years.',
+    look: `The pulsar periods on the cover were published as the **1970/1971** values. Dated from today's pulsar timing, the periods themselves were true between 1966 and 1971, on average about 8 years before Voyager launched in 1977. The makers reused the map they had drawn for the Pioneer plaque.`,
+    why: 'So the map clock in Portrait started counting several years before the machine left. That head start is real, but far too small to see beside clocks each uncertain by a century or more.',
   },
   {
     id: 'finale.line', part: 'finale', kind: 'story', chapter: 'epilogue', section: 'line',

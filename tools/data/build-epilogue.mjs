@@ -47,6 +47,12 @@ const sources = {
     pageUpdated: '2015-10-29',
     title: 'Voyager Golden Record inscription (JPL, Slice of History)',
   },
+  'nasa-reaching-stars': {
+    url: 'https://www.nasa.gov/image-article/reaching-stars',
+    read: '2026-10-22',
+    pageUpdated: '2013-09-11',
+    title: "It's Reaching for the Stars (NASA image article)",
+  },
   'bailer-jones-2019': { url: 'https://arxiv.org/abs/1912.03503', read: READ, pageUpdated: null, title: 'Bailer-Jones and Farnocchia 2019, RNAAS 3, 59' },
   'ssd72': { url: 'https://doi.org/10.1126/science.175.4024.881', read: READ, pageUpdated: null, title: 'Sagan, Salzman Sagan and Drake 1972, Science 175, 881, Table 1' },
 };
@@ -146,25 +152,33 @@ const data = {
       {
         id: 'bailer-jones-2019',
         who: 'Bailer-Jones and Farnocchia 2019 (Gaia DR2)',
+        // Table 1 gives the encounter time "from now" (the paper, RNAAS of 3 April 2019): years after about 2019,
+        // not after launch. 5 to 95%: 44.0 to 44.1 kyr, 0.574 to 0.576 pc.
         years: 44000,
+        fromYear: 2019,
+        yearsLow: 44000,
+        yearsHigh: 44100,
+        pcLow: 0.574,
+        pcHigh: 0.576,
         pc: 0.575,
         lightYears: 1.88,
         kmS: 116.0,
         source: ['bailer-jones-2019'],
       },
     ],
+    // NASA's own popular wording (M6 science audit, finding 6: the where-now page has none): "Voyager 1 will
+    // actually get within 1.7 light years of AC +79 3888 (aka Gliese 445) in 40,000 years."
     nasaPopular: {
-      text: 'NASA gives about 1.6 to 1.7 light-years in about 40,000 years.',
-      lightYearsLow: 1.6,
-      lightYearsHigh: 1.7,
+      text: 'NASA gives about 1.7 light-years in 40,000 years.',
+      lightYears: 1.7,
       years: 40000,
-      source: ['nasa-where-now'],
+      source: ['nasa-reaching-stars'],
     },
   },
   map: {
     periodsEpoch: { text: '1970/1971 epoch', years: [1970, 1971], source: ['ssd72'] },
     launchYear: 1977,
-    note: 'Launch year here is the calendar year only, for the "about six years" in the research note; the interface computes the launch date from data/scenario.json.',
+    note: 'The published epoch of the periods and the calendar year of launch, for labels only; the interface computes the per-pulsar epochs (1966.6 to 1971.8, mean 1969.7) from the pulsar tables and the launch date from data/scenario.json.',
   },
   inscription: {
     text: 'To the makers of music - all worlds, all times',

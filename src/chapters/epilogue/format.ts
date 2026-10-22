@@ -55,5 +55,5 @@ export function lightDaySentence(computedMs: number, nasaMs: number, nowMs: numb
   const tail = `NASA gives ${utcHms(nasaMs)}; these tables give ${utcHms(computedMs)}.`;
   return computedMs > nowMs
     ? `${when} is one light-day from Earth: light, or a radio message, takes a full day (to within seconds) to cross the gap. ${tail}`
-    : `${when} became one light-day from Earth: since then light, or a radio message, takes more than a full day to cross the gap. ${tail}`;
+    : `${when} became one light-day from Earth: since then light, or a radio message, takes a full day or more (to within seconds) to cross the gap. ${tail}`;
 }

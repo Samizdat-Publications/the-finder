@@ -60,7 +60,9 @@ describe("data/epilogue.json holds the research note's facts (docs/research/epil
     expect(epilogue.lightDay.nasaKm).toBeCloseTo(25.902e9, -6);
     const bj = epilogue.gliese445.published[0]!;
     expect(bj).toMatchObject({ years: 44000, pc: 0.575, lightYears: 1.88, kmS: 116.0 });
-    expect(epilogue.gliese445.nasaPopular).toMatchObject({ lightYearsLow: 1.6, lightYearsHigh: 1.7, years: 40000 });
+    // NASA's image article "It's Reaching for the Stars" (2013-09-11; docs/research/epilogue.md section 4).
+    expect(epilogue.gliese445.nasaPopular).toMatchObject({ lightYears: 1.7, years: 40000 });
+    expect(bj).toMatchObject({ fromYear: 2019, yearsLow: 44000, yearsHigh: 44100, pcLow: 0.574, pcHigh: 0.576 });
     expect(epilogue.map.periodsEpoch.years).toEqual([1970, 1971]);
     expect(epilogue.map.launchYear).toBe(1977);
   });
@@ -75,7 +77,8 @@ describe("data/epilogue.json holds the research note's facts (docs/research/epil
   it('gives every source its URL and the date it was read', () => {
     for (const [id, s] of Object.entries(epilogue.sources)) {
       expect(s.url, id).toMatch(/^https:\/\//);
-      expect(s.read, id).toBe('2026-10-16');
+      // The research date (docs/research/epilogue.md), or 2026-10-22 for NASA's Gliese 445 wording (M6 audit, finding 6).
+      expect(s.read, id).toBe(id === 'nasa-reaching-stars' ? '2026-10-22' : '2026-10-16');
     }
   });
 

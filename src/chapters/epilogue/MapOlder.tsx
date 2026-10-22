@@ -10,7 +10,7 @@ import { discoveryState, launchYear } from '../../science/epoch';
 import { JULIAN_YEAR_S } from '../../science/units';
 import { epilogue, loadPulsarTables, nearStars, scenario } from './epilogueData';
 import { grouped, numberWord } from './format';
-import { mapEpochs, type MapEpochs } from './mapEpochs';
+import { mapEpochs, mapSpan, type MapEpochs } from './mapEpochs';
 
 const W = 640;
 const H = 200;
@@ -94,9 +94,8 @@ export function MapOlder() {
   const launch = useMemo(() => launchYear(scenario), []);
   const own = useOwnReading();
   const flown = useMemo(() => discoveryState(scenario, nearStars).yearsAfterLaunch, []);
-  const [e0, e1] = epilogue.map.periodsEpoch.years as [number, number];
-  const gap = epilogue.map.launchYear - (e1 as number);
-  const gapWords = numberWord(gap);
+  const span = m ? mapSpan(m, launch) : null;
+  const before = span ? numberWord(Math.round(span.meanYearsBefore)) : null;
   const sharp = m?.sharp ?? [];
   const usable = m?.rows.filter((r) => r.usable) ?? [];
   const unusable = m?.rows.find((r) => !r.usable);
@@ -105,8 +104,15 @@ export function MapOlder() {
       <h2 id="epi-map-h" class="epi-head">
         The map is older than the machine
       </h2>
-      <p class="epi-lead small">
-        The map's periods were measured in {e0} and {e1}, about {gapWords} years before launch.
+      <p class="epi-lead small" data-epilogue-map-lead>
+        The map's periods were published as the {epilogue.map.periodsEpoch.text}
+        {span && before ? (
+          <>
+            ; the periods themselves date from {span.first.toFixed(1)} to {span.last.toFixed(1)}, on average about {before} years before launch.
+          </>
+        ) : (
+          '.'
+        )}
       </p>
       {error && <p class="epi-small" role="alert">Could not date the map: {error}</p>}
       {!m && !error && <p class="epi-small">Dating the map from today's pulsar timing...</p>}
@@ -124,7 +130,7 @@ export function MapOlder() {
           {own.low !== null && own.high !== null ? (
             <>
               <b>Your own reading in The Trail</b> dated the map to about {grouped(own.yearsAgo)} years ago (95%: {grouped(own.low)} to {grouped(own.high)}), while the machine has been flying for{' '}
-              {grouped(flown)} years. The clock's uncertainty is about {grouped((own.high - own.low) / 2)} years either way, so a {gapWords}-year head start is far too small for clocks like these to tell apart.
+              {grouped(flown)} years. The clock's uncertainty is about {grouped((own.high - own.low) / 2)} years either way, so a head start of {before ? `about ${before} years` : 'a few years'} is far too small for clocks like these to tell apart.
             </>
           ) : (
             <>
@@ -133,7 +139,7 @@ export function MapOlder() {
           )}
         </p>
       )}
-      <p class="epi-why">So when the clocks in Portrait disagreed by a few years, this is one reason: each started at a different moment.</p>
+      <p class="epi-why">So the map clock in Portrait started counting before the machine left. That head start is real, but far too small to see beside clocks each uncertain by a century or more.</p>
     </section>
   );
 }

@@ -109,6 +109,23 @@ export function combine(clocks: readonly PortraitClock[]): Consilience {
   return combineClocks(clocks);
 }
 
+/**
+ * The band the plate lights and the words point into: the map clock's own 95% bar, cut to the acceptance band
+ * (the combined value plus or minus its 99.9% half-width), so every point lit is a time Portrait accepts. The map
+ * is the narrowest clock and carries most of the weight, so its bar sits around the combined value; over 200 seeds
+ * the whole bar lies inside the acceptance band (portrait.test.ts, portrait.brightBand), and the cut only guards the
+ * rare seed where it would not. Null when the map clock is missing or the two do not overlap.
+ */
+export function brightBand(clocks: readonly PortraitClock[]): { lo: number; hi: number } | null {
+  const map = clocks.find((k) => k.id === 'map');
+  if (!map || clocks.length !== CLOCKS.length) return null;
+  const c = combine(clocks);
+  const half = bandHalfWidth(c.sigma, ACCEPT_LEVEL);
+  const lo = Math.max(map.lo, c.mean - half);
+  const hi = Math.min(map.hi, c.mean + half);
+  return lo <= hi ? { lo, hi } : null;
+}
+
 function obj(answer: Answer): Record<string, Answer> {
   if (answer === null || typeof answer !== 'object' || Array.isArray(answer)) throw new Error('Propose a time: { yearsAgo }.');
   return answer;
@@ -152,7 +169,7 @@ export function checkTogether(answer: Answer, clocks: readonly PortraitClock[]):
         'Nuclear decay twice, the spin of the pulsars and the motion of the stars tell one story: the machine left the warm-white star that long ago. ' +
         'Strictly, each clock starts at its own event (' +
         CLOCKS.map((k) => `${k.label.replace(/, .*$/, '')} ${k.starts}`).join('; ') +
-        '); those events lie a few years apart, far inside these bars.',
+        '); those events lie so close together that no clock here can tell them apart: far closer than the width of the narrowest bar.',
     };
   }
   const away = Math.abs(v - c.mean);
@@ -167,7 +184,7 @@ export function checkTogether(answer: Answer, clocks: readonly PortraitClock[]):
     ],
     message:
       `${qy(v)} ago lies outside ${out} of the four clocks' own 95% bars, and ${qy(away, 2)} ${v < c.mean ? 'too recent' : 'too long ago'} for the clocks together: ` +
-      `they agree at ${qy(c.mean)} ago (95%: ${qy(lo)} to ${qy(hi)}). Move the marker into the bright band: the narrowest bar counts most, so the answer lies in it or right beside it.`,
+      `they agree at ${qy(c.mean)} ago (95%: ${qy(lo)} to ${qy(hi)}). Move the marker into the bright band, on the short pulsar-map bar: the narrowest clock counts most, and every point lit there lies with the clocks together.`,
   };
 }
 

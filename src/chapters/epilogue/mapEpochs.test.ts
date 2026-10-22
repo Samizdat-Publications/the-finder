@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { loadCover, loadGlitches, loadPulsars, loadScenario } from '../../../tests/support/data';
 import { recordCheck } from '../../../tests/support/record';
 import { launchYear } from '../../science/epoch';
+import { STOPS } from '../../tour/script';
 import { epilogue } from './epilogueData';
-import { mapEpochs } from './mapEpochs';
+import { numberWord } from './format';
+import { mapEpochs, mapSpan } from './mapEpochs';
 
 describe('the map is older than the machine', () => {
   const m = mapEpochs(loadCover(), loadPulsars(), loadGlitches());
@@ -26,7 +28,7 @@ describe('the map is older than the machine', () => {
     for (const r of m.sharp) expect(Math.abs(r.year - 1971.8)).toBeLessThanOrEqual(0.3);
     recordCheck({
       id: 'epilogue.mapOlder',
-      claim: "The pulsar map's periods were measured in 1970 and 1971, about six years before launch: the map is older than the machine.",
+      claim: "The pulsar map's periods, published as the 1970/1971 epoch, date from 1966.6 to 1971.8, on average about 8 years before launch: the map is older than the machine.",
       measured: `mean epoch ${m.mean.toFixed(2)} (s.d. ${m.sd.toFixed(2)}) over ${usable.length} pulsars; Crab ${m.sharp[0]!.year.toFixed(2)}, Vela ${m.sharp[1]!.year.toFixed(2)}; launch ${launch.toFixed(2)}`,
       expected: 'clocks.md 3a: mean 1969.7, s.d. 1.4; Crab 1971.76, glitch-corrected Vela about 1971.8; SSD72 Table 1: "1970/1971 epoch"',
       tolerance: '0.4 yr on the mean and spread, 0.3 yr on the sharp clocks',
@@ -34,13 +36,21 @@ describe('the map is older than the machine', () => {
     });
   });
 
-  it('puts the published 1970 and 1971 epochs inside the computed spread, and launch six calendar years after 1971', () => {
+  it('puts the published 1970 and 1971 epochs inside the computed spread, and the words shown match the computed span', () => {
     const [a, b] = epilogue.map.periodsEpoch.years as [number, number];
-    const lo = Math.min(...usable.map((r) => r.year));
-    const hi = Math.max(...usable.map((r) => r.year));
-    expect(lo).toBeLessThan(a);
-    expect(hi).toBeGreaterThan(b);
-    expect(epilogue.map.launchYear - b).toBe(6);
+    const span = mapSpan(m, launch);
+    expect(span.first).toBeLessThan(a);
+    expect(span.last).toBeGreaterThan(b);
     expect(Math.floor(launch)).toBe(epilogue.map.launchYear);
+    // clocks.md 3a and the M6 science audit: 1966.6 to 1971.8, mean 1969.67 (launch 1977.68), so about 8 years.
+    // Tolerance: 0.1 yr, the one decimal the page shows.
+    expect(Math.abs(span.first - 1966.6)).toBeLessThanOrEqual(0.1);
+    expect(Math.abs(span.last - 1971.8)).toBeLessThanOrEqual(0.1);
+    expect(Math.round(span.meanYearsBefore)).toBe(8);
+    // The tour's words for the same span (src/tour/script.ts finale.map), typed there, must match the computation.
+    const look = STOPS.find((x) => x.id === 'finale.map')!.look;
+    expect(look).toContain(`between ${Math.floor(span.first)} and ${Math.floor(span.last)}`);
+    expect(look).toContain(`about ${Math.round(span.meanYearsBefore)} years before`);
+    expect(numberWord(Math.round(span.meanYearsBefore))).toBe('eight');
   });
 });

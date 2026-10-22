@@ -121,13 +121,13 @@ export function Future() {
                 <td>
                   {pub.pc} pc ({sig(pub.lightYears, 2)} light-years)
                 </td>
-                <td>{(pub.years / 1000).toFixed(1)} thousand years</td>
+                <td data-pass-from={pub.fromYear}>{(pub.years / 1000).toFixed(1)} thousand years from about {pub.fromYear}</td>
               </tr>
             )}
             <tr data-pass="nasa">
               <th scope="row">NASA, popular wording</th>
               <td>
-                {nasa.lightYearsLow} to {nasa.lightYearsHigh} light-years
+                about {nasa.lightYears} light-years
               </td>
               <td>about {nasa.years.toLocaleString('en-US')} years</td>
             </tr>

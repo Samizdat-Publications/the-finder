@@ -130,12 +130,20 @@ describe('The Voices checkers', () => {
     see('others', checkOthers({ track: 'ozma-04', start: 302.95, end: 312.62 }), true);
     see('others', checkOthers({ track: 'ozma-04', start: 620.26, end: 675.18 }), true);
     // The machines: the whole stretch, the 3.7 kHz line alone, the Morse alone. Refused, saying the calls held one
-    // pitch exactly, like a machine.
-    for (const [start, end] of [[417.37, 473.56], [428, 434], [463, 471]] as const) {
+    // pitch to within a ratio computed from their own spreads (13.77 cents at most, 1.0080 to 1: the Morse call at
+    // 464.07 s; the 3.7 kHz stretch alone 13.16 cents, 1.0076), like a machine. The 3.7 kHz line the lead read on the
+    // panels is tracked at 1,851 Hz, an octave below it (voices.json ozma-04 calls at 428.82 and 432.42 s): the call
+    // finder follows the line's subharmonic, and the steadiness, a ratio, is the same at either octave.
+    for (const [start, end, most] of [[417.37, 473.56, 13.77], [428, 434, 13.16], [463, 471, 13.77]] as const) {
       const r = see('others', checkOthers({ track: 'ozma-04', start, end }), false);
       expect(r.message).toMatch(/like a machine/);
+      expect(r.message).toContain(`to within a ratio of ${(2 ** (most / 1200)).toFixed(4)} to 1`);
       expect(r.message).toMatch(/not another creature's voice/);
     }
+    const hz = (V.others.tracks as Record<string, { calls?: number[][] }>)['ozma-04']!.calls!.filter((c) => c[6] === 1 && c[0]! / 100 < 440).map((c) => c[2]!);
+    // Tolerance: the lead read the line as "near 3.7 kHz" (two figures), so twice the tracked pitch within 50 Hz of it.
+    expect(hz.length).toBe(2);
+    for (const f of hz) expect(Math.abs(2 * f - 3700)).toBeLessThanOrEqual(50);
     // Every call the lead read as a machine is flagged, and no other call on the greetings or the Sounds of Earth.
     for (const [tid, t] of Object.entries(V.others.tracks as Record<string, { kind: string; calls?: number[][] }>)) {
       for (const c of t.calls ?? []) {
@@ -153,7 +161,7 @@ describe('The Voices checkers', () => {
       claim: "The Voices' four checkers accept the readings the real record supports and reject each meaningful wrong one with what the analysis computes for it, in the alien's units.",
       measured: `${log.length} answers, ${wrongs} wrong ones rejected, each with its own result; unit problems: ${problems.length ? problems.join('; ') : 'none'}`,
       expected:
-        "voices.md 1's table (counts within one of its silent runs at all 12 settings) and 'a few dozen at least'; the crossing over 10 kHz (voices.md 3); 2:1 and 2^(1/12) (voices.md 4); the lead's reading of the whale stretch (speech to about 188 s, calls alone to about 236 s); the lead's reading of the Sounds of Earth (2026-10-22, docs/plans/M6_specs/voices-others-machines.md, panels in review/archive/2026-10-16T18-14-57-sounds-spectrograms/): animals at 293 to 298, 303 to 313 and 620 to 675 s accepted, machine tones at 417 to 474 s (a flat 3.7 kHz line in the tools' hammering, the Morse code of docs/research/voices.md 2) refused; a piece of music always refused",
+        "voices.md 1's table (counts within one of its silent runs at all 12 settings) and 'a few dozen at least'; the crossing over 10 kHz (voices.md 3); 2:1 and 2^(1/12) (voices.md 4); the lead's reading of the whale stretch (speech to about 188 s, calls alone to about 236 s); the lead's reading of the Sounds of Earth (2026-10-22, docs/plans/M6_specs/voices-others-machines.md, panels in review/archive/2026-10-16T18-14-57-sounds-spectrograms/): animals at 293 to 298, 303 to 313 and 620 to 675 s accepted, machine tones at 417 to 474 s (a flat 3.7 kHz line in the tools' hammering, which the call finder tracks an octave down at 1,851 Hz, and the Morse code of docs/research/voices.md 2) refused, the message giving their steadiness from the data (within a ratio of 1.0080 to 1, 13.8 cents, at most; the machine-tone gap rests on one whale call, the steadiest creature call at 17.79 cents, and moves no verdict); a piece of music always refused",
       tolerance: "exact verdicts; segment count within one of the silent-run count (a leading or trailing silence is a run but bounds no segment); the reading of the whale stretch within 2 s (read by eye to about a second); the Sounds of Earth stretches are the reference's own bounds (0.01 s), so exact",
       pass,
     });

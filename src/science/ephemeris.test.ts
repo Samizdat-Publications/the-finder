@@ -80,7 +80,7 @@ describe('ephemeris: Horizons tables', () => {
       id: 'epilogue.lightDay',
       claim: 'Voyager 1 becomes one light-day from Earth on 18 November 2026.',
       measured: `${iso} (geometric distance from Earth's centre; ${diffMin.toFixed(1)} min from NASA's time)`,
-      expected: '2026-11-18 10:16:07 UTC (NASA, voyager.md section 4); research\'s geometric Horizons crossing about 10:15:51 UTC',
+      expected: '2026-11-18 10:16:07 UTC (NASA, voyager.md section 4); the research\'s geometric crossing from Earth\'s centre about 10:15:51 UTC (voyager.md section 4, the same crossing to the minute); from the Sun the light-day comes later, 2027-02-03 21:39 UTC (M6 science audit, on these tables)',
       tolerance: '1 hour (spec)',
       pass: Math.abs(diffMin) <= 60,
     });
