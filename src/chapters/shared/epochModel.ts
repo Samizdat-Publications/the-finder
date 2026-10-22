@@ -111,6 +111,8 @@ export interface BuildOptions {
    * throws "still measuring", so the page never blocks on it.
    */
   request?: (part: HeavyPart) => void;
+  /** The identification's age window, when the caller has already computed it (in a task of its own); else computed here. */
+  ageWindow?: [number, number];
 }
 
 const MEASURING: Record<HeavyPart, string> = {
@@ -143,7 +145,7 @@ export function buildEpochModel(inputs: EpochInputs, seed: string, opts: BuildOp
   const rtgMeasurement = arrivalModel(seed).measurement;
   const rtg = ageFromTh230U234(rtgMeasurement);
   const rtgInterval: [number, number] = [rtg.lo, rtg.hi];
-  const ageWindow = rtgAgeModel(rtgMeasurement).windowYears;
+  const ageWindow = opts.ageWindow ?? rtgAgeModel(rtgMeasurement).windowYears;
   const entry = (jname: string): AlienPulsar => {
     const a = byJ.get(jname);
     if (!a) throw new Error(`${jname} is not in the alien's catalogue`);
@@ -301,9 +303,16 @@ export async function loadEpochModel(seed: string): Promise<EpochModel> {
   if (!b) {
     b = alien.then(async (pre) => {
       // Build in a task of its own, not in the one that received the catalogue (keeps each task short).
-      await new Promise((r) => setTimeout(r, 0));
+      // The build's three costly steps (the Arrival model, the clock's age window, the rest) each get a task
+      // of their own, so none passes about 30 ms (measured: together they were one 55 to 65 ms task).
+      const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+      await tick();
+      const arrival = arrivalModel(seed);
+      await tick();
+      const ageWindow = rtgAgeModel(arrival.measurement).windowYears;
+      await tick();
       if (cached?.seed === seed) return cached;
-      const m: EpochModel = buildEpochModel(inputs, seed, { pre, request: (part) => void ensureParts(m, [part]).catch(() => undefined) });
+      const m: EpochModel = buildEpochModel(inputs, seed, { pre, ageWindow, request: (part) => void ensureParts(m, [part]).catch(() => undefined) });
       cached = m;
       return m;
     });

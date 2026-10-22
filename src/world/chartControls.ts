@@ -374,6 +374,17 @@ export interface ChartRenderer {
   dispose(): void;
 }
 
+/**
+ * Creates the canvas's WebGL2 context with the attributes createChartRenderer's renderer asks for (three r186:
+ * alpha, depth, no stencil, antialias, premultiplied alpha, high-performance), so the renderer made next finds it
+ * and takes it as is. The context alone costs 40 to 50 ms on this machine (ANGLE on Direct3D 11); a caller that
+ * calls this in one task and createChartRenderer in the next keeps each task short. A no-op when WebGL2 is missing
+ * (createChartRenderer then fails as before).
+ */
+export function warmChartContext(canvas: HTMLCanvasElement): void {
+  canvas.getContext('webgl2', { alpha: true, depth: true, stencil: false, antialias: true, premultipliedAlpha: true, preserveDrawingBuffer: false, powerPreference: 'high-performance', failIfMajorPerformanceCaveat: false });
+}
+
 /** Renderer, scene, camera and the one render loop; onFrame(dt) runs before every render. */
 export function createChartRenderer(canvas: HTMLCanvasElement, onFrame: (dt: number) => void, onResize: (w: number, h: number, pr: number) => void): ChartRenderer {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });

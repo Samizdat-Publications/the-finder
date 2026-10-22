@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { confirmedSet, game } from '../../game/state';
 import { wrapDeg } from '../../science/pulsars';
+import { warmChartContext } from '../../world/chartControls';
 import { mountGalaxy, type GalaxyHandle, type GalaxyInfo } from '../../world/galaxy';
 import { chartLength } from '../shared/chartLabels';
 import { ensureParts } from '../shared/epochModel';
@@ -41,12 +42,19 @@ export function GalaxyPane() {
     // The WebGL chart starts in a task of its own, after the instrument has drawn (no long task on entering).
     let g: GalaxyHandle | null = null;
     let live = true;
+    // The WebGL context alone is 40 to 50 ms, so it gets a task of its own, and the chart is built in the next.
+    let next = 0;
     const start = window.setTimeout(() => {
-      if (live) g = mount(el, m);
+      if (!live) return;
+      warmChartContext(el);
+      next = window.setTimeout(() => {
+        if (live) g = mount(el, m);
+      }, 0);
     }, 0);
     return () => {
       live = false;
       window.clearTimeout(start);
+      window.clearTimeout(next);
       if (!g) return;
       if (window.__mapChart === g) delete window.__mapChart;
       if (current === g) current = null;

@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { KM_S_TO_PC_PER_YEAR, scale, toGalacticCartesian, type Vec3 } from '../../science/astro';
 import { game } from '../../game/state';
 import { CRAFT_GLYPH_BOX, CRAFT_GLYPH_PATH } from '../../world/chartGlyphs';
+import { warmChartContext } from '../../world/chartControls';
 import { mountNeighbourhood, type NeighbourhoodHandle } from '../../world/neighbourhood';
 import { chartLength } from '../shared/chartLabels';
 import type { EpochModel } from '../shared/epochModel';
@@ -50,11 +51,20 @@ export function ChartPane(p: { m: EpochModel }) {
     const m = p.m;
     // The WebGL chart starts in a task of its own, after the instrument has drawn (M4 step 7e: no long task on entering).
     let h: NeighbourhoodHandle | null = null;
+    // The WebGL context alone is 40 to 50 ms, so it gets a task of its own, and the chart is built in the next.
+    let live = true;
+    let next = 0;
     const start = window.setTimeout(() => {
-      h = mount(c, m);
+      if (!live) return;
+      warmChartContext(c);
+      next = window.setTimeout(() => {
+        if (live) h = mount(c, m);
+      }, 0);
     }, 0);
     return () => {
+      live = false;
       window.clearTimeout(start);
+      window.clearTimeout(next);
       if (!h) return;
       h.dispose();
       if (handle === h) handle = null;
