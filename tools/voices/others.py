@@ -17,6 +17,16 @@ into data/voices.json ("others").
   to about 188 s, calls alone after about 189 s) and is validated, independently, on the 55 greetings (02) and
   Waldheim (01), where every stretch of a few seconds must hold speech (tools/voices/checks.py voices.ref.speech).
 
+Machine tones (the lead's decision, docs/plans/M6_specs/voices-others-machines.md): a held call whose pitch is
+machine-steady is the senders' own making, not another creature's voice. Each call's steadiness is the 10 to 90%
+range of its pitch track, in cents, with nothing removed (SPREAD_PCT); its vibrato (the scatter, cents, about the
+call's own straight-line glide) is measured and stored but does not decide. The threshold is not chosen: it is the
+middle of the gap between the calls the lead read as machines (MACHINE_READING: on the Sounds of Earth, a flat
+line in the hammering of the tools and machines section and keyed dashes of a flat 1 kHz tone, the Morse code)
+and every other held call the pass finds on the greetings and the Sounds of Earth (the whale on track 03, the
+animals of track 04). If the two groups overlap, the build stops (no clean gap). A stretch is accepted only with
+at least one held call that is not machine-steady.
+
 Music items are measured too (their held tones are counted), but a stretch of one of their pieces of music is
 never "not theirs": a held tone there is their own playing or singing, which this measurement cannot tell from
 an animal's call. The checker says so with the counts.
@@ -43,6 +53,15 @@ SPEECH_MIN_FRAMES = 3
 """Speech runs last at least 30 ms (a single lit, voiced frame may be a click under a call)."""
 SPEECH_STEP_CENTS = 50.0
 """A speech run's pitch moves less than half a tempered step per 10 ms frame (vmusic.NOTE_STEP_CENTS)."""
+SPREAD_PCT = (10.0, 90.0)
+"""A call's steadiness: the range between these percentiles of its pitch (cents), so one stray frame at an onset
+does not decide (the spec's suggested 10 to 90% range)."""
+MACHINE_READING = {"ozma-04": [(417.37, 473.56)]}
+"""The lead's reading (2026-10-22) of the Sounds of Earth panels (review/archive/2026-10-16T18-14-57-sounds-
+spectrograms/, tools/voices/panels.py): every held call from 417.37 to 473.56 s is a machine (a dead-flat line
+at about 3.7 kHz inside rhythmic broadband hammering at 429 and 432.5 s; keyed dashes of a flat 1 kHz tone at
+464 to 470 s, the Morse code, which docs/research/voices.md 2 lists between the riveter and the ship's horn).
+Seconds on the track; a call is labelled a machine when it lies wholly inside. Used only to place the threshold."""
 NFFT = 1024
 """Band coverage frames: 1024 samples (23 ms at 44.1 kHz), Hann, centred on each 10 ms frame like YIN's."""
 
@@ -89,14 +108,44 @@ def measure(m: np.ndarray, sr: int, ceiling_hz: float, speech: dict, calls_cfg: 
     return {"calls": cs, "speech": sp, "frames": len(fc)}
 
 
-def accepted_stretches(calls: list, speech: list, frames: int) -> list[tuple[int, int, int]]:
+def steadiness(f0: np.ndarray, a: int, k: int) -> tuple[float, float]:
+    """A call's pitch spread (the SPREAD_PCT range of its pitch, cents, nothing removed) and its vibrato (the
+    standard deviation, cents, of its pitch about its own least-squares straight line)."""
+    c = vmusic.cents(f0[a: a + k])
+    lo, hi = np.percentile(c, SPREAD_PCT)
+    x = np.arange(k, dtype=float)
+    res = c - np.polyval(np.polyfit(x, c, 1), x)
+    return float(hi - lo), float(res.std())
+
+
+def machine_threshold(spreads: dict[str, list[float]], calls: dict[str, list]) -> dict:
+    """The machine threshold from the measured calls: the middle of the gap between the largest spread among the
+    calls the lead read as machines and the smallest among every other call (cents, rounded as stored). Raises if
+    the groups overlap: no clean gap, so no threshold."""
+    mach, crea = [], []
+    for tid in sorted(spreads):
+        reading = MACHINE_READING.get(tid, [])
+        for (a, k, *_), sp in zip(calls[tid], spreads[tid]):
+            s0, s1 = a * vdsp.FRAME_S, (a + k) * vdsp.FRAME_S
+            (mach if any(s0 >= lo and s1 <= hi for lo, hi in reading) else crea).append(round(sp, 2))
+    if not mach or not crea:
+        raise SystemExit(f"voices.others: no machine or no creature calls to place the threshold ({len(mach)}, {len(crea)})")
+    lo, hi = max(mach), min(crea)
+    if not hi > lo:
+        raise SystemExit(f"voices.others: no clean gap between machine calls (spreads {sorted(mach)}) and creature calls ({sorted(crea)})")
+    return {"gapCents": [lo, hi], "thresholdCents": round((lo + hi) / 2, 3), "machineCalls": len(mach), "creatureCalls": len(crea)}
+
+
+def accepted_stretches(calls: list, speech: list, frames: int, machine: list[bool] | None = None) -> list[tuple[int, int, int]]:
     """The longest stretches the rule accepts: between speech runs (and the track's ends), each holding at least
-    one whole call. (start frame, end frame, calls inside)."""
+    one whole call that is not machine-steady. (start frame, end frame, such calls inside)."""
+    if machine is None:
+        machine = [False] * len(calls)
     cuts = [0] + [x for a, b in speech for x in (a, b)] + [frames]
     out = []
     for i in range(0, len(cuts), 2):
         a, b = cuts[i], cuts[i + 1]
-        k = sum(1 for s, n, *_ in calls if s >= a and s + n <= b)
+        k = sum(1 for (s, n, *_), mc in zip(calls, machine) if s >= a and s + n <= b and not mc)
         if k:
             out.append((a, b, k))
     return out
@@ -104,10 +153,11 @@ def accepted_stretches(calls: list, speech: list, frames: int) -> list[tuple[int
 
 def analysis(mono, items: list[dict], ceiling_hz: float, speech: dict, calls_cfg: dict) -> dict:
     """voices.json "others": for every item the player can mark (record.json's sides after the pictures), the held
-    calls (start frame, frames, median Hz, glide cents) and, for the greetings and the Sounds of Earth, the speech
-    runs (start frame, frames). Music items get their held tones (start frame, frames) only: see the module note.
-    mono(n) reads Ozma track n as analyse.py does."""
-    tracks = {}
+    calls (start frame, frames, median Hz, glide cents, spread cents, vibrato cents, machine 0 or 1) and, for the
+    greetings and the Sounds of Earth, the speech runs (start frame, frames) and the accepted stretches. Music items
+    get their held tones (start frame, frames) only: see the module note. mono(n) reads Ozma track n as analyse.py
+    does."""
+    tracks, keep = {}, {}
     for it in items:
         n = int(it["id"].split("-")[1])
         m, sr = mono(n)
@@ -118,16 +168,26 @@ def analysis(mono, items: list[dict], ceiling_hz: float, speech: dict, calls_cfg
             continue
         fs, as_ = vdsp.yin(m, sr, speech["fminHz"], speech["fmaxHz"], speech["windowS"])
         sp = speech_runs(fs, as_, band_cover(m, sr), ceiling_hz)
-        tracks[it["id"]] = {
-            "kind": it["kind"], "frames": len(fc),
-            "calls": [[a, k, round(hz, 2), round(g, 1)] for a, k, hz, g in cs],
+        st = [steadiness(fc, a, k) for a, k, _, _ in cs]
+        keep[it["id"]] = (cs, sp, st, len(fc))
+        tracks[it["id"]] = {"kind": it["kind"], "frames": len(fc)}
+    thr = machine_threshold({t: [x[0] for x in v[2]] for t, v in keep.items()}, {t: v[0] for t, v in keep.items()})
+    for tid, (cs, sp, st, frames) in keep.items():
+        mach = [round(s, 2) < thr["thresholdCents"] for s, _ in st]
+        tracks[tid].update({
+            "calls": [[a, k, round(hz, 2), round(g, 1), round(s, 2), round(v, 2), int(mc)]
+                      for (a, k, hz, g), (s, v), mc in zip(cs, st, mach)],
             "speech": [[a, b - a] for a, b in sp],
-            "accepted": [[a, b, k] for a, b, k in accepted_stretches(cs, sp, len(fc))],
-        }
+            "accepted": [[a, b, k] for a, b, k in accepted_stretches(cs, sp, frames, mach)],
+        })
     return {
         "rule": {"speechCmnd": SPEECH_CMND, "speechBandHz": list(SPEECH_BAND_HZ), "speechAboveDb": SPEECH_ABOVE_DB,
                  "speechFloorPct": SPEECH_FLOOR_PCT, "speechCover": SPEECH_COVER, "speechMinFrames": SPEECH_MIN_FRAMES,
                  "speechStepCents": SPEECH_STEP_CENTS, "nfft": NFFT, "callMinS": vmusic.CALL_MIN_S,
-                 "callStepCents": vmusic.CALL_STEP_CENTS, "aboveHz": ceiling_hz},
+                 "callStepCents": vmusic.CALL_STEP_CENTS, "aboveHz": ceiling_hz,
+                 "spreadPct": list(SPREAD_PCT),
+                 "machineReadingS": {k: [list(x) for x in v] for k, v in sorted(MACHINE_READING.items())},
+                 "machineSpreadCents": thr["thresholdCents"], "machineGapCents": thr["gapCents"],
+                 "machineCalls": thr["machineCalls"], "creatureCalls": thr["creatureCalls"]},
         "tracks": tracks,
     }

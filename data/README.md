@@ -239,11 +239,15 @@ cd "C:\Users\stewa\Documents\Claude\Golden Record"; python -P tools/voices/analy
   the aria was not used. `music.piano` (Ozma 21, Gould): `hist` (spectral-peak magnitude per 5-cent bin over
   +/- 3600 cents, sum 1), `combScores` (k = 2 to 36 equal steps per octave), `combK`, the fit, and the block
   bootstrap's share of draws picking the same comb.
-- `whale` (Ozma 03): `calls` `[start frame, frames, median Hz, glide cents]` (pitch runs held 0.2 s with a
+- `whale` (Ozma 03): `calls` `[start frame, frames, median Hz, glide cents, spread cents, vibrato cents, machine]` (spread: the 10 to 90%
+  range of the call's pitch; vibrato: the spread about its straight-line fit; machine: spread under
+  `others.rule.machineSpreadCents`, set in the middle of the measured gap between machine and creature calls) (pitch runs held 0.2 s with a
   median above `speechCeilingHz`) and `segmentS`, the stretch from the first call to the end of the last.
 - `others` (`tools/voices/others.py`): `rule` (the speech finder's and call finder's settings) and, per item after
   the pictures, `tracks.<id>`: for the greetings and the Sounds of Earth `calls` (as `whale.calls`), `speech`
   `[start frame, frames]` (runs voiced at a speaking pitch, broadband from 300 to 3,000 Hz, at least 3 frames) and
-  `accepted` `[start frame, end frame, calls]` (the longest stretches between speech holding at least one call);
+  `accepted` `[start frame, end frame, calls]` (the longest stretches between speech holding at least one call that
+  is not machine-steady; `rule` also carries `spreadPct`, `machineReadingS`, `machineSpreadCents`,
+  `machineGapCents`, `machineCalls`, `creatureCalls`);
   for music only `held` `[start frame, frames]` (held tones by the same call finder: a stretch of music is never
   accepted, because measurement cannot tell a held note from an animal's call).

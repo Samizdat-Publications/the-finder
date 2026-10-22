@@ -366,6 +366,8 @@ def main() -> None:
     print("octave", mus["violin"]["octaveCents"], mus["violin"]["octaveTolCents"], mus["violin"]["fold"]["bootstrap"], mus["violin"]["fold"]["named"])
     print("many cut table", g["cutTable"], "near 55", g["nearPublished"])
     print("hearing definitions", spec["definitions"])
+    ru = oth["rule"]
+    print("others machine gap (spread cents, 10 to 90%): machine calls up to", ru["machineGapCents"][0], "creature calls from", ru["machineGapCents"][1], "threshold", ru["machineSpreadCents"], "calls", ru["machineCalls"], ru["creatureCalls"])
     for k, v in oth["tracks"].items():
         print("others", k, v["kind"], len(v.get("calls", v.get("held", []))), "speech", len(v.get("speech", [])), "accepted", [(a / 100, b / 100, n) for a, b, n in v.get("accepted", [])])
 

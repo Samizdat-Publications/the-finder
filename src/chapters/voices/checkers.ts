@@ -6,7 +6,7 @@
 import { registerChecker, type Answer, type CheckResult, type Reading } from '../../game/deductions';
 import { q } from '../../ui/message';
 import { FOLD_LOCAL_CENTS } from '../../dsp/fold';
-import { FOLD, OCTAVE_CENTS, OCTAVE_TOL_CENTS, ONE_VOICE_SEMITONES, REASONABLE, SPEC, STEP_TOL_CENTS, V, combScore, greetingsAt, isReasonable, measureStretch, snrAt, trackById, violinNotes } from './data';
+import { FOLD, MACHINE, OCTAVE_CENTS, OCTAVE_TOL_CENTS, ONE_VOICE_SEMITONES, REASONABLE, SPEC, STEP_TOL_CENTS, V, combScore, greetingsAt, isReasonable, measureStretch, snrAt, trackById, violinNotes } from './data';
 
 export const VOICES_NODE_IDS = ['voices.many', 'voices.hearing', 'voices.octave', 'voices.others'] as const;
 
@@ -172,7 +172,8 @@ export function checkOctave(answer: Answer): CheckResult {
   return { ok: false, result, message: `${vs} ${why}` };
 }
 
-/** voices.others: { track, start, end } (s): a stretch marked on a track. Right where held calls sound and nobody speaks. */
+/** voices.others: { track, start, end } (s): a stretch marked on a track. Right where held calls sound, at least one
+ * of them not machine-steady (the lead's decision, docs/plans/M6_specs/voices-others-machines.md), and nobody speaks. */
 export function checkOthers(answer: Answer): CheckResult {
   const what = 'voices.others';
   const o = obj(answer, what);
@@ -205,15 +206,34 @@ export function checkOthers(answer: Answer): CheckResult {
   }
   result.push({ key: "speakers' highest held pitch", value: ceiling, dim: 'frequency' });
   const calls = `${m.calls.length} held call${m.calls.length === 1 ? '' : 's'} (a steady or sliding pitch above ${q('frequency', ceiling, 3)}, the highest any speaker in the greetings holds, for at least ${q('time', V.others.rule.callMinS)})`;
-  if (m.calls.length && !m.speech.length) {
-    const longest = Math.max(...m.calls.map((c) => c.endS - c.startS));
-    const glide = Math.max(...m.calls.map((c) => c.glide));
+  const machines = m.calls.filter((c) => c.machine);
+  const creatures = m.calls.filter((c) => !c.machine);
+  if (machines.length) result.push({ key: 'calls held machine-steady', value: machines.length });
+  if (creatures.length && !m.speech.length) {
+    const longest = Math.max(...creatures.map((c) => c.endS - c.startS));
+    const glide = Math.max(...creatures.map((c) => c.glide));
+    const plus = machines.length
+      ? ` (${machines.length} more held one pitch exactly, like a machine, and do not count: ${creatures.length} call${creatures.length === 1 ? '' : 's'} remain${creatures.length === 1 ? 's' : ''})`
+      : '';
     return {
       ok: true,
       result,
       message:
-        `Here nobody speaks: ${calls}, and no speech (no voiced, broadband sound at a speaking pitch). The calls hold one sliding pitch for up to ${q('time', longest, 2)}, gliding by a ratio of as much as ${(2 ** (glide / 1200)).toFixed(2)} to 1. ` +
+        `Here nobody speaks: ${calls}${plus}, and no speech (no voiced, broadband sound at a speaking pitch). The calls hold one sliding pitch for up to ${q('time', longest, 2)}, gliding by a ratio of as much as ${(2 ** (glide / 1200)).toFixed(2)} to 1. ` +
         'Another animal of their world, calling: they sent its voice beside their own.',
+    };
+  }
+  if (m.calls.length && !creatures.length && !m.speech.length) {
+    // Every call here is machine-steady (tools/voices/others.py): the senders' own making, not another voice.
+    const most = Math.max(...machines.map((c) => c.spread));
+    const r4 = (c: number): string => ratioText(c, 4);
+    return {
+      ok: false,
+      result,
+      message:
+        `Nobody speaks here and ${calls}, but every one of them held one pitch exactly, like a machine: the middle eight tenths of each call's pitch track stay within a ratio of ${r4(most)} to 1, ` +
+        `where the steadiest call of any animal measured on the record wanders by ${r4(MACHINE.gapCents[1])} to 1 or more (the line is drawn at ${r4(MACHINE.thresholdCents)} to 1). ` +
+        "A tone that steady is something of their own making, not another creature's voice. Listen on.",
     };
   }
   let message: string;

@@ -3,7 +3,8 @@
 // and its "a few dozen at least"; voices.md 3's slow decay to well over 10 kHz; 2:1 and 2^(1/12) (voices.md 4);
 // and for the whale the lead's own reading of the UN greetings track's spectrograms
 // (docs/reviews/2026-10-16-M5-science-audit.md: speech to about 188 s, calls alone from about 189 s to about
-// 236 s, low moans to about 239.5 s). Every message reads in the alien's units with the human gloss off.
+// 236 s, low moans to about 239.5 s) and of the Sounds of Earth (docs/plans/M6_specs/voices-others-machines.md:
+// animals accepted, machine tones refused). Every message reads in the alien's units with the human gloss off.
 // Check id: voices.checkers.
 import { describe, expect, it } from 'vitest';
 import voicesJson from '../../../data/voices.json';
@@ -115,7 +116,34 @@ describe('The Voices checkers', () => {
     expect(mus.message).toMatch(/cannot tell/);
   });
 
-  it.todo("voices.others on the Sounds of Earth (ozma-04): pending the lead's reading of the spectrogram panels (review/archive/*-sounds-spectrograms/)");
+  it("voices.others on the Sounds of Earth (ozma-04): animals accepted, machine tones refused (the lead's reading)", () => {
+    // Independent truth: the lead's reading (2026-10-22, docs/plans/M6_specs/voices-others-machines.md) of the
+    // panels in review/archive/2026-10-16T18-14-57-sounds-spectrograms/ (tools/voices/panels.py): gliding harmonic
+    // arcs and howls at 293 to 298 and 303 to 313 s (the animals), a falling, wavering harmonic stack near 400 Hz
+    // at 664.6 to 665.8 s (a horse, likely: horse and cart follows the ship's horn), and machines at 417 to 474 s
+    // (a flat line near 3.7 kHz in the hammering of the tools, and keyed dashes of a flat 1 kHz tone: the Morse
+    // code, which docs/research/voices.md 2 lists between the riveter and the ship's horn; NASA's sounds page has
+    // no list). The stretches are the reference's own (voices.json others.tracks.ozma-04), given in the spec to
+    // 0.01 s, so the verdicts are exact.
+    see('others', checkOthers({ track: 'ozma-04', start: 293.11, end: 296.77 }), true);
+    see('others', checkOthers({ track: 'ozma-04', start: 296.98, end: 298.38 }), true);
+    see('others', checkOthers({ track: 'ozma-04', start: 302.95, end: 312.62 }), true);
+    see('others', checkOthers({ track: 'ozma-04', start: 620.26, end: 675.18 }), true);
+    // The machines: the whole stretch, the 3.7 kHz line alone, the Morse alone. Refused, saying the calls held one
+    // pitch exactly, like a machine.
+    for (const [start, end] of [[417.37, 473.56], [428, 434], [463, 471]] as const) {
+      const r = see('others', checkOthers({ track: 'ozma-04', start, end }), false);
+      expect(r.message).toMatch(/like a machine/);
+      expect(r.message).toMatch(/not another creature's voice/);
+    }
+    // Every call the lead read as a machine is flagged, and no other call on the greetings or the Sounds of Earth.
+    for (const [tid, t] of Object.entries(V.others.tracks as Record<string, { kind: string; calls?: number[][] }>)) {
+      for (const c of t.calls ?? []) {
+        const inMachines = tid === 'ozma-04' && c[0]! / 100 >= 417.37 && (c[0]! + c[1]!) / 100 <= 473.56;
+        expect(c[6] === 1, `${tid} call at ${c[0]! / 100} s`).toBe(inMachines);
+      }
+    }
+  });
 
   it('records the checkers (voices.checkers)', () => {
     for (const l of log) console.log(l);
@@ -125,8 +153,8 @@ describe('The Voices checkers', () => {
       claim: "The Voices' four checkers accept the readings the real record supports and reject each meaningful wrong one with what the analysis computes for it, in the alien's units.",
       measured: `${log.length} answers, ${wrongs} wrong ones rejected, each with its own result; unit problems: ${problems.length ? problems.join('; ') : 'none'}`,
       expected:
-        "voices.md 1's table (counts within one of its silent runs at all 12 settings) and 'a few dozen at least'; the crossing over 10 kHz (voices.md 3); 2:1 and 2^(1/12) (voices.md 4); the lead's reading of the whale stretch (speech to about 188 s, calls alone to about 236 s); a piece of music always refused",
-      tolerance: "exact verdicts; segment count within one of the silent-run count (a leading or trailing silence is a run but bounds no segment); the reading of the whale stretch within 2 s (read by eye to about a second). The Sounds of Earth case is pending the lead's reading",
+        "voices.md 1's table (counts within one of its silent runs at all 12 settings) and 'a few dozen at least'; the crossing over 10 kHz (voices.md 3); 2:1 and 2^(1/12) (voices.md 4); the lead's reading of the whale stretch (speech to about 188 s, calls alone to about 236 s); the lead's reading of the Sounds of Earth (2026-10-22, docs/plans/M6_specs/voices-others-machines.md, panels in review/archive/2026-10-16T18-14-57-sounds-spectrograms/): animals at 293 to 298, 303 to 313 and 620 to 675 s accepted, machine tones at 417 to 474 s (a flat 3.7 kHz line in the tools' hammering, the Morse code of docs/research/voices.md 2) refused; a piece of music always refused",
+      tolerance: "exact verdicts; segment count within one of the silent-run count (a leading or trailing silence is a run but bounds no segment); the reading of the whale stretch within 2 s (read by eye to about a second); the Sounds of Earth stretches are the reference's own bounds (0.01 s), so exact",
       pass,
     });
     expect(problems).toEqual([]);

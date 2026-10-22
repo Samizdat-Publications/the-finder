@@ -223,10 +223,68 @@ def speech() -> None:
         measured=f"UN greetings track: last speech ends {last:.2f} s; speech runs between 190 and 234 s: {len(inside)}; accepted stretches {acc}; 4 s windows holding speech: Waldheim {windows['ozma-01'][0]} of {windows['ozma-01'][1]}, the 55 greetings {windows['ozma-02'][0]} of {windows['ozma-02'][1]}",
         expected="the lead's reading of the spectrograms (speech to about 188 s; calls alone about 189 to 236 s; moans to about 239.5 s); speech in every stretch of the two all-speech tracks",
         tolerance="2 s for the reading (a spectrogram read by eye to about a second, with faint calls under the last speakers from about 182 s): last speech within 188 +/- 2 s, none from 190 to 234 s, one accepted stretch covering 190 to 234 s; every 4 s window of Ozma 01 and 02",
-        notes="The rule's thresholds were set on this track against this reading, so its part of the check is not independent of the rule; Ozma 01 and 02 are (and the Sounds of Earth will be, once the lead reads its spectrograms: pending).",
+        notes="The rule's thresholds were set on this track against this reading, so its part of the check is not independent of the rule; Ozma 01 and 02 are, and so are the Sounds of Earth's animal stretches (voices.ref.sounds, the lead's reading of 2026-10-22).",
     )
+
+
+READ_ACCEPT = [(293.11, 296.77), (296.98, 298.38), (302.95, 312.62), (620.26, 675.18)]
+"""The lead's reading (2026-10-22, docs/plans/M6_specs/voices-others-machines.md) of the Sounds of Earth panels
+(review/archive/2026-10-16T18-14-57-sounds-spectrograms/, tools/voices/panels.py): the stretches holding animal
+calls (gliding harmonic arcs and howls; a falling, wavering harmonic stack near 400 Hz, likely the horse of
+"horse and cart"), s, as the 2026-10-16 pass found them."""
+READ_MACHINE = (417.37, 473.56)
+"""The same reading: the calls here are machines (a flat line near 3.7 kHz in the tools' hammering; keyed dashes of
+a flat 1 kHz tone, the Morse code that docs/research/voices.md 2 lists between the riveter and the ship's horn;
+NASA's sounds page has no list)."""
+
+
+def sounds() -> None:
+    """voices.others on the Sounds of Earth against the lead's reading: the animals' stretches accepted, the
+    machines' refused; every call the reading calls a machine flagged machine-steady and no other call."""
+    ot = V["others"]
+    ru, tr = ot["rule"], ot["tracks"]
     so = tr["ozma-04"]
-    print("PENDING voices.ref.sounds: the Sounds of Earth's accepted stretches (s, calls inside):", [(a / 100, b / 100, k) for a, b, k in so["accepted"]])
+    acc = [(a / 100, b / 100, k) for a, b, k in so["accepted"]]
+    # 0.01 s: one 10 ms frame, the resolution the stretches are stored and were read at.
+    same = len(acc) == len(READ_ACCEPT) and all(abs(a - x) <= 0.01 and abs(b - y) <= 0.01 for (a, b, _), (x, y) in zip(acc, READ_ACCEPT))
+    lab = []  # (track, start s, spread, read as machine, flagged)
+    for tid in sorted(tr):
+        for c in tr[tid].get("calls", []):
+            s0, s1 = c[0] / 100, (c[0] + c[1]) / 100
+            lab.append((tid, s0, c[4], tid == "ozma-04" and s0 >= READ_MACHINE[0] and s1 <= READ_MACHINE[1], c[6] == 1))
+    flags_ok = all(m == f for *_, m, f in lab)
+    mach = sorted(x[2] for x in lab if x[3])
+    crea = sorted(x[2] for x in lab if not x[3])
+    lo, hi = ru["machineGapCents"]
+    gap_ok = lo == max(mach) and hi == min(crea) and lo < ru["machineSpreadCents"] < hi
+    # Leave one out: the threshold placed without each call, then that call classified by it.
+    miss = []
+    for i, (tid, s0, sp, m, _) in enumerate(lab):
+        rest_m = [x[2] for j, x in enumerate(lab) if j != i and x[3]]
+        rest_c = [x[2] for j, x in enumerate(lab) if j != i and not x[3]]
+        thr = (max(rest_m) + min(rest_c)) / 2
+        if (sp < thr) != m:
+            miss.append(f"{tid} {s0:.2f} s")
+    lo_call = next(f"{t} {a:.2f} s" for t, a, sp, m, _ in lab if m and sp == max(mach))
+    hi_call = next(f"{t} {a:.2f} s" for t, a, sp, m, _ in lab if not m and sp == min(crea))
+    ok = same and flags_ok and gap_ok and (lo, hi) == (max(mach), min(crea))
+    r2 = lambda c: f"{2 ** (c / 1200):.4f}"  # noqa: E731
+    check(
+        "voices.ref.sounds",
+        ok,
+        claim="On the Sounds of Earth the held calls of animals are accepted as other creatures' voices and the machine tones are not: a call whose pitch holds machine-steady is the senders' own making.",
+        measured=(f"accepted stretches {acc}; 417.37 to 473.56 s not accepted ({sum(1 for x in lab if x[3])} calls there, all machine-steady); "
+                  f"pitch spread (10 to 90% range, cents): machine calls {mach[0]:.2f} to {mach[-1]:.2f}, creature calls {crea[0]:.2f} to {crea[-1]:.2f} "
+                  f"({len(crea)} calls on Ozma 03 and 04); gap {lo} to {hi} cents (ratios {r2(lo)} to {r2(hi)}), threshold {ru['machineSpreadCents']} cents; "
+                  f"leave-one-out misclassified: {', '.join(miss) if miss else 'none'}"),
+        expected="the lead's reading of the Sounds of Earth panels (docs/plans/M6_specs/voices-others-machines.md; review/archive/2026-10-16T18-14-57-sounds-spectrograms/): animals at 293.11 to 296.77, 296.98 to 298.38, 302.95 to 312.62 and 620.26 to 675.18 s; machines (a flat 3.7 kHz line in the tools' hammering, and the Morse code that docs/research/voices.md 2 lists between the riveter and the ship's horn) at 417.37 to 473.56 s",
+        tolerance="exact: stretch bounds within one 10 ms frame (0.01 s); every machine flag as the reading says; the threshold strictly inside the measured gap",
+        notes=("The threshold is placed with these labels (the middle of the gap between the calls read as machines and every other call), so the split itself is not independent of the reading; "
+               "the accepted animal stretches are (they come from the speech finder and call finder, unchanged). "
+               f"The gap is narrow: its low edge is the call at {lo_call}, its high edge the call at {hi_call}. "
+               "Leave-one-out lists the calls a threshold placed without them would misclassify."),
+    )
+    print("voices.ref.sounds spreads (track, start s, spread cents, read as machine):", [(t, round(a, 2), sp, m) for t, a, sp, m, _ in lab])
 
 
 if __name__ == "__main__":
@@ -237,5 +295,6 @@ if __name__ == "__main__":
     hearing()
     whale()
     speech()
+    sounds()
     print("trackerErrorCents95", e_t)
     sys.exit(1 if failed else 0)

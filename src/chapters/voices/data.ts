@@ -94,14 +94,28 @@ export function snrAt(hz: number): number | null {
 export const WHALE = V.whale;
 export const WHALE_TRACK = V.whale.track;
 
-/** voices.others, measured on every track (tools/voices/others.py): held calls and speech, and for music the held
- * tones. What a marked stretch holds: calls wholly inside it, speech runs touching it, held tones inside it. */
+/** voices.others, measured on every track (tools/voices/others.py): held calls (each with its pitch spread and
+ * whether it is machine-steady) and speech, and for music the held tones. What a marked stretch holds: calls wholly
+ * inside it, speech runs touching it, held tones inside it. */
 export const OTHERS = V.others;
+/** The machine-steady threshold and the measured gap it sits in, cents (a call's 10 to 90% pitch range): the gap
+ * runs from the most wandering call the lead read as a machine to the steadiest creature call, and the threshold
+ * is its middle (tools/voices/others.py machine_threshold). */
+export const MACHINE = {
+  thresholdCents: V.others.rule.machineSpreadCents,
+  gapCents: V.others.rule.machineGapCents as [number, number],
+} as const;
 export interface Held {
   startS: number;
   endS: number;
   hz: number;
   glide: number;
+  /** The 10 to 90% range of the call's pitch, cents, nothing removed (tools/voices/others.py steadiness). */
+  spread: number;
+  /** The scatter of its pitch about its own straight-line glide, cents (stored, does not decide). */
+  vibrato: number;
+  /** Machine-steady: spread below OTHERS.rule.machineSpreadCents, the middle of the measured gap. */
+  machine: boolean;
 }
 export interface StretchMeasure {
   kind: string;
@@ -115,7 +129,7 @@ export function measureStretch(track: string, start: number, end: number): Stret
   if (!t) return null;
   const sec = (a: number, n: number): [number, number] => [a * FRAME_S, (a + n) * FRAME_S];
   const calls = (t.calls ?? [])
-    .map((c) => ({ startS: c[0]! * FRAME_S, endS: (c[0]! + c[1]!) * FRAME_S, hz: c[2]!, glide: c[3]! }))
+    .map((c) => ({ startS: c[0]! * FRAME_S, endS: (c[0]! + c[1]!) * FRAME_S, hz: c[2]!, glide: c[3]!, spread: c[4]!, vibrato: c[5]!, machine: c[6] === 1 }))
     .filter((c) => c.startS >= start && c.endS <= end);
   const speech = (t.speech ?? []).map((r) => sec(r[0]!, r[1]!)).filter(([a, b]) => b > start && a < end);
   const heldTones = (t.held ?? []).map((r) => sec(r[0]!, r[1]!)).filter(([a, b]) => a >= start && b <= end).length;
