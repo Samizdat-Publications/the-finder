@@ -42,11 +42,11 @@ export const M5_NODES: readonly Omit<NodeDef, 'question'>[] = [
   },
   {
     id: 'pictures.down', chapter: 'pictures', key: 'down', checkedRow: 12, requires: ['pictures.album'],
-    gloss: 'Some pictures come turned on their sides; turned so that people stand and water lies flat, they are upright.',
+    gloss: 'Some pictures come turned on their sides; turned so that things stand as they do in the world (water lying flat, and people on their feet in the pictures that have people), they are upright.',
     hints: [
       'Not every picture is the right way round.',
       'Find a picture with people or a horizon, and turn it until it looks like the world it shows.',
-      'Turn each sideways picture a quarter turn, the way that puts feet below heads and water level.',
+      'Turn each sideways picture a quarter turn, the way that lays water level and, in a picture with people, puts feet below heads.',
     ],
   },
   {
