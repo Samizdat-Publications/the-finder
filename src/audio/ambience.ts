@@ -63,11 +63,18 @@ export function buildBed(ctx: BaseAudioContext, view: ChapterView, when: number,
     }
     case 'ring': {
       // A faint resonant ring: a low drone under two high partials that beat against each other (about 0.8 Hz).
+      // The partials swell in and out slowly (about 14 and 19 s) and are often near silent: held steady they read as
+      // a whistle on headphones (the Gemini critic, 2026-10-22: "a high-pitched drone").
       add(r, 0.45);
       add(r * 1.0011, 0.3);
-      add(784.0, 0.05);
-      add(784.8, 0.05);
-      add(1568.3, 0.018);
+      [784.0, 784.8].forEach((hz, i) => {
+        const g = add(hz, 0.0);
+        g.gain.value = 0.018;
+        lfo(ctx, i === 0 ? 0.071 : 0.053, 0.018, g.gain, when, sources);
+      });
+      const oct = add(1568.3, 0.0);
+      oct.gain.value = 0.004;
+      lfo(ctx, 0.061, 0.004, oct.gain, when, sources);
       break;
     }
     case 'warm': {
