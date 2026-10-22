@@ -26,7 +26,41 @@ python -P tools/critic_gemini/critic.py review/inbox/<timestamp>-slice [--model 
 - **Needs:** Python with `google-genai` (2.27 here; run as `python -P`, the packages are in the user
   site-packages), `ffmpeg` and `ffprobe` on PATH.
 
-Use it at the M3 gate and at M7 only (HANDOFF.md).
+Use it at the M3 gate and at M7 only (HANDOFF.md). Stewart has since asked for it throughout the build
+(each chapter as it lands, the whole tour at the end): see the next section.
+
+## Filming the guided tour, and the one-command watch
+
+```
+node tools/harness/film-tour.mjs [--from <stopId>] [--to <stopId>] [--chapters a,b] [--out <folder>] [--hold 1]
+node tools/critic_gemini/watch.mjs [same flags] [--estimate-only]
+```
+
+- **film-tour.mjs** drives the tour as `tests/browser/tour.browser.mjs` does (fresh save, `/play/?tour=1` at
+  1440 x 900 on the Vite dev server, only the guide's own buttons) and films it with the game's real sound,
+  using the same clapperboard sync and mux as `film-slice.mjs` (H.264 and AAC, under 50 MB; the encoder
+  raises the CRF, then shrinks the frame, if a long film would go over). Output:
+  `review/inbox/<timestamp>-tour-film/` with `slice.mp4` (that name so `critic.py` works unchanged),
+  `frames/` (each stop before and after), `shots.txt` (`file: what it shows | what the player just did`),
+  `manifest.json` and `film.json` (length, stops filmed with their seconds in the film, the audio offset
+  corrected, how long the fast-forward took).
+- **Choosing the stretch:** `--from` and `--to` are stop ids from `src/tour/script.ts`; `--chapters` names
+  tour parts (`key`, `player`, `pictures`, `voices`, `numbers`, `spot`, `map`, `trail`; a chapter view such
+  as `hub` also works). The film runs from the first selected stop to the last. Stops before it are
+  fast-forwarded with the guide's own "Do it for me" and Next, with no tap, clap or screenshots; the film
+  starts at the first selected stop. With nothing chosen it films the whole tour (long: the picture album
+  develops for minutes).
+- **Pacing:** each stop holds its guide text for about 1 s per 15 words (at most 12 s), then acts, then holds
+  the result about 4 s. `--hold 0.5` halves the reading time, `--hold 2` doubles it.
+- **watch.mjs** runs film-tour, then `python -P tools/critic_gemini/critic.py <folder>`, and prints the
+  review's path (`gemini.md`). `--estimate-only` films, then prints the critic's cost estimate and stops.
+  If the film or the critic fails for any reason (upload refused, spend cap, estimate over $3, model error,
+  empty answer) it exits non-zero and writes `<folder>/CRITIC_FAILED.txt` with the reason (the child's own
+  last lines, with anything key-shaped removed).
+- **Spend:** the critic's own rules apply (estimate first, $3 stop, one `docs/SPEND.md` row per paid call).
+  `critic.py` still words that row as "the filmed M3 slice"; the folder path in the row says which film it was.
+- **Needs:** Chrome (Playwright's installed channel), `ffmpeg` and `ffprobe` on PATH; the script starts the
+  Vite dev server itself. Review folders are gitignored.
 
 ## Credit
 

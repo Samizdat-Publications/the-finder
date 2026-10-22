@@ -13,21 +13,25 @@
 // recording; their difference is the offset, and both streams are cut just after the clap so the film starts
 // on the ring, in sync. The clap is a harness overlay, not part of the game.
 //
+// The clapperboard, the sync and the mux are exported (clap, syncAndMux, probe helpers) so
+// tools/harness/film-tour.mjs films the guided tour the same way. Importing this file does not run the film.
+//
 // Needs ffmpeg and ffprobe on PATH (or FFMPEG / FFPROBE set). Runs against the Vite dev server (as the
 // browser tests do) so the harness handle is on.
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import { freshStart, playSlice, reviewFolder, stamp } from '../../tests/browser/slice.browser.mjs';
 import { ROOT, startDevServer } from './serve.mjs';
 
 const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const FFPROBE = process.env.FFPROBE || 'ffprobe';
-const W = 1440;
-const H = 900;
+export const W = 1440;
+export const H = 900;
 /** Seconds kept after the clap before the film starts (the flash is 0.25 s long). */
-const AFTER_CLAP_S = 0.6;
+export const AFTER_CLAP_S = 0.6;
 /** The beep: frequency (Hz), length (s), peak (linear, -6 dBFS). Far above the beds (-34 dBFS, sound.v1). */
 const BEEP = { hz: 1000, s: 0.2, peak: 0.5 };
 /** Onset threshold for the beep, linear: half its peak, still 22 dB above the loudest bed. */
@@ -37,14 +41,19 @@ const FLASH_LUMA = 200;
 /** How far (s) from the wall clock's estimate the clap may be found in either stream. */
 const SEARCH_S = 1.5;
 /** The film must stay under this size (step 8 spec): review material, never shipped. */
-const MAX_BYTES = 50 * 1024 * 1024;
+export const MAX_BYTES = 50 * 1024 * 1024;
 
-const argOut = process.argv.indexOf('--out');
-const dir = argOut > 0 ? process.argv[argOut + 1] : join(ROOT, 'review', 'inbox', `${stamp()}-slice`);
-const rawDir = join(dir, 'raw');
-mkdirSync(rawDir, { recursive: true });
+/** Chrome launch options for filming (real GPU, sound without a gesture, nothing throttled). */
+export const CHROME_ARGS = [
+  '--ignore-gpu-blocklist',
+  '--force_high_performance_gpu',
+  '--autoplay-policy=no-user-gesture-required',
+  '--disable-backgrounding-occluded-windows',
+  '--disable-renderer-backgrounding',
+  '--disable-background-timer-throttling',
+];
 
-function run(cmd, args, opts = {}) {
+export function run(cmd, args, opts = {}) {
   const r = spawnSync(cmd, args, { encoding: opts.binary ? 'buffer' : 'utf8', maxBuffer: 1 << 30 });
   if (r.error) throw new Error(`${cmd} could not start: ${r.error.message}`);
   if (r.status !== 0) throw new Error(`${cmd} ${args.slice(0, 6).join(' ')} failed (${r.status}):\n${String(r.stderr).slice(-2000)}`);
@@ -56,7 +65,7 @@ function run(cmd, args, opts = {}) {
  * where the wall clock says the clap was (the recording also opens on a blank white page before the game
  * loads, which this skips).
  */
-function flashTime(video, expectS) {
+export function flashTime(video, expectS) {
   const r = run(FFMPEG, ['-hide_banner', '-i', video, '-vf', 'signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-', '-f', 'null', '-']);
   const frames = [];
   let t = null;
@@ -73,7 +82,7 @@ function flashTime(video, expectS) {
 }
 
 /** Time (s) of the beep's onset in the recording, from its decoded samples (48 kHz mono, float). */
-function beepTime(audio, expectS) {
+export function beepTime(audio, expectS) {
   const SR = 48000;
   const r = run(FFMPEG, ['-hide_banner', '-loglevel', 'error', '-i', audio, '-ac', '1', '-ar', String(SR), '-f', 'f32le', '-'], { binary: true });
   const buf = r.stdout;
@@ -83,60 +92,31 @@ function beepTime(audio, expectS) {
   throw new Error(`no beep found in the recording near ${expectS.toFixed(2)} s`);
 }
 
-function duration(file) {
+export function duration(file) {
   const r = run(FFPROBE, ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', file]);
   return Number(r.stdout.trim());
 }
 
-function streams(file) {
+export function streams(file) {
   const r = run(FFPROBE, ['-v', 'error', '-show_entries', 'stream=codec_type,codec_name,width,height', '-of', 'json', file]);
   return JSON.parse(r.stdout).streams;
 }
 
 /** Peak and mean level of a file's sound (dBFS), from ffmpeg's volumedetect. */
-function loudness(file) {
+export function loudness(file) {
   const r = run(FFMPEG, ['-hide_banner', '-i', file, '-vn', '-af', 'volumedetect', '-f', 'null', '-']);
   const mean = /mean_volume: (-?[\d.]+) dB/.exec(r.stderr);
   const max = /max_volume: (-?[\d.]+) dB/.exec(r.stderr);
   return { meanDb: mean ? Number(mean[1]) : null, maxDb: max ? Number(max[1]) : null };
 }
 
-const started = Date.now();
-const server = await startDevServer();
-const browser = await chromium.launch({
-  channel: 'chrome',
-  headless: true,
-  args: [
-    '--ignore-gpu-blocklist',
-    '--force_high_performance_gpu',
-    '--autoplay-policy=no-user-gesture-required',
-    '--disable-backgrounding-occluded-windows',
-    '--disable-renderer-backgrounding',
-    '--disable-background-timer-throttling',
-  ],
-});
-const errors = [];
-let videoPath = null;
-let tap = null;
-let result = null;
-let videoWallMs = 0;
-let clapWallMs = 0;
-const review = reviewFolder(dir);
-try {
-  const context = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1, recordVideo: { dir: rawDir, size: { width: W, height: H } } });
-  videoWallMs = Date.now(); // the recording starts with the page
-  const page = await context.newPage();
-  page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(`console.error: ${m.text().slice(0, 300)}`);
-  });
-  page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
-  page.setDefaultTimeout(120_000);
-  await freshStart(page, server.url);
-  await page.waitForTimeout(1500); // the ring settles before the tap and the clap
-
+/**
+ * Start the audio tap, then the clapperboard (a white frame and a beep in the same task; a harness overlay
+ * removed after 0.25 s). Returns { tapStart, clapWallMs }; wait AFTER_CLAP_S + 0.4 s before the film's action.
+ */
+export async function clap(page) {
   const tapStart = await page.evaluate(() => window.__finder.startAudioTap());
-  // The clap: a white frame and a beep in the same task (harness overlay, removed after 0.25 s).
-  clapWallMs = await page.evaluate(async (BEEP) => {
+  const clapWallMs = await page.evaluate(async (BEEP) => {
     const { sharedContext, sharedOutput } = await import('/src/audio/mixer.ts');
     const ctx = sharedContext();
     const o = ctx.createOscillator();
@@ -152,86 +132,148 @@ try {
     setTimeout(() => flash.remove(), 250);
     return Date.now();
   }, BEEP);
-  await page.waitForTimeout(AFTER_CLAP_S * 1000 + 400);
-
-  result = await playSlice(page, {
-    shot: (n, s, d) => review.shot(page, n, s, d),
-    linger: (ms) => page.waitForTimeout(ms),
-    circleSpeed: 'record',
-    log: (line) => console.log(`  ${line.slice(0, 160)}`),
-  });
-  await page.waitForTimeout(1500);
-  tap = await page.evaluate(() => window.__finder.stopAudioTap());
-  tap.tapStartMs = tapStart.startedAtMs;
-  tap.sampleRate = tapStart.sampleRate;
-  await context.close(); // finishes the video file
-  videoPath = await page.video().path();
-} finally {
-  await browser.close();
-  await server.close();
+  return { tapStart, clapWallMs };
 }
 
-if (errors.length) {
-  console.error(`[film] console errors during the run:\n${errors.join('\n')}`);
-  process.exitCode = 1;
+/**
+ * Find the clap in both streams and mux the film: H.264 and AAC, both streams cut AFTER_CLAP_S after their
+ * clap so they start in sync. `tap` is the stopAudioTap result with tapStartMs set. If the file is over
+ * maxBytes it is made again with a higher CRF, then at a smaller frame size, so it never exceeds the cap
+ * (the first pass is crf 22 at full size, which is all the slice ever needs).
+ * Returns { bytes, flashInVideoS, beepInRecordingS, offsetS, crf, size }.
+ */
+export function syncAndMux({ rawVideo, audioPath, tap, clapWallMs, videoWallMs, out, maxBytes = MAX_BYTES }) {
+  const vFlash = flashTime(rawVideo, (clapWallMs - videoWallMs) / 1000);
+  const aBeep = beepTime(audioPath, (clapWallMs - tap.tapStartMs) / 1000);
+  // Video time t shows what the recording has at audio time t - offset.
+  const offsetS = vFlash - aBeep;
+  const vStart = vFlash + AFTER_CLAP_S;
+  const aStart = aBeep + AFTER_CLAP_S;
+  console.log(`[film] flash at ${vFlash.toFixed(3)} s in the video, beep at ${aBeep.toFixed(3)} s in the recording: offset ${offsetS.toFixed(3)} s corrected`);
+  const tries = [
+    { crf: 22, scale: null },
+    { crf: 28, scale: null },
+    { crf: 32, scale: '1152:720' },
+    { crf: 36, scale: '960:600' },
+  ];
+  let bytes = 0;
+  let used = tries[0];
+  for (const t of tries) {
+    used = t;
+    run(FFMPEG, [
+      '-hide_banner', '-loglevel', 'error', '-y',
+      '-ss', vStart.toFixed(3), '-i', rawVideo,
+      '-ss', aStart.toFixed(3), '-i', audioPath,
+      '-map', '0:v:0', '-map', '1:a:0',
+      ...(t.scale ? ['-vf', `scale=${t.scale}`] : []),
+      '-c:v', 'libx264', '-preset', 'medium', '-crf', String(t.crf), '-pix_fmt', 'yuv420p', '-r', '30',
+      '-c:a', 'aac', '-b:a', '160k', '-ar', '48000',
+      '-shortest', '-movflags', '+faststart',
+      out,
+    ]);
+    bytes = statSync(out).size;
+    if (bytes <= maxBytes) break;
+    console.log(`[film] ${(bytes / 1e6).toFixed(1)} MB is over the cap; trying crf ${tries[tries.indexOf(t) + 1]?.crf ?? 'none left'}`);
+  }
+  return { bytes, flashInVideoS: vFlash, beepInRecordingS: aBeep, offsetS, crf: used.crf, size: used.scale };
 }
-if (!tap || !videoPath) throw new Error('the run did not finish');
 
-const audioPath = join(rawDir, 'audio.webm');
-writeFileSync(audioPath, Buffer.from(tap.base64, 'base64'));
-const rawVideo = join(rawDir, 'video.webm');
-renameSync(videoPath, rawVideo);
+async function main() {
+  const argOut = process.argv.indexOf('--out');
+  const dir = argOut > 0 ? process.argv[argOut + 1] : join(ROOT, 'review', 'inbox', `${stamp()}-slice`);
+  const rawDir = join(dir, 'raw');
+  mkdirSync(rawDir, { recursive: true });
 
-const vFlash = flashTime(rawVideo, (clapWallMs - videoWallMs) / 1000);
-const aBeep = beepTime(audioPath, (clapWallMs - tap.tapStartMs) / 1000);
-// Video time t shows what the recording has at audio time t - offset.
-const offsetS = vFlash - aBeep;
-const vStart = vFlash + AFTER_CLAP_S;
-const aStart = aBeep + AFTER_CLAP_S;
-console.log(`[film] flash at ${vFlash.toFixed(3)} s in the video, beep at ${aBeep.toFixed(3)} s in the recording: offset ${offsetS.toFixed(3)} s corrected`);
+  const started = Date.now();
+  const server = await startDevServer();
+  const browser = await chromium.launch({ channel: 'chrome', headless: true, args: CHROME_ARGS });
+  const errors = [];
+  let videoPath = null;
+  let tap = null;
+  let result = null;
+  let videoWallMs = 0;
+  let clapWallMs = 0;
+  const review = reviewFolder(dir);
+  try {
+    const context = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1, recordVideo: { dir: rawDir, size: { width: W, height: H } } });
+    videoWallMs = Date.now(); // the recording starts with the page
+    const page = await context.newPage();
+    page.on('console', (m) => {
+      if (m.type() === 'error') errors.push(`console.error: ${m.text().slice(0, 300)}`);
+    });
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+    page.setDefaultTimeout(120_000);
+    await freshStart(page, server.url);
+    await page.waitForTimeout(1500); // the ring settles before the tap and the clap
 
-const out = join(dir, 'slice.mp4');
-run(FFMPEG, [
-  '-hide_banner', '-loglevel', 'error', '-y',
-  '-ss', vStart.toFixed(3), '-i', rawVideo,
-  '-ss', aStart.toFixed(3), '-i', audioPath,
-  '-map', '0:v:0', '-map', '1:a:0',
-  '-c:v', 'libx264', '-preset', 'medium', '-crf', '22', '-pix_fmt', 'yuv420p', '-r', '30',
-  '-c:a', 'aac', '-b:a', '160k', '-ar', '48000',
-  '-shortest', '-movflags', '+faststart',
-  out,
-]);
+    const c = await clap(page);
+    const tapStart = c.tapStart;
+    clapWallMs = c.clapWallMs;
+    await page.waitForTimeout(AFTER_CLAP_S * 1000 + 400);
 
-const bytes = statSync(out).size;
-const lenS = duration(out);
-const info = streams(out);
-const level = loudness(out);
-const film = {
-  made: new Date().toISOString(),
-  file: 'slice.mp4',
-  seconds: Number(lenS.toFixed(2)),
-  bytes,
-  streams: info,
-  sound: level,
-  audioOffset: {
-    flashInVideoS: Number(vFlash.toFixed(3)),
-    beepInRecordingS: Number(aBeep.toFixed(3)),
-    correctedS: Number(offsetS.toFixed(3)),
-    wallClockEstimateS: { video: Number(((clapWallMs - videoWallMs) / 1000).toFixed(3)), recording: Number(((clapWallMs - tap.tapStartMs) / 1000).toFixed(3)) },
-    note: `the recording's time zero falls correctedS into the raw video; both streams are cut ${AFTER_CLAP_S} s after their clap, so the film starts in sync; precision about one video frame (Playwright records about 25 frames a second)`,
-  },
-  run: result && { timing: result.timing, firstSoundS: result.firstSoundS, framesMs: result.framesMs, confirmed: result.confirmed.length, codexEntries: result.entries },
-  wallClockS: Number(((Date.now() - started) / 1000).toFixed(1)),
-};
-writeFileSync(join(dir, 'film.json'), JSON.stringify(film, null, 2));
-rmSync(rawDir, { recursive: true, force: true });
+    result = await playSlice(page, {
+      shot: (n, s, d) => review.shot(page, n, s, d),
+      linger: (ms) => page.waitForTimeout(ms),
+      circleSpeed: 'record',
+      log: (line) => console.log(`  ${line.slice(0, 160)}`),
+    });
+    await page.waitForTimeout(1500);
+    tap = await page.evaluate(() => window.__finder.stopAudioTap());
+    tap.tapStartMs = tapStart.startedAtMs;
+    tap.sampleRate = tapStart.sampleRate;
+    await context.close(); // finishes the video file
+    videoPath = await page.video().path();
+  } finally {
+    await browser.close();
+    await server.close();
+  }
 
-const hasVideo = info.some((s) => s.codec_type === 'video' && s.codec_name === 'h264' && s.width === W && s.height === H);
-const hasAudio = info.some((s) => s.codec_type === 'audio' && s.codec_name === 'aac');
-const audible = level.maxDb !== null && level.maxDb > -40;
-console.log(`[film] ${out}: ${lenS.toFixed(1)} s, ${(bytes / 1e6).toFixed(1)} MB, video ${hasVideo ? 'H.264 1440x900' : 'MISSING'}, sound ${hasAudio ? 'AAC' : 'MISSING'} (peak ${level.maxDb} dB, mean ${level.meanDb} dB)`);
-if (!hasVideo || !hasAudio || !audible || bytes > MAX_BYTES || (result && result.confirmed.length !== 18)) {
-  console.error('[film] FAILED: the film is missing a stream, is silent, is too big, or the run did not confirm all 18');
-  process.exitCode = 1;
+  if (errors.length) {
+    console.error(`[film] console errors during the run:\n${errors.join('\n')}`);
+    process.exitCode = 1;
+  }
+  if (!tap || !videoPath) throw new Error('the run did not finish');
+
+  const audioPath = join(rawDir, 'audio.webm');
+  writeFileSync(audioPath, Buffer.from(tap.base64, 'base64'));
+  const rawVideo = join(rawDir, 'video.webm');
+  renameSync(videoPath, rawVideo);
+
+  const out = join(dir, 'slice.mp4');
+  const mux = syncAndMux({ rawVideo, audioPath, tap, clapWallMs, videoWallMs, out });
+  const { bytes, flashInVideoS: vFlash, beepInRecordingS: aBeep, offsetS } = mux;
+  const lenS = duration(out);
+  const info = streams(out);
+  const level = loudness(out);
+  const film = {
+    made: new Date().toISOString(),
+    file: 'slice.mp4',
+    seconds: Number(lenS.toFixed(2)),
+    bytes,
+    streams: info,
+    sound: level,
+    audioOffset: {
+      flashInVideoS: Number(vFlash.toFixed(3)),
+      beepInRecordingS: Number(aBeep.toFixed(3)),
+      correctedS: Number(offsetS.toFixed(3)),
+      wallClockEstimateS: { video: Number(((clapWallMs - videoWallMs) / 1000).toFixed(3)), recording: Number(((clapWallMs - tap.tapStartMs) / 1000).toFixed(3)) },
+      note: `the recording's time zero falls correctedS into the raw video; both streams are cut ${AFTER_CLAP_S} s after their clap, so the film starts in sync; precision about one video frame (Playwright records about 25 frames a second)`,
+    },
+    run: result && { timing: result.timing, firstSoundS: result.firstSoundS, framesMs: result.framesMs, confirmed: result.confirmed.length, codexEntries: result.entries },
+    wallClockS: Number(((Date.now() - started) / 1000).toFixed(1)),
+  };
+  writeFileSync(join(dir, 'film.json'), JSON.stringify(film, null, 2));
+  rmSync(rawDir, { recursive: true, force: true });
+
+  const hasVideo = info.some((s) => s.codec_type === 'video' && s.codec_name === 'h264' && s.width === W && s.height === H);
+  const hasAudio = info.some((s) => s.codec_type === 'audio' && s.codec_name === 'aac');
+  const audible = level.maxDb !== null && level.maxDb > -40;
+  console.log(`[film] ${out}: ${lenS.toFixed(1)} s, ${(bytes / 1e6).toFixed(1)} MB, video ${hasVideo ? 'H.264 1440x900' : 'MISSING'}, sound ${hasAudio ? 'AAC' : 'MISSING'} (peak ${level.maxDb} dB, mean ${level.meanDb} dB)`);
+  if (!hasVideo || !hasAudio || !audible || bytes > MAX_BYTES || (result && result.confirmed.length !== 18)) {
+    console.error('[film] FAILED: the film is missing a stream, is silent, is too big, or the run did not confirm all 18');
+    process.exitCode = 1;
+  }
+  console.log(`[film] review folder: ${dir}`);
 }
-console.log(`[film] review folder: ${dir}`);
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();

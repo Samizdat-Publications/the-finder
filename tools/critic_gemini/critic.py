@@ -208,7 +208,7 @@ def main():
     contents.append(intro)
     cfg = types.GenerateContentConfig(system_instruction=persona(), max_output_tokens=MAX_OUTPUT_TOKENS, temperature=0.7)
     with open(SPEND, "a", encoding="utf-8", newline="\n") as s:
-        s.write(f"| {dt.date.today().isoformat()} | Gemini ({model}) | Video critic on the filmed M3 slice ({seconds:.0f} s), {rel}/gemini.md | {usd_est:.2f} (estimate before the call) |\n")
+        s.write(f"| {dt.date.today().isoformat()} | Gemini ({model}) | Video critic on a filmed run ({seconds:.0f} s), {rel}/gemini.md | {usd_est:.2f} (estimate before the call) |\n")
     resp = None
     for attempt in range(4):
         try:
