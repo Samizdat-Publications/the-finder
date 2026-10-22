@@ -3,6 +3,7 @@
 // the epoch Worker behind the "measuring" state (M4 step 7e) and is primed into the model. The times kept for
 // the tests are what the main thread spent (copying the part in), not the Worker's.
 
+import { onStartOver } from '../../game/resetHooks';
 import { ensureParts, loadEpochModel, type EpochModel, type HeavyPart } from '../shared/epochModel';
 import { model, phase, phaseNote, timings } from './state';
 
@@ -12,6 +13,13 @@ const nextFrame = (): Promise<void> =>
 let preparing: Promise<void> | null = null;
 let preparedSeed: string | null = null;
 let regionDone = false;
+
+// Start over: the next entry prepares the new seed afresh; a preparation still running for the old seed is dropped.
+onStartOver(() => {
+  preparing = null;
+  preparedSeed = null;
+  regionDone = false;
+});
 
 async function measure(label: string, note: string, m: EpochModel, part: HeavyPart): Promise<void> {
   phase.value = 'measuring';
@@ -37,6 +45,7 @@ export function prepare(seed: string): Promise<void> {
     timings.value = { ...timings.value, load: Math.round(performance.now() - t0) };
     // The instrument draws the model in a task of its own (M4 step 7e: no long task on entering).
     await nextFrame();
+    if (preparedSeed !== seed) return; // started over meanwhile
     model.value = m;
     await measure('identify', 'Measuring how well each pulsar fits each line.', m, 'identification');
   })().catch((e: unknown) => {

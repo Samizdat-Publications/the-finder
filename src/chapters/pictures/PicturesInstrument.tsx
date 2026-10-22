@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import svgText from '../../../public/media/cover/cover.svg?raw';
 import { dispatch } from '../../game/bus';
+import { onStartOver } from '../../game/resetHooks';
 import { confirmedSet, decoder as D, game } from '../../game/state';
 import { binaryToSeconds, parseCoverBinary } from '../../science/units';
 import { formatNumber, quantity } from '../../ui/units';
@@ -35,6 +36,10 @@ const NAMES: Record<string, string> = {
 };
 
 let initialised = false;
+// Start over: the next entry sets the bench up again from the (now empty) save.
+onStartOver(() => {
+  initialised = false;
+});
 
 /** First entry: the free-running start (or the settings a returning player had confirmed), then a decode. */
 async function init(): Promise<void> {

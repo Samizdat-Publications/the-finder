@@ -3,7 +3,8 @@
 // map's turn, the clock's time, the axis on the sky and the map's origin and scale. Proposals still go
 // through the command bus; a returning player gets back what each confirmed deduction accepted.
 
-import { signal } from '@preact/signals';
+import { batch, signal } from '@preact/signals';
+import { onStartOver } from '../../game/resetHooks';
 import type { Answer, Attempt } from '../../game/deductions';
 import type { EpochModel } from '../shared/epochModel';
 import type { MapNodeId } from './checkers';
@@ -35,6 +36,26 @@ export const scalePc = signal<number | null>(null);
 export const toolFolded = signal<boolean>(false);
 /** Which deduction's tools are on the bench. */
 export const stage = signal<MapNodeId>('map.periods');
+
+// Start over: the bench is as a first run finds it. The model belongs to the old seed, so it goes too (load.ts
+// prepares the new seed's on the next entry).
+onStartOver(() =>
+  batch(() => {
+    phase.value = 'loading';
+    phaseNote.value = '';
+    model.value = null;
+    timings.value = {};
+    selectedLine.value = null;
+    assignments.value = {};
+    rotationDeg.value = START_ROTATION_DEG;
+    clockYears.value = 0;
+    axis.value = { lDeg: 0, bDeg: 90 };
+    origin.value = [0, 0];
+    scalePc.value = null;
+    toolFolded.value = false;
+    stage.value = 'map.periods';
+  }),
+);
 
 type Records = Readonly<Record<string, { confirmed: boolean; attempts: Attempt[] } | undefined>>;
 

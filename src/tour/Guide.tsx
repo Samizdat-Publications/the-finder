@@ -50,6 +50,35 @@ function Head(p: { stop: Stop; step: number; furthest: number }) {
   );
 }
 
+/**
+ * While "Do it for me" or "Show me" runs, the player's own clicks, drags, wheel turns and keys outside the guide
+ * are held back, so a child's click cannot move a control under the action and derail it. Only trusted (real)
+ * input is held: the actions drive the instrument with synthetic events, which pass. Escape still works.
+ */
+let acting = 0;
+const HELD = ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'dblclick', 'wheel', 'keydown', 'touchstart'] as const;
+function holdInput(e: Event): void {
+  if (acting === 0 || !e.isTrusted) return;
+  if (e instanceof KeyboardEvent && e.key === 'Escape') return;
+  const t = e.target;
+  if (t instanceof Element && t.closest('[data-guide], .guide-col')) return;
+  e.preventDefault();
+  e.stopPropagation();
+}
+let holdInstalled = false;
+function beginActing(): void {
+  if (!holdInstalled) {
+    for (const type of HELD) window.addEventListener(type, holdInput, { capture: true, passive: false });
+    holdInstalled = true;
+  }
+  acting += 1;
+  document.documentElement.classList.add('tour-acting');
+}
+function endActing(): void {
+  acting = Math.max(0, acting - 1);
+  if (acting === 0) document.documentElement.classList.remove('tour-acting');
+}
+
 function Turn(p: { stop: Stop; refused: boolean }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,9 +88,13 @@ function Turn(p: { stop: Stop; refused: boolean }) {
     if (!action || busy) return;
     setBusy(true);
     setError(null);
+    beginActing();
     action()
       .catch((e: unknown) => setError(e instanceof Error ? e.message.split('\n')[0] ?? 'That did not work.' : 'That did not work.'))
-      .finally(() => setBusy(false));
+      .finally(() => {
+        endActing();
+        setBusy(false);
+      });
   };
   return (
     <section class={`g-turn ${p.stop.kind}`} data-turn={p.stop.kind}>
@@ -87,6 +120,11 @@ function Turn(p: { stop: Stop; refused: boolean }) {
           </>
         )}
       </div>
+      {busy && (
+        <p class="g-gentle" role="status" data-tour-hands-off>
+          Hands off for a moment: the guide is working the instrument.
+        </p>
+      )}
       {p.refused && !busy && (
         <p class="g-gentle" role="status">
           Not quite. The instrument's result says why. Try again, or press Do it for me.

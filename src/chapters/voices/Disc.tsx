@@ -8,6 +8,7 @@ import { signal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import recordJson from '../../../data/record.json';
 import { dispatch } from '../../game/bus';
+import { onStartOver } from '../../game/resetHooks';
 import { COVER_PERIOD_S, radiusAtItemStart } from '../../game/model';
 import { game, turntable as T } from '../../game/state';
 import { analyse, jobProgress, peekResult } from './analysisClient';
@@ -18,6 +19,10 @@ import { Progress, Q } from './parts';
 /** The track the spectrogram shows, and the stretch marked on it (instrument state, not game state). */
 export const viewTrack = signal<string>('ozma-02');
 export const marked = signal<{ track: string; start: number; end: number } | null>(null);
+onStartOver(() => {
+  viewTrack.value = 'ozma-02';
+  marked.value = null;
+});
 
 /** How the alien names an item: its kind and its place on the disc. */
 export function trackLabel(t: TrackRef): string {

@@ -6,6 +6,7 @@
 // signals (no DOM), so Node tests drive it.
 
 import { effect, signal } from '@preact/signals';
+import { onStartOver } from '../game/resetHooks';
 import { confirmedSet } from '../game/state';
 
 /** The deductions with a staged moment, in the order they would queue. */
@@ -54,6 +55,12 @@ export function endMoment(how: MomentEnd): void {
   if (e) e.ended = how;
   showNext();
 }
+
+// Start over: a moment still on its way belongs to the old playthrough.
+onStartOver(() => {
+  queue.length = 0;
+  activeMoment.value = null;
+});
 
 let stop: (() => void) | null = null;
 

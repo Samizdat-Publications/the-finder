@@ -5,6 +5,7 @@ import { signal } from '@preact/signals';
 import { useState } from 'preact/hooks';
 import { nodeStatus, type Answer } from '../../game/deductions';
 import { nodeDef } from '../../game/graph';
+import { onStartOver } from '../../game/resetHooks';
 import { confirmedSet, game } from '../../game/state';
 import { GlyphLabel } from '../../ui/Glyph';
 import { isPastProposal } from '../../ui/pastProposal';
@@ -34,6 +35,9 @@ export function PanelHead(p: { id: string }) {
 /** Radio choices and a Propose button; disabled unless the node is open. */
 /** The answer each choice panel holds now (its picked choice), for LastReading's past-proposal mark. */
 const choicePicks = signal<Record<string, Answer>>({});
+onStartOver(() => {
+  choicePicks.value = {};
+});
 
 export function Propose(p: { id: string; choices: Choice[]; legend: string }) {
   const [pick, setPickState] = useState<string | null>(null);

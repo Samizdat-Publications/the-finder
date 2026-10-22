@@ -3,7 +3,8 @@
 // state changes only through the command bus, when a reading is proposed. Also the epoch model, loaded and
 // measured behind a visible "measuring" state so the page paints first.
 
-import { signal } from '@preact/signals';
+import { batch, signal } from '@preact/signals';
+import { onStartOver } from '../../game/resetHooks';
 import { weightedMean } from '../../science/stats';
 import { ensureParts, loadEpochModel, type EpochModel } from '../shared/epochModel';
 import { AGREE_CHI2_PER_DOF } from './checkers';
@@ -91,6 +92,27 @@ const spentHere = (ms: number): number => ms;
 
 let loadingFor: string | null = null;
 
+// Start over: the tools are as a first run finds them, and the model (of the old seed) is dropped.
+onStartOver(() => {
+  loadingFor = null;
+  batch(() => {
+    tool.value = 'trail';
+    picked.value = null;
+    runYears.value = 0;
+    rulerEnds.value = [];
+    regionPick.value = null;
+    frame.value = 'own';
+    cursorYears.value = null;
+    tintAll.value = false;
+    model.value = null;
+    measuring.value = null;
+    failure.value = null;
+    frameAges.value = null;
+    reframeReading.value = null;
+  });
+  for (const k of Object.keys(timings)) delete timings[k];
+});
+
 /** Load the catalogues and measure the trail for a seed (once per seed). */
 export async function ensureModel(seed: string): Promise<EpochModel> {
   const have = model.value;
@@ -104,6 +126,7 @@ export async function ensureModel(seed: string): Promise<EpochModel> {
     measuring.value = 'Loading the star catalogues';
     const m = await loadEpochModel(seed);
     await timed('trailRows', 'Measuring every nearby star\'s motion', heavy(m, 'trail'), spentHere);
+    if (loadingFor !== seed) return m; // started over meanwhile: this model is not the player's any more
     model.value = m;
     failure.value = null;
     return m;
@@ -112,7 +135,7 @@ export async function ensureModel(seed: string): Promise<EpochModel> {
     measuring.value = null;
     throw e;
   } finally {
-    loadingFor = null;
+    if (loadingFor === seed) loadingFor = null;
   }
 }
 

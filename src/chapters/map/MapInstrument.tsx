@@ -6,6 +6,7 @@
 
 import { useEffect } from 'preact/hooks';
 import { nodeStatus } from '../../game/deductions';
+import { onStartOver } from '../../game/resetHooks';
 import { confirmedSet, game } from '../../game/state';
 import { MAP_NODE_IDS } from './checkers';
 import { CoverMap } from './CoverMap';
@@ -20,6 +21,10 @@ import { StepPanel } from './StepPanel';
 import './map.css';
 
 let resumedFor: string | null = null;
+// Start over: the next entry resumes from the (now empty) save.
+onStartOver(() => {
+  resumedFor = null;
+});
 
 /** The step's tool, as its fold button names it. */
 const TOOL_NAME: Record<string, string> = {

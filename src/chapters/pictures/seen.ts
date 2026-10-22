@@ -3,6 +3,7 @@
 // clean published image, rule 2). Browser only (signals, canvas).
 
 import { effect, signal } from '@preact/signals';
+import { onStartOver } from '../../game/resetHooks';
 import { decoder as D } from '../../game/state';
 import { FIRST_FRAMES } from './checkers';
 import { goldThumb } from './PictureView';
@@ -16,6 +17,12 @@ export function keepThumb(): void {
   const p = D.picture.value;
   if (p && D.revealed.value >= p.width) thumbs.value = { ...thumbs.value, [p.frame]: goldThumb(p) };
 }
+
+// Start over: nothing has been watched. (The tracking effect stays; it is the instrument's wiring, not progress.)
+onStartOver(() => {
+  watched.value = [];
+  thumbs.value = {};
+});
 
 let stop: (() => void) | null = null;
 

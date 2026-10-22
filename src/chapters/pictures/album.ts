@@ -5,6 +5,7 @@
 
 import { effect, signal } from '@preact/signals';
 import { dispatch } from '../../game/bus';
+import { onStartOver } from '../../game/resetHooks';
 import { decoder as D, type Picture } from '../../game/state';
 import { ALBUM_FRAMES, type DecodedPicture } from './checkersM5';
 import type { PictureSettings } from './measure';
@@ -59,7 +60,7 @@ function thumbOf(gray: Uint8Array, width: number, height: number, w = 120): stri
   return t.toDataURL('image/png');
 }
 
-const kept = new WeakSet<Picture>();
+let kept = new WeakSet<Picture>();
 
 /** Keep the decoder's finished picture in the album (copied: the decoder drops it on the next run). Once per picture. */
 export function keepPicture(p: Picture): void {
@@ -119,6 +120,15 @@ export async function developOne(frame: string): Promise<AlbumPicture | undefine
 }
 
 let tracking = false;
+
+// Start over: the album is empty again, and a run over the side that is going stops after the frame in hand.
+onStartOver(() => {
+  if (runningSide.value) stopRequested = true;
+  kept = new WeakSet<Picture>();
+  album.value = {};
+  developing.value = null;
+  runningSide.value = null;
+});
 
 /** Every picture the bench finishes (developed to its last line, at any speed) goes into the album too. Idempotent. */
 export function trackAlbum(): void {

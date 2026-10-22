@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const TEXT = /\.(ts|tsx|mjs|js|cjs|py|md|css|html|json|jsonc|txt|toml|yml|yaml|svg|bat|ps1|csv)$/i;
 const MAX_BYTES = 20 * 1024 * 1024;
-const EM_DASH = '—';
+const EM_DASH = String.fromCharCode(0x2014);
 
 const files = execFileSync('git', ['ls-files', '-z'], { cwd: ROOT, encoding: 'utf8' }).split('\0').filter(Boolean);
 const problems = [];

@@ -3,7 +3,8 @@
 // and the cell marked on the planets table. This is the instrument's own view state, like a dial's position
 // (the game state changes only through the command bus: each view proposes its answer with deduction.propose).
 
-import { signal } from '@preact/signals';
+import { batch, signal } from '@preact/signals';
+import { onStartOver } from '../../game/resetHooks';
 
 export type WorkView = 'decoder' | 'album' | 'colour' | 'turn' | 'numerals' | 'units' | 'planets' | 'height';
 
@@ -22,6 +23,20 @@ export const markedColumn = signal<number | null>(null);
 export const markedCell = signal<{ column: number; row: string } | null>(null);
 /** The height read off the scale bar, in their centimetres. */
 export const heightCm = signal(0);
+
+onStartOver(() =>
+  batch(() => {
+    view.value = 'decoder';
+    stackStart.value = null;
+    turnFrame.value = null;
+    quarterTurns.value = 0;
+    numeralTable.value = {};
+    secondReading.value = { whole: 1, num: 0, den: 1, power: 0 };
+    markedColumn.value = null;
+    markedCell.value = null;
+    heightCm.value = 0;
+  }),
+);
 
 export function openView(v: WorkView): void {
   view.value = v;

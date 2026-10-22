@@ -3,8 +3,10 @@
 // reason has also been written to game.error for the interface to show. A WRONG answer is not an error: it
 // is recorded as an attempt with what it showed.
 
+import { batch } from '@preact/signals';
 import { DEFAULT_SEED, evaluate, nodeStatus, chapterOpen, type Answer, type Attempt } from './deductions';
 import { chapterDef, nodeDef, type ChapterView } from './graph';
+import { runStartOver } from './resetHooks';
 import { nextSeed } from './seeds';
 import { coerceSetting, defaultSettings, type SettingName, type Settings } from './settings';
 import { confirmedSet, game, type NodeRecord } from './state';
@@ -40,6 +42,8 @@ export function enterChapter(view: ChapterView): void {
   }
   game.error.value = null;
   game.chapter.value = view;
+  // Remember the visit (saved): a chapter with no deductions is done once entered (chapterStatus).
+  if (view !== 'hub' && !game.visited.value.includes(view)) game.visited.value = [...game.visited.value, view];
 }
 
 export function propose(id: string, answer: Answer): void {
@@ -133,14 +137,19 @@ export function tourExit(): void {
  * its measurements differ and none of its checks is unpassable.
  */
 export function resetSave(): void {
-  game.error.value = null;
-  game.records.value = {};
-  game.seed.value = nextSeed(game.seed.value);
-  game.chapter.value = 'hub';
-  game.tour.value = { ...TOUR_OFF };
-  game.codexOpen.value = false;
-  game.codexFocus.value = null;
-  game.settingsOpen.value = false;
+  batch(() => {
+    game.error.value = null;
+    game.records.value = {};
+    game.seed.value = nextSeed(game.seed.value);
+    game.chapter.value = 'hub';
+    game.visited.value = [];
+    game.tour.value = { ...TOUR_OFF };
+    game.codexOpen.value = false;
+    game.codexFocus.value = null;
+    game.settingsOpen.value = false;
+    // The chapters' own bench state (selections, dials, the album, "already set up" flags) goes back to a first run.
+    runStartOver();
+  });
 }
 
 /** Back to a first run, settings included (tests only). */
