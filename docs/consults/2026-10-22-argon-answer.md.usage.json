@@ -1,0 +1,8 @@
+{
+  "model": "models/gemini-4-argon",
+  "files": 391,
+  "inputTokens": 980482,
+  "outputTokens": 5977,
+  "costUsdAtAssumedRate": 2.0327,
+  "seconds": 143.452579
+}
