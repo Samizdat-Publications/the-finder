@@ -49,6 +49,32 @@
 .epi-table tbody th { font-weight: 400; color: var(--text); }
 .epi-table td.on { color: var(--cyan); font-weight: 600; }
 .epi-table td.off { color: var(--text-dim); }
+.epi-lampsbox { display: grid; gap: 0.8rem; }
+.epi-asof { margin: 0; }
+.epi-lamprow { display: grid; gap: 0.3rem; }
+.epi-lamphead { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.epi-lampname { font: 600 1rem var(--font-sans); color: var(--text); }
+.epi-lampcount { font-size: 0.875rem; color: var(--cyan); font-variant-numeric: tabular-nums; }
+.epi-lamps { list-style: none; margin: 0; padding: 0.55rem 0.4rem 0.4rem; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 0.2rem; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-raised); }
+.epi-lamp-cell { min-width: 0; }
+.epi-lamp { position: relative; display: grid; justify-items: center; gap: 0.15rem; padding: 0.15rem 0.1rem; border-radius: 6px; outline-offset: 2px; cursor: default; }
+.epi-bulb { width: clamp(1.4rem, 2.6vw, 2.1rem); aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--line); background: #0b0e16; box-shadow: inset 0 0 0.35rem rgba(0, 0, 0, 0.8); }
+.epi-lamp.on .epi-bulb { border-color: var(--cyan); background: radial-gradient(circle at 40% 35%, #e8fdff 0%, var(--cyan) 38%, rgba(60, 200, 230, 0.55) 100%); box-shadow: 0 0 0.6rem 0.12rem rgba(90, 220, 245, 0.55), 0 0 1.6rem 0.3rem rgba(90, 220, 245, 0.22); }
+:root:not(.calm) .epi-lamp.on .epi-bulb { animation: epi-breathe 4.8s ease-in-out infinite; }
+@keyframes epi-breathe { 0%, 100% { box-shadow: 0 0 0.45rem 0.08rem rgba(90, 220, 245, 0.4), 0 0 1.2rem 0.2rem rgba(90, 220, 245, 0.14); } 50% { box-shadow: 0 0 0.8rem 0.2rem rgba(90, 220, 245, 0.7), 0 0 2rem 0.5rem rgba(90, 220, 245, 0.3); } }
+.epi-lamp-code { font-size: 0.75rem; letter-spacing: 0.04em; color: var(--text-dim); }
+.epi-lamp.on .epi-lamp-code { color: var(--text); }
+.epi-lamp-year { font-size: 0.75rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.epi-lamp.on .epi-lamp-year { color: var(--cyan); }
+.epi-lamp:focus-visible { outline: 2px solid var(--cyan); }
+.epi-tip { display: none; position: absolute; z-index: 5; bottom: calc(100% + 0.3rem); left: 50%; transform: translateX(-50%); width: max-content; max-width: 15rem; padding: 0.4rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.8125rem; line-height: 1.35; text-align: left; pointer-events: none; }
+.epi-tip b { display: block; font-weight: 600; color: var(--cyan); }
+.epi-lamp:hover .epi-tip, .epi-lamp:focus-visible .epi-tip { display: block; }
+.epi-lamp-cell:nth-child(-n+2) .epi-tip { left: 0; transform: none; }
+.epi-lamp-cell:nth-last-child(-n+2) .epi-tip { left: auto; right: 0; transform: none; }
+.epi-powerbar { display: grid; gap: 0.25rem; }
+.epi-powerline { display: block; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--cyan), rgba(90, 220, 245, 0.06)); }
+.epi-powerlabel { font-size: 0.8125rem; color: var(--text-dim); text-align: right; }
 .epi-table.compact th, .epi-table.compact td { padding: 0.4rem 0.6rem; font-size: 0.9375rem; }
 
 /* 4. the slow future */
@@ -117,7 +143,8 @@
   .epi-lead { font-size: clamp(1.25rem, 2.3vw, 1.9rem); }
   .epi-diagram { max-height: 50vh; }
   .epi-strip { max-height: 28vh; }
-  .epi-table th, .epi-table td { padding: 0.12rem 0.5rem; font-size: 0.8125rem; }
+  .epi-lampsbox { gap: 0.5rem; }
+  .epi-bulb { width: 1.5rem; }
   .epi-record { width: min(100%, 44vh, 26rem); }
   .epi-credits ul { font-size: 0.75rem; }
 }

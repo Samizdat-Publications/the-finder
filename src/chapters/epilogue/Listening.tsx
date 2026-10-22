@@ -15,12 +15,55 @@ function offText(i: InstrumentRow): string {
   return `off ${when} (${i.reason ?? 'power'})`;
 }
 
-function Cell(p: { craft: CraftInstruments; row: InstrumentRow }) {
+/** The first date an instrument went dark ("1990-02-14"), or '' for one still running. */
+const firstOff = (i: InstrumentRow): string => (i.on ? '' : (i.offDates ?? [])[0] ?? '');
+
+/** The slow dimming, in order: dark ones by the date they went out, the still-running ones last. */
+function byDimming(rows: InstrumentRow[]): InstrumentRow[] {
+  const key = (i: InstrumentRow): string => (i.on ? '9999' : firstOff(i) || '9998');
+  return [...rows].sort((a, b) => key(a).localeCompare(key(b)));
+}
+
+function Lamp(p: { craft: CraftInstruments; row: InstrumentRow }) {
   const { craft, row } = p;
+  const state = row.on ? 'running' : offText(row);
+  const full = `${row.name} (${row.code}): ${state}`;
   return (
-    <td data-craft={craft.id} data-instrument={row.code} data-state={row.on ? 'on' : 'off'} class={row.on ? 'on' : 'off'}>
-      {row.on ? 'running' : offText(row)}
-    </td>
+    <li class="epi-lamp-cell">
+      <div class={`epi-lamp ${row.on ? 'on' : 'off'}`} tabIndex={0} role="img" aria-label={`${craft.name}, ${full}`} data-craft={craft.id} data-instrument={row.code} data-state={row.on ? 'on' : 'off'}>
+        <span class="epi-bulb" aria-hidden="true" />
+        <span class="epi-lamp-code" aria-hidden="true">
+          {row.code}
+        </span>
+        <span class="epi-lamp-year" aria-hidden="true">
+          {row.on ? 'running' : firstOff(row).slice(0, 4)}
+        </span>
+        <span class="epi-tip" aria-hidden="true">
+          <b>{row.name}</b>
+          {state}
+        </span>
+      </div>
+    </li>
+  );
+}
+
+function LampRow(p: { craft: CraftInstruments }) {
+  const { craft } = p;
+  const running = craft.instruments.filter((i) => i.on).length;
+  return (
+    <div class="epi-lamprow" data-lamprow={craft.id}>
+      <p class="epi-lamphead">
+        <span class="epi-lampname">{craft.name}</span>
+        <span class="epi-lampcount">
+          {running} of {craft.instruments.length} still running
+        </span>
+      </p>
+      <ul class="epi-lamps" aria-label={`${craft.name} instruments, in the order they were switched off`}>
+        {byDimming(craft.instruments).map((row) => (
+          <Lamp key={row.code} craft={craft} row={row} />
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -36,26 +79,14 @@ export function Listening() {
       <p class="epi-lead small" data-epilogue-counts={`${running(v1)}/${v1.instruments.length},${running(v2)}/${v2.instruments.length}`}>
         {v1.name} runs {running(v1)} of its {v1.instruments.length} instruments, {v2.name} runs {running(v2)}.
       </p>
-      <div class="epi-table-wrap">
-        <table class="epi-table" data-epilogue-instruments>
-          <caption class="epi-small">As of {asOfText}.</caption>
-          <thead>
-            <tr>
-              <th scope="col">Instrument</th>
-              <th scope="col">{v1.name}</th>
-              <th scope="col">{v2.name}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {v1.instruments.map((row, i) => (
-              <tr key={row.code}>
-                <th scope="row">{row.name}</th>
-                <Cell craft={v1} row={row} />
-                <Cell craft={v2} row={v2.instruments[i] as InstrumentRow} />
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div class="epi-lampsbox" data-epilogue-instruments>
+        <p class="epi-small epi-asof">As of {asOfText}. Switched off, oldest first.</p>
+        <LampRow craft={v1} />
+        <LampRow craft={v2} />
+        <div class="epi-powerbar" data-epilogue-powerbar>
+          <span class="epi-powerline" aria-hidden="true" />
+          <span class="epi-powerlabel">Power: about {powerLossWattsPerYear} watts less every year</span>
+        </div>
       </div>
       <p class="epi-why">
         Their power falls by about {powerLossWattsPerYear} watts a year as the plutonium decays.{' '}

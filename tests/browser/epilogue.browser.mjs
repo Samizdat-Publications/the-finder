@@ -181,14 +181,14 @@ export async function playEpilogue(page, { assert, log, shot } = {}) {
   await page.keyboard.press('PageDown');
   await expectSection(page, 'listening', assert);
   const counts = await page.evaluate(() => ({
-    v1on: document.querySelectorAll('td[data-craft="-31"][data-state="on"]').length,
-    v1all: document.querySelectorAll('td[data-craft="-31"]').length,
-    v2on: document.querySelectorAll('td[data-craft="-32"][data-state="on"]').length,
-    v2all: document.querySelectorAll('td[data-craft="-32"]').length,
+    v1on: document.querySelectorAll('.epi-lamp[data-craft="-31"][data-state="on"]').length,
+    v1all: document.querySelectorAll('.epi-lamp[data-craft="-31"]').length,
+    v2on: document.querySelectorAll('.epi-lamp[data-craft="-32"][data-state="on"]').length,
+    v2all: document.querySelectorAll('.epi-lamp[data-craft="-32"]').length,
     sentence: document.querySelector('[data-epilogue-counts]')?.textContent ?? '',
     link: document.querySelector('[data-epilogue-fuel-link]')?.getAttribute('href') ?? '',
     why: document.querySelector('.epi-why')?.textContent ?? '',
-    asOf: document.querySelector('.epi-table caption')?.textContent ?? '',
+    asOf: document.querySelector('.epi-asof')?.textContent ?? '',
   }));
   assert(counts.v1on === 2 && counts.v1all === 10, `Voyager 1 runs 2 of 10 (${counts.v1on} of ${counts.v1all})`);
   assert(counts.v2on === 3 && counts.v2all === 10, `Voyager 2 runs 3 of 10 (${counts.v2on} of ${counts.v2all})`);
