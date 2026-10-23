@@ -19,6 +19,18 @@ export function launchChrome() {
 }
 
 /**
+ * Launch installed Chrome, headless, on the LOW-POWER adapter (the Intel iGPU on this PC), the stand-in for an
+ * ordinary laptop's built-in graphics. Same channel logic and GPU flags as launchChrome() except the
+ * high-performance flag. Chrome on Windows ignores the JS powerPreference; --force_low_power_gpu together with
+ * --use-angle=d3d11 is what yields the Intel adapter (verified in the Excavator Sim harness).
+ */
+export function launchChromeLowPower() {
+  const channel = process.env.FINDER_BROWSER === 'msedge' ? 'msedge' : 'chrome';
+  const args = GPU_ARGS.filter((a) => a !== '--force_high_performance_gpu').concat(['--force_low_power_gpu', '--use-angle=d3d11']);
+  return chromium.launch({ channel, headless: true, args });
+}
+
+/**
  * Open a URL in a fresh page, wait for load, and collect console errors.
  * @param {import('playwright').Browser} browser
  * @param {string} url
