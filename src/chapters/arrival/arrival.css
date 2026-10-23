@@ -72,12 +72,15 @@
 
 /* markers over the scene */
 .ar-markers { pointer-events: none; z-index: 2; }
-.ar-marker { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 0.35rem; transition: opacity 0.3s; }
+.ar-marker { position: absolute; left: 0; top: 0; width: 0; height: 0; transition: opacity 0.3s; }
 .ar-marker[data-visible='0'] { opacity: 0; }
+/* The marker is its part's point; the dot is centred on it and the label placed beside it by Arrival.tsx (right of
+   the part, else left, else below, inside the open area left of the scan panel: M7 step 1). */
+.ar-marker .dot { position: absolute; left: 0; top: 0; }
 .ar-marker .dot { width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; border: 1.5px solid var(--cyan); box-shadow: 0 0 8px rgba(79, 240, 196, 0.7); }
 .ar-marker .lbl {
-  font: var(--fs-label) var(--font-mono); color: var(--cyan); white-space: nowrap; transform: translateY(-50%);
-  padding: 0.1rem 0.4rem; background: rgba(8, 7, 26, 0.7); border: 1px solid rgba(79, 240, 196, 0.35); border-radius: 4px; margin-top: 10px;
+  position: absolute; left: 0; top: 0; width: max-content; font: var(--fs-label) var(--font-mono); color: var(--cyan); white-space: nowrap; transform: translate(10px, -50%);
+  padding: 0.1rem 0.4rem; background: rgba(8, 7, 26, 0.7); border: 1px solid rgba(79, 240, 196, 0.35); border-radius: 4px;
 }
 .ar-marker.gold .dot { border-color: var(--gold); box-shadow: 0 0 8px rgba(232, 182, 74, 0.7); }
 .ar-marker.gold .lbl { color: var(--gold); border-color: rgba(232, 182, 74, 0.4); }

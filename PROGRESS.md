@@ -1,8 +1,27 @@
 # PROGRESS
 
-_Last updated: 2026-10-22 by build session 4 (Opus 5.5): M6 built, every chapter playable; the V1.0 draft. Update after every meaningful chunk._
+_Last updated: 2026-10-22 by build session 5 (Opus 5.5): M7 (polish) under way after the V1.0 draft. Update after every meaningful chunk._
 
 ## Current milestone
+
+**M7, polish and ship (started 2026-10-22, build session 5; checklist `docs/plans/M7.md`).** No notes from Stewart
+on the V1.0 draft yet, so M7 runs from the critics' list. Landed so far:
+- **Step 1, clipped and stray things:** chart labels stay inside their chart (`labelLayout.ts` takes the chart's
+  bounds: the Galactic centre's label flips left at the edge); Arrival's scene labels sit right of their part,
+  else left, else below, inside the open area, and a part hidden under the scan panel shows no label; Our Frame's
+  second Sound button is gone (a "Playing: Cavatina" line instead; the top bar has the button); Portrait's "Their
+  world" lines wrap instead of running past the panel at 1366x768.
+- **Step 2, the tour opens on the spacecraft:** the three prologue cards stand beside the encounter scene (the
+  craft under the far-future sky, `src/tour/StoryScene.tsx`); "Hold up your disc" dims the scene and shows the
+  cover drawing large.
+- **Step 3, one obvious control per step:** while a tour stop is unfinished, what holds neither its control nor its
+  answer dims (hover or focus brings it back; canvases never dim), and the control scrolls into view by itself if
+  the stop opens with it below the fold (`src/tour/Spotlight.tsx`).
+- **Step 4, shorter words:** the ten longest "What we just learned" boxes cut to at most about 40 words (from 60;
+  the one hand-typed "about 44,000 years" became "tens of thousands of years"); on the tour a result's human value
+  leads, large, and the alien value follows small; a "part 4 of 12" counter beside the part dots.
+- **A look tool:** `node tools/harness/tour-look.mjs --stops 1,6,45 [--open] [--sizes ...]` screenshots chosen tour
+  stops from a confirmed save in seconds (`--open`: as the player meets them), into `review/archive/`.
 
 **V1.0 draft (2026-10-22): every chapter is built and playable, start to finish.** Stewart asked for the two
 outstanding chapters, every outstanding item and a V1.0 draft for his review.

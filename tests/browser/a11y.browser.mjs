@@ -24,8 +24,8 @@ const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core/
 
 let realCache = null;
 
-/** The save: every deduction confirmed (portraitOpen: all but portrait.together, so the clocks marker can move). */
-async function seedSave(page, baseUrl, { portraitOpen = false } = {}) {
+/** The save: every deduction confirmed (portraitOpen: all but portrait.together, so the clocks marker can move). Also used by tools/harness/tour-look.mjs (openNodes: left unconfirmed, so their tour stops show unfinished). */
+export async function seedSave(page, baseUrl, { portraitOpen = false, reducedMotion = true, openNodes = [] } = {}) {
   await page.goto(`${baseUrl}/play/`, { waitUntil: 'load' });
   await page.waitForFunction(() => Boolean(window.__finder), null, { timeout: 90_000 });
   const ids = await page.evaluate(async () => (await import('/src/game/graph.ts')).ALL_NODES.map((n) => n.id));
@@ -33,6 +33,7 @@ async function seedSave(page, baseUrl, { portraitOpen = false } = {}) {
   const real = realCache;
   const nodes = Object.fromEntries(ids.map((id) => [id, real[id] ?? { confirmed: true, attempts: [], hints: 0 }]));
   if (portraitOpen) nodes['portrait.together'] = { confirmed: false, attempts: [], hints: 0 };
+  for (const id of openNodes) nodes[id] = { confirmed: false, attempts: [], hints: 0 };
   nodes['map.old'] = {
     confirmed: true,
     hints: 0,
@@ -54,7 +55,7 @@ async function seedSave(page, baseUrl, { portraitOpen = false } = {}) {
     version: 1,
     nodes,
     chapter: 'hub',
-    settings: { humanGloss: false, masterVolume: 0.8, reducedMotion: true, soundCaptions: true, showWorking: false },
+    settings: { humanGloss: false, masterVolume: 0.8, reducedMotion, soundCaptions: true, showWorking: false },
     seed: SEED,
   });
   await page.evaluate(([k, v]) => {

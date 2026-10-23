@@ -39,7 +39,7 @@ export const PARTS: readonly PartDef[] = [
 export const STOPS: readonly Stop[] = [
   // ------------------------------------------------------------------ prologue
   {
-    id: 'prologue.voyager', part: 'prologue', kind: 'story', chapter: 'hub', widget: 'cover',
+    id: 'prologue.voyager', part: 'prologue', kind: 'story', chapter: 'hub',
     title: 'A message in a bottle',
     look:
       'In 1977 NASA launched two small spacecraft, **Voyager 1** and **Voyager 2**, to fly past Jupiter and Saturn. When the job was done they kept going. They have left the planets behind, and they will drift between the stars for millions of years.\n\n' +
@@ -85,8 +85,8 @@ export const STOPS: readonly Stop[] = [
       'You can tell a lot about a machine from its shape, even an alien one. Nobody builds a big curved dish by accident.',
     todo: 'Read the Structure scan, then answer **What is the great dish for?** by clicking the answer you think is right. Clicking an answer proposes it, and the scan tells you if it holds. Hint: what does a curved dish do with waves?',
     why:
-      'A curved dish gathers waves from one direction, or sends them out in one direction, like a satellite dish on a house. And the long booms hold instruments away from the body, so they can measure things without the machine getting in the way.\n\n' +
-      'So this machine was built to **talk across huge distances**, and to **sense** things.',
+      'A curved dish sends and catches waves in one direction, like a satellite dish. Long booms hold instruments clear of the body.\n\n' +
+      'It was built to **talk across huge distances** and to **sense** things.',
     human:
       'Voyager\'s dish is 3.7 metres across. Its radio transmitter runs on about 23 watts, roughly a fridge light bulb, and it still sends science home today from more than 24 billion kilometres away. The signal that reaches Earth is unbelievably faint, and NASA catches it with dishes 70 metres wide.',
     ask: 'Why would a machine that is going somewhere no one can follow still need a radio?',
@@ -99,7 +99,7 @@ export const STOPS: readonly Stop[] = [
       'Something inside them is still making heat. But what could keep going that long?',
     todo: 'Click the **Heat** tab, see which parts glow, then click what you think keeps the cylinders warm.',
     why:
-      'Sunlight is far too weak out here, and leftover heat would have leaked away long ago. A chemical fire burns out. But **radioactive atoms** give off heat as they break down, slowly and steadily, for a very long time.\n\n' +
+      'Sunlight is too weak out here, a fire would have burned out, and leftover heat would be long gone. But **radioactive atoms** give off heat steadily for a very long time.\n\n' +
       'The three warm cylinders are a nuclear battery.',
     human:
       'They are Voyager\'s three RTGs (radioisotope thermoelectric generators). They were filled with plutonium-238, and the heat of its decay was turned into electricity: about 470 watts at launch in 1977. They make a little less every year. NASA has been switching instruments off one by one to save power.',
@@ -112,8 +112,8 @@ export const STOPS: readonly Stop[] = [
       'Uranium dug out of rock is almost all uranium-238. Look at what is in these cylinders.',
     todo: 'Click the **Isotopes** tab and compare the uranium-234 peak with the uranium-238 peak. Then click: was this fuel mined, or made?',
     why:
-      'Natural uranium has about eighteen thousand atoms of uranium-238 for every atom of uranium-234. Here it is the other way round: lots of uranium-234 and almost no uranium-238.\n\n' +
-      'Nobody dug this out of the ground. It was **made**, from a heavier element that does not exist in nature. Whoever built this machine could make new elements in a reactor.',
+      'Natural uranium has about 18,000 atoms of uranium-238 for each uranium-234. Here it is the other way round.\n\n' +
+      'Nobody dug this up: it was **made**, from a heavier element that does not exist in nature. Its makers could build new elements.',
     human:
       'Plutonium-238 is made in nuclear reactors. Every plutonium-238 atom eventually turns into a uranium-234 atom. Half of it is gone after 88 years, so by the time the alien finds Voyager, the plutonium has all become uranium.',
   },
@@ -125,7 +125,8 @@ export const STOPS: readonly Stop[] = [
       'The **Decay clock** compares the thorium we measured with what each possible story predicts, and gives the age each one implies.',
     todo: 'Click the **Decay clock** tab. Pick the chain of decays that would have made this uranium-234 (think: what decays into it?), see where its curve meets our measurement, then press **Date the heat source with this chain**.',
     why:
-      'The fuel was made, then decayed from plutonium to uranium to thorium. The thorium says the heat source is **tens of thousands of years old**: the clock shows the age, about 44,000 years, with its error bar. That is our first clock, and our first big answer: this machine has been falling through space for a very, very long time.',
+      'The fuel decayed from plutonium to uranium to thorium, and the thorium is a clock: it reads **tens of thousands of years**.\n\n' +
+      'Our first big answer: this machine has been falling through space for a very long time.',
     human:
       '44,000 years ago on Earth it was the Ice Age. People were hunting mammoths and painting some of the very first cave paintings. In our story that is how far in the future the alien finds Voyager.',
     ask: 'Radioactive clocks are how scientists date old rocks and bones on Earth too. What else could you date this way?',
@@ -148,8 +149,8 @@ export const STOPS: readonly Stop[] = [
       'The table counts every string and every stroke on the plate. Move your mouse over the plate to see the strings.',
     todo: 'Click the answer you think explains the two kinds of stroke, then press **Propose**. (You can also click strokes on the plate to look at them close up.)',
     why:
-      'Two symbols, used again and again in strings of different lengths: that is how you write **numbers with only two digits**. A stroke across is 1, a dash along is 0, and each place in the string is worth twice the one after it.\n\n' +
-      'This is **binary**, the same counting computers use.',
+      'Two symbols in strings of different lengths: **numbers with only two digits**. A stroke across is 1, a dash along is 0, and each place is worth twice the next.\n\n' +
+      'This is **binary**, the counting computers use.',
     human:
       'The designers used binary because anyone clever enough to catch a spacecraft can count, and two kinds of mark is the simplest possible way to write a number. You do not need to know anyone\'s alphabet.',
     ask: 'Can you count to five in binary? (1, 10, 11, 100, 101.) What is 1000?',
@@ -162,8 +163,8 @@ export const STOPS: readonly Stop[] = [
       'Bottom right of the cover is a tiny drawing: two circles joined by a line, with a **1** written beside it. It is **hydrogen**, the simplest and most common atom in the universe, drawn in two states. Every scientist in the galaxy knows hydrogen.',
     todo: 'In the **atlas of hydrogen**, click each row in turn: each one shows what the cover\'s star-map numbers would mean with that unit, and how many of them then match real pulsars. When one row makes the numbers fit, choose that transition below and press **Propose**.',
     why:
-      'A hydrogen atom can flip from one state to the other, and when it does it gives off a radio wave that ticks at exactly the same rate everywhere in the universe. The cover says: **our unit is one tick of hydrogen**.\n\n' +
-      'It is a ruler that every civilisation already owns.',
+      'When a hydrogen atom flips, it gives off a radio wave that ticks at the same rate everywhere in the universe.\n\n' +
+      'The cover says: **our unit is one tick of hydrogen**, a ruler every civilisation already owns.',
     human:
       'This hydrogen signal is the famous "21 centimetre line" that radio astronomers use to map the gas in our galaxy. The same drawing was first used in 1972 on the Pioneer plaques, the metal greeting cards carried by Pioneer 10 and 11.',
   },
@@ -219,8 +220,8 @@ export const STOPS: readonly Stop[] = [
     look: 'The disc is turning at the right speed, the right way, and the needle is in the groove. Turn your sound up and listen.',
     todo: 'The needle is down. Just listen: after a few seconds of quiet lead-in, the first real sound arrives (it can take up to 20 seconds).',
     why:
-      'It is not music and it is not a voice. It is a **buzz**, one short shape repeating over and over, hundreds of times a second.\n\n' +
-      'That repeating shape is a **picture, sent as sound**, one line at a time, like an old fax machine. Each repeat of the buzz is one line of a picture.',
+      'Not music, not a voice: a **buzz**, one short shape repeating hundreds of times a second.\n\n' +
+      'Each repeat is one line of a **picture, sent as sound**, like an old fax machine.',
     human:
       'In 1977 there was no way to put digital image files on a spacecraft record, so the team recorded the pictures as an analogue video signal, as sound in the groove. On this disc the pictures come first.',
     ask: 'What do you think the first picture will be?',
@@ -280,8 +281,8 @@ export const STOPS: readonly Stop[] = [
     look: 'Line time, sync, stagger, brightness and shape are all set. Is the test circle round?',
     todo: 'If the circle looks round, press **Propose: the circle is true**: the decoder checks all five settings together.',
     why:
-      'A perfect circle, decoded from sound. The senders\' instructions worked.\n\n' +
-      'And think about what this means: they sent us **pictures**. The senders **see**. They have eyes, or something like them, and they guessed that we would too.',
+      'A perfect circle, decoded from sound: the instructions worked.\n\n' +
+      'And they sent **pictures**, so the senders **see**. They have eyes, or something like them, and guessed we would too.',
     human:
       'This is the real calibration circle from the Golden Record, decoded right now in your browser from the 1977 recording. Nobody cleaned it up. The tiny specks are real.',
   },
@@ -341,7 +342,7 @@ export const STOPS: readonly Stop[] = [
     title: 'How high do their sounds go?',
     look: 'Their voices and music fill a band of pitches, from low to high. Above some pitch, there is only the hiss of the recording. Where does their sound stop?',
     todo: 'On the chart, click where the voices\' curve sinks down into the hiss on the right. Then press **Propose**.',
-    why: 'Their voices and music stand above the hiss of the recording up to about this pitch. The senders make sounds at least this high, and chose to record them. (Whether they can hear all of it, the record alone cannot say.)',
+    why: 'Their voices and music rise above the recording\'s hiss up to about this pitch, so they make sounds at least this high. (Whether they hear all of it, the record cannot say.)',
     human: 'Young humans hear up to about 20,000 vibrations a second. Most adults hear a bit less. Bats and dolphins hear far higher.',
   },
   {

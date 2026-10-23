@@ -5,6 +5,7 @@
 // **double stars** mark bold. No em dashes.
 
 import type { ChapterView } from '../game/graph';
+import type { HotspotId } from '../world/hotspots';
 
 export type PartId =
   | 'prologue'
@@ -55,6 +56,8 @@ export interface Stop {
   ask?: string;
   /** A picture or live panel shown with the stop on the story stage: the cover drawing, or where the Voyagers are now (VoyagerNow.tsx). */
   widget?: 'cover' | 'voyagerNow';
+  /** Story-stage stops: the part of the craft the backdrop frames (StoryScene.tsx); the opening view when omitted. */
+  sceneFrame?: HotspotId;
   /** Our Frame: the section of the chapter this stop talks about; the guide turns the chapter to it. */
   section?: 'turn' | 'now' | 'listening' | 'future' | 'map' | 'line';
 }

@@ -6,7 +6,7 @@
 import type { JSX } from 'preact';
 import { signal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
-import { soundMuted, toggleMuted } from '../../audio/mixer';
+import { soundMuted } from '../../audio/mixer';
 import { game, turntable as T } from '../../game/state';
 import { Future } from './SlowFuture';
 import { Line } from './Line';
@@ -45,7 +45,10 @@ function leaveKey(e: KeyboardEvent): boolean {
   return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
 }
 
-/** The record's quiet caption and, while it loads, its progress. */
+/**
+ * What is playing and, while it loads, its progress. No sound button of its own: the top bar's is always there
+ * (M7 step 1, the V1 critic's "lone Sound button").
+ */
 function SoundLine() {
   const track = lastTrack();
   const status = T.status.value;
@@ -53,19 +56,14 @@ function SoundLine() {
   const pct = total > 0 ? Math.round((loaded / total) * 100) : 0;
   return (
     <div class="epi-sound">
-      {game.settings.value.soundCaptions && (
-        <span class="epi-caption" data-epilogue-caption>
-          Sound: the record, track {track.musicNumber}, {track.shortTitle}
-        </span>
-      )}
+      <span class="epi-caption" data-epilogue-caption>
+        {soundMuted.value ? 'Sound is off. Playing' : 'Playing'}: the record, track {track.musicNumber}, {track.shortTitle}
+      </span>
       {status === 'loading' && (
         <span class="epi-loading" data-epilogue-loading role="status">
           Loading the record, {pct}%
         </span>
       )}
-      <button type="button" class="btn small" aria-pressed={soundMuted.value} data-epilogue-mute onClick={() => toggleMuted()}>
-        {soundMuted.value ? 'Sound off' : 'Sound on'}
-      </button>
     </div>
   );
 }

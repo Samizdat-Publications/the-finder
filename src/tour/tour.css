@@ -19,7 +19,9 @@
 .g-count { font: var(--fs-label) var(--font-mono); color: var(--text-dim); white-space: nowrap; }
 .g-bar { height: 5px; margin: 0.45rem 0 0.55rem; background: var(--bg-sunk); border-radius: 99px; overflow: hidden; }
 .g-bar span { display: block; height: 100%; background: var(--cyan); border-radius: 99px; }
+.g-dotrow { display: flex; align-items: center; gap: 0.8rem; }
 .g-dots { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.g-partcount { margin-left: auto; color: var(--text-dim); font: var(--fs-label) var(--font-mono); white-space: nowrap; }
 .g-dot { width: 0.85rem; height: 0.85rem; padding: 0; border-radius: 50%; border: 2px solid var(--line); background: transparent; cursor: pointer; }
 .g-dot.done { background: var(--cyan); border-color: var(--cyan); }
 .g-dot.current { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 0 3px rgba(232, 182, 74, 0.3); }
@@ -81,24 +83,46 @@
 }
 
 /* ---- the story stage on the hub ---- */
-.story-stage { flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; padding: 0.5rem 0; }
-.story-card { width: 100%; max-width: 45rem; max-height: 100%; min-height: 0; display: flex; flex-direction: column; }
-.story-card .guide { flex: 1; min-height: 0; box-shadow: 0 0 40px rgba(79, 240, 196, 0.08); }
-.story-card.with-cover { max-width: 64rem; flex-direction: row; gap: 1.5rem; align-items: stretch; }
-.story-cover { flex: none; width: min(18rem, 30%); align-self: center; color: var(--gold); filter: drop-shadow(0 0 14px rgba(232, 182, 74, 0.25)); }
+/* The story stage: the encounter scene fills it (StoryScene.tsx) and the card stands on its right. The scene's
+   canvas reaches under the card, so the craft sits in the middle of the open area to its left (M7 step 2). */
+.story-stage {
+  --card-w: min(44rem, 52%);
+  position: relative; isolation: isolate; overflow: hidden; flex: 1; min-height: 0; display: flex; justify-content: flex-end;
+  align-items: center; padding: 1rem 1.25rem; background: #000; border: 1px solid var(--line); border-radius: 8px;
+}
+.story-scene { position: absolute; z-index: 0; top: 0; bottom: 0; left: calc(-1 * var(--card-w)); right: 0; }
+.story-scene canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.story-scene[data-story-scene='loading'] canvas { opacity: 0; }
+.story-scene canvas { transition: opacity 1.2s; }
+.story-card { position: relative; z-index: 1; width: var(--card-w); max-height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.story-card .guide { flex: 1; min-height: 0; background: rgba(8, 7, 26, 0.88); backdrop-filter: blur(6px); box-shadow: 0 0 40px rgba(79, 240, 196, 0.08); }
+/* A cover stop: the scene dims and the drawing stands large in the open area left of the card. */
+.story-stage.with-cover .story-scene canvas { opacity: 0.14; }
+.story-cover { color: var(--gold); }
 .story-cover svg { display: block; width: 100%; height: auto; }
+.story-stage > .story-cover {
+  position: absolute; z-index: 1; top: 0; bottom: 0; left: 0; right: calc(var(--card-w) + 1.25rem); display: flex; align-items: center;
+  justify-content: center; pointer-events: none; color: var(--gold); filter: drop-shadow(0 0 18px rgba(232, 182, 74, 0.35));
+}
+.story-stage > .story-cover svg { width: min(28rem, 82%); max-height: 86%; }
 .story-cover #cover { color: var(--gold); }
-.story-card.with-cover .guide { flex: 1; min-width: 0; }
 .guide-card { font-size: 1.15rem; line-height: 1.55; }
 .guide-card .g-scroll { padding: 1.1rem 1.5rem 1.2rem; gap: 1.1rem; }
 .guide-card .g-title { font-size: 1.75rem; }
 .guide-card .g-head { padding: 0.8rem 1.5rem 0.7rem; }
 .guide-card .g-foot { padding: 0.85rem 1.5rem; }
 @media (max-width: 999px), (max-height: 619px) {
-  .story-stage { align-items: flex-start; }
-  .story-card, .story-card.with-cover { max-height: none; flex-direction: column; }
-  .story-cover { width: min(14rem, 60%); align-self: center; }
+  .story-stage { flex-direction: column; justify-content: flex-start; align-items: stretch; overflow: auto; padding: 0; }
+  .story-scene { position: relative; left: 0; flex: none; height: 16rem; }
+  .story-card { width: auto; max-height: none; }
+  .story-stage > .story-cover { top: 0; bottom: auto; right: 0; height: 16rem; }
+  .story-stage > .story-cover svg { width: auto; height: 90%; }
 }
+
+/* ---- one obvious control per step (Spotlight.tsx dimAround) ---- */
+[data-tour-dim] { opacity: 0.45; filter: saturate(0.55); transition: opacity 0.4s, filter 0.4s; }
+[data-tour-dim]:hover, [data-tour-dim]:focus-within { opacity: 1; filter: none; }
+:root.calm [data-tour-dim] { transition: none; }
 
 /* ---- the spotlight ring ---- */
 .spotlight {

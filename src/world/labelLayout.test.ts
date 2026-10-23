@@ -38,6 +38,22 @@ describe('label declutter', () => {
     expect(layoutLabels([{ ...l, keep: true }], walls).get(1)).toEqual(DEFAULT_ANCHORS[0]);
   });
 
+  it('keeps labels inside the chart: a label near the right edge flips left, one that fits nowhere inside is dropped unless kept', () => {
+    const bounds = { w: 300, h: 200 };
+    // The Galactic centre's label beside a point near the right edge (the V1 critic's frame 79).
+    const gc = label(1, 280, 100, { keep: true });
+    const a = layoutLabels([gc], [], bounds).get(1)!;
+    const r = boxAt(gc, a);
+    expect(r.right).toBeLessThanOrEqual(bounds.w);
+    expect(r.left).toBeGreaterThanOrEqual(0);
+    // An ordinary label wider than the chart fits nowhere: dropped; kept, it takes its first anchor.
+    const wide = label(2, 150, 100, { w: 400 });
+    expect(layoutLabels([wide], [], bounds).get(2)).toBeNull();
+    expect(layoutLabels([{ ...wide, keep: true }], [], bounds).get(2)).toEqual(DEFAULT_ANCHORS[0]);
+    // Without bounds nothing changes.
+    expect(layoutLabels([gc], []).get(1)).toEqual(DEFAULT_ANCHORS[0]);
+  });
+
   it('does not count a bright point at the label\'s own point', () => {
     expect(layoutLabels([label(1, 50, 50)], [{ x: 50, y: 50, r: 10 }]).get(1)).toEqual(DEFAULT_ANCHORS[0]);
   });

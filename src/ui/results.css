@@ -10,6 +10,10 @@
 .headline .hl-num.hl-text { font: 600 clamp(1.15rem, 1.6vw, 1.45rem)/1.25 var(--font-sans); letter-spacing: 0; }
 .headline .hl-unit { display: inline-flex; flex-direction: column; gap: 0.1rem; align-items: flex-start; }
 .headline .hl-unit .gloss { font-size: var(--fs-label); }
+/* On the tour the human value leads; the alien's follows, small (ResultView.tsx HeadValue). */
+.headline .hl-value.human-first .hl-num { font-family: var(--font-sans); letter-spacing: 0; }
+.headline .hl-alien { display: inline-flex; align-items: center; gap: 0.3rem; font: var(--fs-label) var(--font-mono); color: var(--text-dim); }
+.headline .hl-alien .unit { color: var(--violet); }
 .headline .si { font: var(--fs-value) var(--font-mono); color: var(--text-dim); }
 .headline .hl-sentence { font-size: var(--fs-value); line-height: 1.4; color: var(--text); }
 

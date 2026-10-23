@@ -354,7 +354,7 @@ export function declutterLabels(root: THREE.Object3D, camera: THREE.Camera, w: n
     const p = projectGal(b.at, camera, w, h);
     return { x: p.x, y: p.y, r: b.rPx };
   });
-  const placed = layoutLabels(boxes, obstacles);
+  const placed = layoutLabels(boxes, obstacles, { w, h });
   for (const b of boxes) {
     const s = sprites[b.id] as THREE.Sprite;
     const a = placed.get(b.id) ?? null;

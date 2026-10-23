@@ -136,9 +136,9 @@ export async function playEpilogue(page, { assert, log, shot } = {}) {
   assert(playing.side === last.side && playing.needle.itemId === last.id, `the record plays track 27 (${last.id}, ${last.title}) on side ${last.side}`);
   assert(playing.volume <= Math.min(0.3, volumeBefore) && playing.volume > 0, `the record is quiet (volume ${playing.volume}, was ${volumeBefore})`);
   out.track = { id: last.id, side: last.side, volume: playing.volume };
-  if (playing.settingsCaptions ?? (await state()).game.settings.soundCaptions) {
+  {
     const cap = await page.locator('[data-epilogue-caption]').innerText();
-    assert(/^Sound: the record, track 27, Cavatina$/.test(cap), `the caption names the sound (${cap})`);
+    assert(/^(Sound is off\. )?Playing: the record, track 27, Cavatina$/.test(cap), `the playing line names the sound (${cap})`);
   }
 
   // ---- 2. right now ----
@@ -283,7 +283,7 @@ export async function playEpilogue(page, { assert, log, shot } = {}) {
       checked: document.querySelectorAll('[data-epilogue-checked]').length,
     }));
   const touring = await nav();
-  assert(touring.next === 0 && touring.dots === 0 && touring.sound === 1, `on the tour Next and the dots are hidden and the sound line stays (${JSON.stringify(touring)})`);
+  assert(touring.next === 0 && touring.dots === 0 && touring.sound === 0, `on the tour Next and the dots are hidden and there is no second sound button (the top bar has one) (${JSON.stringify(touring)})`);
   await page.keyboard.press('ArrowRight');
   await page.waitForTimeout(300);
   assert((await current(page)) === 'turn', 'on the tour the arrow keys do not move Our Frame on their own');

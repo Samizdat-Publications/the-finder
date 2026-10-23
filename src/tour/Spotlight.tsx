@@ -88,6 +88,42 @@ export function showWhere(stopId: string): void {
   flashTick.value += 1;
 }
 
+/**
+ * One obvious control per step (M7 step 3, the V1 critic's "instrument screens overloaded"): while a stop is
+ * unfinished, what holds neither its control nor its answer dims (CSS `[data-tour-dim]`; hover or focus brings it
+ * back), level by level from the workbench's instrument down to the control: at each, the parts beside the one
+ * that holds it (a level is the children of the first box with more than one; at most four levels), and beside the
+ * control itself only the other controls. Anything that is or holds a canvas (the scene, a chart, a decoded picture)
+ * never dims. Returns the undo.
+ */
+const CONTROLS = 'button, input, select, textarea, [role="slider"], [role="radio"]';
+
+function dimAround(target: HTMLElement, node: string | undefined): () => void {
+  const root = target.closest<HTMLElement>('.bench-main') ?? target.closest<HTMLElement>('[data-instrument]');
+  if (!root) return () => undefined;
+  const answer = node ? `[data-propose-button="${node}"], [data-propose="${node}"], [data-answer="${node}"]` : null;
+  const shown = (c: Element): c is HTMLElement => c instanceof HTMLElement && c.getClientRects().length > 0;
+  const keep = (p: HTMLElement): boolean =>
+    p.contains(target) || target.contains(p) || (answer !== null && (p.matches(answer) || p.querySelector(answer) !== null)) || p.tagName === 'CANVAS' || p.querySelector('canvas') !== null;
+  const dim: HTMLElement[] = [];
+  let box: HTMLElement = root;
+  for (let depth = 0; depth < 4; depth++) {
+    while ([...box.children].filter(shown).length === 1) box = [...box.children].find(shown)!;
+    const parts = [...box.children].filter(shown);
+    const holder = parts.find((p) => p.contains(target));
+    if (parts.length < 2 || !holder) break;
+    // Beside the control itself only the other controls dim; its readouts and labels stay lit.
+    const control = (p: HTMLElement): boolean => p.matches(CONTROLS) || p.querySelector(CONTROLS) !== null;
+    dim.push(...parts.filter((p) => !keep(p) && (holder !== target || control(p))));
+    if (holder === target) break;
+    box = holder;
+  }
+  for (const p of dim) p.setAttribute('data-tour-dim', '');
+  return () => {
+    for (const p of dim) p.removeAttribute('data-tour-dim');
+  };
+}
+
 const same = (a: Box | null, b: Box | null): boolean =>
   a === b || (a !== null && b !== null && Math.abs(a.left - b.left) < 0.5 && Math.abs(a.top - b.top) < 0.5 && Math.abs(a.width - b.width) < 0.5 && Math.abs(a.height - b.height) < 0.5);
 
@@ -108,10 +144,24 @@ export function Spotlight() {
       setBox(null);
       return;
     }
+    let undim: () => void = () => undefined;
+    let dimmed: HTMLElement | null = null;
+    let centred = false;
     const update = (): void => {
       const el = findTarget(stopId);
       const next = el ? visibleBox(el) : null;
       setBox((prev) => (same(prev, next) ? prev : next));
+      if (el !== dimmed) {
+        undim();
+        undim = el ? dimAround(el, stop?.node) : () => undefined;
+        dimmed = el;
+      }
+      // The first time the control shows on this stop, bring it into view if part of it is scrolled away.
+      if (el && next && !centred) {
+        centred = true;
+        const r = el.getBoundingClientRect();
+        if (next.height < Math.min(r.height, window.innerHeight) - 2) centre(el, !game.settings.value.reducedMotion);
+      }
     };
     update();
     const timer = window.setInterval(update, 250);
@@ -121,6 +171,7 @@ export function Spotlight() {
       window.clearInterval(timer);
       window.removeEventListener('scroll', update, true);
       window.removeEventListener('resize', update);
+      undim();
     };
   }, [stopId]);
 

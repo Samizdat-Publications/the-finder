@@ -40,12 +40,28 @@ export function bringIntoColumn(el: HTMLElement): void {
   else if (above < 0) box.scrollTop += above;
 }
 
-/** The headline's number: the alien's number and unit glyph, the unit's English gloss, and SI only with the human gloss on. */
+/**
+ * The headline's number: the alien's number and unit glyph, the unit's English gloss, and SI only with the human
+ * gloss on. On the guided tour (whose audience reads our units, D-A33) the human value leads, large, and the alien's
+ * follows small (M7 step 4, the V1 critic's "numbers hard to read at a glance").
+ */
 function HeadValue(p: { h: Headline }) {
   const q = p.h.quantity;
   if (q) {
     const key = unitKeyOf(q.dim);
     const n = alienNumber(q.si / unitSize(q.dim), q.digits);
+    if (game.tour.value.on && game.settings.value.humanGloss) {
+      return (
+        <p class="hl-value human-first">
+          <span class="hl-num">{humanText(q.dim, q.si, q.digits)}</span>
+          <span class="hl-alien">
+            {n}
+            <GlyphSvg k={key} height={16} class="unit" />
+            <span class="gloss">{n === '1' ? key : pluralKey(key)}</span>
+          </span>
+        </p>
+      );
+    }
     return (
       <p class="hl-value">
         <span class="hl-num">{n}</span>

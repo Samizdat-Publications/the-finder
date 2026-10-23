@@ -31,22 +31,27 @@ function Head(p: { stop: Stop; step: number; furthest: number }) {
       <div class="g-bar" role="progressbar" aria-label="Progress through the tour" aria-valuemin={0} aria-valuemax={STOPS.length} aria-valuenow={p.step + 1}>
         <span style={{ width: `${pct}%` }} />
       </div>
-      <ol class="g-dots" aria-label="Parts of the tour">
-        {dots.map((d) => (
-          <li key={d.id}>
-            <button
-              type="button"
-              class={`g-dot ${d.state}`}
-              data-part={d.id}
-              aria-current={d.state === 'current' ? 'step' : undefined}
-              aria-label={`${d.title}${d.reachable ? '' : ' (not reached yet)'}`}
-              title={d.title}
-              disabled={!d.reachable}
-              onClick={() => send({ type: 'tour.goto', step: d.first })}
-            />
-          </li>
-        ))}
-      </ol>
+      <div class="g-dotrow">
+        <ol class="g-dots" aria-label="Parts of the tour">
+          {dots.map((d) => (
+            <li key={d.id}>
+              <button
+                type="button"
+                class={`g-dot ${d.state}`}
+                data-part={d.id}
+                aria-current={d.state === 'current' ? 'step' : undefined}
+                aria-label={`${d.title}${d.reachable ? '' : ' (not reached yet)'}`}
+                title={d.title}
+                disabled={!d.reachable}
+                onClick={() => send({ type: 'tour.goto', step: d.first })}
+              />
+            </li>
+          ))}
+        </ol>
+        <span class="g-partcount">
+          part {dots.findIndex((d) => d.state === 'current') + 1} of {dots.length}
+        </span>
+      </div>
     </header>
   );
 }

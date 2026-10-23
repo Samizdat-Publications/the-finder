@@ -29,6 +29,10 @@
 .pt-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; display: flex; flex-direction: column; justify-content: safe center; gap: 0.3rem; }
 .pt-withpic .pt-body { flex-direction: row; gap: 1rem; align-items: stretch; overflow: hidden; }
 .pt-lines { flex: 1; min-width: 9rem; min-height: 0; overflow-y: auto; scrollbar-width: thin; display: flex; flex-direction: column; justify-content: safe center; gap: 0.3rem; }
+/* Beside a picture the lines can be narrow (Their world at 1366x768 with the guide open, M7 step 1): there they give
+   up their minimum width and a quantity may wrap between its number and its unit rather than run past the edge. */
+.pt-withpic .pt-lines { min-width: 0; }
+.pt-withpic .pt-lines .pt-qn { white-space: normal; }
 
 .pt-line { margin: 0; font-size: 0.86rem; line-height: 1.35; color: var(--text); }
 .pt-qn { white-space: nowrap; }

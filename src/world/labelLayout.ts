@@ -56,11 +56,18 @@ function hitsCircle(r: Rect, o: Obstacle): boolean {
   return dx * dx + dy * dy < o.r * o.r;
 }
 
+/** True when the box lies inside a w by h screen (M7 step 1: labels were cut off at the chart's edge). */
+function inside(r: Rect, bounds: { w: number; h: number } | undefined): boolean {
+  return !bounds || (r.left >= 0 && r.top >= 0 && r.right <= bounds.w && r.bottom <= bounds.h);
+}
+
 /**
  * Place the labels. Returns, per label id, the anchor it takes, or null when it is dropped. A bright point at
- * a label's own point does not count against it (a label always sits beside its own point).
+ * a label's own point does not count against it (a label always sits beside its own point). With bounds (the
+ * chart's size, CSS px), an anchor whose box would leave the chart is not taken; a kept label that fits
+ * nowhere takes its first anchor inside the chart, else its first.
  */
-export function layoutLabels(labels: readonly LabelBox[], obstacles: readonly Obstacle[]): Map<number, Anchor | null> {
+export function layoutLabels(labels: readonly LabelBox[], obstacles: readonly Obstacle[], bounds?: { w: number; h: number }): Map<number, Anchor | null> {
   const order = [...labels].sort((a, b) => Number(b.keep) - Number(a.keep) || b.priority - a.priority || a.id - b.id);
   const placed: Rect[] = [];
   const out = new Map<number, Anchor | null>();
@@ -69,11 +76,11 @@ export function layoutLabels(labels: readonly LabelBox[], obstacles: readonly Ob
     let chosen: Anchor | null = null;
     for (const a of l.anchors) {
       const r = boxAt(l, a);
-      if (placed.some((p) => hitsRect(p, r)) || own.some((o) => hitsCircle(r, o))) continue;
+      if (!inside(r, bounds) || placed.some((p) => hitsRect(p, r)) || own.some((o) => hitsCircle(r, o))) continue;
       chosen = a;
       break;
     }
-    if (!chosen && l.keep) chosen = l.anchors[0] ?? null;
+    if (!chosen && l.keep) chosen = l.anchors.find((a) => inside(boxAt(l, a), bounds)) ?? l.anchors[0] ?? null;
     if (chosen) placed.push(boxAt(l, chosen));
     out.set(l.id, chosen);
   }

@@ -70,6 +70,9 @@ export function ArrivalInstrument(_p: ChapterInstrumentProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const handleRef = useRef<EncounterHandle | null>(null);
   const markerRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const markersRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const reduced = game.settings.value.reducedMotion;
 
   // Mount the scene once; free it when the chapter closes.
@@ -120,12 +123,41 @@ export function ArrivalInstrument(_p: ChapterInstrumentProps) {
       if (frame++ % 2) return; // every other frame is plenty for labels
       const h = handleRef.current;
       if (!h) return;
+      // The open area left of the scan panel, in the markers' own box (it reaches under the panel, off the
+      // frame's left edge): a label that would run under the panel sits left of its part instead (M7 step 1).
+      const box = markersRef.current?.getBoundingClientRect();
+      const view = viewportRef.current?.getBoundingClientRect();
+      const panel = panelRef.current?.getBoundingClientRect();
+      const openRight = box && view ? (panel && panel.top < view.bottom - 1 ? panel.left : view.right) - box.left - 8 : Infinity;
+      const openLeft = box && view ? view.left - box.left + 8 : -Infinity;
       markers.forEach((mk, i) => {
         const el = markerRefs.current[i];
         const p = h.project(mk.at);
         if (!el || !p) return;
         el.style.transform = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)`;
-        el.dataset.visible = p.onScreen ? '1' : '0';
+        // A part hidden under the scan panel (or off the frame) shows no marker: the panel reads it in words.
+        el.dataset.visible = p.onScreen && p.x <= openRight + 8 && p.x >= openLeft - 8 ? '1' : '0';
+        // The label beside its part: right of it, else left, else below it, kept inside the open area.
+        const lbl = el.querySelector<HTMLElement>('.lbl');
+        if (!lbl) return;
+        const r = (el.querySelector<HTMLElement>('.dot')?.offsetWidth ?? 10) / 2 + 5;
+        const lw = lbl.offsetWidth;
+        const lh = lbl.offsetHeight;
+        let lx = r;
+        let ly = -lh / 2;
+        let side = 'right';
+        if (p.x + r + lw > openRight) {
+          if (p.x - r - lw >= openLeft) {
+            lx = -r - lw;
+            side = 'left';
+          } else {
+            lx = Math.min(Math.max(-lw / 2, openLeft - p.x), openRight - p.x - lw);
+            ly = r;
+            side = 'below';
+          }
+        }
+        el.dataset.side = side;
+        lbl.style.transform = `translate(${lx.toFixed(1)}px, ${ly.toFixed(1)}px)`;
       });
     };
     tick();
@@ -135,11 +167,11 @@ export function ArrivalInstrument(_p: ChapterInstrumentProps) {
   const tabStatus = (node: string): NodeStatus => nodeStatus(node, confirmed);
   return (
     <div class="arrival" data-instrument="arrival" data-scene={sceneState} data-scan={scan}>
-      <div class="ar-viewport">
+      <div class="ar-viewport" ref={viewportRef}>
         <canvas ref={canvasRef} class="ar-scene" aria-label="The machine, drifting under the sky, lit by your lamps" />
         {sceneState === 'failed' && <p class="ar-scene-note">The scene cannot be drawn on this device; the scans still read the machine.</p>}
         {sceneState === 'loading' && <p class="ar-scene-note">Lamps warming up.</p>}
-        <div class="ar-markers" aria-hidden="true">
+        <div class="ar-markers" aria-hidden="true" ref={markersRef}>
           {sceneState === 'ready' &&
             markers.map((mk, i) => (
               <div key={`${scan}-${mk.at}`} ref={(el) => { markerRefs.current[i] = el; }} class={`ar-marker ${mk.kind ?? ''}`} data-marker={mk.at} data-visible="0">
@@ -168,7 +200,7 @@ export function ArrivalInstrument(_p: ChapterInstrumentProps) {
             );
           })}
         </nav>
-        <div class="ar-panelwrap">
+        <div class="ar-panelwrap" ref={panelRef}>
           {scan === 'structure' && <StructurePanel m={m} />}
           {scan === 'heat' && <HeatPanel m={m} />}
           {scan === 'isotopes' && <IsotopePanel m={m} />}
