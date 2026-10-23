@@ -1,4 +1,4 @@
-// node tools/harness/tour-look.mjs [--stops 1,2,3,6] [--sizes 1440x900,1366x768] [--motion] [--click <css>] [--open] [--out <folder>]
+// node tools/harness/tour-look.mjs [--stops 1,2,3,6] [--sizes 1440x900,1366x768] [--motion] [--click <css>] [--open] [--wait <ms>] [--out <folder>]
 //
 // A quick look at guided-tour stops (M7): from a save with every deduction confirmed (the accessibility test's
 // seedSave), opens the tour at each stop (numbers as the guide shows them, 1 to 65; ids such as arrival.heat
@@ -25,6 +25,8 @@ const sizes = arg('--sizes', '1440x900,1366x768').split(',').map((s) => s.split(
 const motion = process.argv.includes('--motion');
 const click = arg('--click', '');
 const open = process.argv.includes('--open');
+/** How long to let each stop settle before the shot, ms (charts that measure first need longer). */
+const wait = Number(arg('--wait', motion ? '3500' : '1500'));
 const outDir = arg('--out', join(ROOT, 'review', 'archive', `${stamp()}-look`));
 mkdirSync(outDir, { recursive: true });
 
@@ -88,7 +90,7 @@ try {
       await page.evaluate((step) => window.__finder.dispatch({ type: 'tour.start', step }), i);
       await page.waitForSelector(`.guide[data-tour-step="${i}"]`, { state: 'visible', timeout: 60_000 });
       if (click) await page.locator(click).first().click();
-      await page.waitForTimeout(motion ? 3500 : 1500);
+      await page.waitForTimeout(wait);
       const file = `${String(i + 1).padStart(2, '0')}-${stops[i].replace(/\./g, '-')}-${w}x${h}.png`;
       await page.screenshot({ path: join(outDir, file) });
       const m = await page.evaluate(measure);

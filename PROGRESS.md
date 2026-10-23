@@ -20,8 +20,18 @@ on the V1.0 draft yet, so M7 runs from the critics' list. Landed so far:
 - **Step 4, shorter words:** the ten longest "What we just learned" boxes cut to at most about 40 words (from 60;
   the one hand-typed "about 44,000 years" became "tens of thousands of years"); on the tour a result's human value
   leads, large, and the alien value follows small; a "part 4 of 12" counter beside the part dots.
-- **A look tool:** `node tools/harness/tour-look.mjs --stops 1,6,45 [--open] [--sizes ...]` screenshots chosen tour
-  stops from a confirmed save in seconds (`--open`: as the player meets them), into `review/archive/`.
+- **Step 5 (part), the Trail chart given depth:** faint distance rings and spokes in the plane through the craft,
+  a thin stalk from every star down to that plane (fainter for stars whose depth is uncertain), a soft glow behind;
+  about 0.5 ms more per frame on the laptop GPU.
+- **Step 6, laptop performance:** `tests/browser/perf-igpu.browser.mjs` on the Intel Arc 140T: the encounter scene
+  and both charts draw in 2 to 9 ms per frame (bound 25), live frames 4 to 15 ms (bound 34). Entering The Map is
+  recorded against 100 ms but not asserted (D-A38): about half the runs stall 130 to 410 ms inside the browser's
+  first WebGL call, in the GPU process; warm-ups and the power preference did not fix it.
+- **Step 8 (part), the planets table:** Allen's Astrophysical Quantities (1973) matches Saturn's day and Venus's mass
+  and four cells within a last digit; Mercury's day and Venus's diameter stay unexplained
+  (`docs/research/planets-1970s.md`; Allen read from an OCR scan, page images unchecked).
+- **A look tool:** `node tools/harness/tour-look.mjs --stops 1,6,45 [--open] [--wait 9000] [--sizes ...]` screenshots
+  chosen tour stops from a confirmed save in seconds (`--open`: as the player meets them), into `review/archive/`.
 
 **V1.0 draft (2026-10-22): every chapter is built and playable, start to finish.** Stewart asked for the two
 outstanding chapters, every outstanding item and a V1.0 draft for his review.
@@ -203,9 +213,15 @@ and live-checked.
 
 ## In flight
 
-- Nothing running at the V1.0 draft.
+- Nothing running.
 
 ## Known issues and open questions
+
+- **Entering The Map on a laptop GPU (D-A38):** about half the time one 130 to 410 ms freeze inside the browser's
+  first WebGL call. The fix is drawing the charts in a Worker (OffscreenCanvas); then assert `perf.igpu.enterMap`.
+- **M7 still open:** the art pass on the galaxy chart, the hub ring and the instrument frames (the alien instrument
+  look); the landing page's footage refreshed from a new tour film; the blind critic on the polished tour; the QA
+  audit; the leftovers in docs/plans/M7.md step 8 (the Pictures' notebook scroll, ring labels on phones).
 
 - **Entering The Map** still shows one long task: 51 to 68 ms alone, 100 ms (the limit) in the last full check under load, on a cold browser (the first WebGL context; limit
   100, passes); a context warmed at boot would remove it.
@@ -256,10 +272,9 @@ and live-checked.
 
 ## Next (exact)
 
-0. **Stewart reviews the V1.0 draft** (the guided tour from the landing page, end to end, with his son if he
+0. **Stewart reviews the V1.0 draft** (now with the M7 changes above) (the guided tour from the landing page, end to end, with his son if he
    likes) and writes notes at the top of `docs/STEWART_FEEDBACK.md`. Act on them first.
-1. M7 polish, from the critics and audits: the art pass on the charts and scenes (the critic wants the interface
-   to feel more alien in Free play); laptop iGPU performance; shorter "what we just learned" boxes; a Firefox check
-   (`docs/NEEDS_STEWART.md` item 3); the planets' 1970s values with a citable table; the remaining layout
-   leftovers below.
+1. M7, the rest of `docs/plans/M7.md`: the galaxy chart, hub ring and instrument-frame art (Free play should feel
+   more alien); the charts off the main thread (D-A38); a fresh tour film for the landing page; the blind critic
+   and a QA audit at the gate; the step 8 leftovers; a Firefox check (`docs/NEEDS_STEWART.md` item 3).
 2. After the main version: `docs/IDEAS.md` (the younger version, 8th-grade level).

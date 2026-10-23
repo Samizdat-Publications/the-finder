@@ -21,7 +21,9 @@ deductions in order, with "Do it for me" on every step; free play leaves you on 
 
 **Where it stands (2026-10-22):** the V1.0 draft. All ten chapters are playable, from Arrival to Our Frame
 (Arrival, The Key, The Player, The Pictures, The Voices, The Map, The Spot, The Trail, Portrait, Our Frame), and
-the guided tour has 65 stops. Next is polish. Best in desktop Chrome or Edge, with headphones.
+the guided tour has 65 stops. Polish (M7) is under way: the tour now opens beside the spacecraft, each step
+dims everything but the control it needs, and results lead with our own units. Best in desktop Chrome or Edge,
+with headphones.
 `PROGRESS.md` says exactly where the build is; `PLAN.md` is the roadmap.
 
 ## Screenshots

@@ -7,6 +7,10 @@
 // Stars without a radial velocity are drawn as rings, not discs: their depth is uncertain.
 // The craft's velocity arrow is relative to the alien's star (what the alien measures from home); arrow
 // lengths are fixed on the chart (directions only), speeds are in the readouts.
+//
+// Depth cues (art only, no data): faint distance rings and spokes in the Galactic plane through the craft, a
+// drop line from every star to that plane with a dot where it lands, and a faint radial glow behind it all.
+// The rings and spokes are a frame of reference, not data; the stalks use the model's own star positions.
 
 import * as THREE from 'three';
 import { scale, sub, toGalacticCartesian, type Vec3 } from '../science/astro';
@@ -82,6 +86,31 @@ const LIMITS = { min: 0.3, max: 120 };
 /** Arrow lengths on the chart, pc (display choice: directions only). */
 const VEL_ARROW_PC = 2.5;
 const NO_ROW_GREY: [number, number, number] = [0.42, 0.44, 0.5];
+/** Distance rings in the Galactic plane, pc (the 10 pc edge ring is drawn separately). */
+const PLANE_RINGS_PC = [2, 4, 6, 8];
+const PLANE_COLOUR = 0x6a70d0;
+const STALK_OPACITY = 0.09;
+/** Stars without a radial velocity: their depth is uncertain, so their stalk is fainter. */
+const STALK_OPACITY_UNCERTAIN = 0.045;
+
+/** A fullscreen quad with a faint radial glow (centre #0a0a22 to edge #02030a), drawn first, behind everything. */
+function makeBackdrop(): THREE.Mesh {
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { uCentre: { value: new THREE.Color(0x0a0a22) }, uEdge: { value: new THREE.Color(0x02030a) } },
+    vertexShader: 'varying vec2 vP; void main() { vP = position.xy; gl_Position = vec4(position.xy, 0.9999, 1.0); }',
+    fragmentShader: [
+      'uniform vec3 uCentre;', 'uniform vec3 uEdge;', 'varying vec2 vP;',
+      'void main() {', '  float t = smoothstep(0.0, 1.15, length(vP));', '  gl_FragColor = vec4(mix(uCentre, uEdge, t), 1.0);', '  #include <colorspace_fragment>', '}',
+    ].join('\n'),
+    depthTest: false, depthWrite: false,
+  });
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3));
+  const mesh = new THREE.Mesh(g, mat);
+  mesh.frustumCulled = false;
+  mesh.renderOrder = -100;
+  return mesh;
+}
 
 async function loadInputs(opts: NeighbourhoodOptions): Promise<{ scenario: ScenarioData; stars: StarCatalogue }> {
   if (opts.scenario && opts.stars) return { scenario: opts.scenario, stars: opts.stars };
@@ -105,6 +134,8 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
   let ringSet: PointSet | null = null;
   let highlighted: number | null = null;
   let disposed = false;
+  let ringLabels: THREE.Group | null = null;
+  const backdrop = makeBackdrop();
   const core = createChartRenderer(
     canvas,
     (dt) => {
@@ -116,6 +147,7 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
     },
     (_w, _h, pr) => sets.forEach((ps) => ps.setPixelRatio(pr)),
   );
+  core.scene.add(backdrop);
   core.scene.add(root);
   const track = (ps: PointSet): PointSet => {
     ps.setPixelRatio(core.size().pr);
@@ -137,6 +169,20 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
     const l = makeLabel(text, colour, h);
     galToWorld(p, l.position);
     return l;
+  };
+
+  /** The inner ring radii written in the chart's length units (written again by relabel()). */
+  const buildRingLabels = (): void => {
+    if (ringLabels) disposeTree(ringLabels);
+    const g = new THREE.Group();
+    const a = Math.PI / 8;
+    for (const r of PLANE_RINGS_PC) {
+      const l = labelAt(lenText(r), [r * Math.cos(a), r * Math.sin(a), 0], '#7f8fcf', 11);
+      l.userData.priority = 0;
+      g.add(l);
+    }
+    root.add(g);
+    ringLabels = g;
   };
 
   const ready = (async (): Promise<NeighbourhoodInfo> => {
@@ -191,6 +237,45 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
     const ring: Vec3[] = [];
     for (let k = 0; k < 128; k++) ring.push([NEIGHBOURHOOD_RADIUS_PC * Math.cos((k / 128) * 2 * Math.PI), NEIGHBOURHOOD_RADIUS_PC * Math.sin((k / 128) * 2 * Math.PI), 0]);
     root.add(makePolyline(ring, 0x5a7fb0, 0.18, true));
+    // The reference plane: inner distance rings and eight spokes every 45 deg of Galactic longitude.
+    for (const r of PLANE_RINGS_PC) {
+      const pts: Vec3[] = [];
+      for (let k = 0; k < 96; k++) pts.push([r * Math.cos((k / 96) * 2 * Math.PI), r * Math.sin((k / 96) * 2 * Math.PI), 0]);
+      root.add(makePolyline(pts, PLANE_COLOUR, 0.1, true));
+    }
+    const spokes: [Vec3, Vec3][] = [];
+    for (let k = 0; k < 8; k++) spokes.push([[0, 0, 0], [NEIGHBOURHOOD_RADIUS_PC * Math.cos((k * Math.PI) / 4), NEIGHBOURHOOD_RADIUS_PC * Math.sin((k * Math.PI) / 4), 0]]);
+    root.add(makeSegments(spokes, PLANE_COLOUR, 0.06));
+    buildRingLabels();
+    // Drop lines: each star straight down (or up) to the plane, tinted with its own colour; one set of lines per
+    // certainty (full velocity, no radial velocity), and one points set for the feet.
+    const stalk = (uncertain: boolean): THREE.LineSegments => {
+      const idx = m.stars.map((_, i) => i).filter((i) => (m.stars[i]!.fullVelocity ? 0 : 1) === (uncertain ? 1 : 0));
+      const pos = new Float32Array(idx.length * 6);
+      const col = new Float32Array(idx.length * 6);
+      const w = new THREE.Vector3();
+      idx.forEach((i, j) => {
+        const p = m.stars[i]!.posPc;
+        galToWorld(p, w).toArray(pos, 6 * j);
+        galToWorld([p[0], p[1], 0], w).toArray(pos, 6 * j + 3);
+        col.set(baseColours.subarray(3 * i, 3 * i + 3), 6 * j);
+        col.set(baseColours.subarray(3 * i, 3 * i + 3), 6 * j + 3);
+      });
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      const l = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: uncertain ? STALK_OPACITY_UNCERTAIN : STALK_OPACITY, depthTest: false, depthWrite: false }));
+      l.frustumCulled = false;
+      return l;
+    };
+    root.add(stalk(false), stalk(true));
+    const feetPos = new Float32Array(3 * n);
+    const feetAlpha = new Float32Array(n);
+    m.stars.forEach((s, i) => {
+      feetPos.set([s.posPc[0], s.posPc[1], 0], 3 * i);
+      feetAlpha[i] = s.fullVelocity ? 0.5 : 0.22;
+    });
+    root.add(track(makePoints(feetPos, baseColours.slice(), new Float32Array(n).fill(1.8), feetAlpha)).points);
     return { decimalYear: m.decimalYear, count: n, census: m.census };
   })();
   ready.catch(() => undefined);
@@ -334,6 +419,7 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
     getView: () => ({ ...cam.view, target: [...cam.view.target] }),
     setView: (v) => cam.set(v),
     relabel() {
+      if (model) buildRingLabels();
       const id = highlighted;
       highlighted = null;
       setHighlight(id);
@@ -347,6 +433,8 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
       disposed = true;
       detach();
       sets.clear();
+      disposeTree(backdrop);
+      disposeTree(root);
       core.dispose();
     },
   };
