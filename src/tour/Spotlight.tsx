@@ -94,13 +94,14 @@ export function showWhere(stopId: string): void {
  * back), level by level from the workbench's instrument down to the control: at each, the parts beside the one
  * that holds it (a level is the children of the first box with more than one; at most four levels), and beside the
  * control itself only the other controls. Anything that is or holds a canvas (the scene, a chart, a decoded picture)
- * never dims. Returns the undo.
+ * never dims. Returns what to dim; the spotlight recomputes it on every refresh, since a chart or a Propose button
+ * can appear after the stop opens (the M7 QA audit found both dimmed).
  */
 const CONTROLS = 'button, input, select, textarea, [role="slider"], [role="radio"]';
 
-function dimAround(target: HTMLElement, node: string | undefined): () => void {
+function dimAround(target: HTMLElement, node: string | undefined): HTMLElement[] {
   const root = target.closest<HTMLElement>('.bench-main') ?? target.closest<HTMLElement>('[data-instrument]');
-  if (!root) return () => undefined;
+  if (!root) return [];
   const answer = node ? `[data-propose-button="${node}"], [data-propose="${node}"], [data-answer="${node}"]` : null;
   const shown = (c: Element): c is HTMLElement => c instanceof HTMLElement && c.getClientRects().length > 0;
   const keep = (p: HTMLElement): boolean =>
@@ -118,10 +119,7 @@ function dimAround(target: HTMLElement, node: string | undefined): () => void {
     if (holder === target) break;
     box = holder;
   }
-  for (const p of dim) p.setAttribute('data-tour-dim', '');
-  return () => {
-    for (const p of dim) p.removeAttribute('data-tour-dim');
-  };
+  return dim;
 }
 
 const same = (a: Box | null, b: Box | null): boolean =>
@@ -144,18 +142,18 @@ export function Spotlight() {
       setBox(null);
       return;
     }
-    let undim: () => void = () => undefined;
-    let dimmed: HTMLElement | null = null;
+    let dimmed = new Set<HTMLElement>();
+    const setDim = (next: Set<HTMLElement>): void => {
+      for (const p of dimmed) if (!next.has(p)) p.removeAttribute('data-tour-dim');
+      for (const p of next) if (!dimmed.has(p)) p.setAttribute('data-tour-dim', '');
+      dimmed = next;
+    };
     let centred = false;
     const update = (): void => {
       const el = findTarget(stopId);
       const next = el ? visibleBox(el) : null;
       setBox((prev) => (same(prev, next) ? prev : next));
-      if (el !== dimmed) {
-        undim();
-        undim = el ? dimAround(el, stop?.node) : () => undefined;
-        dimmed = el;
-      }
+      setDim(new Set(el ? dimAround(el, stop?.node) : []));
       // The first time the control shows on this stop, bring it into view if part of it is scrolled away.
       if (el && next && !centred) {
         centred = true;
@@ -171,7 +169,7 @@ export function Spotlight() {
       window.clearInterval(timer);
       window.removeEventListener('scroll', update, true);
       window.removeEventListener('resize', update);
-      undim();
+      setDim(new Set());
     };
   }, [stopId]);
 

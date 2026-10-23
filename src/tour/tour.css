@@ -19,8 +19,9 @@
 .g-count { font: var(--fs-label) var(--font-mono); color: var(--text-dim); white-space: nowrap; }
 .g-bar { height: 5px; margin: 0.45rem 0 0.55rem; background: var(--bg-sunk); border-radius: 99px; overflow: hidden; }
 .g-bar span { display: block; height: 100%; background: var(--cyan); border-radius: 99px; }
-.g-dotrow { display: flex; align-items: center; gap: 0.8rem; }
-.g-dots { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.g-dotrow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.8rem; }
+/* The dots never wrap among themselves; on a narrow guide the part counter goes to the next line instead. */
+.g-dots { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: nowrap; gap: 0.4rem; }
 .g-partcount { margin-left: auto; color: var(--text-dim); font: var(--fs-label) var(--font-mono); white-space: nowrap; }
 .g-dot { width: 0.85rem; height: 0.85rem; padding: 0; border-radius: 50%; border: 2px solid var(--line); background: transparent; cursor: pointer; }
 .g-dot.done { background: var(--cyan); border-color: var(--cyan); }

@@ -25,7 +25,7 @@ on the V1.0 draft yet, so M7 runs from the critics' list. Landed so far:
   about 0.5 ms more per frame on the laptop GPU.
 - **Step 6, laptop performance:** `tests/browser/perf-igpu.browser.mjs` on the Intel Arc 140T: the encounter scene
   and both charts draw in 2 to 9 ms per frame (bound 25), live frames 4 to 15 ms (bound 34). Entering The Map is
-  recorded against 100 ms but not asserted (D-A38): about half the runs stall 130 to 410 ms inside the browser's
+  recorded against 100 ms but not asserted (D-A38): about half the runs stall 130 to 450 ms inside the browser's
   first WebGL call, in the GPU process; warm-ups and the power preference did not fix it.
 - **Step 8 (part), the planets table:** Allen's Astrophysical Quantities (1973) matches Saturn's day and Venus's mass
   and four cells within a last digit; Mercury's day and Venus's diameter stay unexplained
@@ -217,7 +217,7 @@ and live-checked.
 
 ## Known issues and open questions
 
-- **Entering The Map on a laptop GPU (D-A38):** about half the time one 130 to 410 ms freeze inside the browser's
+- **Entering The Map on a laptop GPU (D-A38):** about half the time one 130 to 450 ms freeze inside the browser's
   first WebGL call. The fix is drawing the charts in a Worker (OffscreenCanvas); then assert `perf.igpu.enterMap`.
 - **M7 still open:** the art pass on the galaxy chart, the hub ring and the instrument frames (the alien instrument
   look); the landing page's footage refreshed from a new tour film; the blind critic on the polished tour; the QA

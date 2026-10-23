@@ -26,7 +26,7 @@ footnotes cite the Explanatory Supplement (1961), the BAA Handbook and the Conna
 | Saturn distance | 1428 x 10^6 km | 1432.0 | 9.53884 AU = 1427.0 | off by one in the last digit |
 | Saturn day | 43/100 d | 0.444 | 10 h 14 m equatorial = 0.426 d | matches (rounds to 0.43) |
 
-**What this settles.** Two cells (Venus's mass and Saturn's day) are the values of the time. Saturn's is the clearest:
+**What this suggests (UNVERIFIED until the page images are checked).** Two cells (Venus's mass and Saturn's day) are the values of the time. Saturn's is the clearest:
 the 10 h 14 m equatorial period of the pre-Voyager era, against today's 10.66 h from Voyager's and Cassini's radio
 measurements. Four more are within a last digit or a rounding of Allen's numbers. Mercury's 57 days and Venus's
 12,400 km are not explained by Allen; their cause stays UNVERIFIED (a Venus radius of 6200 km would give 12,400;

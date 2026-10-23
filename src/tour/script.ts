@@ -75,7 +75,7 @@ export const STOPS: readonly Stop[] = [
       'Our telescopes have caught a machine falling past our star, colder than ice. It is not from here.\n\n' +
       'A good scientist looks before touching. On the left is the machine, with the real stars of our sky behind it. Above it are four scanners: **Structure**, **Heat**, **Isotopes** and **Decay clock**. We will use them in that order.',
     why:
-      'One more thing. The alien has its own units: it counts time in **beats** (a beat is a little under one of our seconds) and length in **reaches** (about one and a third metres). We have switched on the human translation, so our units appear in brackets.',
+      'The alien counts time in **beats** (a little under one of our seconds) and length in **reaches** (about one and a third metres). The human translation is on, so our units appear in brackets.',
   },
   {
     id: 'arrival.purpose', part: 'arrival', kind: 'do', chapter: 'arrival', node: 'arrival.purpose',
@@ -175,7 +175,7 @@ export const STOPS: readonly Stop[] = [
       'Hydrogen\'s tick can be read two ways: as a **time** (how long one tick lasts) or as a **length** (how long one wave is). Which does the cover mean?\n\n' +
       'Try the big number written around the record drawing both ways and see which one makes sense.',
     todo: 'Look at the table: each cover number worked out as a time and as a length. Choose **Times** or **Lengths**, then press **Propose**.',
-    why: `Read as a length, the number around the record would make it about ${sig3(rotationKm)} km around, which is silly. Read as a time it is about ${sig3(rotationS)} seconds: a sensible time for **one turn of a record**.\n\nSo the cover's numbers are **times**, measured in ticks of hydrogen. That is the key to everything else on the cover.`,
+    why: `Read as a length, the number around the record would make it about ${sig3(rotationKm)} km around, which is silly. As a time it is about ${sig3(rotationS)} seconds: a sensible time for **one turn of a record**.\n\nThe cover's numbers are **times**, in ticks of hydrogen: the key to the whole cover.`,
     ask: 'If you had to tell an alien how long a second is, without using any words, how would you do it?',
   },
 

@@ -154,7 +154,7 @@ export default async function run({ baseUrl, record, assert, log }) {
       pass: isIntel && enterOk,
     });
     // A known miss, recorded honestly (FAIL on How it's checked when over) but not asserted: about half the runs stall
-    // 130 to 410 ms inside the browser's first WebGL call on this GPU (getContext or getExtension), in the GPU
+    // 130 to 450 ms inside the browser's first WebGL call on this GPU (getContext or getExtension), in the GPU
     // process, not our code; warm-ups and the power preference did not remove it (D-A38). The fix is drawing the
     // charts in a Worker (OffscreenCanvas), carried in PROGRESS.
     if (!enterOk) log(`KNOWN MISS (D-A38): enterMap longest task ${enter.longest} ms > ${ENTER_MAX_MS} ms`);
