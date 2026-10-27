@@ -18,7 +18,7 @@ import { homeObserver, type Observer } from '../science/epoch';
 import { trail, type TrailEntry } from '../science/kinematics';
 import { expandColumnar, type ColumnarStars, type ScenarioData, type StarCatalogue, type StarRecord } from '../science/types';
 import {
-  ChartCamera, attachInput, createChartRenderer, declutterLabels, disposeTree, galToWorld, makeLabel, makePoints, makePolyline, makeSegments, nearestOnScreen, projectGal, sizeLabels,
+  ChartCamera, attachInput, createChartRenderer, declutterLabels, disposeTree, galToWorld, makeChartBackdrop, makeLabel, makePoints, makePolyline, makeSegments, nearestOnScreen, projectGal, sizeLabels,
   type BrightPoint, type ChartView, type PointSet, type ScreenPoint,
 } from './chartControls';
 import { makeCraftGlyph, makeHomeMark } from './chartGlyphs';
@@ -93,25 +93,6 @@ const STALK_OPACITY = 0.09;
 /** Stars without a radial velocity: their depth is uncertain, so their stalk is fainter. */
 const STALK_OPACITY_UNCERTAIN = 0.045;
 
-/** A fullscreen quad with a faint radial glow (centre #0a0a22 to edge #02030a), drawn first, behind everything. */
-function makeBackdrop(): THREE.Mesh {
-  const mat = new THREE.ShaderMaterial({
-    uniforms: { uCentre: { value: new THREE.Color(0x0a0a22) }, uEdge: { value: new THREE.Color(0x02030a) } },
-    vertexShader: 'varying vec2 vP; void main() { vP = position.xy; gl_Position = vec4(position.xy, 0.9999, 1.0); }',
-    fragmentShader: [
-      'uniform vec3 uCentre;', 'uniform vec3 uEdge;', 'varying vec2 vP;',
-      'void main() {', '  float t = smoothstep(0.0, 1.15, length(vP));', '  gl_FragColor = vec4(mix(uCentre, uEdge, t), 1.0);', '  #include <colorspace_fragment>', '}',
-    ].join('\n'),
-    depthTest: false, depthWrite: false,
-  });
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3));
-  const mesh = new THREE.Mesh(g, mat);
-  mesh.frustumCulled = false;
-  mesh.renderOrder = -100;
-  return mesh;
-}
-
 async function loadInputs(opts: NeighbourhoodOptions): Promise<{ scenario: ScenarioData; stars: StarCatalogue }> {
   if (opts.scenario && opts.stars) return { scenario: opts.scenario, stars: opts.stars };
   const [sc, st, sk] = await Promise.all([import('../../data/scenario.json'), import('../../data/stars.json'), import('../../data/sky.json')]);
@@ -135,7 +116,7 @@ export function mountNeighbourhood(canvas: HTMLCanvasElement, opts: Neighbourhoo
   let highlighted: number | null = null;
   let disposed = false;
   let ringLabels: THREE.Group | null = null;
-  const backdrop = makeBackdrop();
+  const backdrop = makeChartBackdrop();
   const core = createChartRenderer(
     canvas,
     (dt) => {

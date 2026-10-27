@@ -12,4 +12,4 @@ unless Stewart says otherwise.
 | 2026-10-22 | Gemini (gemini-4-argon) | Repo consult: 2026-10-22-argon-ask-m6.md, 576,643 in, 4,671 out (rate assumed at Pro preview) | 1.21 |
 | 2026-10-22 | Gemini (gemini-3.1-pro-preview) | Video critic on a filmed run (66 s), review/inbox/2026-10-22T20-46-42-tour-film/gemini.md | 0.30 (estimate before the call) |
 | 2026-10-22 | Gemini (gemini-3.1-pro-preview) | Video critic on the whole guided tour (456 s), review/inbox/2026-10-22T22-48-04-tour-film: estimated 0.75, refused by Google (prepaid credits depleted), nothing generated or charged | 0.00 |
-| 2026-10-27 | Gemini (gemini-3.1-pro-preview) | Video critic on a filmed run (455 s), review/inbox/2026-10-22T22-48-04-tour-film/gemini.md | 0.75 (estimate before the call) |
+| 2026-10-27 | Gemini (gemini-3.1-pro-preview) | Video critic on the whole guided tour (455 s), the film refused on 2026-10-22, now run: review/inbox/2026-10-22T22-48-04-tour-film/gemini.md (kept as docs/reviews/2026-10-27-whole-tour-gemini-critic.md); billed about 0.21 (83,015 in, 3,761 out) | 0.75 (estimate before the call) |

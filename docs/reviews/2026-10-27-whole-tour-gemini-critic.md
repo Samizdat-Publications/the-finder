@@ -1,7 +1,9 @@
 # Player Review
 
+_The Gemini video critic (gemini-3.1-pro-preview) on the whole guided tour film of the V1.0 draft (455 s, with sound), run 2026-10-27. The critic writes as a player; quoted as returned except dashes. Lead decisions follow at the end._
+
 ## Gut reaction
-I am completely obsessed with this premise. It's like *Heaven's Vault* or *Outer Wilds*, but applied to real-world astrophysics and the Voyager probe. It makes me feel like a genuine xenoarchaeologist, piecing together humanity from a cold, dead machine. But my god, it reads like a textbook right now. The UI is beautifully crisp, but there is so much text on screen that I feel like I'm taking a university physics exam instead of playing a game. The moments of discovery—tuning the raster to see the circle, hearing the record play—are pure magic, but they are buried under a mountain of reading.
+I am completely obsessed with this premise. It's like *Heaven's Vault* or *Outer Wilds*, but applied to real-world astrophysics and the Voyager probe. It makes me feel like a genuine xenoarchaeologist, piecing together humanity from a cold, dead machine. But my god, it reads like a textbook right now. The UI is beautifully crisp, but there is so much text on screen that I feel like I'm taking a university physics exam instead of playing a game. The moments of discovery: tuning the raster to see the circle, hearing the record play: are pure magic, but they are buried under a mountain of reading.
 
 ## Scores (1 to 10, or N/A)
 | Category | Score | Why (one line) |
@@ -62,3 +64,14 @@ Reading the heavy paragraphs of text before being allowed to touch the puzzle. T
 1. Hide all "The Real Story" historical trivia until *after* the player has successfully solved that specific screen's puzzle. Use it as a reward, not an obstacle.
 2. Remove the explicit step-by-step instructions in the "Your Turn" boxes. Let the player look at the alien diagram and figure out how to use the provided tools to match it.
 3. Break the massive text blocks into smaller, digestible chunks, or use diegetic tooltips (e.g., hovering over a part of the probe brings up a short scanning sentence, rather than a permanent textbook paragraph on the right).
+
+## Lead decisions (2026-10-27)
+
+1. "Your turn" boxes that say exactly what to do: **declined for the tour** (D-A33: the audience is a parent and a
+   12-year-old, by Stewart's choice; Free play is the alone-with-the-clue mode).
+2. Text density: the "what we just learned" boxes were cut to about 40 words in M7 step 4 (after this film was
+   made); kept.
+3. "The real story" before solving: already shown only after the step is confirmed; the film pressed "Do it for
+   me" on every step, so it always saw it.
+4. The Map screen cramped: the chart got depth (rings, halos on matched pulsars, the region as light) in M7 step 5b.
+5. A silent interface: quiet press and slider sounds added (D-A40).

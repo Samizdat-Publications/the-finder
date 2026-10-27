@@ -19,11 +19,12 @@ instruments (drag a map line onto a pulsar, sweep a detector, pick a star), ever
 real science, and a wrong answer shows what it would really mean. A guided tour walks you through all 44
 deductions in order, with "Do it for me" on every step; free play leaves you on your own.
 
-**Where it stands (2026-10-22):** the V1.0 draft. All ten chapters are playable, from Arrival to Our Frame
+**Where it stands (2026-10-27):** V1.0, polished. All ten chapters are playable, from Arrival to Our Frame
 (Arrival, The Key, The Player, The Pictures, The Voices, The Map, The Spot, The Trail, Portrait, Our Frame), and
-the guided tour has 65 stops. Polish (M7) is under way: the tour now opens beside the spacecraft, each step
-dims everything but the control it needs, and results lead with our own units. Best in desktop Chrome or Edge,
-with headphones.
+the guided tour has 65 stops. The polish pass (M7) opened the tour beside the spacecraft, dims everything but the
+control each step needs, leads results with our own units, gave the star charts depth and the ring and
+instruments an alien dial look, added quiet sounds to the controls, and ends with the gold record turning at
+its own speed while the Cavatina plays. Best in desktop Chrome or Edge, with headphones.
 `PROGRESS.md` says exactly where the build is; `PLAN.md` is the roadmap.
 
 ## Screenshots

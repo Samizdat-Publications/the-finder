@@ -2,6 +2,11 @@
 // centre, a faint Galactic plane, and the cover map laid over it (rays, the player's matches, the fitted
 // origin region). mountGalaxy(canvas, opts) returns a handle (the Map chapter mounts it; /play/charts/
 // is the dev page). Every number drawn comes from galaxyModel.ts (pure, tested); this file only draws.
+//
+// Depth and light (art only, no data): a faint radial glow behind everything, a dial in the Galactic plane through
+// the alien's star (distance rings, 12 spokes every 30 deg of longitude, ticks every 10 deg; a frame of reference,
+// not data), a soft halo behind each pulsar the player matched to a map line, and the fitted origin region filled
+// with light. Map-line glow is skipped: WebGL caps line widths at 1 px here. Everything is static.
 
 import * as THREE from 'three';
 import type { Vec3 } from '../science/astro';
@@ -9,7 +14,7 @@ import { discoveryState, homeObserver, type Observer } from '../science/epoch';
 import { projectCatalogue, type AlienPulsar } from '../science/pulsarEpoch';
 import { expandColumnar, type ColumnarStars, type CoverData, type PulsarCatalogue, type ScenarioData, type StarCatalogue, type StarRecord } from '../science/types';
 import {
-  ChartCamera, attachInput, createChartRenderer, declutterLabels, disposeTree, makeLabel, makePoints, makePolyline, makeSegments, nearestOnScreen, projectGal, sizeLabels,
+  ChartCamera, attachInput, createChartRenderer, declutterLabels, disposeTree, galToWorld, makeChartBackdrop, makeGlowTexture, makeLabel, makePoints, makePolyline, makeSegments, nearestOnScreen, projectGal, sizeLabels,
   type BrightPoint, type ChartView, type PointSet, type ScreenPoint,
 } from './chartControls';
 import {
@@ -86,6 +91,12 @@ const CLASS_COLOUR: Readonly<Record<PulsarClass, [number, number, number]>> = {
 const MAP_COLOUR = 0xf0c870;
 const OVERVIEW: ChartView = { target: [3, 0, 0], azDeg: -120, elDeg: 38, dist: 30 };
 const LIMITS = { min: 0.002, max: 150 };
+/** The dial's distance rings in the Galactic plane through the alien's star, kpc (round numbers of parsecs). */
+const DIAL_RINGS_KPC = [0.5, 1, 2, 5, 10];
+const DIAL_COLOUR = 0x6a70d0;
+const DIAL_OPACITY = 0.1;
+const HALO_PX = 24;
+const HALO_OPACITY = 0.6;
 
 async function loadInputs(opts: GalaxyOptions): Promise<{ pulsars: readonly AlienPulsar[]; observer: Observer }> {
   if (opts.pulsars && opts.observer) return { pulsars: opts.pulsars, observer: opts.observer };
@@ -113,6 +124,21 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
   let highlighted: string | null = null;
   const lenText = (pc: number, digits = 3): string => (opts.lengthLabel ? opts.lengthLabel(pc, digits) : `${pc.toFixed(pc < 10 ? 2 : 0)} pc`);
   let gcLabel: THREE.Sprite | null = null;
+  let dialLabels: THREE.Group | null = null;
+  const backdrop = makeChartBackdrop();
+  /** One soft radial texture shared by the halos and the region glow; freed in dispose(). */
+  const glowTex = makeGlowTexture();
+  /** disposeTree frees a material's map, which here is the shared glow, so let go of it first. */
+  const drop = (o: THREE.Object3D): void => {
+    o.traverse((c) => {
+      const mat = (c as THREE.Mesh).material as THREE.Material | THREE.Material[] | undefined;
+      for (const m of Array.isArray(mat) ? mat : mat ? [mat] : []) {
+        const mm = m as THREE.PointsMaterial;
+        if (mm.map === glowTex) mm.map = null;
+      }
+    });
+    disposeTree(o);
+  };
   // Every point set's pixel-ratio uniform follows the renderer's.
   const sets = new Set<PointSet>();
   const track = (ps: PointSet): PointSet => {
@@ -140,6 +166,7 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
     },
     (_w, _h, pr) => sets.forEach((ps) => ps.setPixelRatio(pr)),
   );
+  core.scene.add(backdrop);
   core.scene.add(root);
 
   /** The Galactic centre's label: its distance and error in the chart's length text. */
@@ -150,6 +177,37 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
     gcLabel.position.set(gc[0], gc[2], -gc[1]);
     gcLabel.userData.keep = true;
     root.add(gcLabel);
+  };
+
+  /** The dial's ring radii written in the chart's length units (written again by relabel()). */
+  const buildDialLabels = (): void => {
+    if (dialLabels) disposeTree(dialLabels);
+    const g = new THREE.Group();
+    const a = Math.PI / 12;
+    for (const r of DIAL_RINGS_KPC) {
+      const l = makeLabel(lenText(r * 1000, 2), '#7f8fcf', 11);
+      galToWorld([r * Math.cos(a), r * Math.sin(a), 0], l.position);
+      l.userData.priority = 0;
+      g.add(l);
+    }
+    root.add(g);
+    dialLabels = g;
+  };
+
+  /** The dial: rings, 12 spokes and ticks in one LineSegments (one draw call). */
+  const buildDial = (): THREE.LineSegments => {
+    const segs: [Vec3, Vec3][] = [];
+    const pt = (r: number, deg: number): Vec3 => [r * Math.cos((deg * Math.PI) / 180), r * Math.sin((deg * Math.PI) / 180), 0];
+    const rMax = DIAL_RINGS_KPC[DIAL_RINGS_KPC.length - 1]!;
+    for (const r of DIAL_RINGS_KPC) {
+      for (let k = 0; k < 128; k++) segs.push([pt(r, (k * 360) / 128), pt(r, ((k + 1) * 360) / 128)]);
+      for (let deg = 0; deg < 360; deg += 10) {
+        const len = deg % 30 === 0 ? 0.06 : 0.03;
+        segs.push([pt(r * (1 - len), deg), pt(r * (1 + len), deg)]);
+      }
+    }
+    for (let deg = 0; deg < 360; deg += 30) segs.push([[0, 0, 0], pt(rMax, deg)]);
+    return makeSegments(segs, DIAL_COLOUR, DIAL_OPACITY);
   };
 
   const ready = (async (): Promise<GalaxyInfo> => {
@@ -172,6 +230,9 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
     }
     plane.add(makeSegments([[[0, 0, 0], gc]], 0x8fb4e0, 0.35));
     root.add(plane);
+
+    root.add(buildDial());
+    buildDialLabels();
 
     // The centre and the alien's star.
     const marks = track(makePoints(new Float32Array([...gc, 0, 0, 0]), new Float32Array([1, 0.92, 0.7, 0.6, 1, 0.75]), new Float32Array([9, 6]), new Float32Array([1, 1])));
@@ -210,6 +271,31 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
   };
 
   let ringSet: PointSet | null = null;
+  let halos: THREE.Points | null = null;
+  /** A soft halo behind each pulsar the player matched to a map line (the matches only: nothing is revealed). */
+  const setHalos = (names: readonly string[]): void => {
+    if (halos) drop(halos);
+    halos = null;
+    const ps = model ? names.map((n) => model!.pulsars.find((q) => q.jname === n)).filter((q): q is ChartPulsar => q !== undefined) : [];
+    if (!ps.length) return;
+    const pos = new Float32Array(3 * ps.length);
+    const col = new Float32Array(3 * ps.length);
+    ps.forEach((p, i) => {
+      galToWorld(p.posKpc).toArray(pos, 3 * i);
+      col.set(CLASS_COLOUR[p.cls], 3 * i);
+    });
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const mat = new THREE.PointsMaterial({
+      map: glowTex, size: HALO_PX, sizeAttenuation: false, vertexColors: true, transparent: true, opacity: HALO_OPACITY,
+      blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false,
+    });
+    halos = new THREE.Points(g, mat);
+    halos.frustumCulled = false;
+    halos.renderOrder = -1;
+    root.add(halos);
+  };
   const setHighlight = (jname: string | null): void => {
     if (jname === highlighted) return;
     highlighted = jname;
@@ -305,11 +391,13 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
       if (overlay.matches) disposeTree(overlay.matches);
       overlay.map = null;
       overlay.matches = null;
+      setHalos([]);
       rays = [];
     },
     setMatches(pairs) {
       if (overlay.matches) disposeTree(overlay.matches);
       overlay.matches = null;
+      setHalos(pairs.map((p) => p.jname));
       const segs = model ? matchSegments(rays, pairs, model.pulsars) : [];
       if (segs.length) {
         overlay.matches = makeSegments(segs.map((s) => [s.from, s.to] as const), 0x9ff0d8, 0.7);
@@ -318,7 +406,7 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
       return segs;
     },
     showRegion(region) {
-      if (overlay.region) disposeTree(overlay.region);
+      if (overlay.region) drop(overlay.region);
       overlay.region = null;
       regionShown = region;
       if (!region) return;
@@ -335,7 +423,19 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
       geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
       const fill = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x6fe0ff, transparent: true, opacity: 0.14, side: THREE.DoubleSide, depthTest: false, depthWrite: false }));
       fill.frustumCulled = false;
-      g.add(fill, makePolyline(outline, 0x8fe8ff, 0.9, true));
+      // The region as light: a soft radial glow stretched to the 95% ellipse (its edge a little past the outline).
+      const glow = new THREE.Mesh(
+        new THREE.PlaneGeometry(2, 2),
+        new THREE.MeshBasicMaterial({ map: glowTex, color: 0x6fe0ff, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false }),
+      );
+      glow.rotation.z = (region.majorAxisDeg * Math.PI) / 180;
+      glow.scale.set((1.25 * region.semiAxesPc[0]) / 1000, (1.25 * region.semiAxesPc[1]) / 1000, 1);
+      glow.frustumCulled = false;
+      const glowFrame = new THREE.Group();
+      glowFrame.rotation.x = -Math.PI / 2;
+      glowFrame.position.set(c[0], 0, -c[1]);
+      glowFrame.add(glow);
+      g.add(glowFrame, fill, makePolyline(outline, 0x8fe8ff, 0.9, true));
       const label = makeLabel(`map origin, 95% region: ${lenText(2 * region.semiAxesPc[0], 2)} by ${lenText(2 * region.semiAxesPc[1], 2)}`, '#bff3ff', 12);
       const top = outline[Math.round(outline.length / 4)]!;
       label.position.set(top[0], top[2], -top[1]);
@@ -356,7 +456,10 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
     getView: () => ({ ...cam.view, target: [...cam.view.target] }),
     setView: (v) => cam.set(v),
     relabel() {
-      if (model) placeGcLabel(model);
+      if (model) {
+        placeGcLabel(model);
+        buildDialLabels();
+      }
       if (regionShown) this.showRegion(regionShown);
     },
     setReducedMotion(on) {
@@ -368,6 +471,9 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
       disposed = true;
       detach();
       sets.clear();
+      if (halos) drop(halos);
+      disposeTree(backdrop);
+      glowTex.dispose();
       core.dispose();
     },
   };

@@ -2,25 +2,11 @@
 
 Things only Stewart can do, with click-by-click steps. Claude keeps working around them.
 
-## 1. The Gemini credits ran out (needed for the video critic and Argon)
+## 1. The Gemini credits (resolved 2026-10-27)
 
-**What happened (2026-10-22, evening):** the video critic and two Gemini 4 Argon reviews ran today (about $2.50 in
-all, logged in `C:\Users\stewa\Documents\Claude\Golden Record\docs\SPEND.md`). The last critic run, on a 7.5-minute
-film of the whole guided tour, was refused by Google: "Your prepayment credits are depleted." Nothing was charged
-for that run. The film is saved and ready.
-
-**To bring the critic back:**
-
-1. Open https://ai.studio/projects in your browser (signed in with the Google account that owns the Gemini key
-   used by Noclip), open the project, and add prepaid credit (a few dollars covers many runs; this one is
-   estimated at $0.75).
-2. Then run this in Windows PowerShell (it reviews the saved film; about two minutes):
-
-```powershell
-cd "C:\Users\stewa\Documents\Claude\Golden Record"; python -P tools/critic_gemini/critic.py "review/inbox/2026-10-22T22-48-04-tour-film"
-```
-
-Or tell the next session "Gemini credits topped up" and it will run it and act on the review.
+The prepaid credits are working again: on 2026-10-27 the video critic reviewed the saved whole-tour film (about
+$0.21; the review is `C:\Users\stewa\Documents\Claude\Golden Record\docs\reviews\2026-10-27-whole-tour-gemini-critic.md`).
+Nothing to do unless a later session reports the credits empty again.
 
 ## 2. A stray folder to delete or keep (optional, harmless)
 
