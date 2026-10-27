@@ -1,6 +1,6 @@
 # HANDOFF: start here
 
-_Last updated: 2026-10-22 by build session 5 (Opus 5.5): M7 polish under way (steps 1 to 4 and 6 landed, 5 and 8 in part). Whoever stops next updates this block, "Where things stand", and anything below that changed._
+_Last updated: 2026-10-27 by build session 6 (Opus 5.5): M7 (polish) finished and gated. Whoever stops next updates this block, "Where things stand", and anything below that changed._
 
 ## For Stewart: how to start the next session
 
@@ -84,6 +84,13 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
 - **Build session 5 (2026-10-22, evening): M7 begun** (`docs/plans/M7.md`). The tour opens on the spacecraft, the
   step's control is the only bright thing, shorter words, results in our units first, no clipped labels, the Trail
   chart with depth, the laptop GPU performance test (D-A38), the planets table against Allen 1973.
+- **Build session 6 (2026-10-27): M7 finished.** The Gemini credits are back (the whole-tour video critic ran;
+  `docs/reviews/2026-10-27-whole-tour-gemini-critic.md`). The galaxy chart got depth (a dial in the Galactic plane,
+  halos on matched pulsars, the region as light); the ring became a dial and instrument panels got corner brackets;
+  ring labels at least 12 px on phones; Our Frame opens on the gold record turning at the cover's period with the
+  needle in the Cavatina (`src/chapters/epilogue/TurningRecord.tsx`); quiet press and slider sounds (D-A40); an Argon
+  review and its fixes (`docs/consults/2026-10-27-argon-assessment-m7.md`); fresh landing clips with Portrait and Our
+  Frame sections. Entering The Map on a laptop GPU stays recorded, not asserted (D-A39).
 - **How session 2 worked (keep doing this):** every helper got a written spec saved in
   `docs/plans/Mx_specs/` before launch; the lead reviewed every report, looked at every picture and
   capture, ran the tests itself before each commit, and resumed the same helper (SendMessage) for
@@ -252,6 +259,14 @@ sessions use the same prompt; each session ends by printing the exact prompt (an
 - **The ongoing video critic:** `node tools/critic_gemini/watch.mjs --chapters <tour parts>` films that stretch of
   the guided tour with sound (`tools/harness/film-tour.mjs`) and runs `critic.py`; on any failure it writes
   `CRITIC_FAILED.txt` in the review folder: tell Stewart.
+- **Quick looks at Free play:** `node tools/harness/free-look.mjs --chapters hub,key,spot,map --sizes 1440x900,390x844
+  [--open]` screenshots the ring and chapters from a confirmed save (`--open`: a fresh player's ring) into
+  `review/archive/`.
+- **WebGL contexts:** every renderer calls `forceContextLoss()` after `dispose()` (Chrome keeps at most 16 contexts,
+  and quick Back and Next clicks in the tour used to pile them up). Keep that in any new renderer.
+- **Landing clips:** `npm run build`, then `node tools/showcase/film.mjs --stops <ids>` (about 5 minutes, the whole
+  tour on the production build) writes `build/showcase/film/<stop>.mp4`; copy or join them into `site/media/`, poster
+  at 80% (`ffmpeg -ss`), then `node tools/showcase/build-site.mjs --deploy`.
 - **Quick looks at the tour:** `node tools/harness/tour-look.mjs --stops 14,23 --open --sizes 1440x900` screenshots
   stops from a confirmed save (`--open` shows them unfinished, spotlit and dimmed; `--wait 9000` for The Trail and
   The Map, whose charts measure first; `--click <css>` to open a tab first). Output in `review/archive/`.
