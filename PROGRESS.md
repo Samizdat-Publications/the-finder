@@ -8,8 +8,10 @@ _Last updated: 2026-10-27 by build session 6 (Opus 5.5): M7 (polish) done and ga
 Stewart on the V1.0 draft yet, so M7 ran from the critics' lists. Build session 6 (2026-10-27):
 - **The Gemini critic is back** (credits topped up): the saved whole-tour film reviewed
   (`docs/reviews/2026-10-27-whole-tour-gemini-critic.md`), then a fresh film of the polished tour at the gate
-  (`docs/reviews/2026-10-27-M7-gemini-critic.md`: pictures 10, typography 9, sound 9, clues 9; alien interface 4 and
-  satisfaction 5, both from the tour's hand-holding, which is its purpose, D-A33).
+  (`docs/reviews/2026-10-27-M7-gemini-critic.md`: pictures 10, typography 9, sound 9, clues 9; satisfaction 5 from the tour's
+  hand-holding, which is its purpose, D-A33; alien interface fell from 7 to 4 the same day because the tour speaks
+  English, our numerals and human units, and M7 step 4 made our units lead: a real regression in the alien feel,
+  carried below for Stewart to weigh against his son's way in).
 - **Step 5, art:** the galaxy chart got a dial in the Galactic plane (rings, spokes, ticks, dim labels in the alien's
   units), soft halos on matched pulsars, the origin region drawn as light and the shared backdrop; the hub ring is a
   dial (120 fine ticks turning once in 4 minutes, still when motion is reduced, and 36 inside); instrument panels
@@ -257,8 +259,6 @@ and live-checked.
 - **Not deployed (2026-10-27):** run `npm run deploy` and `node tools/showcase/build-site.mjs --deploy`, then the
   live checks (`node tools/harness/live-smoke.mjs`, `live-game.mjs`, `live-tour.mjs`).
 
-- **Entering The Map** still shows one long task: 51 to 68 ms alone, 100 ms (the limit) in the last full check under load, on a cold browser (the first WebGL context; limit
-  100, passes); a context warmed at boot would remove it.
 - **Portrait with the guide open at 1366x768:** the "Their world" panel scrolls inside itself (a letter clipped
   at its edge); nothing is unreachable.
 - **The critics' layout notes for M7** (`docs/reviews/2026-10-22-V1-player-critic.md`): dense instrument screens,
@@ -287,7 +287,7 @@ and live-checked.
 - **The Trail's chart** draws its velocity arrows and the tint-by-angle overlay from catalogue
   directions; only the labels are measured values.
 - **Readings (not messages)** still hold a few human units: one Trail reading key says "radial velocity
-  up to 100 km/s"; The Key's glyph readouts show "(1080000 km)" with the gloss on.
+  up to 100 km/s".
 - **`data/seeds.json` must be rebuilt** (`node tools/seeds/build-seeds.mjs`, about 8 minutes) after any
   change to a checker, the epoch model or its data.
 

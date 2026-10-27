@@ -1,7 +1,7 @@
 # Credits
 
-Every external asset and data source, one line each (source, licence or terms, URL, date added). The
-sources below are planned; each gets its final line (with checksum and date) when it is actually used.
+Every external asset and data source, one line each (source, licence or terms, URL, date added). Downloads are
+recorded with their checksums in tools/sources.json.
 
 ## Record content
 - Image signal: the 1977 Colorado Video image master tape for the Voyager Golden Record, transferred by
@@ -65,6 +65,11 @@ sources below are planned; each gets its final line (with checksum and date) whe
 - NASA Planetary Fact Sheet (D. R. Williams, NSSDCA, https://nssdc.gsfc.nasa.gov/planetary/factsheet/, metric sheet updated 18 Mar 2025, with the Sun, Earth and Pluto pages): today's planetary values, used only as test truth for the teaching pictures' table (src/science/teaching.test.ts). Read 2026-10-16.
 - Our Frame (the epilogue; docs/research/epilogue.md, pages read 2026-10-16, entered once into data/epilogue.json by tools/data/build-epilogue.mjs): NASA Science Voyager pages, https://science.nasa.gov/mission/voyager/instruments/ (instruments, updated 2026-04-17), https://science.nasa.gov/blogs/voyager/2026/08/04/nasa-engineers-help-prolong-voyager-2s-science-mission/ (the power rearrangement, 4 August 2026), https://science.nasa.gov/mission/voyager/where-are-voyager-1-and-voyager-2-now/ (the one-light-day time) and https://science.nasa.gov/mission/voyager/making-of-the-golden-record/ (the hand-etched inscription); JPL, "NASA Shuts Off Instrument on Voyager 1 to Keep Spacecraft Operating", https://www.jpl.nasa.gov/news/nasa-shuts-off-instrument-on-voyager-1-to-keep-spacecraft-operating/ and the JPL blog "Slice of History" on the record's inscription, https://jpl.nasa.gov/blog/2015/10/voyager-golden-record-inscription-1977 (NASA/JPL, public US government material). The Gliese 445 numbers: Bailer-Jones and Farnocchia (2019), RNAAS 3, 59, https://arxiv.org/abs/1912.03503; NASA's popular wording (about 1.7 light-years in 40,000 years): NASA image article "It's Reaching for the Stars" (2013-09-11), https://www.nasa.gov/image-article/reaching-stars (read 2026-10-22); the map's "1970/1971 epoch": Sagan, Salzman Sagan and Drake (1972), Science 175, 881, Table 1.
 
+- The planets table's 1970s values (docs/research/planets-1970s.md, M7 step 8, read 2026-10-22): C. W. Allen,
+  Astrophysical Quantities, 3rd edition (Athlone Press, London, 1973), read from the open scan at
+  https://archive.org/details/AllenAstrophysicalQuantities (OCR only; the page images are not yet checked, so the
+  comparison stays UNVERIFIED). Cited in src/science/teaching.test.ts and How it's checked; nothing downloaded or shipped.
+
 ## Images and models
 - Voyager 3D model: NASA Visualization Technology Applications and Development (VTAD), science.nasa.gov, free to use under NASA's media guidelines; no endorsement implied. `Voyager.glb`, https://science.nasa.gov/resource/voyager-3d-model/ (source `nasa-voyager-glb`). Fetched 2026-10-15; cleaned and compressed to `public/media/models/voyager.glb` by `tools/models/build-voyager.mjs`.
 - The Golden Record cover photo: NASA/JPL, GPN-2000-001978 (public domain), via Wikimedia Commons. Fetched 2026-10-15.
@@ -73,6 +78,10 @@ sources below are planned; each gets its final line (with checksum and date) whe
 - Pioneer plaque vector drawing by Mysid (2006), public domain, via Wikimedia Commons (Pioneer_plaque.svg). Fetched 2026-10-15.
 - The cover SVG (public/media/cover/cover.svg) is our own trace of the NASA/JPL photo GPN-2000-001978 above, with the binary numbers from data/cover.json and the pulsar-map geometry from the Pioneer vector drawing above (no new source). Built 2026-10-15 by tools/cover/.
 - Milky Way: ESA/Gaia/DPAC, "The colour of the sky from Gaia's Early Data Release 3" (equirectangular), CC BY-SA 3.0 IGO; acknowledgement: A. Moitinho. https://sci.esa.int/web/gaia/-/the-colour-of-the-sky-from-gaia-s-early-data-release-3-equirectangular-projection (source `gaia-sky-colour` in tools/sources.json). Fetched 2026-10-16; converted to `public/media/sky/gaia-sky.webp` by `tools/sky/build-sky.mjs`.
+
+## Fonts
+- Landing page (site/index.html, loaded from Google Fonts at view time, nothing shipped): Fraunces (Undercase Type)
+  and IBM Plex Sans and Mono (IBM), SIL Open Font License 1.1. Added 2026-10-17.
 
 ## Prior work we learned from (no code copied)
 - Ron Barry's decoder and frame tables (2017; foodini/voyager voyager.cpp fetched 2026-10-15 as reference data only); aizquier/voyagerimb; Malte Gruber; Marc Baeuerle;
