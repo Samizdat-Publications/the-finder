@@ -60,6 +60,19 @@ export interface EncounterHandle {
   dispose(): void;
 }
 
+/** Frees a loaded model that will never be shown (the scene was disposed while it loaded). */
+function disposeLoaded(root: THREE.Object3D): void {
+  root.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    mesh.geometry.dispose();
+    for (const m of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+      for (const v of Object.values(m)) if (v instanceof THREE.Texture) v.dispose();
+      m.dispose();
+    }
+  });
+}
+
 const DT_MAX = 0.1; // s: a long pause (tab hidden) never jumps the drift
 const OPENING: OrbitView = { target: [0, 2.5, 3], azDeg: 200, elDeg: -76, dist: 58 };
 
@@ -151,6 +164,7 @@ export function mountEncounter(canvas: HTMLCanvasElement, opts: EncounterOptions
     ]);
     if (disposed) {
       mwTex.dispose();
+      disposeLoaded(gltf.scene);
       throw new Error('encounter disposed while loading');
     }
     const computed = computeSky(data.scenario, data.stars);
@@ -320,6 +334,8 @@ export function mountEncounter(canvas: HTMLCanvasElement, opts: EncounterOptions
       envRT?.dispose();
       for (const o of owned) o.dispose();
       renderer.dispose();
+      // Free the context now rather than at garbage collection, so quick Back and Next clicks never pile up contexts.
+      renderer.forceContextLoss();
     },
   };
 }

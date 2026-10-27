@@ -548,7 +548,7 @@ export const STOPS: readonly Stop[] = [
     title: 'Do the clocks agree?',
     look: `Four separate clocks dated this machine: the **fuel** (plutonium turning into other atoms), the **uranium spot** on the cover, the **pulsar map** read from the warm-white star, and the **journey** (distance divided by speed). Each bar shows one clock's answer and how sure it is. Notice how short the pulsar map's bar is: many spinning stars together keep much sharper time than counting atoms, so that clock counts most. The **bright band** is lit on that short bar: every time inside it fits all four clocks together.`,
     todo: `Drag the **round marker** under the clock bars (or click it and use the arrow keys) into the **bright band** on the short pulsar-map bar, then press **Propose: it left this long ago**.`,
-    why: `Four completely different kinds of physics, nuclear decay, spinning dead stars and the machine's own motion, give **one answer**: it left about 44,000 years ago. When clocks that share almost nothing agree, scientists trust the answer.`,
+    why: `Four completely different kinds of physics, nuclear decay, spinning dead stars and the machine's own motion, give **one answer**, the date on the plate. When clocks that share almost nothing agree, scientists trust the answer.`,
     human: `Real scientists do exactly this. The age of the Earth: meteorites give 4.5 billion years, and the oldest crystals and Moon rocks agree. Different clocks, one story.`,
     ask: 'If one clock had disagreed with the other three, what might that have told us?',
   },

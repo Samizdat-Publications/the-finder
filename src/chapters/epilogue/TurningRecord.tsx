@@ -32,6 +32,7 @@ function stylusAt(r: number): { x: number; y: number } {
 
 export function TurningRecord() {
   const spin = useRef<SVGGElement>(null);
+  const angle = useRef(0);
   const reduced = game.settings.value.reducedMotion;
   // Computed, so the drawing follows the needle without redrawing on every needle update (radius to 0.2 mm).
   const down = useComputed(() => turntable.needle.value?.down === true).value;
@@ -39,12 +40,13 @@ export function TurningRecord() {
   const tip = stylusAt(r);
 
   useEffect(() => {
-    if (reduced || !down) return;
+    if (reduced || !down || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
     let raf = 0;
-    const t0 = performance.now();
+    // Carry on from where the disc stopped, so a lifted and dropped needle never snaps it back.
+    const t0 = performance.now() - (angle.current / 360) * COVER_PERIOD_S * 1000;
     const step = (now: number): void => {
-      const deg = (((now - t0) / 1000 / COVER_PERIOD_S) * 360) % 360;
-      spin.current?.setAttribute('transform', `rotate(${deg.toFixed(2)})`);
+      angle.current = (((now - t0) / 1000 / COVER_PERIOD_S) * 360) % 360;
+      spin.current?.setAttribute('transform', `rotate(${angle.current.toFixed(2)})`);
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
@@ -70,7 +72,7 @@ export function TurningRecord() {
         {rings.map((g, i) => (
           <circle key={g} r={g} fill="none" stroke={i % 2 ? 'rgba(255,240,200,0.16)' : 'rgba(40,24,0,0.26)'} stroke-width="0.5" />
         ))}
-        <g ref={spin}>
+        <g ref={spin} transform={`rotate(${angle.current.toFixed(2)})`}>
           <circle r={LABEL_R} fill="#1a1530" stroke="rgba(255,240,200,0.5)" stroke-width="0.8" />
           <circle r={LABEL_R * 0.62} fill="none" stroke="rgba(255,240,200,0.18)" stroke-width="0.6" />
           <path d={`M 0 ${-LABEL_R * 0.62} L 0 ${-LABEL_R * 0.92}`} stroke="rgba(241,207,122,0.55)" stroke-width="1.2" stroke-linecap="round" />

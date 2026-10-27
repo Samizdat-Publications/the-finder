@@ -19,7 +19,7 @@ instruments (drag a map line onto a pulsar, sweep a detector, pick a star), ever
 real science, and a wrong answer shows what it would really mean. A guided tour walks you through all 44
 deductions in order, with "Do it for me" on every step; free play leaves you on your own.
 
-**Where it stands (2026-10-27):** V1.0, polished. All ten chapters are playable, from Arrival to Our Frame
+**Where it stands (2026-10-27):** the V1.0 draft, polished, waiting for its first family playtest. All ten chapters are playable, from Arrival to Our Frame
 (Arrival, The Key, The Player, The Pictures, The Voices, The Map, The Spot, The Trail, Portrait, Our Frame), and
 the guided tour has 65 stops. The polish pass (M7) opened the tour beside the spacecraft, dims everything but the
 control each step needs, leads results with our own units, gave the star charts depth and the ring and
@@ -34,6 +34,7 @@ its own speed while the Cavatina plays. Best in desktop Chrome or Edge, with hea
 | ![Arrival: scanning the machine as it drifts past](docs/media/arrival.jpg) | ![The Key: the cover's binary and the hydrogen unit](docs/media/key.jpg) |
 | ![The Pictures: Earth in colour from three frames of the 1977 tape](docs/media/pictures.jpg) | ![The Spot: counting the uranium spot's alphas](docs/media/spot.jpg) |
 | ![The Map: matching the fourteen lines to their pulsars](docs/media/map.jpg) | ![The Trail: the only star the machine flies straight away from](docs/media/trail.jpg) |
+| ![Portrait: four clocks agree, and the senders' portrait on a gold plate](docs/media/portrait.jpg) | ![Our Frame: the one line etched by hand in the record's run-out groove](docs/media/finale.jpg) |
 
 ## How it's checked
 

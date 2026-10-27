@@ -300,7 +300,7 @@ export default async function run({ page, baseUrl, record, assert, log }) {
     r.min = '0';
     r.max = '10';
     r.value = '7';
-    document.body.appendChild(r);
+    (document.querySelector('.bench-area') ?? document.body).appendChild(r);
     r.dispatchEvent(new Event('input', { bubbles: true }));
     r.remove();
   });

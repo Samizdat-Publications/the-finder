@@ -58,7 +58,7 @@ export function startSound(): void {
   });
   document.addEventListener('input', (ev) => {
     const t = ev.target;
-    if (!(t instanceof HTMLInputElement) || t.type !== 'range') return;
+    if (!(t instanceof HTMLInputElement) || t.type !== 'range' || t.closest('.bench-area') === null) return;
     const lo = Number(t.min || 0);
     const hi = Number(t.max || 100);
     const position = hi > lo ? (Number(t.value) - lo) / (hi - lo) : 0.5;

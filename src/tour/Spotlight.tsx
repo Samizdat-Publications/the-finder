@@ -165,7 +165,21 @@ export function Spotlight() {
     const timer = window.setInterval(update, 250);
     window.addEventListener('scroll', update, true);
     window.addEventListener('resize', update);
+    // A panel that mounts between two timer ticks (a stage switch, a scene that finishes loading) is dimmed in the
+    // next frame rather than up to 250 ms later.
+    let raf = 0;
+    const soon = (): void => {
+      if (raf === 0) raf = requestAnimationFrame(() => {
+        raf = 0;
+        update();
+      });
+    };
+    const watch = new MutationObserver(soon);
+    const area = document.querySelector('.bench-area') ?? document.body;
+    watch.observe(area, { childList: true, subtree: true });
     return () => {
+      watch.disconnect();
+      cancelAnimationFrame(raf);
       window.clearInterval(timer);
       window.removeEventListener('scroll', update, true);
       window.removeEventListener('resize', update);

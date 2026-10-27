@@ -449,6 +449,8 @@ export function createChartRenderer(canvas: HTMLCanvasElement, onFrame: (dt: num
       ro.disconnect();
       disposeTree(scene);
       renderer.dispose();
+      // Free the context now rather than at garbage collection (Chrome keeps at most 16).
+      renderer.forceContextLoss();
     },
   };
 }
