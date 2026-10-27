@@ -62,6 +62,22 @@ function inside(r: Rect, bounds: { w: number; h: number } | undefined): boolean 
 }
 
 /**
+ * A kept label too long to sit beside its point inside the chart (the Galactic centre's, near the edge: the M7
+ * blind critic saw it cut off): slid sideways, just above or just below its point, so the whole box fits. Clear of
+ * placed labels if it can be, else above the point. Null when the chart is narrower than the label.
+ */
+function slid(l: LabelBox, placed: readonly Rect[], bounds: { w: number; h: number } | undefined): Anchor | null {
+  if (!bounds || l.w > bounds.w) return null;
+  // The box spans x - cx w to x + (1 - cx) w: the least cx that keeps its right edge in, if its left edge stays in.
+  const lo = Math.max(0, (l.x + l.w - bounds.w) / l.w);
+  const hi = Math.min(1, l.x / l.w);
+  if (lo > hi) return null;
+  const x = lo;
+  const fits = ([-0.15, 1.15] as const).map((cy): Anchor => [x, cy]).filter((a) => inside(boxAt(l, a), bounds));
+  return fits.find((a) => !placed.some((p) => hitsRect(p, boxAt(l, a)))) ?? fits[0] ?? null;
+}
+
+/**
  * Place the labels. Returns, per label id, the anchor it takes, or null when it is dropped. A bright point at
  * a label's own point does not count against it (a label always sits beside its own point). With bounds (the
  * chart's size, CSS px), an anchor whose box would leave the chart is not taken; a kept label that fits
@@ -80,7 +96,7 @@ export function layoutLabels(labels: readonly LabelBox[], obstacles: readonly Ob
       chosen = a;
       break;
     }
-    if (!chosen && l.keep) chosen = l.anchors.find((a) => inside(boxAt(l, a), bounds)) ?? l.anchors[0] ?? null;
+    if (!chosen && l.keep) chosen = l.anchors.find((a) => inside(boxAt(l, a), bounds)) ?? slid(l, placed, bounds) ?? l.anchors[0] ?? null;
     if (chosen) placed.push(boxAt(l, chosen));
     out.set(l.id, chosen);
   }

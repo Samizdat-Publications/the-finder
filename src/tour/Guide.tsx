@@ -170,7 +170,7 @@ function StopView(p: { stop: Stop; step: number; layout: 'column' | 'card' }) {
       const box = scroller.current;
       const el = learned.current;
       if (box && el) {
-        const top = el.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop - 28;
+        const top = el.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop - 10;
         box.scrollTo({ top: Math.max(0, top), behavior: calm ? 'auto' : 'smooth' });
       }
       setFresh(true);

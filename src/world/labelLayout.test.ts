@@ -50,6 +50,13 @@ describe('label declutter', () => {
     const wide = label(2, 150, 100, { w: 400 });
     expect(layoutLabels([wide], [], bounds).get(2)).toBeNull();
     expect(layoutLabels([{ ...wide, keep: true }], [], bounds).get(2)).toEqual(DEFAULT_ANCHORS[0]);
+    // A kept label too long for either side of its point slides sideways, above or below it, and stays whole.
+    const long = label(3, 200, 100, { keep: true, w: 250 });
+    const s = layoutLabels([long], [], bounds).get(3)!;
+    const sr = boxAt(long, s);
+    expect(sr.left).toBeGreaterThanOrEqual(0);
+    expect(sr.right).toBeLessThanOrEqual(bounds.w);
+    expect(sr.bottom <= 100 || sr.top >= 100).toBe(true);
     // Without bounds nothing changes.
     expect(layoutLabels([gc], []).get(1)).toEqual(DEFAULT_ANCHORS[0]);
   });

@@ -147,14 +147,14 @@ export function press(ctx: BaseAudioContext, dest: AudioNode, when: number, hz: 
 
 /**
  * A detent: one tiny click as a slider moves a step, its pitch rising with the slider's position (0 to 1, from
- * 900 Hz to 2,400 Hz), so dragging a slider sounds like turning a fine dial. About 30 ms.
+ * 500 Hz to 1,400 Hz), so dragging a slider sounds like turning a fine dial. About 30 ms.
  */
 export function detent(ctx: BaseAudioContext, dest: AudioNode, when: number, position: number, rng: Rng): RenderedCue {
   const out = ctx.createGain();
   out.gain.value = peakOf('detent');
   out.connect(dest);
   const x = Math.min(1, Math.max(0, Number.isFinite(position) ? position : 0.5));
-  const hz = 900 * (2400 / 900) ** x * (1 + (rng.uniform() - 0.5) * 0.004);
+  const hz = 500 * (1400 / 500) ** x * (1 + (rng.uniform() - 0.5) * 0.004);
   const click = tone(ctx, out, hz, when);
   pluckEnv(click.gain.gain, when, 0.0005, 0.8, 0.005);
   click.osc.stop(when + 0.03);

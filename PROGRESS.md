@@ -1,11 +1,42 @@
 # PROGRESS
 
-_Last updated: 2026-10-22 by build session 5 (Opus 5.5): M7 (polish) under way after the V1.0 draft. Update after every meaningful chunk._
+_Last updated: 2026-10-27 by build session 6 (Opus 5.5): M7 (polish) done and gated, waiting for Stewart's playtest. Update after every meaningful chunk._
 
 ## Current milestone
 
-**M7, polish and ship (started 2026-10-22, build session 5; checklist `docs/plans/M7.md`).** No notes from Stewart
-on the V1.0 draft yet, so M7 runs from the critics' list. Landed so far:
+**M7, polish and ship: done 2026-10-27 (build sessions 5 and 6; checklist `docs/plans/M7.md`).** No notes from
+Stewart on the V1.0 draft yet, so M7 ran from the critics' lists. Build session 6 (2026-10-27):
+- **The Gemini critic is back** (credits topped up): the saved whole-tour film reviewed
+  (`docs/reviews/2026-10-27-whole-tour-gemini-critic.md`), then a fresh film of the polished tour at the gate
+  (`docs/reviews/2026-10-27-M7-gemini-critic.md`: pictures 10, typography 9, sound 9, clues 9; alien interface 4 and
+  satisfaction 5, both from the tour's hand-holding, which is its purpose, D-A33).
+- **Step 5, art:** the galaxy chart got a dial in the Galactic plane (rings, spokes, ticks, dim labels in the alien's
+  units), soft halos on matched pulsars, the origin region drawn as light and the shared backdrop; the hub ring is a
+  dial (120 fine ticks turning once in 4 minutes, still when motion is reduced, and 36 inside); instrument panels
+  and ring boxes have corner brackets. Our Frame's first screen shows the gold record turning clockwise at the
+  cover's period (3.6 s a turn) with the needle at the turntable's own radius in the Cavatina
+  (`src/chapters/epilogue/TurningRecord.tsx`).
+- **Sound:** a soft knock when a control is pressed and a pitched detent as an instrument slider moves (D-A40,
+  levels in `sound.v1.levels`).
+- **Step 8 leftovers:** ring labels at least 12 px (tags 11 px) on phones; the human gloss groups kilometres
+  ("1,080,000 km"). The Pictures' notebook (15 cards) scrolls inside itself when open; it folds away.
+- **Second opinions:** Gemini 4 Argon's M7 review and fixes (`docs/consults/2026-10-27-argon-assessment-m7.md`):
+  WebGL contexts freed at once (`forceContextLoss`), a model loaded after its scene closed freed, the spotlight
+  dims new panels in the next frame, detents only on instrument sliders, Portrait's tour text no longer
+  hand-types the age, the turning record keeps its angle and honours the system's reduced motion; the dimming's
+  contrast kept on purpose (D-A41).
+- **The blind critic at the gate** (`docs/reviews/2026-10-27-M7-player-critic.md`): every score 6 or better (first
+  impression 6 from 4, layout 6 from 5, clues 7 from 5); M7's target of 7 for first impression and layout not met.
+  Its two concrete defects fixed (a long chart label cut off at the edge now slides inside; the guide no longer
+  opens on a cut-off sentence); the rest carried below for after Stewart's playtest.
+- **Ship pages:** fresh landing clips filmed from the production build (Arrival, The Map, The Trail) and two new
+  sections, Portrait and Our Frame; README screenshots and status. **Not deployed:** the deploy command was
+  refused by the session's permission mode; the live game and landing page still show 2026-10-22's build.
+- **Laptop performance:** everything met and asserted except entering The Map on integrated graphics, recorded,
+  not asserted (D-A39).
+- **Tools:** `tools/harness/free-look.mjs` screenshots the ring and chapters in Free play.
+
+Build session 5 (2026-10-22):
 - **Step 1, clipped and stray things:** chart labels stay inside their chart (`labelLayout.ts` takes the chart's
   bounds: the Galactic centre's label flips left at the edge); Arrival's scene labels sit right of their part,
   else left, else below, inside the open area, and a part hidden under the scan panel shows no label; Our Frame's
@@ -219,9 +250,12 @@ and live-checked.
 
 - **Entering The Map on a laptop GPU (D-A38):** about half the time one 130 to 450 ms freeze inside the browser's
   first WebGL call. The fix is drawing the charts in a Worker (OffscreenCanvas); then assert `perf.igpu.enterMap`.
-- **M7 still open:** the art pass on the galaxy chart, the hub ring and the instrument frames (the alien instrument
-  look); the landing page's footage refreshed from a new tour film; the blind critic on the polished tour; the QA
-  audit; the leftovers in docs/plans/M7.md step 8 (the Pictures' notebook scroll, ring labels on phones).
+- **Carried from the M7 gate's critics (for after Stewart's playtest):** a hero-control pass per instrument (the
+  panels are dense); Portrait's "They live there" sky as a staged, full-size moment; Our Frame's later sections
+  given full-stage pictures; small pulsar labels on the galaxy chart; whether the tour shows more of the alien
+  framing; marking stretches in The Voices felt like busywork to the Gemini critic.
+- **Not deployed (2026-10-27):** run `npm run deploy` and `node tools/showcase/build-site.mjs --deploy`, then the
+  live checks (`node tools/harness/live-smoke.mjs`, `live-game.mjs`, `live-tour.mjs`).
 
 - **Entering The Map** still shows one long task: 51 to 68 ms alone, 100 ms (the limit) in the last full check under load, on a cold browser (the first WebGL context; limit
   100, passes); a context warmed at boot would remove it.
@@ -264,17 +298,17 @@ and live-checked.
 - **Nearby stars without radial velocities:** companions now take their primary's (Sirius B, Procyon B
   and 185 others); GJ 1245 A and B have none in HYG and stay hollow on the neighbourhood chart, handled
   by the no-RV bound.
-- **Layout leftovers (8b):** Arrival and Key result messages still print SI units in their text; The
-  Pictures at 1440x900 with the notebook open needs an inner scroll to reach Propose; ring labels are
-  9 to 12 px on phones; the `sound` browser test was flaky once.
+- **Layout leftovers:** The Pictures at 1440x900 with the notebook open needs an inner scroll (fold the notebook);
+  two Trail working readings name km/s in their keys; entering The Trail needed one retry under load in the last
+  full check (138 ms, then a pass).
 - **Firefox and Safari are untested** (no Playwright browsers here); the audio probe ran in Chrome only.
 - Python packages live in the user site-packages, so run Python as `python -P` (not `-I`).
 
 ## Next (exact)
 
-0. **Stewart reviews the V1.0 draft** (now with the M7 changes above) (the guided tour from the landing page, end to end, with his son if he
-   likes) and writes notes at the top of `docs/STEWART_FEEDBACK.md`. Act on them first.
-1. M7, the rest of `docs/plans/M7.md`: the galaxy chart, hub ring and instrument-frame art (Free play should feel
-   more alien); the charts off the main thread (D-A38); a fresh tour film for the landing page; the blind critic
-   and a QA audit at the gate; the step 8 leftovers; a Firefox check (`docs/NEEDS_STEWART.md` item 3).
-2. After the main version: `docs/IDEAS.md` (the younger version, 8th-grade level).
+0. **Deploy** (refused by this session's permission mode): `npm run deploy`, `node tools/showcase/build-site.mjs --deploy`,
+   then the three live checks.
+1. **Stewart reviews the V1.0 draft** (the guided tour from the landing page, end to end, with his son if he likes)
+   and writes notes at the top of `docs/STEWART_FEEDBACK.md`. Act on them first.
+2. Then the carried critic items above, in the order his notes suggest; a Firefox check (`docs/NEEDS_STEWART.md` item 3).
+3. After the main version: `docs/IDEAS.md` (the younger version, 8th-grade level).
