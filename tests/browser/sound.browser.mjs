@@ -52,6 +52,9 @@ export default async function run({ page, baseUrl, record, assert, log }) {
       { name: 'pluck-pictures', level: 'pluck', lenS: 4, make: (ctx, seed) => ui.pluck(ctx, ctx.destination, 0, synth.voiceFor('pictures').pluckHz, createRng(seed)) },
       { name: 'cadence', level: 'cadence', lenS: 3, make: (ctx, seed) => ui.cadence(ctx, ctx.destination, 0, synth.voiceFor('arrival').pluckHz / 2, createRng(seed)) },
       { name: 'tick', level: 'tick', lenS: 0.2, make: (ctx, seed) => ui.tick(ctx, ctx.destination, 0, createRng(seed)) },
+      { name: 'press', level: 'press', lenS: 0.3, make: (ctx, seed) => ui.press(ctx, ctx.destination, 0, synth.voiceFor('key').pluckHz / 2, createRng(seed)) },
+      { name: 'detent-low', level: 'detent', lenS: 0.2, make: (ctx, seed) => ui.detent(ctx, ctx.destination, 0, 0, createRng(seed)) },
+      { name: 'detent-high', level: 'detent', lenS: 0.2, make: (ctx, seed) => ui.detent(ctx, ctx.destination, 0, 1, createRng(seed)) },
       { name: 'breath', level: 'breath', lenS: 2, make: (ctx, seed) => ui.breath(ctx, ctx.destination, 0, createRng(seed)) },
       { name: 'swell', level: 'swell', lenS: 8, make: (ctx, seed) => ui.swell(ctx, ctx.destination, 0, synth.voiceFor('pictures').rootHz * 2, createRng(seed)) },
       { name: 'agree', level: 'agree', lenS: 9, make: (ctx, seed) => ui.agree(ctx, ctx.destination, 0, synth.voiceFor('portrait').rootHz * 2, createRng(seed)) },
@@ -195,7 +198,7 @@ export default async function run({ page, baseUrl, record, assert, log }) {
     assert(dev >= -LOW_DB, `${r.name} peaks at ${r.peakDbfs.toFixed(2)} dBFS, far below its target ${r.targetDbfs}`);
     if (r.level !== 'bed' && r.level !== 'portraitBed') assert(r.tailPeak < r.peak * 0.003 + 1e-7, `${r.name} ends quietly (no cut-off click)`);
   }
-  for (const n of ['tick', 'breath', 'pluck-arrival', 'pluck-key']) {
+  for (const n of ['tick', 'press', 'detent-low', 'breath', 'pluck-arrival', 'pluck-key']) {
     const r = rendered.find((x) => x.name === n);
     assert(r.differsOtherSeed, `${n} changes with the seed (its detuning or noise is seeded)`);
   }
@@ -286,6 +289,25 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   kinds = await logKinds();
   assert(kinds.includes('tick'), `hovering a control logs a tick (${kinds})`);
   assert((await lastLog()).caption === null, 'a tick has no caption');
+
+  // A soft knock when a control is pressed, and a detent as a slider moves (both uncaptioned, rate-limited).
+  await clearLog();
+  await page.evaluate(() => {
+    const b = document.querySelector('[data-tool="codex"]');
+    b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    const r = document.createElement('input');
+    r.type = 'range';
+    r.min = '0';
+    r.max = '10';
+    r.value = '7';
+    document.body.appendChild(r);
+    r.dispatchEvent(new Event('input', { bubbles: true }));
+    r.remove();
+  });
+  await page.waitForTimeout(50);
+  kinds = await logKinds();
+  assert(kinds.includes('press') && kinds.includes('detent'), `pressing a control logs a press and moving a slider a detent (${kinds})`);
+  if ((await page.evaluate(() => document.querySelector('.codex'))) !== null) await drive({ type: 'codex.close' });
 
   // The record playing ducks the ambience; stopping lets it back.
   await clearLog();

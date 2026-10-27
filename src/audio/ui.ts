@@ -10,7 +10,7 @@
 import type { Rng } from '../science/random';
 import { LEVEL_DBFS, dbToLin, noiseBuffer, portraitChord, tone } from './synth';
 
-export type RenderKind = 'pluck' | 'cadence' | 'tick' | 'breath' | 'swell' | 'snap' | 'warm' | 'agree';
+export type RenderKind = 'pluck' | 'cadence' | 'tick' | 'press' | 'detent' | 'breath' | 'swell' | 'snap' | 'warm' | 'agree';
 
 export interface RenderedCue {
   /** Seconds from `when` until the cue has died away (the caller may stop sources after this). */
@@ -18,7 +18,7 @@ export interface RenderedCue {
 }
 
 /** Gain trims (linear) found by measuring the rendered peaks; a pure scale, so shapes are untouched. */
-const TRIM: Record<RenderKind, number> = { pluck: 1.38, cadence: 1.2, tick: 1.86, breath: 1.1, swell: 1.15, snap: 1.37, warm: 1.0, agree: 0.815 };
+const TRIM: Record<RenderKind, number> = { pluck: 1.38, cadence: 1.2, tick: 1.86, press: 1.29, detent: 1.3, breath: 1.1, swell: 1.15, snap: 1.37, warm: 1.0, agree: 0.815 };
 
 const peakOf = (kind: RenderKind): number => dbToLin(LEVEL_DBFS[kind]) * TRIM[kind];
 
@@ -116,6 +116,49 @@ export function tick(ctx: BaseAudioContext, dest: AudioNode, when: number, rng: 
   pluckEnv(click.gain.gain, when, 0.0005, 0.5, 0.004);
   click.osc.stop(when + 0.04);
   return { durationS: 0.04 };
+}
+
+/**
+ * A press: a soft low knock when a control is pressed, a short sine at `hz` (the chapter's key, an octave down)
+ * with a little low-passed noise for the felt part of the knock. About 90 ms.
+ */
+export function press(ctx: BaseAudioContext, dest: AudioNode, when: number, hz: number, rng: Rng): RenderedCue {
+  const out = ctx.createGain();
+  out.gain.value = peakOf('press');
+  out.connect(dest);
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuffer(ctx, rng, 0.05, 'white');
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 900;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.35, when);
+  g.gain.setTargetAtTime(0, when, 0.006);
+  src.connect(lp);
+  lp.connect(g);
+  g.connect(out);
+  src.start(when);
+  src.stop(when + 0.05);
+  const body = tone(ctx, out, hz * (1 + (rng.uniform() - 0.5) * 0.004), when);
+  pluckEnv(body.gain.gain, when, 0.002, 0.8, 0.018);
+  body.osc.stop(when + 0.09);
+  return { durationS: 0.09 };
+}
+
+/**
+ * A detent: one tiny click as a slider moves a step, its pitch rising with the slider's position (0 to 1, from
+ * 900 Hz to 2,400 Hz), so dragging a slider sounds like turning a fine dial. About 30 ms.
+ */
+export function detent(ctx: BaseAudioContext, dest: AudioNode, when: number, position: number, rng: Rng): RenderedCue {
+  const out = ctx.createGain();
+  out.gain.value = peakOf('detent');
+  out.connect(dest);
+  const x = Math.min(1, Math.max(0, Number.isFinite(position) ? position : 0.5));
+  const hz = 900 * (2400 / 900) ** x * (1 + (rng.uniform() - 0.5) * 0.004);
+  const click = tone(ctx, out, hz, when);
+  pluckEnv(click.gain.gain, when, 0.0005, 0.8, 0.005);
+  click.osc.stop(when + 0.03);
+  return { durationS: 0.03 };
 }
 
 /**

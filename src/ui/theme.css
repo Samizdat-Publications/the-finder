@@ -11,6 +11,7 @@
   --violet: #9b7bff;
   --gold: #e8b64a;
   --danger: #ff7a8a;
+  --corner: rgba(79, 240, 196, 0.5); /* instrument corner brackets (decoration only) */
   --heat: #ffb27a;
   --cold: #9bbcff;
   /* Clue sizes: every label that carries evidence is at least 13 px, every value at least 15 px. */

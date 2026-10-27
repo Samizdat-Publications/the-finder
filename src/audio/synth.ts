@@ -16,6 +16,10 @@ export const LEVEL_DBFS = {
   pluck: -24,
   cadence: -27,
   tick: -50,
+  /** A control pressed (a button, a switch): a soft low knock, quieter than any result cue. */
+  press: -40,
+  /** A slider moved: one small detent tick per step, its pitch following the slider. */
+  detent: -44,
   breath: -30,
   swell: -22,
   /** The ages snapping together (The Trail's reframe): the scattered tones drawing into one chord. */

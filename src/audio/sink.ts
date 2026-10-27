@@ -6,7 +6,7 @@ import { Ambience } from './ambience';
 import type { CueEvent, SoundSink } from './cues';
 import type { Mixer } from './mixer';
 import { TWIST_WARM_DB, voiceFor } from './synth';
-import { agree, breath, cadence, pluck, snap, swell, tick, warm } from './ui';
+import { agree, breath, cadence, detent, pluck, press, snap, swell, tick, warm } from './ui';
 
 export class LiveSink implements SoundSink {
   private ambience: Ambience | null = null;
@@ -61,6 +61,12 @@ export class LiveSink implements SoundSink {
         break;
       case 'tick':
         tick(ctx, master, when, rng);
+        break;
+      case 'press':
+        press(ctx, master, when, voice.pluckHz / 2, rng);
+        break;
+      case 'detent':
+        detent(ctx, master, when, e.position ?? 0.5, rng);
         break;
       case 'breath':
         breath(ctx, master, when, rng);

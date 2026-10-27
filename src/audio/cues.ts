@@ -8,7 +8,7 @@ import { reframeReading } from '../chapters/trail/state';
 import { nodeDef, type ChapterId, type ChapterView } from '../game/graph';
 import { confirmedSet, game, turntable } from '../game/state';
 
-export type CueKind = 'pluck' | 'cadence' | 'tick' | 'breath' | 'swell' | 'hush' | 'chapter' | 'duck' | 'snap' | 'warm' | 'twist' | 'agree';
+export type CueKind = 'pluck' | 'cadence' | 'tick' | 'press' | 'detent' | 'breath' | 'swell' | 'hush' | 'chapter' | 'duck' | 'snap' | 'warm' | 'twist' | 'agree';
 
 export interface CueEvent {
   kind: CueKind;
@@ -18,6 +18,8 @@ export interface CueEvent {
   nodeId?: string;
   /** For duck: true while the record plays. */
   on?: boolean;
+  /** For detent: where the slider sits, 0 to 1 (the tick's pitch follows it). */
+  position?: number;
   /** For snap: each old line's age offset in the alien's own frame, scaled so the largest is +/-1. */
   scatter?: number[];
 }
@@ -41,6 +43,8 @@ export const MIN_GAP_MS: Record<CueKind, number> = {
   pluck: 150,
   cadence: 400,
   tick: 70,
+  press: 60,
+  detent: 45,
   breath: 500,
   swell: 3000,
   hush: 3000,
@@ -56,6 +60,8 @@ const CAPTIONS: Record<CueKind, string | null> = {
   pluck: 'a soft pluck',
   cadence: 'two low notes, falling',
   tick: null,
+  press: null,
+  detent: null,
   breath: 'a slow breath of air',
   swell: 'a chord rising out of many tones',
   hush: 'the instruments hush',

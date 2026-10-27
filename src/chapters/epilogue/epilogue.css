@@ -23,7 +23,15 @@
 .epi-small.center { text-align: center; }
 .epi-why { margin: 0; font-size: 1rem; line-height: 1.55; color: var(--text); }
 
-/* 1. the turn */
+/* 1. the turn: the words and the clock beside the record turning */
+.epi-turn { grid-template-columns: minmax(0, 1.25fr) minmax(12rem, 1fr); align-items: center; column-gap: 2rem; }
+.epi-turn-text { display: grid; gap: 0.9rem; }
+.epi-turning { margin: 0; display: grid; gap: 0.4rem; justify-items: center; }
+.epi-turning svg { width: 100%; max-width: 24rem; max-height: 52vh; filter: drop-shadow(0 0 28px rgba(241, 207, 122, 0.12)); }
+@media (max-width: 900px) {
+  .epi-turn { grid-template-columns: minmax(0, 1fr); }
+  .epi-turning svg { max-width: 15rem; max-height: 32vh; }
+}
 .epi-clock { margin: 0.4rem 0 0; display: grid; gap: 0.1rem; }
 .epi-date { font: 300 clamp(1.1rem, 2vw, 1.6rem) var(--font-sans); color: var(--text-dim); }
 .epi-time { font: 200 clamp(2.6rem, 7vw, 5.2rem) / 1.05 var(--font-sans); letter-spacing: 0.04em; font-variant-numeric: tabular-nums; color: var(--text); }

@@ -7,6 +7,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { lightDayUtcMs, voyagerNow, type EphemerisBodies, type VoyagerNow } from '../../science/voyagerNow';
 import { epilogue, loadEphemeris } from './epilogueData';
 import { grouped, hoursMinutes, lightDaySentence } from './format';
+import { TurningRecord } from './TurningRecord';
 
 /** The viewer's clock, ticking once a second. */
 export function useClock(): Date {
@@ -22,14 +23,17 @@ export function Turn() {
   const now = useClock();
   return (
     <section class="epi-sec epi-turn" data-epilogue-section="turn" aria-labelledby="epi-turn-h">
-      <h2 id="epi-turn-h" class="epi-lead">
-        You have been the Finder, a scientist 44,000 years from now. Now step back to your own time: the year the machine is still flying.
-      </h2>
-      <p class="epi-clock" data-epilogue-clock aria-live="off">
-        <span class="epi-date">{now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-        <span class="epi-time">{now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-      </p>
-      <p class="epi-small">This is the clock of the device you are playing on.</p>
+      <div class="epi-turn-text">
+        <h2 id="epi-turn-h" class="epi-lead">
+          You have been the Finder, a scientist 44,000 years from now. Now step back to your own time: the year the machine is still flying.
+        </h2>
+        <p class="epi-clock" data-epilogue-clock aria-live="off">
+          <span class="epi-date">{now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          <span class="epi-time">{now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+        </p>
+        <p class="epi-small">This is the clock of the device you are playing on.</p>
+      </div>
+      <TurningRecord />
     </section>
   );
 }

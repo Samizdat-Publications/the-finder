@@ -64,6 +64,13 @@ body {
 .ringlines { position: absolute; inset: 0; width: 100%; height: 100%; }
 .ringlines .track { fill: none; stroke: var(--line); stroke-width: 0.35; stroke-dasharray: 0.6 1.2; }
 .ringlines .track.faint { opacity: 0.45; }
+.ringlines .tick { fill: none; stroke: var(--line); stroke-width: 0.3; }
+.ringlines .tick.major { stroke: var(--cyan); stroke-opacity: 0.5; stroke-width: 0.4; }
+.ringlines .ticks.inner .tick { stroke: var(--cyan); stroke-opacity: 0.3; }
+.ringlines .ticks.outer { transform-origin: 0 0; }
+:root:not(.calm) .ringlines .ticks.outer { animation: dialturn 240s linear infinite; }
+@keyframes dialturn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ringlines .ticks.outer { animation: none !important; } }
 .ringlines .arc { fill: none; stroke: var(--line); stroke-width: 0.5; }
 .ringlines .arc.lit { stroke: var(--cyan); stroke-width: 0.9; filter: drop-shadow(0 0 1.2px var(--cyan)); }
 /* The finished ring: the lit arcs go violet and a slow glow travels along them (reduced motion: held still, same glow). */
@@ -125,11 +132,22 @@ body {
   background: linear-gradient(180deg, rgba(20, 18, 46, 0.9), rgba(8, 7, 26, 0.9));
   border: 1px solid var(--line); border-radius: 8px;
 }
-.frame::before, .frame::after {
-  content: ''; position: absolute; width: 14px; height: 14px; border: 2px solid var(--cyan); opacity: 0.7;
+/* Instrument frames: four thin corner brackets from one rule (a single ::before with eight gradients), on the shared
+   panel classes. The border itself is quieter so the corners read as the frame. Never takes a click. */
+.frame, .kpanel, .sp-panel, .chap { position: relative; border-color: rgba(42, 39, 80, 0.65); }
+.chap { position: absolute; }
+.frame::before, .kpanel::before, .sp-panel::before, .chap::before {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
+  --b: linear-gradient(var(--corner), var(--corner));
+  background:
+    var(--b) left top / 11px 1.5px no-repeat, var(--b) left top / 1.5px 11px no-repeat,
+    var(--b) right top / 11px 1.5px no-repeat, var(--b) right top / 1.5px 11px no-repeat,
+    var(--b) left bottom / 11px 1.5px no-repeat, var(--b) left bottom / 1.5px 11px no-repeat,
+    var(--b) right bottom / 11px 1.5px no-repeat, var(--b) right bottom / 1.5px 11px no-repeat;
 }
-.frame::before { left: -1px; top: -1px; border-right: 0; border-bottom: 0; border-top-left-radius: 8px; }
-.frame::after { right: -1px; bottom: -1px; border-left: 0; border-top: 0; border-bottom-right-radius: 8px; }
+.chap::before { --corner: rgba(79, 240, 196, 0.35); inset: 2px; border-radius: 6px; }
+.chap.done::before { --corner: rgba(155, 123, 255, 0.45); }
+.chap.locked::before, .chap.later::before { --corner: rgba(147, 145, 184, 0.3); }
 .building { margin: 0 0 0.3rem; font-size: 1.15rem; color: var(--cyan); }
 .nodes { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
 .node { padding: 0.65rem 0.8rem; background: var(--bg-raised); border: 1px solid var(--line); border-radius: 8px; }
@@ -160,10 +178,11 @@ body {
   .stage { padding: 0.9rem 0.9rem 4rem; }
   .tools { width: 100%; }
   .tool { flex: 1; justify-content: center; padding: 0.3rem 0.4rem; }
-  .chap { width: 4.4rem; padding: 0.4rem 0.2rem 0.35rem; border-radius: 8px; }
-  .chap .cname { font-size: 0.66rem; }
-  .chap .tag { font-size: 0.56rem; letter-spacing: 0.04em; }
-  .chap .glyph { height: 20px; width: auto; }
+  .chap { width: 5rem; padding: 0.3rem 0.15rem 0.3rem; gap: 0.1rem; border-radius: 8px; }
+  .chap .cname { font-size: 0.75rem; line-height: 1.15; }
+  .chap .tag { font-size: 0.6875rem; letter-spacing: 0.02em; }
+  .chap .glyph { height: 16px; width: auto; }
+  .stage { padding-left: 0.4rem; padding-right: 0.4rem; }
   .core { width: 38%; }
   .core .gloss { font-size: 0.72rem; }
 }

@@ -128,7 +128,7 @@ export function formatSI(dim: Dim, si: number): string {
     if (a < 1e-3) return `${sig(si * 1e6)} µm`;
     if (a < 1) return `${sig(si * 1e3)} mm`;
     if (a < 1000) return `${sig(si)} m`;
-    return `${sig(si / 1000)} km`;
+    return `${grouped.format(Number((si / 1000).toPrecision(3)))} km`;
   }
   if (dim === 'mass') return a >= 1 || a === 0 ? `${sig(si)} kg` : `${sig(si * 1000)} g`;
   if (dim === 'speed') return a >= 1000 ? `${sig(si / 1000)} km/s` : `${sig(si)} m/s`;

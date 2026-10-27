@@ -47,6 +47,24 @@ export function startSound(): void {
     lastTarget = null;
   });
 
+  // A soft knock when a control is pressed (pointer or Enter/Space), and a detent tick as a slider moves, its
+  // pitch following the slider (rate-limited in cues.ts), so the instruments answer the hand.
+  const pressable = (t: EventTarget | null): boolean => t instanceof Element && t.closest(TICKABLE) !== null && t.closest('input[type="range"]') === null;
+  document.addEventListener('pointerdown', (ev) => {
+    if (pressable(ev.target)) cues.fire({ kind: 'press', chapter: game.chapter.peek() });
+  });
+  document.addEventListener('keydown', (ev) => {
+    if ((ev.key === 'Enter' || ev.key === ' ') && !ev.repeat && pressable(ev.target)) cues.fire({ kind: 'press', chapter: game.chapter.peek() });
+  });
+  document.addEventListener('input', (ev) => {
+    const t = ev.target;
+    if (!(t instanceof HTMLInputElement) || t.type !== 'range') return;
+    const lo = Number(t.min || 0);
+    const hi = Number(t.max || 100);
+    const position = hi > lo ? (Number(t.value) - lo) / (hi - lo) : 0.5;
+    cues.fire({ kind: 'detent', chapter: game.chapter.peek(), position });
+  });
+
   const host = document.createElement('div');
   host.id = 'sound-layer';
   document.body.appendChild(host);

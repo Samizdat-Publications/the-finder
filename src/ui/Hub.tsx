@@ -10,6 +10,24 @@ import { send } from './send';
 const STATUS_TEXT: Record<ChapterStatus, string> = { later: 'later', locked: 'locked', open: 'open', done: 'done' };
 const RADIUS = 40; // percent of the ring's box
 
+/** A ring of radial ticks as one path per weight: n ticks, every `major`th one longer. Pure decoration. */
+function tickPaths(n: number, r0: number, short: number, long: number, major: number): { minor: string; major: string } {
+  let minor = '';
+  let big = '';
+  for (let k = 0; k < n; k++) {
+    const t = (k / n) * 2 * Math.PI;
+    const isMajor = major > 0 && k % major === 0;
+    const r1 = r0 + (isMajor ? long : short);
+    const seg = `M${(r0 * Math.cos(t)).toFixed(2)} ${(r0 * Math.sin(t)).toFixed(2)}L${(r1 * Math.cos(t)).toFixed(2)} ${(r1 * Math.sin(t)).toFixed(2)}`;
+    if (isMajor) big += seg;
+    else minor += seg;
+  }
+  return { minor, major: big };
+}
+// The dial: 120 ticks just outside the track (every 10th longer), 36 sparse ticks just inside the faint track.
+const OUTER_TICKS = tickPaths(120, RADIUS + 1.6, 1.1, 2.2, 10);
+const INNER_TICKS = tickPaths(36, RADIUS * 0.62 - 3.2, 1.4, 1.4, 0);
+
 function angle(i: number): number {
   return (i / CHAPTERS.length) * 2 * Math.PI - Math.PI / 2;
 }
@@ -43,6 +61,13 @@ export function Hub() {
         <svg class="ringlines" viewBox="-50 -50 100 100" aria-hidden="true">
           <circle r={RADIUS} class="track" />
           <circle r={RADIUS * 0.62} class="track faint" />
+          <g class="ticks outer">
+            <path class="tick" d={OUTER_TICKS.minor} />
+            <path class="tick major" d={OUTER_TICKS.major} />
+          </g>
+          <g class="ticks inner">
+            <path class="tick" d={INNER_TICKS.minor} />
+          </g>
           {CHAPTERS.map((c, i) => {
             const j = (i + 1) % CHAPTERS.length;
             const a = angle(i);
