@@ -32,8 +32,9 @@ Stewart on the V1.0 draft yet, so M7 ran from the critics' lists. Build session 
   Its two concrete defects fixed (a long chart label cut off at the edge now slides inside; the guide no longer
   opens on a cut-off sentence); the rest carried below for after Stewart's playtest.
 - **Ship pages:** fresh landing clips filmed from the production build (Arrival, The Map, The Trail) and two new
-  sections, Portrait and Our Frame; README screenshots and status. **Not deployed:** the deploy command was
-  refused by the session's permission mode; the live game and landing page still show 2026-10-22's build.
+  sections, Portrait and Our Frame; README screenshots and status. **Deployed 2026-10-27** (after Stewart's go-ahead):
+  the game (Worker version 9eede2f7) and the landing page; live-smoke, live-game and live-tour all pass, and the
+  live bundle carries the new code.
 - **Laptop performance:** everything met and asserted except entering The Map on integrated graphics, recorded,
   not asserted (D-A39).
 - **Tools:** `tools/harness/free-look.mjs` screenshots the ring and chapters in Free play.
@@ -256,8 +257,6 @@ and live-checked.
   panels are dense); Portrait's "They live there" sky as a staged, full-size moment; Our Frame's later sections
   given full-stage pictures; small pulsar labels on the galaxy chart; whether the tour shows more of the alien
   framing; marking stretches in The Voices felt like busywork to the Gemini critic.
-- **Not deployed (2026-10-27):** run `npm run deploy` and `node tools/showcase/build-site.mjs --deploy`, then the
-  live checks (`node tools/harness/live-smoke.mjs`, `live-game.mjs`, `live-tour.mjs`).
 
 - **Portrait with the guide open at 1366x768:** the "Their world" panel scrolls inside itself (a letter clipped
   at its edge); nothing is unreachable.
@@ -306,8 +305,6 @@ and live-checked.
 
 ## Next (exact)
 
-0. **Deploy** (refused by this session's permission mode): `npm run deploy`, `node tools/showcase/build-site.mjs --deploy`,
-   then the three live checks.
 1. **Stewart reviews the V1.0 draft** (the guided tour from the landing page, end to end, with his son if he likes)
    and writes notes at the top of `docs/STEWART_FEEDBACK.md`. Act on them first.
 2. Then the carried critic items above, in the order his notes suggest; a Firefox check (`docs/NEEDS_STEWART.md` item 3).
