@@ -1,6 +1,8 @@
 // The hub: a radial ring of chapter glyphs (locked ones dim, unbuilt ones marked "later"), not a list.
 // Choosing a glyph sends chapter.enter; a refused one explains itself in the shell's notice.
 
+import { useSignal } from '@preact/signals';
+import { dispatch } from '../game/bus';
 import { chapterStatus, type ChapterStatus } from '../game/deductions';
 import { CHAPTERS, chapterDef, nodeDef } from '../game/graph';
 import { confirmedSet, game, visitedSet } from '../game/state';
@@ -55,6 +57,16 @@ export function Hub() {
   // The finished ring: every chapter that is built is done. A slow glow then runs along the lit arcs.
   const builtStatuses = CHAPTERS.filter((c) => c.built).map((c) => chapterStatus(c.id, confirmed, visited));
   const finished = builtStatuses.length > 0 && builtStatuses.every((s) => s === 'done');
+  // Start the tour over (Stewart, 2026-10-28: the tour resumes where it was left, so it could not be watched from
+  // the top again): the same Start over as the settings drawer, then the tour from its first stop.
+  const hasProgress = game.tour.value.step > 0 || game.tour.value.furthest > 0 || confirmed.size > 0;
+  const asking = useSignal(false);
+  const restartTour = (): void => {
+    asking.value = false;
+    dispatch({ type: 'save.reset' })
+      .then(() => dispatch({ type: 'tour.start', step: 0 }))
+      .catch(() => undefined); // a refusal is already in the shell's notice
+  };
   return (
     <section class="hub" aria-label="The ring of chapters" data-ring-finished={finished ? 'true' : 'false'}>
       <div class={`ring${finished ? ' finished' : ''}`}>
@@ -86,8 +98,24 @@ export function Hub() {
         <div class="core">
           <GlyphSvg k="the finder" height={34} />
           <button type="button" class="btn tour-start" data-tour-start onClick={() => send({ type: 'tour.start' })}>
-            {game.tour.value.step > 0 ? 'Resume the guided tour' : 'Start the guided tour'}
+            {hasProgress ? 'Resume the guided tour' : 'Start the guided tour'}
           </button>
+          {hasProgress && !asking.value && (
+            <button type="button" class="tour-restart" data-tour-restart onClick={() => (asking.value = true)}>
+              Start the tour over
+            </button>
+          )}
+          {asking.value && (
+            <div class="confirm tour-restart-confirm" role="alertdialog" aria-label="Confirm starting the tour over">
+              <p>Erase all progress on this device and start from the first step?</p>
+              <button type="button" class="btn small warn" data-confirm-tour-restart onClick={restartTour}>
+                Yes, start over
+              </button>{' '}
+              <button type="button" class="btn small" onClick={() => (asking.value = false)}>
+                Keep my progress
+              </button>
+            </div>
+          )}
           <p class="gloss">or pick any lit chapter to explore on your own</p>
         </div>
         {CHAPTERS.map((c, i) => {

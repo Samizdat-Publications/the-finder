@@ -3,6 +3,17 @@
 Raw notes, newest at the top. These outrank the AI critics. Claude reads this at the start of every
 session and records what it did about each note.
 
+## 2026-10-28 (evening, auditing the tour)
+
+"I need a way to reset the walkthrough because it starts you where you left off last so I can't audit it.
+Needs a reset button somewhere."
+
+What Claude did: Start over already existed but sat at the bottom of the Settings drawer. The ring now shows
+"Start the tour over" under "Resume the guided tour" whenever there is progress; it asks first ("Erase all
+progress on this device and start from the first step?"), then runs the same Start over and opens the tour at
+step 1. A bookmark does the same without asking: `/play/?tour=fresh`. Tested (unit test in
+`src/tour/tour.test.ts`, and the ring, the confirm and the tour's first step looked at in Chrome).
+
 ## 2026-10-28 (priorities before V1.0, before his playtest)
 
 "It being super alien probably is the lowest priority in my opinion. It's now mostly about making the user see

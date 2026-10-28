@@ -93,6 +93,17 @@ describe('tour commands', () => {
     await dispatch({ type: 'save.reset' });
     expect(game.tour.value).toEqual(TOUR_OFF);
   });
+
+  it('starting the tour over (start over, then tour.start at 0) begins at the first stop with nothing confirmed', async () => {
+    confirmAll();
+    await dispatch({ type: 'tour.start', step: arrivalStop });
+    await dispatch({ type: 'tour.exit' });
+    await dispatch({ type: 'save.reset' });
+    await dispatch({ type: 'tour.start', step: 0 });
+    expect(game.tour.value).toEqual({ on: true, step: 0, furthest: 0 });
+    expect(Object.keys(game.records.value)).toHaveLength(0);
+    expect(game.chapter.value).toBe(STOPS[0]?.chapter);
+  });
 });
 
 describe('the saved tour', () => {

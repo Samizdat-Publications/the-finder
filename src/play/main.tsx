@@ -25,15 +25,23 @@ import '../audio/start';
 
 installBootErrors();
 
-/** /play/?tour=1 (or /play/#tour) starts the guided tour once the save is loaded, then the parameter is removed. */
+/**
+ * /play/?tour=1 (or /play/#tour) starts the guided tour once the save is loaded, then the parameter is removed.
+ * /play/?tour=fresh erases the progress first (Start over) and starts the tour from its first stop: a bookmark for
+ * watching the whole tour again.
+ */
 function startTourFromUrl(): void {
   const url = new URL(window.location.href);
-  const asked = url.searchParams.get('tour') === '1' || url.hash === '#tour';
+  const fresh = url.searchParams.get('tour') === 'fresh';
+  const asked = fresh || url.searchParams.get('tour') === '1' || url.hash === '#tour';
   if (!asked) return;
   url.searchParams.delete('tour');
   if (url.hash === '#tour') url.hash = '';
   window.history.replaceState(null, '', url.pathname + url.search + url.hash);
-  dispatch({ type: 'tour.start' }).catch(() => undefined); // a refusal is already in the shell's notice
+  const start = fresh
+    ? dispatch({ type: 'save.reset' }).then(() => dispatch({ type: 'tour.start', step: 0 }))
+    : dispatch({ type: 'tour.start' });
+  start.catch(() => undefined); // a refusal is already in the shell's notice
 }
 
 function storage(): Storage | null {
