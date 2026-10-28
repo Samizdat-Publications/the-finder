@@ -1,8 +1,31 @@
 # PROGRESS
 
-_Last updated: 2026-10-27 by build session 6 (Opus 5.5): M7 (polish) done and gated, waiting for Stewart's playtest. Update after every meaningful chunk._
+_Last updated: 2026-10-28 by build session 6 (Opus 5.5): the V1.0 polish Stewart asked for is done and checked, waiting for his playtest. Update after every meaningful chunk._
 
 ## Current milestone
+
+**The V1.0 polish (2026-10-28, build session 6; plan `docs/plans/V1_polish.md`).** Stewart asked for every carried
+item before his playtest on 2026-10-29, with clarity and a fun "Do it for me" first and the alien feel last. Six
+builders worked in parallel in the shared checkout (separate build folders through `FINDER_DIST`); the lead
+reviewed each one's screenshots and merged:
+- **One main control per instrument** (D-A42): every chapter's panels lead with the step's control; steppers,
+  typed boxes and view toggles fold under "Fine tune"; prose two lines deep with "more"; locked questions one line.
+  The Player's turntable leads at full height; The Pictures' knob panel shows only the step's knob; The Voices'
+  track list shows one face at a time.
+- **"Do it for me" shows its work** in every chapter: sliders sweep, the needle is dragged out, marks grow,
+  charts ease onto their star, then a beat on the result (instant with reduced motion).
+- **The Voices:** marking a stretch shows what it holds as you drag (held calls traced at their pitch, from the
+  checker's own measurement, inside your stretch only) and plays it on release.
+- **Portrait:** "They live there" is a full-stage sky, with "See the sky" in free play; the clocks axis title
+  no longer runs into its first tick.
+- **Our Frame:** each later section leads with a full-width picture; new "Where they are tonight" (the two
+  Voyagers placed from the Horizons ephemeris, true directions, squeezed distances stated; tested against
+  Horizons' own ecliptic numbers).
+- **Galaxy chart:** each matched pulsar tagged with its cover line; the Galactic centre label cut to its name and
+  distance. **Captions** use the top bar's real free width (one line from 1280 wide).
+- **Checked:** full check green (212 of 212 records, the whole-tour bot included); the Gemini critic on a fresh
+  film (`docs/reviews/2026-10-28-V1-polish-gemini-critic.md`): satisfaction 5 to 7, clarity 9, layout 9 to 7 (the
+  guide's reading panels), alien feel 4 to 3. Not yet deployed.
 
 **M7, polish and ship: done 2026-10-27 (build sessions 5 and 6; checklist `docs/plans/M7.md`).** No notes from
 Stewart on the V1.0 draft yet, so M7 ran from the critics' lists. Build session 6 (2026-10-27):
@@ -253,18 +276,12 @@ and live-checked.
 
 - **Entering The Map on a laptop GPU (D-A38):** about half the time one 130 to 450 ms freeze inside the browser's
   first WebGL call. The fix is drawing the charts in a Worker (OffscreenCanvas); then assert `perf.igpu.enterMap`.
-- **Carried from the M7 gate's critics (for after Stewart's playtest), in Stewart's order (2026-10-28: value,
-  clarity, and "Do it for me" as fun as doing it by hand; the alien feel last):**
-  1. A hero-control pass per instrument: each panel leads with the one control the step needs, the rest
-     folded or quieter (the panels are dense).
-  2. "Do it for me" made as satisfying as the hands-on way: it should visibly perform the action (the needle
-     moving, the slider sweeping, the picture developing), then say what it found and why it matters.
-  3. Every step's payoff stated so the value lands: what we now know that we did not before.
-  4. Marking stretches in The Voices felt like busywork to the Gemini critic.
-  5. Portrait's "They live there" sky as a staged, full-size moment; Our Frame's later sections given
-     full-stage pictures; small pulsar labels on the galaxy chart.
-  6. Last: whether the tour shows more of the alien framing (the Gemini critic's alien score fell from 7 to 4;
-     Stewart rates it lowest priority).
+- **Carried (after the V1.0 polish, 2026-10-28), in Stewart's order:** items 1 to 5 of the M7 critics' list are
+  done (one main control per instrument, Do it for me that shows its work, The Voices' stretch marking, Portrait's
+  sky, Our Frame's pictures, the galaxy chart's line tags). Left for his playtest to settle: (1) whether the guide
+  shows less, since the Gemini critic found "What we just learned" and "The real story" read as walls of text and
+  the guide explains before the player tries; (2) the control sounds (D-A40) felt cheap to it; (3) last, the alien
+  feel (score 3), which Stewart ranks lowest.
 
 - **Portrait with the guide open at 1366x768:** the "Their world" panel scrolls inside itself (a letter clipped
   at its edge); nothing is unreachable.
