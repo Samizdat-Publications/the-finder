@@ -81,6 +81,7 @@
 .pt-clocksub { fill: var(--text-dim); font: 11px var(--font-sans); }
 .pt-axis { stroke: var(--pt-rule); stroke-width: 1; }
 .pt-tick { stroke: var(--pt-rule); }
+.pt-axistitle { fill: var(--text-dim); font: 12px var(--font-sans); letter-spacing: 0.04em; }
 .pt-ticklabel { fill: var(--text-dim); font: 12px var(--font-mono); }
 .pt-combined rect { fill: rgba(232, 182, 74, 0.2); stroke: var(--pt-gold); stroke-width: 1; }
 .pt-combined text { fill: var(--pt-gold); font: 600 12px var(--font-sans); }
@@ -143,3 +144,19 @@
   .pt-body, .pt-lines { gap: 0.15rem; }
   .pt-line { font-size: 0.83rem; line-height: 1.28; }
 }
+
+/* the full-stage sky: the plate steps aside (kept mounted, hidden) while the Finder's sky fills the stage */
+.pt-plate.hidden { visibility: hidden; }
+.portrait { position: relative; }
+.pt-fullsky { position: absolute; inset: 0; z-index: 3; overflow: hidden; border-radius: 14px; border: 1px solid rgba(232, 182, 74, 0.45); background: radial-gradient(ellipse at 50% 30%, #15122c 0%, #0a0920 55%, #04030e 100%); }
+.pt-skydrift { position: absolute; inset: 0; }
+.pt-fullsky .pt-stargloss { font-size: 18px; }
+.pt-seesky { position: absolute; right: 0.6rem; top: 0.4rem; z-index: 2; font: 600 0.72rem var(--font-sans); color: var(--pt-gold); background: rgba(4, 3, 14, 0.75); border: 1px solid var(--pt-gold); border-radius: 999px; padding: 0.2rem 0.7rem; cursor: pointer; }
+.pt-seesky:hover, .pt-seesky:focus-visible { background: rgba(232, 182, 74, 0.18); }
+.pt-skyback { position: absolute; left: 1rem; top: 1rem; z-index: 2; border-color: var(--pt-gold, var(--gold)); color: var(--gold); background: rgba(4, 3, 14, 0.75); }
+@keyframes ptdrift { from { transform: translate3d(-1.2%, -0.8%, 0) scale(1.03); } to { transform: translate3d(1.2%, 0.8%, 0) scale(1.03); } }
+@keyframes pttwinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+:root:not(.calm) .pt-fullsky:not(.still) .pt-skydrift { animation: ptdrift 40s ease-in-out infinite alternate; }
+:root:not(.calm) .pt-fullsky:not(.still) .sky-star:not(.origin) circle { animation: pttwinkle 4.3s ease-in-out infinite; }
+:root:not(.calm) .pt-fullsky:not(.still) .sky-star:nth-child(3n) circle { animation-duration: 5.7s; animation-delay: -1.3s; }
+:root:not(.calm) .pt-fullsky:not(.still) .sky-star:nth-child(3n+1) circle { animation-duration: 3.4s; animation-delay: -2.1s; }

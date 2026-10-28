@@ -556,7 +556,7 @@ export const STOPS: readonly Stop[] = [
     id: 'portrait.sky', part: 'portrait', kind: 'story', chapter: 'portrait',
     title: 'They live there',
     look:
-      `Across the top of the plate is the Finder's own night sky. The ringed star is the **warm-white star**: the senders' star, our nearest neighbour and one of the brightest stars in our sky.\n\n` +
+      `This is the Finder's own night sky. The ringed star is the **warm-white star**: the senders' star, our nearest neighbour and one of the brightest stars in our sky.\n\n` +
       `Somewhere around it is a small third world full of voices, music and whales. They sent us a record of themselves, and they wanted to be found.`,
     human: `The warm-white star is our Sun, and the third world is Earth. Their name for themselves, which the Finder will never know, is "humans".`,
     ask: 'If you were the Finder, would you answer them? What would you send back?',

@@ -5,6 +5,7 @@
 // confirmed result. Reduced motion: the final picture, still. The strip is the same sky as a band across the top
 // of the plate, cropped around the ringed star. Nothing here changes game state.
 
+import { signal } from '@preact/signals';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import type { Attempt } from '../../game/deductions';
 import { game } from '../../game/state';
@@ -49,6 +50,31 @@ function SendersSky(p: { m: EpochModel | null; reducedMotion: boolean }) {
   return (
     <div class={`pt-moment${p.reducedMotion ? ' still' : ''}`} data-moment-backdrop="portrait.together">
       <SkyBackdrop m={p.m} ring={false} overlay={(t) => <SendersMark x={t.x} y={t.y} r={t.r} still={p.reducedMotion} left={t.x > t.w * 0.72} />} />
+    </div>
+  );
+}
+
+/** Free play: the full-stage sky, opened by the strip's "See the sky" button and closed by "Back to the plate". */
+export const skyOpen = signal(false);
+
+/**
+ * The full-stage sky: the plate gives way to the Finder's sky at stage size, the warm-white star ringed and named,
+ * the sky drifting slowly and its stars twinkling (both held still with reduced motion). The tour's "They live
+ * there" stop shows it by itself; in free play `onBack` adds a way back to the plate.
+ */
+export function FullSky(p: { onBack?: () => void }) {
+  const m = useSkyModel();
+  const still = game.settings.value.reducedMotion;
+  return (
+    <div class={`pt-fullsky${still ? ' still' : ''}`} data-full-sky={m ? 'ready' : 'waiting'}>
+      <div class="pt-skydrift">
+        <SkyBackdrop m={m} ring={false} overlay={(t) => <SendersMark x={t.x} y={t.y} r={t.r} still={still} left={t.x > t.w * 0.72} />} />
+      </div>
+      {p.onBack && (
+        <button type="button" class="btn pt-skyback" data-sky-back="" onClick={p.onBack}>
+          Back to the plate
+        </button>
+      )}
     </div>
   );
 }
@@ -99,6 +125,9 @@ export function SkyStrip() {
   const at = (xy: [number, number]): [number, number] => [w / 2 + xy[0] * R, h / 2 - xy[1] * (R / 2) - ty];
   return (
     <div class="pt-strip" ref={ref} data-sky-strip={target ? 'ready' : 'waiting'}>
+      <button type="button" class="pt-seesky" data-see-sky="" onClick={() => (skyOpen.value = true)}>
+        See the sky
+      </button>
       {sky && target && w > 0 && (
         <svg width={w} height={h} role="img" aria-label="Your sky, with the senders' star ringed in gold">
           <line class="pt-stripplane" x1={0} x2={w} y1={h / 2 - ty} y2={h / 2 - ty} />

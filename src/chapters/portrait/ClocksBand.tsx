@@ -24,7 +24,7 @@ import { lastOk, marker, playerClocks, setAxis } from './state';
 const ID = PORTRAIT_NODE;
 const PAD_L = 150;
 const PAD_R = 22;
-const AXIS_H = 40;
+const AXIS_H = 58;
 const TOP = 24;
 
 /** A round step for the marker, years: about a four-hundredth of the axis, rounded to 1, 2 or 5 times a power of ten. */
@@ -167,12 +167,12 @@ export function ClocksBand() {
               {ticks.map((t) => (
                 <g key={t.years}>
                   <line class="pt-tick" x1={x(t.years)} x2={x(t.years)} y1={h - AXIS_H + 6} y2={h - AXIS_H + 11} />
-                  <text class="pt-ticklabel" x={x(t.years)} y={h - AXIS_H + 26} text-anchor="middle">
+                  <text class="pt-ticklabel" x={x(t.years)} y={h - AXIS_H + 29} text-anchor="middle">
                     {t.label}
                   </text>
                 </g>
               ))}
-              <text class="pt-ticklabel" x={PAD_L - 12} y={h - AXIS_H + 26} text-anchor="end">
+              <text class="pt-axistitle" x={(PAD_L + w - PAD_R) / 2} y={h - AXIS_H + 47} text-anchor="middle">
                 beats before now
               </text>
               {m !== null && (
@@ -196,7 +196,7 @@ export function ClocksBand() {
               aria-disabled={done || status !== 'open' ? 'true' : undefined}
               data-portrait-marker=""
               data-value={m}
-              style={{ left: `${x(m)}px`, top: `${h - AXIS_H - 4}px` }}
+              style={{ left: `${x(m)}px`, top: `${h - AXIS_H - 8}px` }}
               onKeyDown={onKey}
               onPointerDown={(e) => {
                 if (done) return;

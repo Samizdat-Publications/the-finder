@@ -11,7 +11,8 @@ import { ensureParts, loadEpochModel } from '../shared/epochModel';
 import { activeMoment } from '../../ui/momentState';
 import { ClocksBand } from './ClocksBand';
 import { PORTRAIT_NODE } from './checkers';
-import { SkyStrip } from './moments';
+import { STOPS } from '../../tour/script';
+import { FullSky, SkyStrip, skyOpen } from './moments';
 import { LookPanel, MachinePanel, NumbersPanel, StarPanel, VoicesPanel, WorldPanel } from './panels';
 import { ensurePlatePictures } from './pictures';
 import './portrait.css';
@@ -19,6 +20,10 @@ import './portrait.css';
 export function PortraitInstrument() {
   const done = confirmedSet.value.has(PORTRAIT_NODE);
   const showStrip = done && activeMoment.value?.id !== PORTRAIT_NODE;
+  // The tour's "They live there" stop shows the sky by itself; the plate returns when the stop changes.
+  const tour = game.tour.value;
+  const tourSky = tour.on && STOPS[tour.step]?.id === 'portrait.sky';
+  const sky = tourSky || (done && skyOpen.value);
   useEffect(() => {
     void ensurePlatePictures().catch(() => undefined);
     // The sky the moment and the strip draw needs the epoch model's trail (from the Worker): ask for it now, so the
@@ -29,7 +34,8 @@ export function PortraitInstrument() {
   }, []);
   return (
     <div class="portrait" data-instrument="portrait" data-done={done ? 'true' : 'false'}>
-      <div class={`pt-plate${showStrip ? ' with-strip' : ''}`}>
+      {sky && <FullSky onBack={tourSky ? undefined : () => (skyOpen.value = false)} />}
+      <div class={`pt-plate${sky ? ' hidden' : ''}${showStrip ? ' with-strip' : ''}`}>
         {showStrip && <SkyStrip />}
         <div class="pt-row">
           <StarPanel />
