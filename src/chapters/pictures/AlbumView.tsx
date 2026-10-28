@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useRef } from 'preact/hooks';
 import { compose } from '../../dsp/colour';
 import { confirmedSet, decoder as D } from '../../game/state';
+import { Clamp } from '../../ui/Fine';
 import { send } from '../../ui/send';
 import { album, benchSettings, developOne, developSide, developing, runningSide, stopSide } from './album';
 import { nodeStatus } from '../../game/deductions';
@@ -98,7 +99,7 @@ export function ColourMixer() {
   const status = confirmedSet.value.has('pictures.colour');
   return (
     <div class="pic-work pic-mixer" data-work="colour">
-      <p class="note">Pick a picture in the album: it and the two after it on its track go onto the mixer as three primaries.</p>
+      <Clamp>Pick a picture in the album: it and the two after it on its track go onto the mixer as three primaries.</Clamp>
       {three && (
         <div class="pic-mix-row">
           <div class="pic-mix-greys">
@@ -128,13 +129,13 @@ export function TurnTable() {
   const done = confirmedSet.value.has('pictures.down');
   return (
     <div class="pic-work pic-turn" data-work="turn">
-      <p class="note">Pick a picture in the album and turn it until it looks like the world it shows: people standing, water lying flat.</p>
+      <Clamp>Pick a picture in the album and turn it until it looks like the world it shows: people standing, water lying flat.</Clamp>
       {f && (
         <div class="pic-turn-row">
           <div class="pic-turn-stage">
             <Crop frame={f} label={`Frame ${f}, turned`} scale={0.62} turns={t} />
           </div>
-          <div class="pic-turn-tools">
+          <div class="pic-turn-tools hero-control">
             <button type="button" class="btn small" data-turn="-1" onClick={() => (quarterTurns.value = (t + 3) % 4)}>
               Turn anticlockwise
             </button>

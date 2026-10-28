@@ -240,7 +240,7 @@ export const STOPS: readonly Stop[] = [
     id: 'pictures.lineTime', part: 'pictures', kind: 'do', chapter: 'pictures', node: 'pictures.lineTime',
     title: 'How long is one line?',
     look: 'The cover gives the time of one picture line, in ticks of hydrogen, as a number beside the little wave. Our key reads it for us.',
-    todo: `Type the cover's line time, ${sig5(lineBeats)} beats, into the **Line time** box and press Enter. Watch the picture straighten up, then press **Propose this line time**.`,
+    todo: `Drag the **Line time** slider until the picture stops slanting. The cover says ${sig5(lineBeats)} beats: to type it exactly, open **Fine tune** under the slider and press Enter. Then press **Propose this line time**.`,
     why: `One line lasts about ${sig3(lineMs)} thousandths of a second. With the right line time, the slanted mess starts to stand up straight.`,
   },
   {
@@ -272,7 +272,7 @@ export const STOPS: readonly Stop[] = [
     id: 'pictures.aspect', part: 'pictures', kind: 'do', chapter: 'pictures', node: 'pictures.aspect',
     title: 'Make the circle round',
     look: 'The circle is there now, but squashed. How many rows tall is each line? That sets the shape of the picture.',
-    todo: 'Use the buttons under **Rows per picture** (**«** jumps by ten, **‹** by one) to bring the number down until the circle is perfectly round, not an oval. Then press **Propose these rows**.',
+    todo: 'Drag the **Rows per picture** slider down (open **Fine tune** for steps of ten or one) until the circle is perfectly round, not an oval. Then press **Propose these rows**.',
     why: 'When the circle is round, the picture has its true shape. Every other picture on the disc will now come out with the right proportions.',
   },
   {

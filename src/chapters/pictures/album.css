@@ -113,3 +113,21 @@
 .pm-reach span { position: absolute; left: 22px; bottom: 0; white-space: nowrap; font-size: var(--fs-label); color: var(--cyan); }
 :root:not(.calm) .pm-height:not(.still) .pm-reach { animation: pmreach 1.6s ease-out 0.5s both; transform-origin: bottom; }
 @keyframes pmreach { from { transform: scaleY(0); } }
+
+/* The hero-control pass (V1_polish.md): each work view's explanation two lines deep; its Propose button stays in
+   sight at the foot of the view while the view scrolls; the counting rows narrower so the ten numerals fit on one line. */
+.pic-work > .clamp-wrap .clamp { font-size: var(--fs-label); }
+.pic-work > [data-propose-button] { position: sticky; bottom: 0; z-index: 2; align-self: flex-start; background: var(--bg-sunk); box-shadow: 0 -0.4rem 0.8rem rgba(8, 7, 26, 0.85); }
+.pic-work > [data-propose-button]:hover { background: linear-gradient(rgba(79, 240, 196, 0.12), rgba(79, 240, 196, 0.12)), var(--bg-sunk); }
+.pic-digit-rows li { grid-template-columns: 6rem 4.6rem 3.2rem minmax(0, 1fr); gap: 0.4rem; }
+.pic-digit-pick { gap: 1px; }
+.pic-npick { padding: 1px 2px; }
+.pic-converter.hero-control { border-color: rgba(79, 240, 196, 0.35); }
+.pic-converter .hero-readout { font-size: 1.15rem; }
+/* The figures: the converter beside the picture on a screen with room, so its Propose stays in sight. */
+@media (min-width: 1000px) {
+  .pic-height-row { flex-wrap: nowrap; }
+  .pic-height-row > .pic-crop { flex: none; }
+  .pic-height-tools { flex: 1 1 0; min-width: 0; }
+  .pic-height-tools .pic-converter { max-width: 100%; }
+}

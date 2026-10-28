@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'preact/hooks';
 import { nodeStatus, type Answer } from '../../game/deductions';
 import { dispatch } from '../../game/bus';
 import { confirmedSet, decoder as D } from '../../game/state';
+import { Clamp, Fine } from '../../ui/Fine';
 import { alignOpenPanel } from '../../ui/notebook';
 import { send } from '../../ui/send';
 import { LastReading, PanelHead } from '../key/parts';
@@ -73,7 +74,7 @@ function Panel(p: { id: PictureNodeId; children?: ComponentChildren }) {
   return (
     <section class={`kpanel pic-panel ${status}`} data-panel={p.id} data-status={status}>
       <PanelHead id={p.id} />
-      {status === 'open' && <p class="note">{TEXT[p.id].how}</p>}
+      {status === 'open' && <Clamp>{TEXT[p.id].how}</Clamp>}
       {p.children}
       {status === 'open' && (
         <button type="button" class="btn small" data-propose-button={p.id} onClick={() => send({ type: 'deduction.propose', id: p.id, answer: answerFor(p.id) })}>
@@ -103,26 +104,30 @@ function FollowingFrames() {
   const busy = D.status.value === 'revealing' || D.status.value === 'loading' || D.status.value === 'decoding';
   return (
     <div class="pic-follow">
-      <div class="pic-row">
-        <button type="button" class="btn small" disabled={busy} onClick={() => void playOn().catch(() => undefined)} data-play-on="">
+      <div class="hero-control pic-row pic-play">
+        <button type="button" class="btn" disabled={busy} onClick={() => void playOn().catch(() => undefined)} data-play-on="">
           Play on
         </button>
-        {FIRST_FRAMES.map((f) => (
-          <button
-            key={f}
-            type="button"
-            class={`btn small pic-frame-btn${seen.includes(f) ? ' seen' : ''}`}
-            disabled={busy}
-            data-develop={f}
-            onClick={() => void develop(f).catch(() => undefined)}
-          >
-            {f}
-          </button>
-        ))}
+        <span class="pic-watched">
+          Watched: <b class="hero-readout">{seen.length}</b> of {FRAMES_TO_WATCH} needed.
+        </span>
       </div>
-      <p class="note">
-        Watched: {seen.length} of {FRAMES_TO_WATCH} needed.
-      </p>
+      <Fine label="One picture at a time">
+        <div class="pic-row">
+          {FIRST_FRAMES.map((f) => (
+            <button
+              key={f}
+              type="button"
+              class={"btn small pic-frame-btn" + (seen.includes(f) ? ' seen' : '')}
+              disabled={busy}
+              data-develop={f}
+              onClick={() => void develop(f).catch(() => undefined)}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      </Fine>
     </div>
   );
 }

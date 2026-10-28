@@ -6,6 +6,7 @@
 import type { Answer } from '../../game/deductions';
 import { nodeStatus } from '../../game/deductions';
 import { confirmedSet } from '../../game/state';
+import { Clamp } from '../../ui/Fine';
 import { send } from '../../ui/send';
 import { LastReading, PanelHead } from '../key/parts';
 import { album, benchSettings } from './album';
@@ -57,7 +58,7 @@ function Panel(p: { id: M5PictureId }) {
   return (
     <section class={`kpanel pic-panel ${status}`} data-panel={p.id} data-status={status}>
       <PanelHead id={p.id} />
-      {status === 'open' && <p class="note">{t.how}</p>}
+      {status === 'open' && <Clamp>{t.how}</Clamp>}
       {status !== 'locked' && (
         <div class="pic-row">
           <button type="button" class={`btn small${here ? ' on' : ''}`} data-work-open={t.work} onClick={() => (view.value = t.work)}>

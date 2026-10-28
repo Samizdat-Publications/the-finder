@@ -7,6 +7,7 @@
 import { confirmedSet } from '../../game/state';
 import { readDigits } from '../../science/teaching';
 import { T_H_SECONDS } from '../../science/units';
+import { Clamp } from '../../ui/Fine';
 import { send } from '../../ui/send';
 import { BEAT_S, REACH_M, formatNumber } from '../../ui/units';
 import { uprightTurns } from './AlbumView';
@@ -59,17 +60,17 @@ export function NumeralsView() {
   const bin = (row: number) => TEACHING.L002.binary.find((b) => b.row === row);
   return (
     <div class="pic-work pic-numerals-view" data-work="numerals">
-      <p class="note">The counting picture: dots, the cover's strokes, then a mark of their own. Set one of your numerals beside each of their marks.</p>
+      <Clamp>The counting picture: dots, the cover's strokes, then a mark of their own. Set one of your numerals beside each of their marks.</Clamp>
       <ol class="pic-digit-rows">
         {digits.map((d) => {
           const dt = dots(d.row);
           const b = bin(d.row);
           return (
             <li key={d.glyph} data-digit-row={d.glyph}>
-              <span class="pic-digit-dots">{dt && <Crop frame="L002" region={dt.region} label="a row of dots" scale={1.3} />}</span>
-              <span class="pic-digit-bin">{b && <Crop frame="L002" region={b.region} label="the cover's strokes" scale={1.3} />}</span>
+              <span class="pic-digit-dots">{dt && <Crop frame="L002" region={dt.region} label="a row of dots" scale={1.3} maxWidth={92} />}</span>
+              <span class="pic-digit-bin">{b && <Crop frame="L002" region={b.region} label="the cover's strokes" scale={1.3} maxWidth={68} />}</span>
               <span class="pic-digit-their">
-                <Crop frame="L002" region={d.region} label="their mark" scale={1.6} />
+                <Crop frame="L002" region={d.region} label="their mark" scale={1.6} maxWidth={46} />
                 {d.value === 0 && <span class="note">its second mark</span>}
               </span>
               <span class="pic-digit-pick" role="group" aria-label="your numeral for this mark">
@@ -137,7 +138,7 @@ export function UnitsView() {
         <Crop frame="L003" region={lines.find((l) => l.id === 'atom')!.region} label="the atom drawings: one atom, one spin flip" scale={1.2} />
         <Crop frame="L003" region={second.region} label="their line about the spin flip" scale={1.8} class="pic-units-line" />
       </div>
-      <fieldset class="pic-converter" disabled={done}>
+      <fieldset class="pic-converter hero-control" disabled={done}>
         <legend>Converter: a count of spin flips (the cover's unit) into your beats</legend>
         <label>
           whole <input type="number" min="0" value={r.whole} onInput={set('whole')} data-reading="whole" />
@@ -149,7 +150,7 @@ export function UnitsView() {
         <label>
           × 10 to the <input type="number" min="0" max="40" value={r.power} onInput={set('power')} data-reading="power" />
         </label>
-        <output data-converter-beats={beats}>
+        <output class="hero-readout" data-converter-beats={beats}>
           = {fmt(beats)} beats
         </output>
       </fieldset>
@@ -184,7 +185,7 @@ export function PlanetsView() {
   const cols = TEACHING.table.columns;
   return (
     <div class="pic-work pic-planets" data-work="planets">
-      <p class="note">{slipOpen ? 'Mark the one cell that does not follow the table\'s own rules.' : 'Their table of circles, both pictures side by side. Mark the world that is theirs.'}</p>
+      <Clamp>{slipOpen ? 'Mark the one cell that does not follow the table\'s own rules.' : 'Their table of circles, both pictures side by side. Mark the world that is theirs.'}</Clamp>
       {(['L004', 'L005'] as const).map((frame) => {
         const mine = cols.filter((c) => c.frame === frame);
         return (
@@ -251,12 +252,12 @@ export function HeightView() {
           {TEACHING.L039.heights.map((h) => (
             <Crop key={h.figure} frame="L039" region={h.region} label="a number beside a scale bar" scale={1.6} />
           ))}
-          <fieldset class="pic-converter" disabled={done}>
+          <fieldset class="pic-converter hero-control" disabled={done}>
             <legend>Converter: their centimetres (a 21st of the hydrogen wave) into your reaches</legend>
             <label>
               <input type="number" min="0" value={cm} onInput={(e) => (heightCm.value = Number((e.target as HTMLInputElement).value) || 0)} data-reading="cm" /> cm
             </label>
-            <output data-converter-reaches={reaches}>= {fmt(reaches)} reaches</output>
+            <output class="hero-readout" data-converter-reaches={reaches}>= {fmt(reaches)} reaches</output>
           </fieldset>
           {!done && (
             <button type="button" class="btn small" data-propose-button="pictures.height" onClick={() => send({ type: 'deduction.propose', id: 'pictures.height', answer: { reaches } })}>
