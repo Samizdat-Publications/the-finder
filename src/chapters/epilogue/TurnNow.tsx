@@ -1,12 +1,14 @@
 // Our Frame, sections 1 and 2. "The turn": the game steps out of the fiction into the viewer's own time, with
 // the viewer's own clock. "Right now": where both Voyagers are this second, in kilometres, hours and years,
 // computed in the browser from the JPL Horizons tables (src/science/voyagerNow.ts, the same maths as the tour's
-// last card), and the moment Voyager 1 is one light-day from Earth.
+// last card), and the moment Voyager 1 is one light-day from Earth. The picture above them (SkyTonight.tsx) shows
+// where the two are around the Sun, from the same tables.
 
 import { useEffect, useState } from 'preact/hooks';
 import { lightDayUtcMs, voyagerNow, type EphemerisBodies, type VoyagerNow } from '../../science/voyagerNow';
 import { epilogue, loadEphemeris } from './epilogueData';
 import { grouped, hoursMinutes, lightDaySentence } from './format';
+import { SkyTonight } from './SkyTonight';
 import { TurningRecord } from './TurningRecord';
 
 /** The viewer's clock, ticking once a second. */
@@ -96,8 +98,9 @@ export function Now() {
   const ld = bodies ? lightDayUtcMs(bodies) : null;
   return (
     <section class="epi-sec epi-now" data-epilogue-section="now" aria-labelledby="epi-now-h">
+      {bodies && positions ? <SkyTonight bodies={bodies} at={clock} /> : <div class="epi-picture epi-picture-wait" data-epilogue-picture="now" aria-hidden="true" />}
       <h2 id="epi-now-h" class="epi-head">
-        Right now
+        Where they are tonight
       </h2>
       {problem && <p class="epi-small" role="alert">Could not compute the positions: {problem}</p>}
       {!positions && !problem && <p class="epi-small">Computing where they are...</p>}

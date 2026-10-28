@@ -1,7 +1,8 @@
 // Our Frame, section 4: the real Gliese 445 pass. Our number is computed live from the Gaia DR3 star table and
 // the Horizons state of Voyager 1 (src/science/epoch.ts); beside it the published ones from data/epilogue.json,
 // and a drawing of the Sun, Voyager 1's path, Gliese 445's path and the closest approach (future.ts says how the
-// flat drawing keeps every distance true).
+// flat drawing keeps every distance true). The drawing is the section's picture, first and as large as the stage
+// allows at its true shape, with its key beside it; the table follows.
 
 import { useMemo } from 'preact/hooks';
 import { epilogue, nearStars, scenario } from './epilogueData';
@@ -82,59 +83,72 @@ export function Future() {
   const f = useMemo(() => futureDiagram(scenario, nearStars), []);
   const pub = epilogue.gliese445.published[0];
   const nasa = epilogue.gliese445.nasaPopular;
+  const ad = (t: number): string => `AD ${sig(t, 3)}`;
   return (
     <section class="epi-sec epi-future" data-epilogue-section="future" aria-labelledby="epi-future-h">
-      <h2 id="epi-future-h" class="epi-head">
-        The slow future
-      </h2>
-      <div class="epi-future-body">
-        <div>
-          <Diagram f={f} />
+      <figure class="epi-picture epi-future-pic" data-epilogue-picture="future">
+        <Diagram f={f} />
+        <figcaption class="epi-legend">
+          <p class="epi-key">
+            <span class="sw v1" aria-hidden="true" />
+            <span>Voyager 1, flying out from the Sun along its line of flight</span>
+          </p>
+          <p class="epi-key">
+            <span class="sw gl" aria-hidden="true" />
+            <span>
+              Gliese 445, the Finder's star, from {ad(f.years[0] as number)} to {ad(f.years[f.years.length - 1] as number)}
+            </span>
+          </p>
+          <p class="epi-key">
+            <span class="sw gap" aria-hidden="true" />
+            <span>
+              Closest approach: {sig(f.minDistPc, 3)} pc ({sig(f.minDistLy, 2)} light-years), about {ad(f.adYear)}
+            </span>
+          </p>
           <p class="epi-small" data-epilogue-diagram-note>
             Drawn flat, to scale: across is the distance along Voyager 1's line of flight, up is the distance from that line. Every distance to the Sun, and every distance between Voyager 1 and the star, is true;
             only the direction around the line is dropped.
           </p>
-        </div>
-        <div class="epi-future-side">
-          <p class="epi-lead small">That is where this story was set.</p>
-        <table class="epi-table compact" data-epilogue-pass>
-          <thead>
-            <tr>
-              <th scope="col">Who</th>
-              <th scope="col">Closest</th>
-              <th scope="col">When</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr data-pass="ours">
-              <th scope="row">This game, from Gaia DR3</th>
-              <td data-pass-distance>
-                {sig(f.minDistPc, 3)} pc ({sig(f.minDistLy, 2)} light-years)
-              </td>
-              <td data-pass-years={Math.round(f.yearsAfterLaunch)}>
-                {sig(f.yearsAfterLaunch, 3)} years after launch, about AD {sig(f.adYear, 3)}
-              </td>
-            </tr>
-            {pub && (
-              <tr data-pass="published">
-                <th scope="row">{pub.who}</th>
-                <td>
-                  {pub.pc} pc ({sig(pub.lightYears, 2)} light-years)
-                </td>
-                <td data-pass-from={pub.fromYear}>{(pub.years / 1000).toFixed(1)} thousand years from about {pub.fromYear}</td>
-              </tr>
-            )}
-            <tr data-pass="nasa">
-              <th scope="row">NASA, popular wording</th>
+        </figcaption>
+      </figure>
+      <h2 id="epi-future-h" class="epi-head">
+        The slow future
+      </h2>
+      <p class="epi-lead small">That is where this story was set.</p>
+      <table class="epi-table compact" data-epilogue-pass>
+        <thead>
+          <tr>
+            <th scope="col">Who</th>
+            <th scope="col">Closest</th>
+            <th scope="col">When</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-pass="ours">
+            <th scope="row">This game, from Gaia DR3</th>
+            <td data-pass-distance>
+              {sig(f.minDistPc, 3)} pc ({sig(f.minDistLy, 2)} light-years)
+            </td>
+            <td data-pass-years={Math.round(f.yearsAfterLaunch)}>
+              {sig(f.yearsAfterLaunch, 3)} years after launch, about AD {sig(f.adYear, 3)}
+            </td>
+          </tr>
+          {pub && (
+            <tr data-pass="published">
+              <th scope="row">{pub.who}</th>
               <td>
-                about {nasa.lightYears} light-years
+                {pub.pc} pc ({sig(pub.lightYears, 2)} light-years)
               </td>
-              <td>about {nasa.years.toLocaleString('en-US')} years</td>
+              <td data-pass-from={pub.fromYear}>{(pub.years / 1000).toFixed(1)} thousand years from about {pub.fromYear}</td>
             </tr>
-          </tbody>
-        </table>
-        </div>
-      </div>
+          )}
+          <tr data-pass="nasa">
+            <th scope="row">NASA, popular wording</th>
+            <td>about {nasa.lightYears} light-years</td>
+            <td>about {nasa.years.toLocaleString('en-US')} years</td>
+          </tr>
+        </tbody>
+      </table>
     </section>
   );
 }

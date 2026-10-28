@@ -2,6 +2,7 @@
 // short sections, one on screen at a time, moved through with a large Next button (or the arrow keys and Page
 // Down), a dot row to go back, and the record playing quietly under all of it (recordSound.ts, through the
 // command bus). No deductions here, no glyphs: a plain-type rule at the top marks the break from the story.
+// After the turn, every section leads with one full-width picture at the top of the stage and its words beneath.
 
 import type { JSX } from 'preact';
 import { signal } from '@preact/signals';
@@ -111,7 +112,7 @@ export function EpilogueInstrument() {
       <p class="epi-rule">
         <span>Now, our side of the story</span>
       </p>
-      <div class="epi-stage" key={id}>
+      <div class="epi-stage" key={id} data-stage={id}>
         <View />
       </div>
       <nav class="epi-nav" aria-label="Sections of Our Frame">

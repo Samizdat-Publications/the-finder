@@ -1,6 +1,7 @@
 // Our Frame, section 3: the ten instruments on each Voyager, which still run and, for the rest, the date each
 // was switched off and why (power, or the instrument itself degraded). Every row comes from data/epilogue.json,
-// which comes from NASA's pages (docs/research/epilogue.md section 1).
+// which comes from NASA's pages (docs/research/epilogue.md section 1). The rows of lights are the section's picture,
+// first and large; the words follow.
 
 import { nodeDef } from '../../game/graph';
 import { dateLong } from './format';
@@ -36,7 +37,14 @@ function Lamp(p: { craft: CraftInstruments; row: InstrumentRow }) {
           {row.code}
         </span>
         <span class="epi-lamp-year" aria-hidden="true">
-          {row.on ? 'running' : firstOff(row).slice(0, 4)}
+          {row.on ? (
+            <>
+              <span class="epi-long">running</span>
+              <span class="epi-short">on</span>
+            </>
+          ) : (
+            firstOff(row).slice(0, 4)
+          )}
         </span>
         <span class="epi-tip" aria-hidden="true">
           <b>{row.name}</b>
@@ -73,21 +81,21 @@ export function Listening() {
   const running = (c: CraftInstruments): number => c.instruments.filter((i) => i.on).length;
   return (
     <section class="epi-sec epi-listening" data-epilogue-section="listening" aria-labelledby="epi-listen-h">
-      <h2 id="epi-listen-h" class="epi-head">
-        Still listening
-      </h2>
-      <p class="epi-lead small" data-epilogue-counts={`${running(v1)}/${v1.instruments.length},${running(v2)}/${v2.instruments.length}`}>
-        {v1.name} runs {running(v1)} of its {v1.instruments.length} instruments, {v2.name} runs {running(v2)}.
-      </p>
-      <div class="epi-lampsbox" data-epilogue-instruments>
-        <p class="epi-small epi-asof">As of {asOfText}. Switched off, oldest first.</p>
+      <div class="epi-lampsbox epi-picture" data-epilogue-instruments data-epilogue-picture="listening">
         <LampRow craft={v1} />
         <LampRow craft={v2} />
         <div class="epi-powerbar" data-epilogue-powerbar>
           <span class="epi-powerline" aria-hidden="true" />
           <span class="epi-powerlabel">Power: about {powerLossWattsPerYear} watts less every year</span>
         </div>
+        <p class="epi-small epi-asof">As of {asOfText}. Switched off, oldest first.</p>
       </div>
+      <h2 id="epi-listen-h" class="epi-head">
+        Still listening
+      </h2>
+      <p class="epi-lead small" data-epilogue-counts={`${running(v1)}/${v1.instruments.length},${running(v2)}/${v2.instruments.length}`}>
+        {v1.name} runs {running(v1)} of its {v1.instruments.length} instruments, {v2.name} runs {running(v2)}.
+      </p>
       <p class="epi-why">
         Their power falls by about {powerLossWattsPerYear} watts a year, partly because the plutonium decays and partly because the generators' thermocouples, which turn its heat into
         electricity, wear out.{' '}

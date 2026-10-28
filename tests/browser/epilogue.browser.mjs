@@ -83,6 +83,29 @@ async function expectSection(page, id, assert) {
   assert((await current(page)) === id, `the chapter says it is on ${id}`);
 }
 
+/**
+ * After the turn, each section leads with its picture: the section's first element, as wide as the section, at the
+ * top of the stage (no empty band above it), with the words beneath.
+ */
+async function expectPictureFirst(page, id, assert) {
+  await page.waitForSelector(`[data-epilogue-section="${id}"] > [data-epilogue-picture="${id}"]`, { timeout: 30_000 });
+  const g = await page.evaluate((sid) => {
+    const sec = document.querySelector(`[data-epilogue-section="${sid}"]`);
+    const stage = document.querySelector('.epi-stage');
+    const pic = sec.firstElementChild;
+    const r = pic.getBoundingClientRect();
+    const sr = sec.getBoundingClientRect();
+    const st = stage.getBoundingClientRect();
+    const head = sec.querySelector('.epi-head').getBoundingClientRect();
+    return { first: pic.getAttribute('data-epilogue-picture'), top: r.top - st.top, width: r.width, secWidth: sr.width, h: r.height, headBelow: head.top >= r.bottom - 1 };
+  }, id);
+  assert(g.first === id, `the ${id} section leads with its picture (${g.first})`);
+  // 16 px: the stage's own top padding (0.4rem) plus the section's entry slide (8 px), with a little room
+  assert(g.top <= 16, `the ${id} picture sits at the top of the stage, no empty band above (${g.top.toFixed(1)} px)`);
+  assert(g.width >= g.secWidth - 1 && g.h > 120, `the ${id} picture is full width (${g.width.toFixed(0)} of ${g.secWidth.toFixed(0)} px, ${g.h.toFixed(0)} px tall)`);
+  assert(g.headBelow, `the ${id} words sit beneath the picture`);
+}
+
 const utcHms = (ms) => new Date(Math.round(ms / 1000) * 1000).toISOString().slice(11, 19);
 const sig3 = (x) => Number(x.toPrecision(3)).toLocaleString('en-US', { maximumFractionDigits: 20 });
 
@@ -174,8 +197,38 @@ export async function playEpilogue(page, { assert, log, shot } = {}) {
   const nasa = Date.parse('2026-11-18T10:16:07Z');
   assert(ldText.includes('18 November 2026') && ldText.includes(`NASA gives ${utcHms(nasa)}`) && ldText.includes(`these tables give ${utcHms(calc.ld)}`), `the light-day sentence names NASA's time and ours (${ldText})`);
   assert(calc.ld > calc.at ? /is one light-day from Earth/.test(ldText) : /became one light-day from Earth/.test(ldText), 'the sentence is in the right tense');
+  await expectPictureFirst(page, 'now', assert);
+  // The picture places both craft from the same tables, turned into the plane of Earth's orbit: the angle between
+  // them around the drawn Sun is the angle between their true ecliptic longitudes (a squeezed distance never turns
+  // a direction), and the drawing is seen from the north (not mirrored).
+  const sky = await page.evaluate(async () => {
+    const { skyTonight } = await import('/src/chapters/epilogue/nowPicture.ts');
+    const bodies = (await import('/data/ephemeris.json')).default.bodies;
+    const teaching = (await import('/data/teaching.json')).default;
+    const t = skyTonight(bodies, teaching, new Date());
+    const svg = document.querySelector('[data-epilogue-sky]');
+    const [sx, sy] = svg.getAttribute('data-sun').split(',').map(Number);
+    const dot = (id) => {
+      const g = svg.querySelector(`[data-sky-craft="${id}"]`);
+      return { x: Number(g.getAttribute('data-x')) - sx, y: Number(g.getAttribute('data-y')) - sy, lon: Number(g.getAttribute('data-lon')) };
+    };
+    const rings = [...svg.querySelectorAll('[data-sky-ring]')].map((e) => e.getAttribute('data-sky-ring'));
+    const planets = [...svg.querySelectorAll('[data-sky-planet]')].map((e) => e.getAttribute('data-sky-planet'));
+    return { v1: dot('-31'), v2: dot('-32'), lon: t.craft.map((c) => c.lonDeg), rings, planets, key: document.querySelector('.epi-sky-key')?.textContent ?? '' };
+  });
+  {
+    const ang = (p) => Math.atan2(-p.y, p.x) * (180 / Math.PI);
+    const drawn = (((ang(sky.v2) - ang(sky.v1)) % 360) + 540) % 360 - 180;
+    const truth = (((sky.lon[1] - sky.lon[0]) % 360) + 540) % 360 - 180;
+    // 0.2 deg: the dots' pixel positions are written to 0.01 px at radii above 50 px (under 0.02 deg), and the page
+    // computes at its last tick (within a minute); Voyager 1's longitude moves about 0.001 deg a day
+    assert(Math.abs(drawn - truth) < 0.2, `the picture keeps the true angle between the Voyagers (${drawn.toFixed(2)} drawn, ${truth.toFixed(2)} deg true)`);
+    assert(Math.abs(sky.v1.lon - sky.lon[0]) < 0.01, `Voyager 1 is drawn at its ecliptic longitude (${sky.v1.lon} vs ${sky.lon[0].toFixed(4)})`);
+    assert(sky.rings.join(',') === '1,10,100' && /rings at 1, 10 and 100 times Earth's distance/.test(sky.key) && /squeezed/.test(sky.key), `the squeezed scale is stated on the picture (${sky.rings.join(',')}; ${sky.key})`);
+    assert(sky.planets.join(',') === 'Mercury,Venus,Mars,Jupiter,Saturn,Uranus,Neptune', `the planets' orbits come from the record's table, Pluto's slip left out (${sky.planets.join(',')})`);
+  }
   out.now = { v1km: pageNow.v1.km, v2km: pageNow.v2.km, lightDay: utcHms(calc.ld) };
-  await snap('now', "Right now: both Voyagers' distance from Earth in kilometres, the light time, the distance from the Sun and the speed, ticking; the light-day sentence with NASA's time and ours.");
+  await snap('now', "Right now: the picture of where they are tonight (the Sun, Earth's orbit, the planets' orbits, both Voyagers in their true directions on a squeezed scale), then both Voyagers' distance from Earth in kilometres, the light time, the distance from the Sun and the speed, ticking; the light-day sentence with NASA's time and ours.");
 
   // ---- 3. still listening ----
   await page.keyboard.press('PageDown');
@@ -196,6 +249,7 @@ export async function playEpilogue(page, { assert, log, shot } = {}) {
   assert(/about 4 watts a year, partly because the plutonium decays and partly because the generators' thermocouples/.test(counts.why), `the power loss and both its causes are stated (${counts.why})`);
   assert(/^\/checked\/#row-\d+$/.test(counts.link), `the fuel-clock link opens a row of How it's checked (${counts.link})`);
   assert(/4 August 2026/.test(counts.asOf), `the table says when NASA's status is from (${counts.asOf})`);
+  await expectPictureFirst(page, 'listening', assert);
   await snap('listening', 'Still listening: the ten instruments of each Voyager, two running on the first and three on the second, the rest with the date each was switched off and why.');
 
   // ---- 4. the slow future ----
@@ -220,6 +274,7 @@ export async function playEpilogue(page, { assert, log, shot } = {}) {
   assert(/0\.575 pc/.test(pass.published) && /44\.0 thousand years from about 2019/.test(pass.published), `the published numbers sit beside it, counted from about 2019 (${pass.published.replace(/\s+/g, ' ')})`);
   assert(/about 1\.7 light-years/.test(pass.nasa) && /40,000/.test(pass.nasa), `NASA's wording too (${pass.nasa.replace(/\s+/g, ' ')})`);
   assert(/That is where this story was set/.test(pass.lead), 'the premise is said aloud');
+  await expectPictureFirst(page, 'future', assert);
   out.future = { ours: pass.ours.replace(/\s+/g, ' '), pc: sci.pc, years: sci.years, ad: sci.ad };
   await snap('future', "The slow future: the drawing of the Sun, Voyager 1's path, Gliese 445's path and the closest approach, with our number beside the published ones.");
 
@@ -238,6 +293,7 @@ export async function playEpilogue(page, { assert, log, shot } = {}) {
   assert(/published as the 1970\/1971 epoch; the periods themselves date from 1966\.6 to 1971\.8, on average about eight years before launch/.test(mapInfo.lead), `the map's age is stated (${mapInfo.lead})`);
   assert(/Your own reading in The Trail dated the map/.test(mapInfo.yours) && /flying for/.test(mapInfo.yours) && /either way/.test(mapInfo.yours), `the player's own reading is shown (${mapInfo.yours.slice(0, 120)})`);
   assert(/far too small to see beside clocks each uncertain by a century or more/.test(mapInfo.why), `the line tying back to Portrait is there (${mapInfo.why})`);
+  await expectPictureFirst(page, 'map', assert);
   out.map = { dots: mapInfo.dots.length, mean: mapInfo.dots.reduce((s, d) => s + d.y, 0) / mapInfo.dots.length };
   await snap('map', "The map is older than the machine: each of the map's pulsars on a 1966 to 1979 timeline, the 1970/1971 epoch band, the launch line, and the player's own reading from The Map.");
 
@@ -262,6 +318,7 @@ export async function playEpilogue(page, { assert, log, shot } = {}) {
   assert(line.credits >= 5 && /Carl Sagan/.test(line.people) && /Ann Druyan/.test(line.people), `the credits roll lists the sources and people (${line.credits} sources)`);
   assert(line.checked === '/checked/' && /Back to the ring/.test(line.ring), 'the two ways out are there');
   assert(line.next, 'Next is finished on the last section');
+  await expectPictureFirst(page, 'line', assert);
   await snap('line', 'The line in the run-out groove: the record\'s centre, drawn, closed in on the space between the label and the grooves, where the hand-etched line is set along the circle; Ferris\'s sentence, the credits and the two ways out.');
 
   // The guided tour owns the sections: with it on, the chapter's own Next, dots and arrow keys are gone, and the
