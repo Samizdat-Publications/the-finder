@@ -25,7 +25,8 @@ reviewed each one's screenshots and merged:
   distance. **Captions** use the top bar's real free width (one line from 1280 wide).
 - **Checked:** full check green (212 of 212 records, the whole-tour bot included); the Gemini critic on a fresh
   film (`docs/reviews/2026-10-28-V1-polish-gemini-critic.md`): satisfaction 5 to 7, clarity 9, layout 9 to 7 (the
-  guide's reading panels), alien feel 4 to 3. Not yet deployed.
+  guide's reading panels), alien feel 4 to 3. **Deployed 2026-10-28** after Stewart's go-ahead: the game (Worker
+  version d17a72e2) and the landing page; live-smoke, live-game and live-tour pass, and the live bundle carries the new code.
 
 **M7, polish and ship: done 2026-10-27 (build sessions 5 and 6; checklist `docs/plans/M7.md`).** No notes from
 Stewart on the V1.0 draft yet, so M7 ran from the critics' lists. Build session 6 (2026-10-27):
