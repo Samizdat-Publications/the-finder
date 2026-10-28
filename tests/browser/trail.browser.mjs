@@ -111,9 +111,15 @@ export async function playTrail(page, { log, assert, shot, mapPlayable }) {
 
   // ---- trail.age: the run-back ----
   await tab('runback');
+  // The typed box sits in the run-back's "Step or type" fold (V1 polish: the slider is the hero); open it as a player would.
+  const openFold = async (panel) => {
+    const fold = page.locator(`[data-tool-panel="${panel}"] details[data-fine]`).first();
+    if (!(await fold.evaluate((d) => d.open))) await fold.locator('summary').click();
+  };
   const setRun = async (y) => {
-    await page.locator('[data-run-input]').fill(String(y));
-    await page.locator('[data-run-input]').press('Enter');
+    await openFold('runback');
+    await page.locator('[data-run-number]').fill(String(y));
+    await page.locator('[data-run-number]').press('Enter');
     await settle(page);
   };
   await setRun(Math.round(ref.interval[0] - 3000));
@@ -134,6 +140,7 @@ export async function playTrail(page, { log, assert, shot, mapPlayable }) {
   // last proposal (M4 step 7c) until the next proposal.
   const pastOf = (id) => page.locator(`[data-result="${id}"]`).getAttribute('data-past');
   assert((await pastOf('trail.neighbour')) === '0', 'right after the proposal its rejection is the current verdict');
+  await openFold('ruler');
   await page.getByRole('button', { name: 'Clear the ruler' }).click();
   await page.waitForSelector('[data-result="trail.neighbour"][data-past="1"] [data-past-label]', { timeout: 10_000 });
   assert((await page.locator('[data-result="trail.neighbour"] [data-past-label]').innerText()).toLowerCase().includes('your last proposal'), 'the old rejection is labelled as your last proposal once the ruler changes');

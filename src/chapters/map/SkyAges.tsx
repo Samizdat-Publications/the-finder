@@ -182,7 +182,8 @@ export function SkyAges() {
   const left = pts.filter((q) => !q.used);
   return (
     <section class="map-tool map-skyages" aria-label="Ages across the sky" data-axis-l={a.lDeg} data-axis-b={a.bDeg} data-rms-years={fit.rmsYears.toFixed(1)} data-misfit={fit.chi2.toFixed(3)} data-axis-chi2={d2.toFixed(4)} data-axis-cut={CHI2_2DOF_95}>
-      <div class="map-skymain">
+      {/* The hero control (V1 polish): the sky to drag the axis on, and the cost it is dragged for. */}
+      <div class="map-skymain hero-control">
         <SkyPlot pts={pts} median={median} spread={spread} />
         <Decides d2={d2} />
       </div>

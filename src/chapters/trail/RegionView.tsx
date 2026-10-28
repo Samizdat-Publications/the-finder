@@ -7,6 +7,7 @@ import { onContour } from '../shared/contour';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { game } from '../../game/state';
 import { regionLevel } from '../../science/triangulation';
+import { Clamp } from '../../ui/Fine';
 import { send } from '../../ui/send';
 import { nodeStatus } from '../../game/deductions';
 import { confirmedSet } from '../../game/state';
@@ -121,23 +122,23 @@ export function RegionTool(p: { m: EpochModel }) {
   return (
     <section class="kpanel tr-tool" data-tool-panel="region">
       <PanelHead id="trail.where" />
-      <p class="note">
-        The plane of the galaxy {yearsText(age, g)} ago, when the map was made, as the map's lines date it. The ring is the map's origin region; {n} catalogued stars lay inside it. Click the star the map was drawn from.
-      </p>
-      <dl class="tr-dl">
-        <dt>Picked</dt>
-        <dd data-region-pick={pick ?? ''}>{star ? starName(star) : 'none yet'}</dd>
+      <Clamp>
+        Click the star the map was drawn from. The plane of the galaxy {yearsText(age, g)} ago, when the map was made, as the map's lines date it. The ring is the map's origin region; {n} catalogued stars lay inside it.
+      </Clamp>
+      {/* The hero readout (V1 polish): the picked star and whether it lies in the map's region. */}
+      <div class="hero-control tr-hero">
+        <span class="tr-k" data-region-pick={pick ?? ''}>{star ? starName(star) : 'No star picked yet'}</span>
         {xy && level !== null && (
           <>
-            <dt>From your star then</dt>
-            <dd>{distText(Math.hypot(xy[0], xy[1]), g)}</dd>
-            <dt>In the region</dt>
-            <dd>{level <= 0.95 ? `yes, on its ${(level * 100).toFixed(0)}% contour` : `no, ${onContour(level)}`}</dd>
+            <output class="hero-readout">{level <= 0.95 ? 'in the region' : 'outside the region'}</output>
+            <span class="tr-k">
+              {level <= 0.95 ? `On its ${(level * 100).toFixed(0)}% contour` : onContour(level)}; {distText(Math.hypot(xy[0], xy[1]), g)} from your star then.
+            </span>
           </>
         )}
-      </dl>
+      </div>
       {open && (
-        <button type="button" class="btn small tr-propose" data-propose-button="trail.where" disabled={pick === null} onClick={() => send({ type: 'deduction.propose', id: 'trail.where', answer: { starId: pick as number } })}>
+        <button type="button" class="btn small tr-propose tr-proposeblock" data-propose-button="trail.where" disabled={pick === null} onClick={() => send({ type: 'deduction.propose', id: 'trail.where', answer: { starId: pick as number } })}>
           Propose: the map was drawn from this star
         </button>
       )}

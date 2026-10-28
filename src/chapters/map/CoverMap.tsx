@@ -47,7 +47,7 @@ export function CoverMap() {
           </g>
         ))}
       </svg>
-      <div class="map-linebtns" role="group" aria-label="Lines">
+      <div class="map-linebtns hero-control" role="group" aria-label="Lines">
         {(m?.lines ?? []).map((l) => (
           <button
             key={l.order}

@@ -2,7 +2,7 @@
 // another anchor), a label avoids a bright point, a label that fits nowhere is dropped, and a label that must
 // be kept (the home star, the Galactic centre) always stays.
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_ANCHORS, boxAt, layoutLabels, type LabelBox } from './labelLayout';
+import { DEFAULT_ANCHORS, besideAnchors, boxAt, layoutLabels, type LabelBox } from './labelLayout';
 
 const label = (id: number, x: number, y: number, extra: Partial<LabelBox> = {}): LabelBox => ({ id, x, y, w: 90, h: 18, priority: 1, keep: false, anchors: DEFAULT_ANCHORS, ...extra });
 const overlap = (a: ReturnType<typeof boxAt>, b: ReturnType<typeof boxAt>): boolean => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
@@ -63,5 +63,30 @@ describe('label declutter', () => {
 
   it('does not count a bright point at the label\'s own point', () => {
     expect(layoutLabels([label(1, 50, 50)], [{ x: 50, y: 50, r: 10 }]).get(1)).toEqual(DEFAULT_ANCHORS[0]);
+  });
+  it("puts a matched pulsar's line tag beside its halo, never on it, and keeps two neighbours' tags apart", () => {
+    // The galaxy chart's tags (galaxy.ts): 12 px text, about 30 by 17 px boxes, a 7 px gap past the point. The gap is
+    // the spec's "beside its halo" (docs/plans/V1_polish.md C1); the halo's bright core is about 6 px across (HALO_PX).
+    const gap = 7;
+    const w = 30;
+    const h = 17;
+    const anchors = besideAnchors(w, h, gap);
+    for (const a of anchors) {
+      const r = boxAt({ x: 100, y: 100, w, h }, a);
+      const dx = Math.max(r.left - 100, 0, 100 - r.right);
+      const dy = Math.max(r.top - 100, 0, 100 - r.bottom);
+      // At least the gap clear of the point (to a micro-pixel of float rounding).
+      expect(Math.hypot(dx, dy)).toBeGreaterThanOrEqual(gap - 1e-9);
+    }
+    // Two matched pulsars 10 px apart, each a halo the other's tag keeps clear of.
+    const halos = [{ x: 100, y: 100, r: 6 }, { x: 110, y: 100, r: 6 }];
+    const tags = [label(1, 100, 100, { w, h, anchors }), label(2, 110, 100, { w, h, anchors })];
+    const p = layoutLabels(tags, halos, { w: 400, h: 300 });
+    const a = boxAt(tags[0]!, p.get(1)!);
+    const b = boxAt(tags[1]!, p.get(2)!);
+    expect(overlap(a, b)).toBe(false);
+    const clear = (r: ReturnType<typeof boxAt>, o: { x: number; y: number; r: number }): boolean =>
+      Math.hypot(Math.max(r.left - o.x, 0, o.x - r.right), Math.max(r.top - o.y, 0, o.y - r.bottom)) >= o.r;
+    expect(clear(a, halos[1]!) && clear(b, halos[0]!)).toBe(true);
   });
 });

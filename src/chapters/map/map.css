@@ -9,11 +9,29 @@
 .map-angle { display: grid; gap: 0.05rem; min-width: 9.5rem; }
 .map-views { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 .map-views .btn.on { color: var(--bg); background: var(--cyan); }
-.map-tip { margin: 0; flex: 1 1 14rem; font-size: var(--fs-label); color: var(--text-dim); line-height: 1.35; }
+.map-tip { margin: 0; flex: 1 1 8rem; font-size: var(--fs-label); color: var(--text-dim); line-height: 1.35; }
 .map-k { font-size: var(--fs-label); color: var(--text-dim); }
 .map-v { font-family: var(--font-mono); font-size: var(--fs-value); color: var(--cyan); }
 
 .map-dial { flex: none; cursor: grab; touch-action: none; }
+/* The hero-control pass (V1 polish, src/ui/Fine.tsx): each panel leads with its one main control. */
+.map-dialbox { display: flex; align-items: center; gap: 0.7rem; padding: 0.1rem 0.75rem 0.1rem 0.25rem; }
+.map-dialbox .map-dial { width: 58px; height: 58px; }
+.map-dialbox .hero-readout { font-size: 1.25rem; }
+.map-viewfine { margin-top: 0; }
+.map-viewfine[open] { flex-basis: 100%; }
+.map-finenote { margin: 0; line-height: 1.35; }
+.map-linebtns.hero-control { padding: 0.3rem; }
+.map-fit { display: grid; gap: 0.35rem; padding: 0.4rem 0.6rem; }
+.map-quality { display: grid; gap: 0.1rem; }
+.map-quality .hero-readout { font-size: 1.2rem; color: var(--gold); }
+.map-quality .hero-readout.weak { color: var(--text); }
+.map-why { line-height: 1.35; }
+.map-originfit { display: grid; gap: 0.05rem; margin-bottom: 0.3rem; }
+.map-originfit .hero-readout { font-size: 1.2rem; }
+.map-how { margin-bottom: 0.5rem; }
+/* Inside the floating tool panel the hero frames stay slim: the panel never covers more than a third of the chart. */
+.map-toolpanel .hero-control { padding: 0.2rem 0.4rem; }
 .map-dial:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 50%; }
 .map-dial-face { fill: var(--bg-sunk); stroke: var(--violet); stroke-width: 1.2; }
 .map-dial-tick { stroke: var(--violet); stroke-width: 1; }
@@ -66,7 +84,6 @@
 .map-plot { position: relative; min-width: 0; height: 12rem; }
 .map-plot svg { display: block; touch-action: none; }
 .map-plot-note { position: absolute; top: 0.1rem; right: 0.5rem; z-index: 1; font-size: var(--fs-label); color: var(--text-dim); text-shadow: 0 0 4px rgba(8, 7, 26, 0.95), 0 0 2px rgba(8, 7, 26, 0.95); pointer-events: none; }
-.map-clock .map-plot-note { top: -1.55rem; right: 8rem; }
 .map-clockctl input[type='range'] { flex: 1 1 8rem; min-width: 6rem; }
 .map-plot-label { font-size: 13px; fill: var(--text-dim); font-family: var(--font-sans); paint-order: stroke; stroke: rgba(8, 7, 26, 0.92); stroke-width: 3px; stroke-linejoin: round; }
 .map-plot-label.gold { fill: var(--gold); }

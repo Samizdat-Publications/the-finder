@@ -2,6 +2,9 @@
 // - picking at a pulsar's or star's projected screen point returns that pulsar or star;
 // - the trail drawn for the Sun and for a wrong star carries kinematics.trail's angle, recomputed here
 //   in the page from the science modules (not from the chart);
+// - every pulsar matched to a cover line wears a tag with its line number (11 to 12 px), beside its halo and clear of
+//   the other labels; the Galactic centre's label is its name and one distance; the dial's ring labels are 11 px or more
+//   (V1 polish, docs/plans/V1_polish.md C1);
 // - frame times at 1440 x 900; no console errors; dispose runs clean;
 // - captures for looking at: harness/out/charts/*.png.
 import { mkdirSync } from 'node:fs';
@@ -82,6 +85,64 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   });
   await settle(page);
   await page.screenshot({ path: join(OUT, 'galaxy-region.png') });
+
+  // ---- The labels (V1 polish C1) ----
+  // Close on each matched pulsar: its tag is shown, reads its line number, and stands off the pulsar's point.
+  const tagChecks = await page.evaluate(async (lines) => {
+    const g = window.__galaxy;
+    await g.setViewMode('top');
+    const out = [];
+    for (const l of lines) {
+      await g.frame({ jname: l.jname }, { durationS: 0.01 });
+      await new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)));
+      const tag = g.labels().find((x) => x.line === l.order);
+      const p = g.project(l.jname);
+      const b = tag?.box;
+      const gap = b ? Math.hypot(Math.max(b.left - p.x, 0, p.x - b.right), Math.max(b.top - p.y, 0, p.y - b.bottom)) : null;
+      out.push({ order: l.order, text: tag?.text ?? null, font: tag?.fontPx ?? null, shown: tag?.shown ?? false, gap });
+    }
+    return out;
+  }, (await page.evaluate(async () => (await import('/data/cover.json')).default.pulsarMap.lines.map((l) => ({ order: l.order, jname: l.jname })))));
+  // The tag text is 11 to 12 px (the spec), reads "line N", and its box starts at least 6 px from its pulsar: past the
+  // halo's bright core (galaxy.ts HALO_CLEAR_PX = 6, TAG_GAP_PX = 7; 1 px of float and rounding slack).
+  const badTags = tagChecks.filter((t) => !t.shown || t.text !== `line ${t.order}` || t.font < 11 || t.font > 12 || t.gap === null || t.gap < 6);
+  // Over the whole map: no two shown labels overlap (the declutter's own 2 px padding is not required, only no overlap).
+  const overMap = await page.evaluate(async () => {
+    const g = window.__galaxy;
+    await g.frame('map', { durationS: 0.01 });
+    await new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)));
+    return g.labels().filter((l) => l.shown);
+  });
+  const overlaps = [];
+  for (let i = 0; i < overMap.length; i++)
+    for (let j = i + 1; j < overMap.length; j++) {
+      const a = overMap[i].box;
+      const b = overMap[j].box;
+      if (a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom) overlaps.push(`${overMap[i].text} / ${overMap[j].text}`);
+    }
+  const tagsOverMap = overMap.filter((l) => l.line !== undefined).length;
+  const all = await page.evaluate(() => window.__galaxy.labels());
+  const gcLabel = all.find((l) => l.text.startsWith('Galactic centre'));
+  const gcKpc = gInfo.gc.distKpc;
+  // The dev page writes lengths as whole parsecs (galaxy.ts lenText default), so the label must read the model's distance to 1 pc.
+  const gcMatch = /^Galactic centre, ([\d.]+) pc$/.exec(gcLabel?.text ?? '');
+  const gcOk = gcMatch !== null && Math.abs(Number(gcMatch[1]) - gcKpc * 1000) <= 0.5;
+  const ringFonts = all.filter((l) => l.line === undefined && /^[\d.]+ pc$/.test(l.text)).map((l) => l.fontPx);
+  const ringOk = ringFonts.length === 5 && ringFonts.every((f) => f >= 11);
+  await page.screenshot({ path: join(OUT, 'galaxy-tags-map.png') });
+  log(`galaxy labels: ${tagChecks.length - badTags.length} of ${tagChecks.length} line tags shown and readable close up${badTags.length ? `; bad: ${JSON.stringify(badTags)}` : ''}; ${tagsOverMap} tags shown over the whole map, ${overlaps.length} overlapping labels${overlaps.length ? ` (${overlaps.join('; ')})` : ''}; centre label "${gcLabel?.text}"; ring labels ${ringFonts.join(', ')} px`);
+  record({
+    id: 'chart.galaxy.labels',
+    claim: "On the galaxy chart every pulsar matched to a cover line wears a readable tag with its line number beside its halo, labels never overlap, the Galactic centre's label is its name and one distance, and the ring labels stay readable.",
+    measured: `${tagChecks.length - badTags.length} of ${tagChecks.length} tags shown, 11 to 12 px, at least 6 px off their pulsar; ${tagsOverMap} tags over the whole map with ${overlaps.length} overlaps; centre "${gcLabel?.text}"; ring labels ${ringFonts.join(', ')} px`,
+    expected: `every tag "line N" at 11 to 12 px; no overlaps; "Galactic centre, ${(gcKpc * 1000).toFixed(0)} pc" (the model's modern distance); five ring labels at 11 px or more`,
+    tolerance: 'tag gap 6 px (halo core, galaxy.ts); centre distance to 0.5 pc (the label rounds to whole parsecs)',
+    pass: badTags.length === 0 && overlaps.length === 0 && gcOk && ringOk,
+  });
+  assert(badTags.length === 0, 'every matched pulsar wears a readable line tag beside its halo');
+  assert(overlaps.length === 0, 'no two labels on the galaxy chart overlap');
+  assert(gcOk, `the Galactic centre's label is its name and one distance (${gcLabel?.text})`);
+  assert(ringOk, `the ring labels are 11 px or more (${ringFonts.join(', ')})`);
 
   await page.evaluate(() => window.__galaxy.frame('overview', { durationS: 0.01 }));
   await settle(page, 2000);

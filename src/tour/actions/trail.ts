@@ -8,12 +8,23 @@
 //   when: that star's frame, then the cursor at its combined age (ages('sun').combined.estimate, 10-year step).
 // A star on the chart is clicked where the chart's own handle (chartHandle(), exported by ChartPane.tsx) projects
 // it, after framing the camera on it (a view move, as a drag would be).
+//
+// V1 polish (2026-10-28, "Do it for me" shows its work): the chart eases onto each star before it is clicked, the
+// run-back slider sweeps until the machine meets the star, the frame is chosen and the ages are seen to snap
+// together before the mark is dragged onto them, each followed by a short beat on the result. All of it is skipped
+// with reduced motion (sweep, beat and the camera's own ease cap honour the setting).
 
 import { chartHandle } from '../../chapters/trail/ChartPane';
 import { meeting, homeId, originRow } from '../../chapters/trail/physics';
 import { cursorYears, model, picked, regionPick, rulerEnds, runYears } from '../../chapters/trail/state';
 import type { EpochModel } from '../../chapters/shared/epochModel';
-import { centreOf, click, ensureChapter, finish, proposeWith, setValue, sleep, tap, waitFor, waitVisible } from '../actionsKit';
+import { game } from '../../game/state';
+import { beat, centreOf, click, drag, ensureChapter, finish, proposeWith, setValue, sleep, sweep, tap, waitFor, waitVisible } from '../actionsKit';
+
+/** True when the player asked for reduced motion: the hand then works without the visible in-between steps. */
+const calm = (): boolean => game.settings.value.reducedMotion;
+/** How long the chart eases onto a star before it is clicked, s (a display choice). */
+const FRAME_S = 0.7;
 
 async function ready(): Promise<EpochModel> {
   await ensureChapter('trail');
@@ -34,13 +45,14 @@ async function clickStar(id: number): Promise<void> {
   const h = chartHandle();
   const canvas = document.querySelector('.tr-canvas');
   if (!h || !canvas) throw new Error('The chart is not ready.');
-  await h.frame({ starId: id }, { durationS: 0.01 });
+  await h.frame({ starId: id }, { durationS: calm() ? 0.01 : FRAME_S });
   await sleep(120);
   const p = h.project(id);
   if (!p || !p.onScreen) throw new Error(`Star ${id} is not on the chart's screen.`);
   const r = canvas.getBoundingClientRect();
   tap(canvas, r.left + p.x, r.top + p.y);
   await sleep(120);
+  await beat(350);
 }
 
 export function origin(): Promise<void> {
@@ -50,6 +62,7 @@ export function origin(): Promise<void> {
     const star = originRow(m).star.id;
     if (picked.value !== star) await clickStar(star);
     await waitFor(() => (picked.value === star ? true : null), 5000, 'the star to be picked');
+    await beat(600);
     await proposeWith('trail.origin', '[data-tool-panel="trail"] [data-propose-button="trail.origin"]');
   });
 }
@@ -64,9 +77,11 @@ export function age(): Promise<void> {
     }
     await tab('runback');
     const years = Math.round(meeting(m, star).yearsAgo / 10) * 10;
-    const input = await waitVisible<HTMLInputElement>('[data-tool-panel="runback"] input[data-run-input]', 10_000, 'the run-back box');
-    setValue(input, years, 'change');
+    // The run-back slider sweeps back until the machine meets the star (its glyph runs back along the track).
+    const slider = await waitVisible<HTMLInputElement>('[data-tool-panel="runback"] input[data-run-slider]', 10_000, 'the run-back slider');
+    await sweep(slider, years, 1800, 36);
     await waitFor(() => (runYears.value === years ? true : null), 5000, 'the run-back to be set');
+    await beat(700);
     await proposeWith('trail.age', '[data-tool-panel="runback"] [data-propose-button="trail.age"]');
   });
 }
@@ -88,6 +103,7 @@ export function neighbour(): Promise<void> {
       await clickStar(star);
     }
     await waitFor('[data-tool-panel="ruler"] [data-ruler]:not([data-ruler=""])', 5000, 'the ruler to measure');
+    await beat(600);
     await proposeWith('trail.neighbour', '[data-tool-panel="ruler"] [data-propose-button="trail.neighbour"]');
   });
 }
@@ -104,6 +120,7 @@ export function where(): Promise<void> {
       svg.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window, clientX: x, clientY: y }));
     }
     await waitFor(() => (regionPick.value === star ? true : null), 5000, 'the star to be picked');
+    await beat(700);
     await proposeWith('trail.where', '[data-tool-panel="region"] [data-propose-button="trail.where"]');
   });
 }
@@ -118,6 +135,8 @@ export function when(): Promise<void> {
     if (document.querySelector('svg.tr-reframe')?.getAttribute('data-frame') !== String(star)) {
       setValue(select, String(star), 'change');
       await waitFor(`svg.tr-reframe[data-frame="${star}"]`, 60_000, 'the ages to be read in that star\'s frame');
+      // A beat to see the old lines' ages snap together in that star's frame.
+      await beat(900);
     }
     const est = Math.round(m.ages('sun').combined.estimate / 10) * 10;
     const svg = document.querySelector<SVGSVGElement>('svg.tr-reframe');
@@ -131,8 +150,12 @@ export function when(): Promise<void> {
     const vb = svg.viewBox.baseVal;
     const vx = left + ((est - a0) / (a1 - a0)) * (vb.width - left - right);
     const r = svg.getBoundingClientRect();
-    tap(svg, r.left + (vx / vb.width) * r.width, r.top + r.height / 2);
+    const to: [number, number] = [r.left + (vx / vb.width) * r.width, r.top + r.height / 2];
+    // The mark is dragged along the age axis from its left end onto where the ages bunch.
+    if (calm()) tap(svg, ...to);
+    else await drag(svg, [r.left + ((left + 2) / vb.width) * r.width, to[1]], to, 45);
     await waitFor(() => (cursorYears.value !== null ? true : null), 5000, "the mark on the ages");
+    await beat(700);
     await proposeWith('trail.when', '[data-tool-panel="reframe"] [data-propose-button="trail.when"]');
   });
 }

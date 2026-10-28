@@ -4,6 +4,7 @@
 // the map; a line lights when the clock is inside that pulsar's 95% age range in your own frame.
 
 import { game } from '../../game/state';
+import { Fine } from '../../ui/Fine';
 import { JULIAN_YEAR_S } from '../../science/units';
 import { CLOCK_N, clockShare, isYoung } from './mapMath';
 import { beatTicks, linear, qty, useSize } from './plot';
@@ -55,6 +56,21 @@ export function SpinClock() {
   };
   return (
     <section class="map-tool map-clock" aria-label="The spin-down clock" data-clock-years={t}>
+      {/* The hero control (V1 polish): the clock's slider and its reading; the steppers fold under it. */}
+      <div class="hero-control map-row map-clockctl">
+        <label class="map-k" for="map-clock">time, in beats</label>
+        <input
+          id="map-clock"
+          type="range"
+          min={-CLOCK_SPAN_YEARS}
+          max={CLOCK_SPAN_YEARS}
+          step={50}
+          value={t}
+          data-clock=""
+          onInput={(e) => (clockYears.value = Number((e.currentTarget as HTMLInputElement).value))}
+        />
+        <output class="map-v hero-readout" data-clock-reading="">{when}</output>
+      </div>
       <div class="map-plot" ref={ref}>
         <span class="map-plot-note">{agreeing.length ? `at the map's number: line ${agreeing.join(', ')}` : rows.length ? "no matched pulsar at the map's number" : 'match a line to run its pulsar here'}</span>
         {w > 0 && (
@@ -78,22 +94,15 @@ export function SpinClock() {
           </svg>
         )}
       </div>
-      <div class="map-row map-clockctl">
-        {[-1000, -100].map((d) => <button key={d} type="button" class="btn small" onClick={() => nudge(d)}>{d === -1000 ? '«' : '‹'}</button>)}
-        <label class="map-k" for="map-clock">time, in beats</label>
-        <input
-          id="map-clock"
-          type="range"
-          min={-CLOCK_SPAN_YEARS}
-          max={CLOCK_SPAN_YEARS}
-          step={50}
-          value={t}
-          data-clock=""
-          onInput={(e) => (clockYears.value = Number((e.currentTarget as HTMLInputElement).value))}
-        />
-        {[100, 1000].map((d) => <button key={d} type="button" class="btn small" onClick={() => nudge(d)}>{d === 1000 ? '»' : '›'}</button>)}
-        <output class="map-v" data-clock-reading="">{when}</output>
-      </div>
+      <Fine label="Step the clock">
+        <div class="map-row">
+          {[-1000, -100, 100, 1000].map((d) => (
+            <button key={d} type="button" class="btn small map-nudge" aria-label={`${d < 0 ? 'back' : 'forward'} ${Math.abs(d)} years`} onClick={() => nudge(d)}>
+              {d === -1000 ? '«' : d === -100 ? '‹' : d === 100 ? '›' : '»'}
+            </button>
+          ))}
+        </div>
+      </Fine>
     </section>
   );
 }

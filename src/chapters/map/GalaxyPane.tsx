@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { confirmedSet, game } from '../../game/state';
 import { wrapDeg } from '../../science/pulsars';
+import { Fine } from '../../ui/Fine';
 import { warmChartContext } from '../../world/chartControls';
 import { mountGalaxy, type GalaxyHandle, type GalaxyInfo } from '../../world/galaxy';
 import { chartLength } from '../shared/chartLabels';
@@ -136,28 +137,40 @@ export function GalaxyPane() {
     <figure class="map-chart" data-chart-ready={info ? 'true' : 'false'}>
       <canvas ref={canvas} aria-label="Your chart of the galaxy's pulsars, with the cover's map laid over it" />
       <figcaption class="map-charttools">
-        <Dial value={rot} onChange={(v) => (rotationDeg.value = v)} label="Turn the map" />
-        <div class="map-angle" data-angle-to-centre={toCentre === null ? '' : toCentre.toFixed(2)}>
-          <span class="map-k">long line to the centre</span>
-          <output class="map-v">{toCentre === null ? 'measuring' : `${toCentre.toFixed(1)} deg`}</output>
-        </div>
-        <div class="map-views">
-          <button type="button" class={`btn small${view === 'top' ? ' on' : ''}`} onClick={() => switchView('top')}>
-            From above
-          </button>
-          <button type="button" class={`btn small${view === 'perspective' ? ' on' : ''}`} onClick={() => switchView('perspective')}>
-            Tilted
-          </button>
-          <button type="button" class="btn small" onClick={() => void handle.current?.frame({ pointKpc: [0, 0, 0] }, { distKpc: 7 })}>
-            Near
-          </button>
-          <button type="button" class="btn small" onClick={() => void handle.current?.frame(regionShown ? 'region' : 'overview')}>
-            {regionShown ? 'Origin' : 'Far'}
-          </button>
+        {/* The hero control (V1 polish): the dial and the one reading it is turned for. */}
+        <div class="hero-control map-dialbox">
+          <Dial value={rot} onChange={(v) => (rotationDeg.value = v)} label="Turn the map" />
+          <div class="map-angle" data-angle-to-centre={toCentre === null ? '' : toCentre.toFixed(2)}>
+            <span class="map-k">long line to the centre</span>
+            <output class="map-v hero-readout">{toCentre === null ? 'measuring' : `${toCentre.toFixed(1)} deg`}</output>
+          </div>
         </div>
         <p class="map-tip">
-          {selectedLine.value === null ? 'Choose a line on the cover, then click a pulsar on the chart to put it on that line.' : `Line ${selectedLine.value} is chosen: click the pulsar it points to. Drag to look around; scroll to zoom.`}
+          {selectedLine.value === null ? 'Choose a line on the cover, then click its pulsar here.' : `Line ${selectedLine.value} is chosen: click the pulsar it points to.`}
         </p>
+        <Fine label="View" class="map-viewfine">
+          <div class="map-views">
+            <button type="button" class={`btn small${view === 'top' ? ' on' : ''}`} onClick={() => switchView('top')}>
+              From above
+            </button>
+            <button type="button" class={`btn small${view === 'perspective' ? ' on' : ''}`} onClick={() => switchView('perspective')}>
+              Tilted
+            </button>
+            <button type="button" class="btn small" onClick={() => void handle.current?.frame({ pointKpc: [0, 0, 0] }, { distKpc: 7 })}>
+              Near
+            </button>
+            <button type="button" class="btn small" onClick={() => void handle.current?.frame(regionShown ? 'region' : 'overview')}>
+              {regionShown ? 'Origin' : 'Far'}
+            </button>
+          </div>
+          <p class="map-k map-finenote">Drag the chart to look around; scroll to zoom.</p>
+          {info && (
+            // The centre's distance with its error and where it comes from: the chart's label gives the name and one distance.
+            <p class="map-k map-finenote" data-gc-note="">
+              Galactic centre: {chartLength(info.gc.distKpc * 1000)} +/- {chartLength(info.gc.sigmaKpc * 1000, 2)}, a modern measurement, not one from the cover.
+            </p>
+          )}
+        </Fine>
       </figcaption>
     </figure>
   );

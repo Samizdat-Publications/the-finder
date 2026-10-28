@@ -6,6 +6,7 @@
 import { nodeStatus } from '../../game/deductions';
 import { confirmedSet, game } from '../../game/state';
 import { norm } from '../../science/astro';
+import { Clamp, Fine } from '../../ui/Fine';
 import { send } from '../../ui/send';
 import { LastReading, PanelHead } from '../key/parts';
 import { TRAIL_MAX_DIST_PC, type EpochModel } from '../shared/epochModel';
@@ -45,46 +46,52 @@ export function TrailTool(p: { m: EpochModel }) {
   const row = id !== null ? rowFor(m, id) : null;
   const g = gloss();
   const done = confirmedSet.value.has('trail.origin');
+  const verdict = row && id !== homeId(m)
+    ? consistent(row)
+      ? 'Inside the 95% cut: a star the machine truly flew from would show an angle this small or smaller 95% of the time.'
+      : trailLevel(m, row).level === 'edge'
+        ? `${cutRatio(row).toFixed(2)} times the 95% cut, inside the 99.9% cut: consistent, at the edge.`
+        : `${cutRatio(row) < 10 ? cutRatio(row).toFixed(1) : cutRatio(row).toFixed(0)} times the 95% cut for a star it truly flew from, beyond the 99.9% cut.`
+    : null;
+  const dos = row ? dosText(row.measuredDistOverSpeedYears, row.measuredDistOverSpeedInterval95, g) : null;
   return (
     <section class="kpanel tr-tool" data-tool-panel="trail">
       <PanelHead id="trail.origin" />
-      {!done && <p class="note">Click a star. A thing thrown from a star flies straight away from it: compare the machine's motion relative to the star with the direction out of the star.</p>}
+      {!done && <Clamp>Click a star. A thing thrown from a star flies straight away from it: compare the machine's motion relative to the star with the direction out of the star.</Clamp>}
       {star ? (
         <div class="tr-readout" data-readout={star.id}>
           <h3 class="tr-name">{starName(star)}</h3>
           {id === homeId(m) ? (
             <p class="note">Your own star. The machine is passing it now, at its closest approach.</p>
-          ) : row ? (
-            <dl class="tr-dl">
-              <dt>Motion from straight away, as you measure it</dt>
-              <dd data-angle={row.measuredAngleDeg} data-angle-cut={row.nullAngle95Deg}>{angleText(row.measuredAngleDeg)}</dd>
-              <dt>95% cut for a star it truly flew from</dt>
-              <dd>{angleText(row.nullAngle95Deg)}</dd>
-              <dt>Spread of the angle, rms per axis</dt>
-              <dd>{angleText(row.angleRmsDeg)}</dd>
-              <dt>Distance from the machine</dt>
-              <dd>{distText(row.distPc, g)}</dd>
-              <dt>Speed relative to it</dt>
-              <dd>{speedText(norm(relativeState(m, row.star).vKmS), g)}</dd>
-              <dt>Distance over speed, as you measure it</dt>
-              <dd data-dos={row.measuredDistOverSpeedYears}>{dosText(row.measuredDistOverSpeedYears, row.measuredDistOverSpeedInterval95, g)[0]}</dd>
-              <dt>95% from</dt>
-              <dd>{dosText(row.measuredDistOverSpeedYears, row.measuredDistOverSpeedInterval95, g)[1]}</dd>
-              <dt>to</dt>
-              <dd>{dosText(row.measuredDistOverSpeedYears, row.measuredDistOverSpeedInterval95, g)[2]}</dd>
-            </dl>
+          ) : row && dos ? (
+            <>
+              {/* The hero readout (V1 polish): the one measurement against its cut, and the verdict. */}
+              <div class={`hero-control tr-hero${consistent(row) ? ' inside' : ''}`}>
+                <span class="tr-k">Motion from straight away, as you measure it</span>
+                <output class="hero-readout" data-angle={row.measuredAngleDeg} data-angle-cut={row.nullAngle95Deg}>{angleText(row.measuredAngleDeg)}</output>
+                <span class="tr-k">95% cut for a star it truly flew from: <b class="tr-cut">{angleText(row.nullAngle95Deg)}</b></span>
+                {verdict && <p class="note tr-verdict">{verdict}</p>}
+              </div>
+              <Fine label="More readings">
+                <dl class="tr-dl">
+                  <dt>Spread of the angle, rms per axis</dt>
+                  <dd>{angleText(row.angleRmsDeg)}</dd>
+                  <dt>Distance from the machine</dt>
+                  <dd>{distText(row.distPc, g)}</dd>
+                  <dt>Speed relative to it</dt>
+                  <dd>{speedText(norm(relativeState(m, row.star).vKmS), g)}</dd>
+                  <dt>Distance over speed, as you measure it</dt>
+                  <dd data-dos={row.measuredDistOverSpeedYears}>{dos[0]}</dd>
+                  <dt>95% from</dt>
+                  <dd>{dos[1]}</dd>
+                  <dt>to</dt>
+                  <dd>{dos[2]}</dd>
+                </dl>
+                {star.rvFromPrimary && <p class="note">Its radial velocity is its companion's: it has none of its own in the catalogue.</p>}
+              </Fine>
+            </>
           ) : (
             <NoRv m={m} id={star.id} />
-          )}
-          {row && star.rvFromPrimary && <p class="note">Its radial velocity is its companion's: it has none of its own in the catalogue.</p>}
-          {row && id !== homeId(m) && (
-            <p class="note tr-verdict">
-              {consistent(row)
-                ? 'Inside the 95% cut: a star the machine truly flew from would show an angle this small or smaller 95% of the time.'
-                : trailLevel(m, row).level === 'edge'
-                  ? `${cutRatio(row).toFixed(2)} times the 95% cut, inside the 99.9% cut: consistent, at the edge.`
-                  : `${cutRatio(row) < 10 ? cutRatio(row).toFixed(1) : cutRatio(row).toFixed(0)} times the 95% cut for a star it truly flew from, beyond the 99.9% cut.`}
-            </p>
           )}
         </div>
       ) : (
@@ -92,17 +99,23 @@ export function TrailTool(p: { m: EpochModel }) {
       )}
       <div class="tr-row">
         <Propose id="trail.origin" label="Propose: it came from this star" answer={() => ({ starId: picked.value as number })} disabled={id === null} />
-        {star && (
-          <button type="button" class="btn small" onClick={() => void chartHandle()?.frame({ starId: star.id })}>
-            Frame it
-          </button>
-        )}
-        {done && (
-          <button type="button" class={`btn small${tintAll.value ? ' on' : ''}`} aria-pressed={tintAll.value} data-tint-all="" onClick={() => (tintAll.value = !tintAll.value)}>
-            {tintAll.value ? 'Plain colours' : 'Tint all by angle'}
-          </button>
-        )}
       </div>
+      {(star || done) && (
+        <Fine label="View">
+          <div class="tr-row">
+            {star && (
+              <button type="button" class="btn small" onClick={() => void chartHandle()?.frame({ starId: star.id })}>
+                Frame it
+              </button>
+            )}
+            {done && (
+              <button type="button" class={`btn small${tintAll.value ? ' on' : ''}`} aria-pressed={tintAll.value} data-tint-all="" onClick={() => (tintAll.value = !tintAll.value)}>
+                {tintAll.value ? 'Plain colours' : 'Tint all by angle'}
+              </button>
+            )}
+          </div>
+        </Fine>
+      )}
       <LastReading id="trail.origin" current={picked.value !== null ? { starId: picked.value } : null} />
     </section>
   );
@@ -178,47 +191,55 @@ export function RunBackTool(p: { m: EpochModel }) {
   return (
     <section class="kpanel tr-tool" data-tool-panel="runback">
       <PanelHead id="trail.age" />
-      <p class="note">
+      <Clamp>
         Run the machine and {star ? starName(star) : 'the picked star'} back in time together, each along its straight line. Where they meet is where it set out.
-      </p>
+      </Clamp>
       {can && star ? (
         <>
-          <label class="tr-slider">
-            <span>
-              Run back <output data-run-years={t}>{yearsText(t, g, 4)}</output>
-            </span>
-            <input type="range" min={0} max={RUN_MAX_YEARS} step={10} value={t} onInput={(e) => set(Number((e.target as HTMLInputElement).value))} data-run-slider="" />
-          </label>
-          <div class="tr-row">
-            {STEPS.map((s) => (
-              <button key={s} type="button" class="btn small tr-step" onClick={() => set(t + s)}>
-                {s > 0 ? `+${s}` : s}
-              </button>
-            ))}
-            <input
-              class="tr-num"
-              type="number"
-              min={0}
-              max={RUN_MAX_YEARS}
-              step={10}
-              value={t}
-              aria-label="Years run back (the human count)"
-              data-run-input=""
-              onChange={(e) => set(Number((e.target as HTMLInputElement).value))}
-            />
+          {/* The hero control (V1 polish): the run-back slider, its time, and how far apart they are then. */}
+          <div class="hero-control tr-hero">
+            <label class="tr-slider">
+              <span>
+                <span class="tr-k">Run back</span> <output class="hero-readout" data-run-years={t}>{yearsText(t, g, 4)}</output>
+              </span>
+              {/* data-run-input stays on the slider: the guided tour's spotlight target for trail.age (src/tour/actions.ts). */}
+              <input type="range" min={0} max={RUN_MAX_YEARS} step={10} value={t} onInput={(e) => set(Number((e.target as HTMLInputElement).value))} data-run-slider="" data-run-input="" aria-label="Years run back" />
+            </label>
+            <dl class="tr-dl tr-sepread">
+              <dt>Separation then</dt>
+              <dd data-separation={sep?.toFixed(6)}>{sep !== null ? distText(sep, g) : ''}</dd>
+              <dt>Closest they come</dt>
+              <dd>{meet && t >= meet.yearsAgo - 0.5 ? distText(meet.missPc, g) : 'not reached yet'}</dd>
+            </dl>
           </div>
           <SeparationPlot m={m} id={star.id} />
-          <dl class="tr-dl">
-            <dt>Separation then</dt>
-            <dd data-separation={sep?.toFixed(6)}>{sep !== null ? distText(sep, g) : ''}</dd>
-            <dt>Closest they come</dt>
-            <dd>{meet && t >= meet.yearsAgo - 0.5 ? distText(meet.missPc, g) : 'not reached yet'}</dd>
-          </dl>
+          <Fine label="Step or type">
+            <div class="tr-row">
+              {STEPS.map((s) => (
+                <button key={s} type="button" class="btn small tr-step" onClick={() => set(t + s)}>
+                  {s > 0 ? `+${s}` : s}
+                </button>
+              ))}
+              <input
+                class="tr-num"
+                type="number"
+                min={0}
+                max={RUN_MAX_YEARS}
+                step={10}
+                value={t}
+                aria-label="Years run back (the human count)"
+                data-run-number=""
+                onChange={(e) => set(Number((e.target as HTMLInputElement).value))}
+              />
+            </div>
+          </Fine>
         </>
       ) : (
         <p class="note tr-empty">{star ? 'This star cannot be run back: ' + (id === homeId(m) ? 'it is your own.' : 'its radial velocity is unknown.') : 'Pick a star on the chart.'}</p>
       )}
-      <Propose id="trail.age" label="Propose: they met this long ago" answer={() => ({ years: runYears.value })} disabled={!can} />
+      <div class="tr-row">
+        <Propose id="trail.age" label="Propose: they met this long ago" answer={() => ({ years: runYears.value })} disabled={!can} />
+      </div>
       <LastReading id="trail.age" current={{ years: runYears.value }} />
     </section>
   );
@@ -236,21 +257,26 @@ export function RulerTool(p: { m: EpochModel }) {
   return (
     <section class="kpanel tr-tool" data-tool-panel="ruler">
       <PanelHead id="trail.neighbour" />
-      <p class="note">Click your own star, then another. The ruler measures between them as you measure it: your own position carries an error, and the ruler shows it.</p>
-      <dl class="tr-dl">
-        <dt>Ends</dt>
-        <dd data-ruler-ends={ends.join(',')}>{ends.length ? ends.map((id) => starName(starById(m, id)!)).join(' to ') : 'none yet'}</dd>
-        <dt>Distance</dt>
-        <dd data-ruler={r ? r.distPc.toFixed(6) : ''}>
+      <Clamp>Click your own star, then another. The ruler measures between them as you measure it: your own position carries an error, and the ruler shows it.</Clamp>
+      {/* The hero readout (V1 polish): the distance the ruler measures. */}
+      <div class="hero-control tr-hero">
+        <span class="tr-k" data-ruler-ends={ends.join(',')}>{ends.length ? ends.map((id) => starName(starById(m, id)!)).join(' to ') : 'No ends yet'}</span>
+        <output class={r ? 'hero-readout' : 'tr-k'} data-ruler={r ? r.distPc.toFixed(6) : ''}>
           {r ? `${distText(r.distPc, g)} ± ${distText(r.sigmaPc, g)}` : ends.length === 2 ? 'One end must be your own star.' : 'click two stars'}
-        </dd>
-      </dl>
+        </output>
+      </div>
       <div class="tr-row">
         <Propose id="trail.neighbour" label="Propose this distance" answer={() => ({ distancePc: r?.distPc ?? 0 })} disabled={!r} />
-        <button type="button" class="btn small" onClick={() => (rulerEnds.value = [])}>
-          Clear the ruler
-        </button>
       </div>
+      {ends.length > 0 && (
+        <Fine label="Start again">
+          <div class="tr-row">
+            <button type="button" class="btn small" onClick={() => (rulerEnds.value = [])}>
+              Clear the ruler
+            </button>
+          </div>
+        </Fine>
+      )}
       <LastReading id="trail.neighbour" current={r ? { distancePc: r.distPc } : null} />
     </section>
   );

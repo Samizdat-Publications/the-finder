@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'preact/hooks';
 import { nodeStatus, type Answer } from '../../game/deductions';
 import { nodeDef } from '../../game/graph';
 import { confirmedSet } from '../../game/state';
+import { Clamp } from '../../ui/Fine';
 import { alignOpenPanel } from '../../ui/notebook';
 import { send } from '../../ui/send';
 import { LastReading, PanelHead } from '../key/parts';
@@ -90,7 +91,7 @@ export function StepPanel() {
       )}
       <section class={`kpanel map-panel ${status}`} data-panel={id} data-status={status}>
         <PanelHead id={id} />
-        {status === 'open' && <p class="note">{TEXT[id].how}</p>}
+        {status === 'open' && <Clamp class="map-how">{TEXT[id].how}</Clamp>}
         {status === 'open' && (
           <div class="map-propose">
             <button

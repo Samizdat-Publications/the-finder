@@ -11,6 +11,17 @@ export type Anchor = readonly [number, number];
 /** Right of the point, then above right, below right, left, above left, below left. */
 export const DEFAULT_ANCHORS: readonly Anchor[] = [[0, 0.5], [0, -0.15], [0, 1.15], [1, 0.5], [1, -0.15], [1, 1.15]];
 
+/**
+ * Anchors that keep a w by h px box a gap of `gapPx` clear of its point (V1 polish: a matched pulsar's line tag sits
+ * beside its halo, not on it): right, left, above, below, then the four corners. Sprite.center may lie outside 0..1;
+ * a centre x of -gap/w puts the box's left edge gap px right of the point.
+ */
+export function besideAnchors(w: number, h: number, gapPx: number): Anchor[] {
+  const gx = gapPx / Math.max(1, w);
+  const gy = gapPx / Math.max(1, h);
+  return [[-gx, 0.5], [1 + gx, 0.5], [0.5, -gy], [0.5, 1 + gy], [-gx, -gy], [1 + gx, -gy], [-gx, 1 + gy], [1 + gx, 1 + gy]];
+}
+
 export interface LabelBox {
   id: number;
   /** The label's point on screen, CSS px (y down). */

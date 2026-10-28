@@ -19,11 +19,11 @@
 .tr-plotwrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0.6rem; background: var(--bg-sunk); }
 .tr-measuring { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 0.7rem 1.1rem; border: 1px solid var(--violet); border-radius: 8px; background: rgba(8, 7, 26, 0.92); color: var(--violet); font-size: var(--fs-value); }
 
-.tr-tabs { display: flex; flex-wrap: wrap; gap: 0.3rem; }
-.tr-tab { font: inherit; font-size: var(--fs-label); color: var(--cyan); background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 6px; padding: 0.35rem 0.7rem; cursor: pointer; min-height: 2.1rem; }
+.tr-tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.tr-tab { flex: 1 1 auto; white-space: nowrap; font: inherit; font-size: var(--fs-label); color: var(--cyan); background: var(--bg-sunk); border: 1px solid var(--line); border-radius: 6px; padding: 0.35rem 0.4rem; cursor: pointer; min-height: 2.1rem; }
 .tr-tab.on { border-color: var(--cyan); background: rgba(79, 240, 196, 0.12); }
 .tr-tab.locked { color: var(--text-dim); }
-.tr-tab.done::after { content: ' \2713'; color: var(--violet); }
+.tr-tab.done::after { content: '\2713'; margin-left: 0.2rem; color: var(--violet); }
 
 .tr-toolcol { min-height: 0; }
 .tr-tool { padding: 0.7rem 0.9rem; }
@@ -44,6 +44,25 @@
 .tr-propose:disabled, .tr-row .btn:disabled { opacity: 0.45; cursor: default; }
 .btn.on { background: rgba(79, 240, 196, 0.16); }
 .tr-wait { color: var(--violet); font-size: var(--fs-label); }
+
+/* The hero-control pass (V1 polish, src/ui/Fine.tsx): each tool leads with its one main control or reading. */
+.tr-tool .clamp-wrap { margin: 0 0 0.5rem; }
+.tr-tool .clamp-wrap .note { margin: 0; }
+.tr-k { font-size: var(--fs-label); color: var(--text-dim); line-height: 1.35; }
+.tr-hero { display: grid; gap: 0.2rem; margin: 0 0 0.5rem; }
+.tr-hero .hero-readout { overflow-wrap: anywhere; }
+.tr-hero.inside .hero-readout { color: var(--gold); }
+.tr-hero .tr-verdict { margin: 0.2rem 0 0; }
+.tr-cut { font-family: var(--font-mono); font-weight: 600; color: var(--cyan); }
+.tr-hero .tr-slider { margin: 0; }
+.tr-hero .tr-slider > span { display: grid; justify-content: start; gap: 0.05rem; }
+.tr-hero .tr-slider .hero-readout { color: var(--gold); }
+.tr-hero .tr-sepread { margin: 0.25rem 0 0; }
+.trinst .tr-hero .tr-sepread dd { margin-bottom: 0.15rem; }
+.tr-frames.hero-control { margin-bottom: 0.5rem; }
+.tr-agree { margin: 0.2rem 0 0; color: var(--text); }
+.tr-tool .fine { margin: 0 0 0.4rem; }
+.tr-proposeblock { margin: 0 0 0.5rem; }
 
 .tr-slider { display: grid; gap: 0.3rem; font-size: var(--fs-label); margin-bottom: 0.3rem; }
 .tr-slider span { display: flex; justify-content: space-between; gap: 0.6rem; }

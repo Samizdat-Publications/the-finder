@@ -8,6 +8,7 @@ import { useMemo, useRef } from 'preact/hooks';
 import { nodeStatus } from '../../game/deductions';
 import { confirmedSet, game } from '../../game/state';
 import { nearestStars } from '../../science/epoch';
+import { Clamp } from '../../ui/Fine';
 import { send } from '../../ui/send';
 import { LastReading, PanelHead } from '../key/parts';
 import type { EpochModel } from '../shared/epochModel';
@@ -141,8 +142,9 @@ export function ReframeTool(p: { m: EpochModel }) {
   return (
     <section class="kpanel tr-tool" data-tool-panel="reframe">
       <PanelHead id="trail.when" />
-      <p class="note">Each line's age, read from its pulsar's rate as you measure it. Your own motion shifts every rate. Read them as another star would: pick a frame.</p>
-      <div class="tr-frames" role="radiogroup" aria-label="Frame the ages are read in">
+      <Clamp>Pick a frame: read the line ages as another star would. Each line's age comes from its pulsar's rate as you measure it, and your own motion shifts every rate.</Clamp>
+      {/* The hero control (V1 polish): the frame the ages are read in, and how tightly they agree in it. */}
+      <div class="tr-frames hero-control" role="radiogroup" aria-label="Frame the ages are read in">
         <label class="tr-radio">
           <input type="radio" name="tr-frame" checked={fr === 'own'} onChange={() => go('own')} data-frame-own="" />
           <span>Your own frame</span>
@@ -164,12 +166,12 @@ export function ReframeTool(p: { m: EpochModel }) {
             ))}
           </select>
         </label>
-      </div>
-      {s && (
-        <p class="note" data-agreement={s.chi2PerDof.toFixed(2)}>
+        {s && (
+        <p class="note tr-agree" data-agreement={s.chi2PerDof.toFixed(2)}>
           The {s.count} old lines spread over {yearsText(s.spread, g)}: {s.chi2PerDof < AGREE_CHI2_PER_DOF ? 'as tight as their errors allow.' : `${s.chi2PerDof.toFixed(0)} times the scatter their errors allow.`}
         </p>
-      )}
+        )}
+      </div>
       <dl class="tr-dl">
         <dt>Your mark</dt>
         <dd data-cursor={c ?? ''}>{c !== null ? yearsText(c, g, 4) : 'click the ages to set it'}</dd>

@@ -6,6 +6,7 @@
 // finding 1). Young lines wait for the map's age. The map's limits show here as notes where they matter.
 
 import { confirmedSet, game } from '../../game/state';
+import { Fine } from '../../ui/Fine';
 import { ANCHOR_LOG10_MARGIN } from '../../science/pulsarIdentify';
 import { SSD72_SIG_FIGS } from '../../science/pulsars';
 import type { EpochModel } from '../shared/epochModel';
@@ -49,7 +50,9 @@ export function LinePanel() {
     return (
       <section class="map-tool map-line" data-line-panel={sel} aria-live="polite">
         <p class="note">Line {sel} has no pulsar yet: click the one it points to on the chart.</p>
-        <ul class="map-notes">{notes.map((n) => <li key={n}>{n}</li>)}</ul>
+        <Fine label="About this line">
+          <ul class="map-notes">{notes.map((n) => <li key={n}>{n}</li>)}</ul>
+        </Fine>
       </section>
     );
   }
@@ -60,26 +63,42 @@ export function LinePanel() {
   // Before the map is dated only a pass-1 anchor's best candidate stands out on its own (20 to 1).
   const needsAge = !dated && !youngWaits && !r.notConsidered && !(r.best && isPass1Anchor(m, sel));
   const strong = `${Math.round(10 ** ANCHOR_LOG10_MARGIN)} to 1`;
-  const quality = r.notConsidered
+  // The headline (the hero readout) and, under it, why: the odds alone, or what the line still needs.
+  const headline = r.notConsidered ? 'not considered' : youngWaits ? "waits for the map's age" : `odds ${oddsText(r.log10Odds as number)}`;
+  const why = r.notConsidered
     ? REASON[r.notConsidered]
     : youngWaits
-      ? 'match quality needs the map\'s age first'
+      ? 'A young pulsar changes too fast to match by period until the map is dated.'
       : needsAge
-        ? `odds ${oddsText(r.log10Odds as number)} by period and direction alone, under the ${strong} that stands out: this line needs the map's age and origin first`
-        : `odds ${oddsText(r.log10Odds as number)}`;
+        ? `By period and direction alone, under the ${strong} that stands out: this line needs the map's age and origin first.`
+        : null;
+  const quality = why ? `${headline}: ${why}` : headline;
   return (
     <section class="map-tool map-line" data-line-panel={sel} data-pulsar={jname} aria-live="polite">
       <p class="map-linecap">
         Line {sel} and PSR {r.bname ?? r.jname}
       </p>
-      <dl class="map-readout">
-        <div><dt>the map's period</dt><dd>{qty('time', r.mapPeriodS, gloss)}</dd></div>
-        <div><dt>its period now</dt><dd>{qty('time', r.periodNowS, gloss)}</dd></div>
-        <div><dt>direction off the line</dt><dd>{r.dLonDeg.toFixed(2)} deg</dd></div>
-        <div><dt>latitude off the tick</dt><dd>{r.dLatDeg === null ? 'no tick to read' : `${r.dLatDeg.toFixed(2)} deg`}</dd></div>
-        <div class="quality"><dt>match quality</dt><dd data-match-quality={r.notConsidered ?? (youngWaits ? 'waits' : String(r.log10Odds))} data-match-pass={pass} data-needs-age={needsAge ? 'true' : 'false'}>{quality}</dd></div>
-      </dl>
-      <ul class="map-notes">{notes.map((n) => <li key={n}>{n}</li>)}</ul>
+      {/* The hero readout (V1 polish): how well this pulsar fits the line, and the two periods that decide it. */}
+      <div class="hero-control map-fit">
+        <div class="map-quality">
+          <span class="map-k">match quality</span>
+          <output class={`hero-readout${why ? ' weak' : ''}`} data-match-quality={r.notConsidered ?? (youngWaits ? 'waits' : String(r.log10Odds))} data-match-pass={pass} data-needs-age={needsAge ? 'true' : 'false'} title={quality}>
+            {headline}
+          </output>
+          {why && <span class="map-k map-why">{why}</span>}
+        </div>
+        <dl class="map-readout">
+          <div><dt>the map's period</dt><dd>{qty('time', r.mapPeriodS, gloss)}</dd></div>
+          <div><dt>its period now</dt><dd>{qty('time', r.periodNowS, gloss)}</dd></div>
+        </dl>
+      </div>
+      <Fine label="More readings">
+        <dl class="map-readout">
+          <div><dt>direction off the line</dt><dd>{r.dLonDeg.toFixed(2)} deg</dd></div>
+          <div><dt>latitude off the tick</dt><dd>{r.dLatDeg === null ? 'no tick to read' : `${r.dLatDeg.toFixed(2)} deg`}</dd></div>
+        </dl>
+        <ul class="map-notes">{notes.map((n) => <li key={n}>{n}</li>)}</ul>
+      </Fine>
     </section>
   );
 }

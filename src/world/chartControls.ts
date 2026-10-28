@@ -278,18 +278,29 @@ export function disposeTree(o: THREE.Object3D): void {
   });
 }
 
-/** A text label that stays the same size on screen (heightPx CSS px), anchored at its left middle beside a point. */
-export function makeLabel(text: string, colour = '#cfe9ff', heightPx = 13): THREE.Sprite {
+/**
+ * A text label that stays the same size on screen (heightPx CSS px), anchored at its left middle beside a point.
+ * `plate` draws it bold on a dark rounded plate, so a small tag reads over a dense field of points (the galaxy
+ * chart's line tags, V1 polish).
+ */
+export function makeLabel(text: string, colour = '#cfe9ff', heightPx = 13, plate = false): THREE.Sprite {
   const scaleUp = 3;
-  const font = `${heightPx * scaleUp}px system-ui, sans-serif`;
+  const font = `${plate ? '600 ' : ''}${heightPx * scaleUp}px system-ui, sans-serif`;
   const c = document.createElement('canvas');
   const ctx = c.getContext('2d')!;
   ctx.font = font;
-  const w = Math.ceil(ctx.measureText(text).width) + 8 * scaleUp;
+  const w = Math.ceil(ctx.measureText(text).width) + (plate ? 12 : 8) * scaleUp;
   c.width = w;
   c.height = Math.ceil(heightPx * scaleUp * 1.4);
   ctx.font = font;
   ctx.textBaseline = 'middle';
+  if (plate) {
+    const r = 4 * scaleUp;
+    ctx.fillStyle = 'rgba(6, 6, 22, 0.82)';
+    ctx.beginPath();
+    ctx.roundRect(2 * scaleUp, 1 * scaleUp, c.width - 4 * scaleUp, c.height - 2 * scaleUp, r);
+    ctx.fill();
+  }
   ctx.shadowColor = 'rgba(0,0,0,0.9)';
   ctx.shadowBlur = 4 * scaleUp;
   ctx.fillStyle = colour;
@@ -300,6 +311,9 @@ export function makeLabel(text: string, colour = '#cfe9ff', heightPx = 13): THRE
   s.center.set(0, 0.5);
   s.userData.aspect = c.width / c.height;
   s.userData.heightPx = c.height / scaleUp;
+  /** The text and its font size, CSS px, so a test can read what the chart wrote. */
+  s.userData.text = text;
+  s.userData.fontPx = heightPx;
   s.renderOrder = 10;
   return s;
 }

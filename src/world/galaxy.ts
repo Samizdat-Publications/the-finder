@@ -20,6 +20,7 @@ import {
 import {
   buildGalaxy, mapRays, matchSegments, regionOutline, type ChartPulsar, type GalaxyModel, type MapRay, type MapTransform, type MatchSegment, type PulsarClass, type RegionEllipse,
 } from './galaxyModel';
+import { besideAnchors } from './labelLayout';
 
 export interface GalaxyOptions {
   /** The playthrough's seed: the catalogue's simulated measurements (projectCatalogue) draw from it. */
@@ -78,7 +79,18 @@ export interface GalaxyHandle {
   relabel(): void;
   frameStats(): { meanIntervalMs: number; frames: number };
   benchmark(frames: number): number;
+  /** Every text label as last placed (for the browser tests): its text, font size, whether shown, and its box, canvas CSS px. */
+  labels(): ChartLabel[];
   dispose(): void;
+}
+
+export interface ChartLabel {
+  text: string;
+  fontPx: number;
+  shown: boolean;
+  /** The cover line number, on a matched pulsar's tag. */
+  line?: number;
+  box: { left: number; top: number; right: number; bottom: number };
 }
 
 /** Display colours by class (a display choice): young warm, old cool, millisecond lavender, no spin-down grey. */
@@ -97,6 +109,15 @@ const DIAL_COLOUR = 0x6a70d0;
 const DIAL_OPACITY = 0.1;
 const HALO_PX = 24;
 const HALO_OPACITY = 0.6;
+/** A matched pulsar's line tag (V1 polish, docs/plans/V1_polish.md C1): text height, CSS px (the spec's 11 to 12 px). */
+const TAG_PX = 12;
+/** How far the tag's box stands off its pulsar, CSS px: past the bright core of its halo (HALO_PX). */
+const TAG_GAP_PX = 7;
+/** Radius of a matched pulsar's halo core that other labels keep clear of, CSS px. */
+const HALO_CLEAR_PX = 6;
+/** The dial's ring labels: at least 11 px (the spec's floor), a little brighter than the dial so they read. */
+const DIAL_LABEL_PX = 11;
+const DIAL_LABEL_COLOUR = '#9aa6e0';
 
 async function loadInputs(opts: GalaxyOptions): Promise<{ pulsars: readonly AlienPulsar[]; observer: Observer }> {
   if (opts.pulsars && opts.observer) return { pulsars: opts.pulsars, observer: opts.observer };
@@ -169,11 +190,14 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
   core.scene.add(backdrop);
   core.scene.add(root);
 
-  /** The Galactic centre's label: its distance and error in the chart's length text. */
+  /**
+   * The Galactic centre's label: its name and one distance, in the chart's length text (V1 polish: the uncertainty and
+   * its modern source moved to the chart's "View and scale" fold, GalaxyPane.tsx, from GalaxyInfo.gc).
+   */
   const placeGcLabel = (m: GalaxyModel): void => {
     if (gcLabel) disposeTree(gcLabel);
     const gc = m.gc.posKpc;
-    gcLabel = makeLabel(`Galactic centre, ${lenText(m.gc.distKpc * 1000)} +/- ${lenText(m.gc.sigmaKpc * 1000, 2)} (modern)`, '#ffe9b8');
+    gcLabel = makeLabel(`Galactic centre, ${lenText(m.gc.distKpc * 1000)}`, '#ffe9b8');
     gcLabel.position.set(gc[0], gc[2], -gc[1]);
     gcLabel.userData.keep = true;
     root.add(gcLabel);
@@ -185,7 +209,7 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
     const g = new THREE.Group();
     const a = Math.PI / 12;
     for (const r of DIAL_RINGS_KPC) {
-      const l = makeLabel(lenText(r * 1000, 2), '#7f8fcf', 11);
+      const l = makeLabel(lenText(r * 1000, 2), DIAL_LABEL_COLOUR, DIAL_LABEL_PX);
       galToWorld([r * Math.cos(a), r * Math.sin(a), 0], l.position);
       l.userData.priority = 0;
       g.add(l);
@@ -252,6 +276,8 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
     if (model) out.push({ at: model.gc.posKpc, rPx: 10 });
     const p = highlighted && model ? model.pulsars.find((q) => q.jname === highlighted) : undefined;
     if (p) out.push({ at: p.posKpc, rPx: 9 });
+    // Each matched pulsar's halo: the other labels (and the other line tags) keep off it.
+    for (const at of tagPoints) out.push({ at, rPx: HALO_CLEAR_PX });
     return out;
   };
 
@@ -272,6 +298,31 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
 
   let ringSet: PointSet | null = null;
   let halos: THREE.Points | null = null;
+  /** The line tags beside the matched pulsars, and those pulsars' positions (kpc), for the declutter. */
+  let tags: THREE.Group | null = null;
+  let tagPoints: Vec3[] = [];
+  /** A small tag with its cover line number beside each matched pulsar's halo, placed by the label declutter. */
+  const setTags = (pairs: readonly { order: number; jname: string }[]): void => {
+    if (tags) disposeTree(tags);
+    tags = null;
+    tagPoints = [];
+    if (!model || !pairs.length) return;
+    const g = new THREE.Group();
+    for (const pr of [...pairs].sort((a, b) => a.order - b.order)) {
+      const p = model.pulsars.find((q) => q.jname === pr.jname);
+      if (!p) continue;
+      const l = makeLabel(`line ${pr.order}`, '#ffd98a', TAG_PX, true);
+      galToWorld(p.posKpc, l.position);
+      const w = (l.userData.heightPx as number) * (l.userData.aspect as number);
+      l.userData.anchors = besideAnchors(w, l.userData.heightPx as number, TAG_GAP_PX);
+      l.userData.priority = 1.5;
+      l.userData.tagLine = pr.order;
+      g.add(l);
+      tagPoints.push(p.posKpc);
+    }
+    root.add(g);
+    tags = g;
+  };
   /** A soft halo behind each pulsar the player matched to a map line (the matches only: nothing is revealed). */
   const setHalos = (names: readonly string[]): void => {
     if (halos) drop(halos);
@@ -392,12 +443,14 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
       overlay.map = null;
       overlay.matches = null;
       setHalos([]);
+      setTags([]);
       rays = [];
     },
     setMatches(pairs) {
       if (overlay.matches) disposeTree(overlay.matches);
       overlay.matches = null;
       setHalos(pairs.map((p) => p.jname));
+      setTags(pairs);
       const segs = model ? matchSegments(rays, pairs, model.pulsars) : [];
       if (segs.length) {
         overlay.matches = makeSegments(segs.map((s) => [s.from, s.to] as const), 0x9ff0d8, 0.7);
@@ -467,6 +520,31 @@ export function mountGalaxy(canvas: HTMLCanvasElement, opts: GalaxyOptions): Gal
     },
     frameStats: () => core.frameStats(),
     benchmark: (frames) => core.benchmark(frames),
+    labels() {
+      const { w, h } = core.size();
+      cam.apply(core.camera);
+      const out: ChartLabel[] = [];
+      const v = new THREE.Vector3();
+      root.traverse((o) => {
+        const hp = o.userData.heightPx as number | undefined;
+        if (hp === undefined || typeof o.userData.text !== 'string') return;
+        const s = o as THREE.Sprite;
+        let shown = s.visible;
+        for (let p = s.parent; p; p = p.parent) shown &&= p.visible;
+        s.getWorldPosition(v).project(core.camera);
+        const x = (v.x * 0.5 + 0.5) * w;
+        const y = (-v.y * 0.5 + 0.5) * h;
+        const bw = hp * (s.userData.aspect as number);
+        const left = x - s.center.x * bw;
+        const top = y - (1 - s.center.y) * hp;
+        out.push({
+          text: s.userData.text as string, fontPx: s.userData.fontPx as number, shown,
+          ...(typeof s.userData.tagLine === 'number' ? { line: s.userData.tagLine as number } : {}),
+          box: { left, top, right: left + bw, bottom: top + hp },
+        });
+      });
+      return out;
+    },
     dispose() {
       disposed = true;
       detach();
