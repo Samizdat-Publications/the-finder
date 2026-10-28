@@ -1,9 +1,11 @@
 // The atlas of hydrogen (key.unit): five transitions, each a period and a wavelength; pick one and the units
 // panel reads the cover's numbers with it, live: the disc's turn and how its rim speed compares with what a
-// copper disc survives, a side, a picture line, and the 14 map numbers against the pulsar catalogue.
+// copper disc survives, a side, a picture line, and the 14 map numbers against the pulsar catalogue. The rows are
+// one line each and the choices lead under them; the 14 numbers themselves fold (the hero-control pass, 2026-10-28).
 
 import { nodeStatus } from '../../game/deductions';
 import { confirmedSet, game } from '../../game/state';
+import { Clamp, Fine } from '../../ui/Fine';
 import { GlyphLabel } from '../../ui/Glyph';
 import { formatNumber, formatPower, quantity } from '../../ui/units';
 import { keyInputs, pulsarError, pulsarSpan } from './data';
@@ -64,6 +66,7 @@ function UnitsTable(p: { id: TransitionId }) {
         </tr>
         <tr>
           <td colSpan={2}>
+            <Fine label={`The ${r.mapS.length} map numbers`}>
             <ol class="mapnums">
               {r.mapS.map((s, i) => {
                 const ok = s >= range.minS && s <= range.maxS;
@@ -74,40 +77,72 @@ function UnitsTable(p: { id: TransitionId }) {
                 );
               })}
             </ol>
+            </Fine>
           </td>
         </tr>
       </tbody>
     </table>
-    <p class="note">
+    <Clamp>
       Known pulsars turn once in <Q dim="time" si={range.minS} /> to <Q dim="time" si={range.maxS} /> (the alien's catalogue).
-    </p>
+    </Clamp>
     </>
   );
 }
 
 export function AtlasPanel(p: { choice: TransitionId; onChoice: (id: TransitionId) => void }) {
   const status = nodeStatus('key.unit', confirmedSet.value);
+  // The picked row says what its reading makes of the map numbers (the table's own row, from readWithUnit), so the
+  // finding shows where the player clicked; the full table follows the choices.
+  const range = pulsarSpan.value;
+  const picked = transition(p.choice);
+  const map = range && picked ? readWithUnit(picked, keyInputs(), range) : null;
   return (
     <section class={`kpanel ${status}`} data-panel="key.unit" data-status={status} aria-label="Atlas of hydrogen">
       <PanelHead id="key.unit" />
-      <p class="note">
+      <Clamp>
         The plate draws one small atom twice, side by side, with a single stroke between them; inside each, two little marks point the
         same way in one drawing and opposite ways in the other.
-      </p>
-      <ul class="atlas" role="radiogroup" aria-label="Atlas of hydrogen transitions">
-        {TRANSITIONS.map((t) => (
-          <li key={t.id}>
-            <button type="button" role="radio" aria-checked={p.choice === t.id} class={`atlasrow${p.choice === t.id ? ' on' : ''}`} data-atlas={t.id} onClick={() => p.onChoice(t.id)}>
-              <GlyphLabel k={t.key} gloss={`${t.key}: ${t.gloss}`} height={16} />
-              <span class="atlasq">
-                period <Q dim="time" si={periodS(t)} />, wavelength <Q dim="length" si={wavelengthM(t)} />
-              </span>
-            </button>
-          </li>
-        ))}
+      </Clamp>
+      {/* One line a row; the picked row shows what its change is and its wavelength (the hero-control pass, 2026-10-28). */}
+      <ul class="atlas compact" role="radiogroup" aria-label="Atlas of hydrogen transitions">
+        {TRANSITIONS.map((t) => {
+          const on = p.choice === t.id;
+          return (
+            <li key={t.id}>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={on}
+                class={`atlasrow${on ? ' on' : ''}`}
+                data-atlas={t.id}
+                title={`${t.key}: ${t.gloss}`}
+                onClick={() => p.onChoice(t.id)}
+              >
+                <span class="atlasline">
+                  <GlyphLabel k={t.key} gloss={on ? `${t.key}: ${t.gloss}` : t.key} height={16} />
+                  {!on && (
+                    <span class="atlasq">
+                      period <Q dim="time" si={periodS(t)} />
+                    </span>
+                  )}
+                </span>
+                {on && (
+                  <span class="atlasq">
+                    period <Q dim="time" si={periodS(t)} />, wavelength <Q dim="length" si={wavelengthM(t)} />
+                  </span>
+                )}
+                {on && map && (
+                  <span class={`atlasmap ${map.mapInRange === map.mapS.length ? 'fine' : 'absurd'}`} data-atlas-map={map.mapInRange}>
+                    read with it, {map.mapInRange} of {map.mapS.length} map numbers are periods some known pulsar has
+                  </span>
+                )}
+              </button>
+            </li>
+          );
+        })}
       </ul>
+      <Propose id="key.unit" choices={ATLAS_CHOICES} legend="Which transition is the cover's unit?" class="hero-control kchoices-grid" />
       <UnitsTable id={p.choice} />
-      <Propose id="key.unit" choices={ATLAS_CHOICES} legend="Which transition is the cover's unit?" />
       <LastReading id="key.unit" />
     </section>
   );

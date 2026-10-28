@@ -1,5 +1,6 @@
-// The Player's instrument: the cover's record drawings (read through the key) on the left; on the right the
-// turntable the alien builds to them, the groove microscope, and the four deductions with what each answer
+// The Player's instrument: the cover's record drawings (read through the key) on the left; the turntable the alien
+// builds to them in the middle, large, with its controls straight under it (the hero-control pass, 2026-10-28);
+// on the right what the stylus hears, the groove microscope, and the four deductions with what each answer
 // showed. Commands go through the bus (rule 5); the instrument's own state is only the drop ring, the lamp,
 // whether a direction has been picked yet, and how long the needle has played undisturbed. The first sound is
 // proposed automatically once the stylus has really heard it (the checker decides, from the bus's state).
@@ -21,7 +22,7 @@ import { CoverViewer, type StrokeRef } from '../shared/CoverViewer';
 import type { Lamp } from '../shared/relief';
 import { checkFirstSound } from './checkers';
 import { PLAYER_SIDE, SPEED_START_BEATS } from './constants';
-import { Controls } from './Controls';
+import { Controls, StylusHears } from './Controls';
 import { Microscope } from './Microscope';
 import { Platter } from './Platter';
 import { spotAt, type TurntableReading } from './physics';
@@ -188,30 +189,27 @@ export function PlayerInstrument() {
         </dl>
       </div>
 
-      <div class="ppanels">
-        <section class="kpanel pctlpanel" aria-label="The turntable controls">
-          <Controls target={target} reading={rd} dirChosen={dirKnown} onDirection={onDirection} onDrop={() => void onDrop()} />
-          {reduced && (
-            <p class="note small" data-rate="">
-              The platter turns {T.direction.value === 'cw' ? 'clockwise' : 'counter-clockwise'} once every <Time s={T.secondsPerTurn.value} /> (held still: reduced motion).
-            </p>
-          )}
+      {/* The turntable leads (the hero-control pass, 2026-10-28): the platter large, its controls straight under it. */}
+      <section class="kpanel pdeck pctlpanel" aria-label="The turntable">
+        <Platter target={target} onTarget={setTarget} reducedMotion={reduced} />
+        {reduced && (
+          <p class="note small" data-rate="">
+            Held still (reduced motion): {T.direction.value === 'cw' ? 'clockwise' : 'counter-clockwise'}, once every <Time s={T.secondsPerTurn.value} />.
+          </p>
+        )}
+        <Controls target={target} dirChosen={dirKnown} onDirection={onDirection} onDrop={() => void onDrop()} />
+      </section>
+
+      <div class="pside">
+        <StylusHears reading={rd} />
+        <section class="kpanel pscope" aria-label="The groove microscope">
+          <header class="khead">
+            <span class="plabel">The groove under the microscope, where the needle drops</span>
+          </header>
+          <Microscope centreMm={target} reducedMotion={reduced} />
         </section>
-
-        <div class="pscene">
-          <section class="kpanel pdeck" aria-label="The turntable">
-            <Platter target={target} onTarget={setTarget} reducedMotion={reduced} />
-          </section>
-          <section class="kpanel pscope" aria-label="The groove microscope">
-            <header class="khead">
-              <span class="plabel">The groove under the microscope, where the needle drops</span>
-            </header>
-            <Microscope centreMm={target} reducedMotion={reduced} />
-          </section>
-        </div>
-
         <div class="pnodes">
-          {(['player.speed', 'player.start', 'player.direction', 'player.firstSound'] as const).map((id) => (
+          {(['player.speed', 'player.direction', 'player.start', 'player.firstSound'] as const).map((id) => (
             <section key={id} class={`kpanel pnode ${nodeStatus(id, confirmed)}`} data-panel={id}>
               <PanelHead id={id} />
               {id === 'player.start' && nodeStatus(id, confirmed) === 'open' && <p class="note small">Drop the needle where the side begins: the drop is your answer.</p>}

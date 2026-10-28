@@ -71,3 +71,17 @@
   .kview .coverviewer { width: 100%; }
   .kpanels { height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; padding-right: 0.2rem; }
 }
+
+/* The hero-control pass (2026-10-28), scoped to The Key so the chapters that share this file are unchanged. */
+.keyinst .kpanel > .clamp-wrap { margin: 0 0 0.4rem; }
+.keyinst .kchoices.hero-control { padding: 0.5rem 0.75rem 0.65rem; }
+.keyinst .kchoices.hero-control legend { color: var(--cyan); }
+.keyinst .kchoices-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.25rem 0.8rem; }
+.keyinst .kchoices-grid .btn { grid-column: 1 / -1; }
+.keyinst .atlas.compact { gap: 0.2rem; }
+.keyinst .atlas.compact .atlasrow { padding: 0.28rem 0.55rem; gap: 0.1rem; }
+.keyinst .atlasline { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 0.8rem; }
+.keyinst .ktable td .fine { margin: 0; }
+.keyinst .atlasmap { font-size: var(--fs-label); }
+.keyinst .atlasmap.fine { color: var(--cyan); }
+.keyinst .atlasmap.absurd { color: var(--danger); }

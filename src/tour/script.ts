@@ -192,7 +192,7 @@ export const STOPS: readonly Stop[] = [
     title: 'How fast?',
     look:
       'The number around the record drawing is the time of **one turn**, in ticks of hydrogen. Our key has already turned it into beats: it is written under the cover on the left ("one turn takes ...").',
-    todo: `Set **Time for one turn** to the cover's number, ${sig5(rotationBeats)} beats: type it in the **Beats per turn** box (or drag the slider), then press **This is the time of one turn**.`,
+    todo: `Set **Time for one turn** to the cover's number, ${sig5(rotationBeats)} beats: drag the slider until it reads that (**Fine tune** has a box to type it), then press **This is the time of one turn**.`,
     why: `One turn every ${sig3(rotationS)} seconds is ${sig3(rpm)} turns a minute. That is slow for a record: half the speed of a long-playing album. Slower means more fits on the disc.`,
     human:
       'Each side of the Golden Record plays for about an hour. The cover tells the finder how long, too: that is the number beside the edge-on drawing.',

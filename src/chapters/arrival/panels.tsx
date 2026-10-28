@@ -3,6 +3,7 @@
 
 import type { ComponentChildren } from 'preact';
 import { game } from '../../game/state';
+import { Clamp, Fine } from '../../ui/Fine';
 import { GlyphLabel, GlyphSvg, Value } from '../../ui/Glyph';
 import { UNIT_KEY, formatSI, quantity, quantityText, superscript, type Dim } from '../../ui/units';
 import { AnswerBox } from './AnswerBox';
@@ -83,9 +84,6 @@ export function HeatPanel(p: { m: ArrivalModel }) {
         <Reading k="Total heat output" title={assumptions}>
           <span data-heat-low={low} data-heat-high={high}>
             <Range dim="power" lo={low} hi={high} />
-          </span>{' '}
-          <span class="assume" tabIndex={0} title={assumptions}>
-            (two assumptions: hover or focus)
           </span>
         </Reading>
         <Reading k="Each cylinder">
@@ -100,7 +98,10 @@ export function HeatPanel(p: { m: ArrivalModel }) {
           <Value reading={{ key: 'dish', value: p.m.estimates.dishK, dim: 'temperature' }} />, the sky's own temperature
         </Reading>
       </ul>
-      <p class="ar-small">{assumptions}</p>
+      {/* The range's two ends rest on two assumptions: folded, for the curious (the hero-control pass, 2026-10-28). */}
+      <Fine label="Why a range: two assumptions">
+        <p class="ar-small">{assumptions}</p>
+      </Fine>
       <AnswerBox id="arrival.heat" prompt="What warms the cylinders?" />
     </section>
   );
@@ -168,7 +169,7 @@ export function IsotopePanel(p: { m: ArrivalModel }) {
           {sig(meas.th230OverU234, 3)} (plus or minus {meas.relativePrecision * 100}%)
         </Reading>
       </ul>
-      {game.settings.value.humanGloss && <p class="ar-small">Atom fractions from a seeded simulated measurement of the real fuel's computed inventory.</p>}
+      {game.settings.value.humanGloss && <Clamp class="ar-clamp">Atom fractions from a seeded simulated measurement of the real fuel's computed inventory.</Clamp>}
       <AnswerBox id="arrival.madeNotMined" prompt="Where did this uranium come from?" />
     </section>
   );

@@ -1,8 +1,9 @@
-/* The Player: the cover's disc drawings (gold) beside the alien turntable, microscope and deductions. */
+/* The Player: the cover's disc drawings (gold), the alien turntable leading in the middle with its controls under it,
+   and on the right what the stylus hears, the microscope and the deductions (the hero-control pass, 2026-10-28). */
 .playerinst { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.25fr); gap: 1.1rem; align-items: start; margin-bottom: 1.25rem; }
 .pview { position: sticky; top: 4.5rem; display: grid; gap: 0.6rem; }
-.ppanels { display: grid; gap: 0.9rem; min-width: 0; }
-.pscene, .pnodes { display: grid; gap: 0.9rem; min-width: 0; align-content: start; }
+.pside, .pnodes { display: grid; gap: 0.75rem; min-width: 0; align-content: start; }
+.pside { grid-column: 1 / -1; }
 
 .preadings { margin: 0; display: grid; gap: 0.35rem; font-size: var(--fs-label); }
 .preadings div { display: grid; grid-template-columns: 13rem 1fr; gap: 0.6rem; }
@@ -10,14 +11,30 @@
 .preadings dd { margin: 0; color: var(--gold); font-size: var(--fs-value); }
 .preadings .unitname { color: var(--gold); opacity: 0.8; }
 
-.pdeck { display: grid; justify-items: center; }
-.platter { width: 100%; max-width: 22rem; height: auto; display: block; touch-action: none; cursor: crosshair; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45)); }
+.pdeck { display: grid; gap: 0.7rem; align-content: start; min-width: 0; }
+.platter { justify-self: center; width: 100%; max-width: 22rem; height: auto; display: block; touch-action: none; cursor: crosshair; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45)); }
 
 .pcontrols { display: grid; gap: 0.8rem; min-width: 0; }
 .pctl { display: grid; gap: 0.35rem; }
 .plabel { font-size: var(--fs-label); color: var(--violet); }
 .prow { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
 .prow input[type='range'] { flex: 1 1 8rem; accent-color: var(--cyan); min-width: 6rem; }
+.pctl > input[type='range'] { width: 100%; accent-color: var(--cyan); margin: 0; }
+.pspeedlabel { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.6rem; }
+.pspeedlabel .unitname { font-size: var(--fs-label); color: var(--violet); }
+.pspeedlabel .si { color: var(--text-dim); }
+.pctl .btn[data-propose-button] { justify-self: start; }
+/* The speed's Propose button and its folded fine controls share a row; opened, the fold takes the row's width. */
+.pfoot { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.4rem 0.8rem; }
+.pfoot > .btn { order: 2; margin-left: auto; }
+.pfoot > .fine { order: 1; margin-top: 0.25rem; }
+.pfoot > .fine[open] { flex-basis: 100%; }
+.pctl:not(.hero-control) { padding: 0 0.7rem; }
+.pdeck > .note.small[data-rate] { text-align: center; }
+.pcontrols .pctl.hero-control { gap: 0.3rem; }
+.pdirs .pdir { flex: 1 1 auto; justify-content: center; }
+.pspot { color: var(--text); font-weight: 600; }
+.pdim { color: var(--text-dim); }
 .pnum {
   width: 5.6rem; font: var(--fs-value) var(--font-mono); color: var(--cyan); background: var(--bg-sunk);
   border: 1px solid var(--line); border-radius: 6px; padding: 0.3rem 0.4rem;
@@ -44,28 +61,30 @@
 .pnode { padding-top: 0.7rem; padding-bottom: 0.7rem; }
 
 .pctlpanel { padding: 0.8rem 0.9rem; }
+.pscope .khead { margin-bottom: 0.35rem; }
 /* On a screen with room (1000 x 620 and up) the page does not scroll. Left: the cover's drawings of the disc under
-   their lamp, with what they read. Right: the controls, the platter and the microscope, and the four deductions;
-   a wide instrument (1200 px and up) puts the deductions in a third column, a narrower one under the controls. */
+   their lamp, with what they read. Middle: the turntable, as large as the height allows, and its controls under it.
+   Right: what the stylus hears, the microscope and the four deductions, scrolling in their own column. */
 @media (min-width: 1000px) and (min-height: 620px) {
-  .playerinst { height: 100%; margin: 0; grid-template-columns: min(40cqw, calc(100cqh - 21.5rem)) minmax(0, 1fr); gap: 1rem; align-items: stretch; }
+  .playerinst {
+    height: 100%; margin: 0; gap: 0.9rem; align-items: stretch;
+    grid-template-columns: clamp(13rem, 26cqw, 21rem) minmax(0, 1fr) clamp(15rem, 27cqw, 20rem);
+  }
   .preadings div { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .pview { position: static; min-width: 0; min-height: 0; overflow-y: auto; align-content: start; }
   .pview .coverviewer { width: 100%; }
-  .ppanels {
-    height: 100%; min-height: 0; gap: 0.75rem;
-    grid-template-columns: 17.5rem minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr);
-    grid-template-areas: 'ctl scene' 'nodes scene';
-  }
-  .pctlpanel { grid-area: ctl; }
-  .pscene { grid-area: scene; min-height: 0; overflow-y: auto; gap: 0.75rem; }
-  .pnodes { grid-area: nodes; min-height: 0; overflow-y: auto; overscroll-behavior: contain; gap: 0.6rem; }
-  .pdeck .platter { max-width: 13.5rem; }
-  .microscope svg { width: min(100%, 22rem); margin: 0 auto; }
-  @container (min-width: 1200px) {
-    .ppanels { grid-template-columns: 17.5rem minmax(0, 1fr) 17.5rem; grid-template-rows: minmax(0, 1fr); grid-template-areas: 'ctl scene nodes'; }
-    .pctlpanel { overflow-y: auto; }
-  }
+  /* The platter takes the height its controls leave (a square drawing centred in its box), so the controls stay
+     on screen without scrolling at 1366 x 768 with the guide open. */
+  .pdeck { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .pdeck .platter { flex: 1 1 0; min-height: 11rem; width: 100%; max-width: none; height: auto; }
+  .pdeck > :not(.platter) { flex: none; }
+  .pside { grid-column: auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-right: 0.2rem; }
+  .microscope svg { width: 100%; margin: 0 auto; }
+  /* The lamp matters little here (the record drawings read under any lamp): its dial and zoom sit small, in one row. */
+  .playerinst .covertools { gap: 0.5rem; margin-top: 0.4rem; }
+  .playerinst .lampdial svg.dial { width: 64px; height: 64px; }
+  .playerinst .zoombtns { flex-direction: row; }
+  .playerinst .covernote { min-width: 0; flex: none; }
 }
 
 @media (max-width: 820px) {
@@ -73,3 +92,5 @@
   .pview { position: static; }
   .preadings div { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
+/* What the stylus hears stays at the top of its column while the microscope and deductions scroll under it. */
+.pside > .pheard { position: sticky; top: 0; z-index: 1; }

@@ -61,10 +61,12 @@ export function Platter({ target, onTarget, reducedMotion }: Props) {
   const radiusFrom = (ev: PointerEvent): number | null => {
     const el = svg.current;
     if (!el) return null;
-    const b = el.getBoundingClientRect();
-    const x = ((ev.clientX - b.left) / b.width) * 2 * VIEW - VIEW;
-    const y = ((ev.clientY - b.top) / b.height) * 2 * VIEW - VIEW;
-    const d = Math.hypot(x, y);
+    // Through the drawing's own transform (viewBox units are mm), so a box wider or taller than the square
+    // drawing (the platter fills the height the deck leaves it, centred) still maps the pointer exactly.
+    const m = el.getScreenCTM();
+    if (!m) return null;
+    const pt = new DOMPoint(ev.clientX, ev.clientY).matrixTransform(m.inverse());
+    const d = Math.hypot(pt.x, pt.y);
     return d > DISC_RADIUS_MM + 3 ? null : Math.min(DISC_RADIUS_MM, Math.max(4, d));
   };
 

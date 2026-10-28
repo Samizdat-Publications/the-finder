@@ -108,7 +108,11 @@ export async function playSpot(page, { assert, log, shot, label = '' }) {
   const counted = () => page.locator('[data-counted-s]').getAttribute('data-counted-s').then(Number);
   const countFor = async (beats) => {
     const before = await counted();
-    await page.locator(`[data-count-beats="${beats}"]`).click();
+    // The counting steps other than +10^5 are folded under the panel's "Other counting times" (the hero-control
+    // pass, 2026-10-28): open the fold first, as a player would.
+    const btn = page.locator(`[data-count-beats="${beats}"]`);
+    if (!(await btn.isVisible())) await page.locator('[data-panel="spot.age"] details[data-fine] > summary').click();
+    await btn.click();
     await page.waitForFunction((b) => {
       const v = document.querySelector('[data-counted-s]')?.getAttribute('data-counted-s');
       return v !== '' && Number(v) > b;

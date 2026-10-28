@@ -8,6 +8,7 @@ import { confirmedSet, game } from '../../game/state';
 import { START_P_95, testStartHypothesis } from '../../science/clocks';
 import { clockAges, naturalStartRatio } from '../../science/spot';
 import { JULIAN_YEAR_S } from '../../science/units';
+import { Clamp } from '../../ui/Fine';
 import { GlyphSvg } from '../../ui/Glyph';
 import { UNIT_KEY, superscript } from '../../ui/units';
 import { REJECT_P, beatsNumber, sig } from './checkers';
@@ -89,17 +90,17 @@ export function PurityPanel(p: PurityProps) {
   const thr = 1 - Math.log10(REJECT_P) / P_FLOOR_LOG;
   return (
     <Panel id={id} title="Purity test" glyph="purity" current={{ countingTimeS: p.countedS, startA234overA238: Math.round(p.r0 * 1000) / 1000 }}>
-      <p class="sp-small">
+      <Clamp>
         Dial how much uranium-234 the spot held when it was laid down, for each uranium-238. Each clock then gives its own age from your counts
         ({sig(c.th230)} thorium-230 so far).
-      </p>
-      <div class="sp-purity">
+      </Clamp>
+      <div class="sp-purity hero-control">
         <Dial r0={p.r0} />
         <div>
           <label class="sp-slider">
             <span class="k">start</span>
             <input type="range" min={0} max={DIAL_MAX} step={0.01} value={p.r0} data-start-input onInput={(e) => p.onR0(Number((e.currentTarget as HTMLInputElement).value))} />
-            <span class="num">{sig(p.r0, 3)}</span>
+            <span class="hero-readout">{sig(p.r0, 3)}</span>
           </label>
           <p class="sp-small sp-legend">
             <span class="dot" aria-hidden="true" /> ore in balance: {sig(naturalStartRatio(), 3)} (uranium-234 as active as uranium-238)

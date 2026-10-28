@@ -39,7 +39,8 @@ onStartOver(() => {
   choicePicks.value = {};
 });
 
-export function Propose(p: { id: string; choices: Choice[]; legend: string }) {
+/** `class` adds classes to the fieldset (optional, additive: e.g. 'hero-control' where the choices lead a panel). */
+export function Propose(p: { id: string; choices: Choice[]; legend: string; class?: string }) {
   const [pick, setPickState] = useState<string | null>(null);
   const setPick = (id: string): void => {
     setPickState(id);
@@ -50,7 +51,7 @@ export function Propose(p: { id: string; choices: Choice[]; legend: string }) {
   const chosen = p.choices.find((c) => c.id === pick);
   if (status === 'confirmed') return null;
   return (
-    <fieldset class="kchoices" disabled={status !== 'open'} data-propose={p.id}>
+    <fieldset class={`kchoices${p.class ? ` ${p.class}` : ''}`} disabled={status !== 'open'} data-propose={p.id}>
       <legend>{p.legend}</legend>
       {p.choices.map((c) => (
         <label key={c.id} class="kchoice">

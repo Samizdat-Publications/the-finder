@@ -2,7 +2,8 @@
 // player chooses, watch the three lines grow as a spectrum, read the uranium-234 to uranium-238 ratio with its
 // 95% interval, and drag an age marker on the ratio-to-age curve. Counting runs as a time-lapse; the counts
 // at any counting time come from the seeded session (spot.ts), so they are the same however you get there.
-// The age interval is drawn only after an age has been proposed.
+// The age interval is drawn only after an age has been proposed. The age marker on the curve leads as the panel's
+// hero; the other counting steps and the spectrum fold (the hero-control pass, 2026-10-28).
 
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { nodeStatus } from '../../game/deductions';
@@ -11,6 +12,7 @@ import { ageFromU234, type AlphaCounts } from '../../science/clocks';
 import { DETECTOR_RESOLUTION_KEV, MAX_COUNT_S, alphaLineMeV, u234RatioAt } from '../../science/spot';
 import { wilsonInterval } from '../../science/stats';
 import { JULIAN_YEAR_S, MEV_J } from '../../science/units';
+import { Clamp, Fine } from '../../ui/Fine';
 import { GlyphSvg } from '../../ui/Glyph';
 import { UNIT_KEY, formatNumber, formatSI, quantity, superscript, toAlien } from '../../ui/units';
 import { beatsNumber, sig } from './checkers';
@@ -19,6 +21,8 @@ import { Panel, propose } from './parts';
 
 /** Counting steps the player can add, in beats: whole powers of ten (the alien's round numbers). */
 const STEPS_BEATS = [1e2, 1e3, 1e4, 1e5, 1e6, 1e7];
+/** The step that leads (about a day of counting, enough for a narrow interval); the others fold. */
+const LEAD_STEP_BEATS = 1e5;
 const beatsS = (n: number): number => n / toAlien('time', 1);
 
 /** Real seconds the time-lapse takes for a step: about 3 s per day of counting, from 0.8 s up to 6 s. */
@@ -217,26 +221,33 @@ export function CounterPanel(p: CounterProps) {
   const gloss = game.settings.value.humanGloss;
   const t = quantity('time', shownS);
   const proposed = (game.records.value[id]?.attempts.length ?? 0) > 0;
+  // A plain function, not a component: a component made inside render would remount each frame of the count.
+  const countButton = (q: { b: number }) => (
+    <button type="button" class={`btn small${q.b === LEAD_STEP_BEATS ? ' sp-lead' : ''}`} data-count-beats={q.b} disabled={running || p.countedS >= MAX_COUNT_S} onClick={() => count(beatsS(q.b))}>
+      +10{superscript(Math.log10(q.b))}
+      {gloss && <span class="si"> ({formatSI('time', beatsS(q.b))})</span>}
+    </button>
+  );
   return (
     <Panel id={id} title="Alpha counter" glyph="counter" current={{ countingTimeS: p.countedS, ageYears: Math.round(p.ageYears) }}>
-      <p class="sp-small">
-        A sample of the spot, uranium and thorium separated, under the same detector. Count longer and the error bars shrink.
-      </p>
+      <Clamp>A sample of the spot, uranium and thorium separated, under the same detector. Count longer and the error bars shrink.</Clamp>
       <div class="sp-steps" role="group" aria-label="Count for longer">
-        {STEPS_BEATS.map((b) => (
-          <button key={b} type="button" class="btn small" data-count-beats={b} disabled={running || p.countedS >= MAX_COUNT_S} onClick={() => count(beatsS(b))}>
-            +10{superscript(Math.log10(b))}
-            {gloss && <span class="si"> ({formatSI('time', beatsS(b))})</span>}
-          </button>
-        ))}
+        {countButton({ b: LEAD_STEP_BEATS })}
+        <p class="sp-total" data-counted-s={running ? '' : p.countedS}>
+          <span class="k">counted</span> <span class="num">{beatsNumber(shownS)}</span> <GlyphSvg k={UNIT_KEY.time} height={15} class="unit" />
+          {gloss && <span class="si"> ({t.si})</span>}
+          {running && <span class="sp-small"> counting...</span>}
+        </p>
       </div>
-      <p class="sp-total" data-counted-s={running ? '' : p.countedS}>
-        <span class="k">counted</span> <span class="num">{beatsNumber(shownS)}</span> <GlyphSvg k={UNIT_KEY.time} height={15} class="unit" />
-        {gloss && <span class="si"> ({t.si})</span>}
-        {running && <span class="sp-small"> counting...</span>}
-      </p>
-      <Spectrum c={c} />
-      <LineCounts c={c} />
+      <Fine label="Other counting times, and the spectrum">
+        <div class="sp-steps" role="group" aria-label="Count for other times">
+          {STEPS_BEATS.filter((b) => b !== LEAD_STEP_BEATS).map((b) => (
+            <span key={b} class="sp-stepwrap">{countButton({ b })}</span>
+          ))}
+        </div>
+        <Spectrum c={c} />
+        <LineCounts c={c} />
+      </Fine>
       <p class="sp-ratio" data-ratio={R ?? ''}>
         <span class="k">uranium-234 per uranium-238</span>{' '}
         {R === null ? (
@@ -248,18 +259,23 @@ export function CounterPanel(p: CounterProps) {
           </>
         )}
       </p>
-      <AgeCurve c={c} ageYears={p.ageYears} onAge={p.onAge} showInterval={proposed} />
-      <label class="sp-slider">
-        <span class="k">age marker</span>
-        <input type="range" min={0} max={MAX_YEARS} step={50} value={p.ageYears} data-age-input onInput={(e) => p.onAge(Number((e.currentTarget as HTMLInputElement).value))} />
-        <span class="num">{beatsNumber(p.ageYears * JULIAN_YEAR_S)}</span> <GlyphSvg k={UNIT_KEY.time} height={15} class="unit" />
-        {gloss && <span class="si"> ({sig(p.ageYears)} years)</span>}
-      </label>
-      {status === 'open' && (
-        <button type="button" class="btn" data-propose="spot.age" disabled={running || p.countedS <= 0} onClick={() => propose(id, { countingTimeS: p.countedS, ageYears: Math.round(p.ageYears) })}>
-          The spot is this old
-        </button>
-      )}
+      {/* The hero: the age marker on the ratio-to-age curve, its slider and its reading (the hero-control pass, 2026-10-28). */}
+      <div class="hero-control sp-agehero">
+        <label class="sp-slider">
+          <span class="k">age marker</span>
+          <span class="hero-readout">
+            {beatsNumber(p.ageYears * JULIAN_YEAR_S)} <GlyphSvg k={UNIT_KEY.time} height={15} class="unit" />
+          </span>
+          {gloss && <span class="si"> ({sig(p.ageYears)} years)</span>}
+          <input type="range" min={0} max={MAX_YEARS} step={50} value={p.ageYears} data-age-input onInput={(e) => p.onAge(Number((e.currentTarget as HTMLInputElement).value))} />
+        </label>
+        <AgeCurve c={c} ageYears={p.ageYears} onAge={p.onAge} showInterval={proposed} />
+        {status === 'open' && (
+          <button type="button" class="btn" data-propose="spot.age" disabled={running || p.countedS <= 0} onClick={() => propose(id, { countingTimeS: p.countedS, ageYears: Math.round(p.ageYears) })}>
+            The spot is this old
+          </button>
+        )}
+      </div>
     </Panel>
   );
 }

@@ -1,18 +1,18 @@
 // "Do it for me" in The Spot, on the plate and the instrument's own controls:
 //   find: the probe moved over the spot and the point marked there (data/spot.json centreMm, the hidden spot
 //     the checker measures against), then "Something is here";
-//   age: "+10^5" beats of counting (as the spot bot does, tests/browser/spot.browser.mjs: about a day, enough for
+//   age: "+10^5" beats of counting (the time-lapse runs on screen) (as the spot bot does, tests/browser/spot.browser.mjs: about a day, enough for
 //     a narrow interval), then the age slider at the age the instrument's own counts give (the same seeded
 //     session the checker reads, spotModel(seed), through the clock the checker uses, ageFromU234 in
-//     src/science/clocks.ts), rounded to the slider's 50-year step;
-//   purity: the start dial at zero, a pure start (the right answer of clocks.md section 4: the counts accept a
+//     src/science/clocks.ts), rounded to the slider's 50-year step, the marker swept along the curve to it;
+//   purity: the start dial swept down to zero, so the needle and the meter are seen to move, a pure start (the right answer of clocks.md section 4: the counts accept a
 //     start near zero and reject natural uranium's 1).
 
 import { game } from '../../game/state';
 import { BEAT_S } from '../../ui/units';
 import { ageFromU234 } from '../../science/clocks';
 import { SPOT, spotModel } from '../../chapters/spot/data';
-import { ensureChapter, finish, pointer, press, proposeWith, setValue, sleep, waitEnabled, waitFor } from '../actionsKit';
+import { beat, ensureChapter, finish, pointer, press, proposeWith, sleep, sweep, waitEnabled, waitFor } from '../actionsKit';
 
 const COUNT_BEATS = 100_000;
 
@@ -67,8 +67,8 @@ export function age(): Promise<void> {
     const counts = spotModel(game.seed.value).session.countsAt(t);
     const years = Math.round(ageFromU234(counts).ageYears / 50) * 50;
     const slider = await waitEnabled<HTMLInputElement>('input[data-age-input]', 10_000, 'the age slider');
-    setValue(slider, years, 'input');
-    await sleep(150);
+    await sweep(slider, years, 1600); // the marker runs along the curve to where it meets the measured ratio
+    await beat(600);
     await proposeWith('spot.age', '[data-propose="spot.age"]');
   });
 }
@@ -77,8 +77,9 @@ export function purity(): Promise<void> {
   return finish('spot.purity', async () => {
     await ready();
     const dial = await waitEnabled<HTMLInputElement>('input[data-start-input]', 20_000, 'the start dial');
-    setValue(dial, 0, 'input');
+    await sweep(dial, 0, 1600); // the needle swings down and the meter turns from red to agreeing
     await waitFor('.sp-meter[data-agree="1"]', 10_000, 'the meter to agree');
+    await beat(600);
     await proposeWith('spot.purity', '[data-propose="spot.purity"]');
   });
 }

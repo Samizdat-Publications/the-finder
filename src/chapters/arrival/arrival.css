@@ -127,3 +127,15 @@
 .ar-marker .value { display: inline-flex; align-items: center; gap: 0.25rem; }
 .ar-marker .glyph.unit { color: inherit; opacity: 0.85; }
 .value.range { display: inline-flex; align-items: baseline; gap: 0.3rem; flex-wrap: wrap; }
+
+/* The hero-control pass (2026-10-28): the answer choices (or the decay clock's chains) are framed as the panel's
+   main control; long notes are clamped to two lines with "more". */
+.ar-choices.hero-control, .ar-chains.hero-control { padding: 0.5rem 0.6rem 0.6rem; border: 1px solid rgba(79, 240, 196, 0.35); }
+.ar-choices.hero-control legend, .ar-chains.hero-control legend { float: left; width: 100%; color: var(--cyan); }
+.ar-clamp { margin: 0.35rem 0; }
+.ar-clamp .clamp { color: var(--text-dim); }
+.ar-panel .fine { margin: 0 0 0.3rem; }
+/* On a short window the isotope spectrum gives up some height so the answer stays in view. */
+@media (max-height: 800px) {
+  .ar-spectrum { max-height: 11.5rem; }
+}

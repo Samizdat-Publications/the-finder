@@ -61,7 +61,8 @@ export function KeyInstrument() {
   // When a deduction is confirmed the next instrument opens: keep it (and the result just given) in view in the
   // instruments' own column.
   const col = useRef<HTMLDivElement>(null);
-  const stage = `${binaryDone}${status('key.unit')}${timesDone}`;
+  // (and once the pulsar catalogue has loaded, since the open panel grows then)
+  const stage = `${binaryDone}${status('key.unit')}${timesDone}${pulsarSpan.value ? 1 : 0}`;
   useEffect(() => {
     const el = col.current;
     if (el) requestAnimationFrame(() => alignOpenPanel(el));

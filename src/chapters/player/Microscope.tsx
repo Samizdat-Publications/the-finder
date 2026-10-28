@@ -7,6 +7,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { groove } from '../../game/model';
 import { turntable as T, game } from '../../game/state';
+import { Clamp } from '../../ui/Fine';
 import { BEAT_S, formatNumber, quantity } from '../../ui/units';
 import { PLAYER_SIDE } from './constants';
 import { grooveDrift, microscopeGrooves } from './physics';
@@ -108,11 +109,14 @@ export function Microscope(p: { centreMm: number; reducedMotion: boolean }) {
         </g>
         <rect x="0.5" y="0.5" width={W - 1} height={H - 1} rx="10" fill="none" stroke="#2a2750" />
       </svg>
-      <figcaption class="note" aria-live="polite">
-        One groove's width here is <span class="num">{q.number}</span> {q.unitKey}es{gloss && ` (${q.si})`}. Each turn of the platter, once every{' '}
-        <span class="num">{turn.number}</span> {turn.unitKey}s{gloss && ` (${turn.si})`}, carries the groove under the window{' '}
-        <strong data-carried={drift < 0 ? 'inward' : 'outward'}>{drift < 0 ? 'inward, toward the centre' : 'outward, toward the rim'}</strong> by one width
-        {p.reducedMotion ? ` (${formatNumber(BEAT_S / T.secondsPerTurn.value)} widths per ${turn.unitKey})` : ''}.
+      <figcaption aria-live="polite">
+        <Clamp>
+          Each turn carries the groove under the window{' '}
+          <strong data-carried={drift < 0 ? 'inward' : 'outward'}>{drift < 0 ? 'inward, toward the centre' : 'outward, toward the rim'}</strong> by one width
+          {p.reducedMotion ? ` (${formatNumber(BEAT_S / T.secondsPerTurn.value)} widths per ${turn.unitKey})` : ''}. One groove's width here is{' '}
+          <span class="num">{q.number}</span> {q.unitKey}es{gloss && ` (${q.si})`}; a turn takes <span class="num">{turn.number}</span> {turn.unitKey}s
+          {gloss && ` (${turn.si})`}.
+        </Clamp>
       </figcaption>
     </figure>
   );

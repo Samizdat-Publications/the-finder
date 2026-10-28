@@ -1,5 +1,6 @@
 // The answer part of every Arrival panel: the deduction's question, its choices (from choices.ts), and the
-// latest result the checker gave, right or wrong. Proposing is a command on the bus (rule 5).
+// latest result the checker gave, right or wrong. Proposing is a command on the bus (rule 5). The choices are the
+// panel's hero control (the hero-control pass, 2026-10-28).
 
 import { missingFor, nodeStatus, type Answer } from '../../game/deductions';
 import { nodeDef } from '../../game/graph';
@@ -63,7 +64,7 @@ export function AnswerBox(p: { id: string; prompt: string; showPrompt?: boolean 
     <div class="ar-answer" data-answer={p.id}>
       <Status id={p.id} />
       {status === 'open' && (
-        <fieldset class="ar-choices">
+        <fieldset class="ar-choices hero-control">
           <legend class={p.showPrompt ? undefined : 'sr'}>{p.prompt}</legend>
           {(CHOICES[p.id] ?? []).map((c) => (
             <button key={c.id} type="button" class={`ar-choice${tried.has(c.id) ? ' tried' : ''}`} data-choice={c.id} onClick={() => propose(p.id, c.id)}>

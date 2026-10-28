@@ -139,7 +139,7 @@ export default async function run({ page, baseUrl, record, assert, log }) {
   // images-and-audio.md section 1: the tape's line period measured at 8.326 ms (quoted to 0.001 ms).
   assert(fs.ok && Math.abs(period * 1000 - 8.326) < 0.001 && /picture, sent line by line/.test(fs.message), `the first sound: a pattern every ${(period * 1000).toFixed(4)} ms`);
   await page.waitForSelector('[data-heard="lines"]', { timeout: 5_000 });
-  await shot('2-turntable-right-speed-first-sound', '.ppanels');
+  await shot('2-turntable-right-speed-first-sound', '.playerinst'); // the turntable, what the stylus hears and the deductions (one row since the hero-control pass)
   await shot('5-whole-chapter');
   const g = await f(() => window.__finder.state().game);
   assert(g.chapterStatus.player === 'done', 'The Player is done');

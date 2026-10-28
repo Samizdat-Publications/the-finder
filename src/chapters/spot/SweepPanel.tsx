@@ -1,9 +1,10 @@
 // The detector sweep: the count rate under the probe with a strip chart of the last few seconds, the probe
-// keys (for a keyboard), and the mark the player proposes. The counts come from the seeded sweep stream in
+// keys (for a keyboard, folded), and the mark the player proposes. The counts come from the seeded sweep stream in
 // SpotInstrument; nothing here knows where the spot is.
 
 import { nodeStatus } from '../../game/deductions';
 import { confirmedSet, game } from '../../game/state';
+import { Clamp, Fine } from '../../ui/Fine';
 import { GlyphSvg } from '../../ui/Glyph';
 import { UNIT_KEY, quantity, toAlien } from '../../ui/units';
 import { sig } from './checkers';
@@ -53,10 +54,8 @@ export function SweepPanel(p: SweepProps) {
   const q = rateS === null ? null : quantity('frequency', rateS);
   return (
     <Panel id={id} title="Detector sweep" glyph="detector" current={p.mark ? { xMm: Math.round(p.mark[0] * 10) / 10, yMm: Math.round(p.mark[1] * 10) / 10 } : undefined}>
-      <p class="sp-small">
-        Move the probe over the plate (pointer, or the probe keys below); every alpha particle it catches clicks. Click the plate to mark a point.
-      </p>
-      <div class="sp-readout" aria-live="off">
+      <Clamp>Move the probe over the plate; every alpha particle it catches clicks. Click the plate to mark a point.</Clamp>
+      <div class="sp-readout hero-control" aria-live="off">
         <span class="k">count rate</span>
         <span class="v" data-rate={rateS ?? ''}>
           {q ? (
@@ -74,30 +73,35 @@ export function SweepPanel(p: SweepProps) {
         <span class="v num">{recent.length ? counts : '-'}</span>
       </div>
       <Strip history={p.history} />
-      <div class="sp-row">
-        <button
-          type="button"
-          class="btn small sp-pad"
-          data-probe-keys
-          aria-label="Probe keys: arrow keys move the probe, Shift for longer steps, Enter marks the point"
-          onKeyDown={(e) => {
-            const step = e.shiftKey ? 10 : 2;
-            const d: Record<string, Pt> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
-            const v = d[e.key];
-            if (v) {
-              p.onKeyMove(v[0], v[1]);
-              e.preventDefault();
-            } else if (e.key === 'Enter') {
-              p.onMark();
-              e.preventDefault();
-            }
-          }}
-          onClick={() => undefined}
-        >
-          Probe keys
-        </button>
-        <span class="sp-small">{p.mark ? 'Marked: the cyan cross on the plate.' : 'No point marked yet.'}</span>
-      </div>
+      <p class="sp-small" data-marked={p.mark ? '1' : '0'}>
+        {p.mark ? 'Marked: the cyan cross on the plate.' : 'No point marked yet.'}
+      </p>
+      <Fine label="Probe keys (keyboard)">
+        <div class="sp-row">
+            <button
+              type="button"
+              class="btn small sp-pad"
+              data-probe-keys
+              aria-label="Probe keys: arrow keys move the probe, Shift for longer steps, Enter marks the point"
+              onKeyDown={(e) => {
+                const step = e.shiftKey ? 10 : 2;
+                const d: Record<string, Pt> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+                const v = d[e.key];
+                if (v) {
+                  p.onKeyMove(v[0], v[1]);
+                  e.preventDefault();
+                } else if (e.key === 'Enter') {
+                  p.onMark();
+                  e.preventDefault();
+                }
+              }}
+              onClick={() => undefined}
+            >
+              Probe keys
+            </button>
+          <span class="sp-small">Arrow keys move the probe, Shift for longer steps, Enter marks the point.</span>
+        </div>
+      </Fine>
       {status === 'open' && (
         <button
           type="button"

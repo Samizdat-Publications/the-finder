@@ -100,7 +100,7 @@ export function BinaryPanel(p: {
           </table>
         </div>
       )}
-      <Propose id="key.binary" choices={BINARY_CHOICES} legend="What are the two kinds of stroke?" />
+      <Propose id="key.binary" choices={BINARY_CHOICES} legend="What are the two kinds of stroke?" class="hero-control" />
       <LastReading id="key.binary" />
     </section>
   );

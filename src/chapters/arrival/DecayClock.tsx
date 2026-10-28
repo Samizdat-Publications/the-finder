@@ -110,7 +110,7 @@ export function DecayClockPanel(p: { m: ArrivalModel }) {
       <h2>
         <GlyphLabel k="decay clock" gloss="Decay clock" height={24} />
       </h2>
-      <fieldset class="ar-chains">
+      <fieldset class="ar-chains hero-control">
         <legend>Which chain made the thorium-230?</legend>
         {(CHOICES[id] ?? []).map((c) => (
           <label key={c.id} class="ar-chain">

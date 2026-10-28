@@ -112,3 +112,16 @@
   .sp-view .coverviewer { width: 100%; }
   .sp-panels { height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; padding-right: 0.2rem; }
 }
+
+/* The hero-control pass (2026-10-28): each panel's main control framed and first to the eye, the rest folded. */
+.sp-panel > .clamp-wrap { margin: 0.1rem 0 0.4rem; }
+.sp-panel .hero-control { margin: 0.4rem 0; }
+.sp-steps { align-items: center; }
+.sp-steps .sp-total { margin: 0 0 0 0.4rem; }
+.sp-steps .btn.sp-lead { font-size: var(--fs-value); padding: 0.35rem 0.9rem; }
+.sp-agehero .sp-slider { margin: 0 0 0.2rem; }
+.sp-agehero .sp-slider input { flex-basis: 100%; order: 3; }
+.sp-agehero .hero-readout .unit { vertical-align: -1px; }
+.sp-agehero .sp-curve { margin: 0.2rem auto; }
+.sp-agehero .btn { margin-top: 0.2rem; }
+.sp-purity.hero-control .hero-readout { font-size: 1.2rem; }
