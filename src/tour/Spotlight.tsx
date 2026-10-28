@@ -58,6 +58,20 @@ export function findTarget(stopId: string): HTMLElement | null {
     }
     for (const el of list) if (visibleBox(el)) return el;
   }
+  // The step's control may sit folded inside a "Fine tune" fold (src/ui/Fine.tsx): open the fold and take it.
+  for (const sel of TARGETS[stopId] ?? []) {
+    let el: HTMLElement | null = null;
+    try {
+      el = document.querySelector<HTMLElement>(`details[data-fine]:not([open]) ${sel}`);
+    } catch {
+      continue;
+    }
+    const fold = el?.closest<HTMLDetailsElement>('details[data-fine]');
+    if (el && fold) {
+      fold.open = true;
+      if (visibleBox(el)) return el;
+    }
+  }
   return null;
 }
 

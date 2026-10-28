@@ -85,6 +85,9 @@ export function waitEnabled<E extends HTMLElement = HTMLButtonElement>(sel: stri
  * so the screen shows what the guide is doing. Never scrolls an overflow-hidden box.
  */
 export function reveal(el: Element): void {
+  // A control folded in a "Fine tune" fold (src/ui/Fine.tsx) is unfolded first, so the hand can be seen.
+  const fold = el.closest('details[data-fine]');
+  if (fold instanceof HTMLDetailsElement && !fold.open) fold.open = true;
   for (let p = el.parentElement; p; p = p.parentElement) {
     const o = getComputedStyle(p).overflowY;
     if ((o === 'auto' || o === 'scroll') && p.scrollHeight > p.clientHeight) {
@@ -117,6 +120,31 @@ export function setValue(el: HTMLInputElement | HTMLSelectElement, value: string
   if (setter) setter.call(el, String(value));
   else el.value = String(value);
   el.dispatchEvent(new Event(event, { bubbles: true }));
+}
+
+/**
+ * "Do it for me" as fun as doing it by hand (Stewart, 2026-10-28): move a slider to its value in visible steps over
+ * about `ms`, so the instrument is seen to respond (the platter speeding up, the picture straightening), then land
+ * exactly on `to` with a change event. With reduced motion on it jumps straight there.
+ */
+export async function sweep(el: HTMLInputElement, to: number, ms = 1200, steps = 24): Promise<void> {
+  reveal(el);
+  const from = Number(el.value);
+  if (!game.settings.value.reducedMotion && Number.isFinite(from) && from !== to) {
+    for (let i = 1; i < steps; i++) {
+      const t = i / steps;
+      const e = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2; // ease in and out
+      setValue(el, from + (to - from) * e, 'input');
+      await sleep(ms / steps);
+    }
+  }
+  setValue(el, to, 'input');
+  el.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+/** Pause so a result the guide just produced can be seen before the next move (skipped with reduced motion). */
+export function beat(ms = 500): Promise<void> {
+  return game.settings.value.reducedMotion ? Promise.resolve() : sleep(ms);
 }
 
 /** Press a key on a focused control (keydown, then keyup). */
