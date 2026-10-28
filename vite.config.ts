@@ -26,7 +26,8 @@ export default defineConfig({
     include: ['preact', 'preact/hooks', 'preact/jsx-runtime', 'preact/debug', '@preact/signals'],
   },
   build: {
-    outDir: 'dist',
+    // FINDER_DIST lets parallel builders keep separate builds (vite preview reads the same setting).
+    outDir: process.env.FINDER_DIST ?? 'dist',
     emptyOutDir: true,
     rolldownOptions: {
       input: {

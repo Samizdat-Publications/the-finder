@@ -49,23 +49,21 @@ another builder's chapter. If a tour selector in `src/tour/actions.ts` TARGETS m
 valid instead (add the old class or data attribute to the new element); if that is impossible, report the exact
 replacement line. If a tour stop's text no longer matches the screen, report the exact new text.
 
-## Working in your worktree
+## Working in the shared checkout
 
-You run in your own git worktree. Before building, link the main checkout's installed and downloaded folders
-(Windows junctions, nothing copied), from the worktree root:
-
-    cmd //c mklink /J node_modules "C:\Users\stewa\Documents\Claude\Golden Record\node_modules"
-    cmd //c mklink /J sources "C:\Users\stewa\Documents\Claude\Golden Record\sources"
-    cmd //c mklink /J build "C:\Users\stewa\Documents\Claude\Golden Record\build"
-
-Never delete through a junction (remove a junction with `cmd //c rmdir <name>`, which leaves the target alone).
+All six builders work at once in the main checkout, `C:\Users\stewa\Documents\Claude\Golden Record`, each on its own
+files only (the list in your section). Never touch another builder's files, never revert or "fix" a change you did
+not make, and never commit: the lead commits. Your builds go to your own folder: prefix every build, browser test
+and look with `FINDER_DIST=dist-<your letter>` (lower case, e.g. `FINDER_DIST=dist-c npm run build`, then
+`FINDER_DIST=dist-c node tools/harness/browser-tests.mjs map`). If typecheck or the build fails in a file outside
+your list, another builder is mid-change: wait a minute and retry; only your own files' errors are yours.
+Browser tests run six at a time on one PC: a timing check that fails once under load and passes on a rerun is fine.
 
 Must pass before you report: `npx tsc --noEmit -p tsconfig.json`; `npx vitest run` (the whole unit suite);
 `npm run build`; `node tools/harness/browser-tests.mjs <your chapter>` for each of your chapters, plus
 `node tools/harness/browser-tests.mjs tour-hold`. Then look: `node tools/harness/tour-look.mjs --stops <your stop
 ids> --sizes 1440x900,1366x768 --open` and read every screenshot yourself; fix what looks cramped, clipped or
-unclear. Commit on your worktree's branch (stage explicit paths only, never `git add -A` or `git add .`; message
-ends with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`); do not push.
+unclear. Do not commit.
 
 Report (under 300 words): files changed; what the hero control is in each panel and what you folded; what each
 "Do it for me" now shows; the final test output lines; the screenshot folder path; anything left or any tour

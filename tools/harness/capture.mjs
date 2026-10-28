@@ -135,7 +135,7 @@ const SHELL_STATES = [
   },
 ];
 
-if (!existsSync(join(ROOT, 'dist', 'index.html'))) {
+if (!existsSync(join(ROOT, process.env.FINDER_DIST ?? 'dist', 'index.html'))) {
   console.log('[capture] dist/ is missing: building');
   const r = spawnSync(process.execPath, [join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js'), 'build'], {
     cwd: ROOT,

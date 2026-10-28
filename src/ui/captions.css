@@ -12,10 +12,13 @@
 .soundtoggle[aria-pressed='true'] { color: var(--danger); border-color: var(--danger); }
 
 /* The mute switch is the first button in the top bar (Shell.tsx). On a screen with room: */
-@media (min-width: 1000px) and (min-height: 620px) {
-  /* Captions sit in the top bar too, left of its buttons, so they never cover an instrument's readouts. */
+@media (min-width: 1280px) and (min-height: 620px) {
+  /* Captions sit in the top bar too, between the title (up to about 24rem) and the buttons (about 25rem with
+     their margin), so they never cover an instrument's readouts. The longest caption fits on one line from 1280
+     wide (measured at 1366x768: 600 px free between the two, 2026-10-28); narrower screens keep the bottom strip. */
   .captions {
-    top: calc((var(--topbar-h) - 1.9rem) / 2); bottom: auto; left: auto; right: 46rem; transform: none;
-    max-width: calc(100vw - 46rem - 30rem); text-align: right;
+    top: calc((var(--topbar-h) - 1.9rem) / 2); bottom: auto; left: auto; right: 27rem; transform: none;
+    max-width: calc(100vw - 27rem - 25rem); text-align: right;
   }
+  .caption { white-space: nowrap; }
 }
