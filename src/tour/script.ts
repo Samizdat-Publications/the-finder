@@ -331,7 +331,7 @@ export const STOPS: readonly Stop[] = [
     id: 'voices.many', part: 'voices', kind: 'do', chapter: 'voices', node: 'voices.many',
     title: 'One voice, or many?',
     look: 'Listen to the greetings. Each speaker talks, then stops. If we count the silences between voices, we can count the speakers.',
-    todo: `1. Drag **Quiet below** to anywhere from ${REASONABLE.thresholdDb[0]} to ${REASONABLE.thresholdDb[1]}: the line then sits just above the hiss between speakers. 2. Set **Pause at least** to between ${REASONABLE.gapS[0]} and ${REASONABLE.gapS[1]} seconds (the number in brackets), so each break between speakers counts. 3. The dots below are the speakers' pitches, and the ruler box is one speaker's range: press **+** under **Voices' worth of pitch** once for each box-width the dots spread over (two or more). Then press **Propose**.`,
+    todo: `1. Drag **Quiet below** (${REASONABLE.thresholdDb[0]} to ${REASONABLE.thresholdDb[1]}) until the gold line sits just above the hiss. 2. Set **Pause at least** to ${REASONABLE.gapS[0]} to ${REASONABLE.gapS[1]} seconds (the number in brackets). 3. Press **+** under **Voices' worth of pitch** once for each box-width the pitch dots spread over. Then **Propose**.`,
     why: 'Many voices: dozens of speakers, one after another, high and low. This is not one creature talking. It is a crowd.',
     human:
       'The record greets the universe in **55 languages**, from ancient Akkadian, spoken in Mesopotamia 4,000 years ago, to Chinese dialects spoken today. In English, Carl Sagan\'s six-year-old son Nick says "Hello from the children of planet Earth."',

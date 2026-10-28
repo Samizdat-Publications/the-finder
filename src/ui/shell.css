@@ -240,6 +240,7 @@ body {
 /* A locked question is one quiet line: its glyphs small, its question beside them. */
 .kpanel.locked { padding: 0.4rem 0.9rem; }
 .kpanel.locked .khead { margin-bottom: 0; align-items: center; }
-.kpanel.locked .khead .glyphlabel { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.kpanel.locked .khead .glyphlabel { display: flex; align-items: center; justify-content: flex-start; gap: 0.6rem; flex-wrap: nowrap; min-width: 0; }
+.kpanel.locked .khead .glyphlabel .gloss { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .kpanel.locked .khead .glyphlabel > svg { height: 16px; width: auto; }
 .kpanel.locked .khead .chip { font-size: 0.7rem; padding: 0.05rem 0.4rem; }

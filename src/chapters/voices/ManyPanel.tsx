@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { nodeStatus } from '../../game/deductions';
 import { confirmedSet } from '../../game/state';
 import { segmentPitches, segments } from '../../dsp/segment';
+import { Clamp, Fine } from '../../ui/Fine';
 import { send } from '../../ui/send';
 import { LastReading, PanelHead } from '../key/parts';
 import { analyse, jobProgress, peekResult } from './analysisClient';
@@ -62,32 +63,37 @@ export function ManyPanel() {
       <PanelHead id={id} />
       {status !== 'locked' && (
         <>
-          <p class="note small">Voices 2, the greetings, cut where they fall quiet. Set how quiet counts as a pause, and how long a pause must last.</p>
+          {/* Explanations only while the panel is open: a confirmed panel hides its working (key.css), and a hidden
+              Clamp's measure flips inside its ResizeObserver callback, which the page reports as an error. */}
+          {!r && status === 'open' && <Clamp>Voices 2, the greetings, cut where they fall quiet. Set how quiet counts as a pause, and how long a pause must last.</Clamp>}
           {!r && <Progress f={jobProgress.value[`${track}/greetings`] ?? 0} what="following the voices' loudness and pitch" />}
           {r && (
             <>
-              <svg class="vo-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="The voices' loudness against time, with the threshold">
-                <polyline class="vo-trace" points={trace} />
-                {segs.map(([a, b], i) => (
-                  <rect key={i} class="vo-seg" x={(a / n) * W} y={H - 8} width={Math.max(1, ((b - a) / n) * W)} height={6} />
-                ))}
-                <line class="vo-thresh" x1={0} x2={W} y1={lv(threshold)} y2={lv(threshold)} />
-              </svg>
-              <div class="vo-controls">
-                <label class="vo-slider">
-                  <span>Quiet below</span>
-                  <input type="range" min={THRESHOLD_RANGE.min} max={THRESHOLD_RANGE.max} step={THRESHOLD_RANGE.step} value={threshold} data-control="threshold" onInput={(e) => setThreshold(Number((e.target as HTMLInputElement).value))} />
-                  <output class="num">{threshold.toFixed(1)}</output>
-                </label>
-                <label class="vo-slider">
-                  <span>Pause at least</span>
-                  <input type="range" min={GAP_RANGE.min} max={GAP_RANGE.max} step={GAP_RANGE.step} value={gap} data-control="gap" onInput={(e) => setGap(Number((e.target as HTMLInputElement).value))} />
-                  <output><Q dim="time" si={gap} digits={3} /></output>
-                </label>
+              <div class="hero-control vo-hero">
+                <svg class="vo-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="The voices' loudness against time, with the threshold">
+                  <polyline class="vo-trace" points={trace} />
+                  {segs.map(([a, b], i) => (
+                    <rect key={i} class="vo-seg" x={(a / n) * W} y={H - 8} width={Math.max(1, ((b - a) / n) * W)} height={6} />
+                  ))}
+                  <line class="vo-thresh" x1={0} x2={W} y1={lv(threshold)} y2={lv(threshold)} />
+                </svg>
+                <div class="vo-controls">
+                  <label class="vo-slider">
+                    <span>Quiet below</span>
+                    <input type="range" min={THRESHOLD_RANGE.min} max={THRESHOLD_RANGE.max} step={THRESHOLD_RANGE.step} value={threshold} data-control="threshold" onInput={(e) => setThreshold(Number((e.target as HTMLInputElement).value))} />
+                    <output class="num">{threshold.toFixed(1)}</output>
+                  </label>
+                  <label class="vo-slider">
+                    <span>Pause at least</span>
+                    <input type="range" min={GAP_RANGE.min} max={GAP_RANGE.max} step={GAP_RANGE.step} value={gap} data-control="gap" onInput={(e) => setGap(Number((e.target as HTMLInputElement).value))} />
+                    <output><Q dim="time" si={gap} digits={3} /></output>
+                  </label>
+                </div>
+                <p class="vo-count">
+                  Stretches of voice between pauses: <span class="hero-readout" data-count={segs.length}>{segs.length}</span>
+                </p>
               </div>
-              <p class="vo-count">
-                Stretches of voice between pauses: <span class="num big" data-count={segs.length}>{segs.length}</span>
-              </p>
+              {status === 'open' && <Clamp>The greetings (voices 2) cut where they fall quiet: the gold line is the quiet level, the cyan bars the stretches of voice. Below, each stretch's pitch as a dot, and a ruler one speaker's own range wide.</Clamp>}
               <svg class="vo-chart vo-pitch" viewBox={`0 0 ${W} ${PH}`} role="img" aria-label="Each voice's pitch, low to high, with a ruler one speaker's range wide">
                 <rect class="vo-ruler" x={px(ruler)} y={6} width={rulerW} height={PH - 22} data-ruler="" />
                 {pitches.map((p, i) => (
@@ -96,27 +102,23 @@ export function ManyPanel() {
                 <text class="tick" x={2} y={PH - 3}>low</text>
                 <text class="tick" x={W - 2} y={PH - 3} text-anchor="end">high</text>
               </svg>
-              <div class="vo-controls">
+              <Fine label="Slide the ruler">
                 <label class="vo-slider">
-                  <span>Slide the ruler: one speaker's own range</span>
-                  <input type="range" min={P_LO} max={P_HI / 2 ** (ONE_VOICE_SEMITONES / 12)} step={1} value={ruler} onInput={(e) => setRuler(Number((e.target as HTMLInputElement).value))} />
+                  <span>One speaker's own range</span>
+                  <input type="range" min={P_LO} max={P_HI / 2 ** (ONE_VOICE_SEMITONES / 12)} step={1} value={ruler} data-control="ruler" onInput={(e) => setRuler(Number((e.target as HTMLInputElement).value))} />
                 </label>
+              </Fine>
+              <div class="vo-actions">
                 <label class="vo-stepper">
                   <span>Voices' worth of pitch</span>
                   <button type="button" class="btn small" data-groups="minus" onClick={() => setGroups((g) => Math.max(1, g - 1))}>−</button>
                   <output class="num" data-groups-value={groups}>{groups}</output>
                   <button type="button" class="btn small" data-groups="plus" onClick={() => setGroups((g) => Math.min(12, g + 1))}>+</button>
                 </label>
+                <button type="button" class="btn small" disabled={status !== 'open'} data-propose-button={id} onClick={() => send({ type: 'deduction.propose', id, answer: { threshold, gap, groups } })}>
+                  Propose
+                </button>
               </div>
-              <button
-                type="button"
-                class="btn small"
-                disabled={status !== 'open'}
-                data-propose-button={id}
-                onClick={() => send({ type: 'deduction.propose', id, answer: { threshold, gap, groups } })}
-              >
-                Propose
-              </button>
             </>
           )}
         </>

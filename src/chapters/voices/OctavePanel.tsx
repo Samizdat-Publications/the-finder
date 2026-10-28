@@ -5,11 +5,12 @@
 // keyboard): the pitches of its sounding partials folded into that ratio, and a comb of equal steps laid over
 // them; the player chooses how many teeth. Both readings are proposed together through the command bus.
 
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { nodeStatus } from '../../game/deductions';
 import { confirmedSet } from '../../game/state';
 import { FOLD_RANGE, FoldNotes, foldGrid, localFoldPeak } from '../../dsp/fold';
 import { CHROMA_BIN, COMB_K, binCentres, combScores, gridFit, peakNear } from '../../dsp/pitch';
+import { Clamp } from '../../ui/Fine';
 import { send } from '../../ui/send';
 import { LastReading, PanelHead } from '../key/parts';
 import { analyse, jobProgress, peekResult } from './analysisClient';
@@ -72,6 +73,12 @@ export function OctavePanel() {
     if (pk !== null) setRatioC(localFoldPeak(fold, FOLD_RANGE[0] + pk * CURVE_STEP).cents);
   };
   const ratio = ratioC === null ? null : 2 ** (ratioC / 1200);
+  // Once the comb arrives under the chosen ratio, keep its slider and the Propose button in the column's view.
+  const proposeRef = useRef<HTMLButtonElement>(null);
+  const combShown = ratioC !== null && folded !== null;
+  useEffect(() => {
+    if (combShown && status === 'open') proposeRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [combShown, status]);
   const fmax = folded ? Math.max(...folded) : 1;
   const smax = scores ? Math.max(...scores, 1e-9) : 1;
   return (
@@ -79,25 +86,27 @@ export function OctavePanel() {
       <PanelHead id={id} />
       {status !== 'locked' && (
         <>
-          <p class="note small">Music 10, one bowed instrument alone: its notes folded at each ratio, and how much closer than chance notes a repeat apart then gather (the line marks chance). Click the ratio where the whole pattern comes back.</p>
           {!curve && <Progress f={jobProgress.value[`${PIECES.violin}/violin`] ?? 0} what="following the notes" />}
           {curve && (
-            <svg class="vo-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="How tightly the notes gather when folded at each ratio" onClick={onCurve} data-octave-chart="">
-              {RATIO_TICKS.map((r) => (
-                <g key={r}>
-                  <line class="grid" x1={x(1200 * Math.log2(r))} x2={x(1200 * Math.log2(r))} y1={6} y2={H - 22} />
-                  <text class="tick" x={x(1200 * Math.log2(r))} y={H - 6} text-anchor="middle">{r}</text>
-                </g>
-              ))}
-              <line class="grid" x1={x(FOLD_RANGE[0])} x2={x(MAX_CENTS)} y1={y(1 / cmax)} y2={y(1 / cmax)} data-chance="" />
-              <polyline class="vo-voices" points={Array.from(curve, (v, i) => `${x(CURVE_GRID[i]!).toFixed(1)},${y(v / cmax).toFixed(1)}`).join(' ')} />
-              {ratioC !== null && <line class="vo-markline" x1={x(ratioC)} x2={x(ratioC)} y1={4} y2={H - 22} data-ratio-cents={ratioC.toFixed(2)} />}
-            </svg>
+            <div class="hero-control vo-hero">
+              <svg class="vo-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="How tightly the notes gather when folded at each ratio" onClick={onCurve} data-octave-chart="">
+                {RATIO_TICKS.map((r) => (
+                  <g key={r}>
+                    <line class="grid" x1={x(1200 * Math.log2(r))} x2={x(1200 * Math.log2(r))} y1={6} y2={H - 22} />
+                    <text class="tick" x={x(1200 * Math.log2(r))} y={H - 6} text-anchor="middle">{r}</text>
+                  </g>
+                ))}
+                <line class="grid" x1={x(FOLD_RANGE[0])} x2={x(MAX_CENTS)} y1={y(1 / cmax)} y2={y(1 / cmax)} data-chance="" />
+                <polyline class="vo-voices" points={Array.from(curve, (v, i) => `${x(CURVE_GRID[i]!).toFixed(1)},${y(v / cmax).toFixed(1)}`).join(' ')} />
+                {ratioC !== null && <line class="vo-markline" x1={x(ratioC)} x2={x(ratioC)} y1={4} y2={H - 22} data-ratio-cents={ratioC.toFixed(2)} />}
+              </svg>
+              <p class="vo-count">Pattern comes back at: {ratio === null ? <span class="dim">click a peak</span> : <span class="hero-readout" data-ratio={ratio.toFixed(5)}>{ratio.toFixed(4)} to 1</span>}</p>
+            </div>
           )}
-          <p class="vo-count">Pattern comes back at: {ratio === null ? <span class="dim">click a peak</span> : <span class="num" data-ratio={ratio.toFixed(5)}>{ratio.toFixed(4)} to 1</span>}</p>
+          {status === 'open' && ratioC === null && <Clamp>Music 10, one bowed instrument alone: its notes folded at each ratio, and how much closer than chance notes a repeat apart then gather (the flat line marks chance). Click the ratio where the whole pattern comes back.</Clamp>}
           {ratioC !== null && (
             <>
-              <p class="note small">Music 17, one keyboard: the pitches of everything it sounds, folded into that ratio. Lay a comb of equal steps over them.</p>
+              {status === 'open' && <Clamp>Music 17, one keyboard: the pitches of everything it sounds, folded into that ratio. Lay a comb of equal steps over them.</Clamp>}
               {!folded && <Progress f={jobProgress.value[`${PIECES.piano}/piano`] ?? 0} what="finding the sounding pitches" />}
               {folded && fit && (
                 <svg class="vo-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="The keyboard's pitches folded into one repeat, with the comb" data-comb-chart="">
@@ -137,6 +146,7 @@ export function OctavePanel() {
           <button
             type="button"
             class="btn small"
+            ref={proposeRef}
             disabled={status !== 'open' || ratio === null || !folded}
             data-propose-button={id}
             onClick={() => ratio !== null && send({ type: 'deduction.propose', id, answer: { ratio, step: ratio ** (1 / k) } })}

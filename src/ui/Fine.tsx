@@ -22,15 +22,31 @@ export function Clamp(p: { children: ComponentChildren; class?: string; lines?: 
   const ref = useRef<HTMLParagraphElement>(null);
   const [open, setOpen] = useState(false);
   const [long, setLong] = useState(false);
+  // One observer for the paragraph's life. The measuring runs in the next frame, never inside the observer's own
+  // callback: a state change there (a panel hiding its working) makes the browser report "ResizeObserver loop
+  // completed with undelivered notifications", which boot.ts treats as fatal (found by builder D, 2026-10-28).
+  const openRef = useRef(open);
+  openRef.current = open;
   useLayoutEffect(() => {
     const el = ref.current;
-    if (!el || open) return;
-    const measure = (): void => setLong(el.scrollHeight > el.clientHeight + 1);
+    if (!el) return;
+    let raf = 0;
+    const measure = (): void => {
+      raf = 0;
+      if (openRef.current || !el.isConnected || el.clientHeight === 0) return;
+      const next = el.scrollHeight > el.clientHeight + 1;
+      setLong((prev) => (prev === next ? prev : next));
+    };
     measure();
-    const ro = new ResizeObserver(measure);
+    const ro = new ResizeObserver(() => {
+      if (raf === 0) raf = requestAnimationFrame(measure);
+    });
     ro.observe(el);
-    return () => ro.disconnect();
-  });
+    return () => {
+      ro.disconnect();
+      if (raf !== 0) cancelAnimationFrame(raf);
+    };
+  }, []);
   return (
     <div class={`clamp-wrap ${p.class ?? ''}`}>
       <p ref={ref} class={`note small clamp${open ? ' open' : ''}`} style={{ '--clamp-lines': String(p.lines ?? 2) }}>
