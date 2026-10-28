@@ -3,6 +3,19 @@
 Raw notes, newest at the top. These outrank the AI critics. Claude reads this at the start of every
 session and records what it did about each note.
 
+## 2026-10-28 (priorities before V1.0, before his playtest)
+
+"It being super alien probably is the lowest priority in my opinion. It's now mostly about making the user see
+the value in it and have clearly understandable interfaces that aren't overly dense where they don't need to
+be. It should be equally fun to interact with it step by step, or to just click do it for me every step." He
+plays the tour tomorrow (2026-10-29), sends notes, and then it is called V1.0.
+
+What Claude did: recorded the order of priorities in PROGRESS: (1) the player sees why each step matters,
+(2) clear, uncluttered instruments (the hero-control pass moves to the top of the carried list), (3) "Do it
+for me" as satisfying as doing it by hand (it should show the action happening, not just jump to the
+answer). The alien feel (the Gemini critic's score fell from 7 to 4) drops to the bottom. No build change
+before his playtest, so he plays the deployed build.
+
 ## 2026-10-16 (after playing the tour with Do it for me)
 
 "HOLY SHIT ... I didn't realize how absolutely stunning and in depth this is, including the audio. This is

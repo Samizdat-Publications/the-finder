@@ -253,10 +253,18 @@ and live-checked.
 
 - **Entering The Map on a laptop GPU (D-A38):** about half the time one 130 to 450 ms freeze inside the browser's
   first WebGL call. The fix is drawing the charts in a Worker (OffscreenCanvas); then assert `perf.igpu.enterMap`.
-- **Carried from the M7 gate's critics (for after Stewart's playtest):** a hero-control pass per instrument (the
-  panels are dense); Portrait's "They live there" sky as a staged, full-size moment; Our Frame's later sections
-  given full-stage pictures; small pulsar labels on the galaxy chart; whether the tour shows more of the alien
-  framing; marking stretches in The Voices felt like busywork to the Gemini critic.
+- **Carried from the M7 gate's critics (for after Stewart's playtest), in Stewart's order (2026-10-28: value,
+  clarity, and "Do it for me" as fun as doing it by hand; the alien feel last):**
+  1. A hero-control pass per instrument: each panel leads with the one control the step needs, the rest
+     folded or quieter (the panels are dense).
+  2. "Do it for me" made as satisfying as the hands-on way: it should visibly perform the action (the needle
+     moving, the slider sweeping, the picture developing), then say what it found and why it matters.
+  3. Every step's payoff stated so the value lands: what we now know that we did not before.
+  4. Marking stretches in The Voices felt like busywork to the Gemini critic.
+  5. Portrait's "They live there" sky as a staged, full-size moment; Our Frame's later sections given
+     full-stage pictures; small pulsar labels on the galaxy chart.
+  6. Last: whether the tour shows more of the alien framing (the Gemini critic's alien score fell from 7 to 4;
+     Stewart rates it lowest priority).
 
 - **Portrait with the guide open at 1366x768:** the "Their world" panel scrolls inside itself (a letter clipped
   at its edge); nothing is unreachable.
@@ -305,7 +313,8 @@ and live-checked.
 
 ## Next (exact)
 
-1. **Stewart reviews the V1.0 draft** (the guided tour from the landing page, end to end, with his son if he likes)
-   and writes notes at the top of `docs/STEWART_FEEDBACK.md`. Act on them first.
+1. **Stewart reviews the V1.0 draft** (playing it 2026-10-29: the guided tour from the landing page, end to end,
+   with his son if he likes) and writes notes at the top of `docs/STEWART_FEEDBACK.md`. Act on them first; once
+   they are handled it is called V1.0 (tag `v1.0`).
 2. Then the carried critic items above, in the order his notes suggest; a Firefox check (`docs/NEEDS_STEWART.md` item 3).
 3. After the main version: `docs/IDEAS.md` (the younger version, 8th-grade level).
