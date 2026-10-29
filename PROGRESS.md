@@ -29,7 +29,9 @@ reviewed each one's screenshots and merged:
   version d17a72e2) and the landing page; live-smoke, live-game and live-tour pass, and the live bundle carries the new code.
 - **Start the tour over (2026-10-28 evening, Stewart: the tour resumed where he left it, so he could not audit
   it):** the ring shows "Start the tour over" under "Resume the guided tour" when there is progress (asks first,
-  then Start over and the tour from step 1); `/play/?tour=fresh` does the same as a bookmark.
+  then Start over and the tour from step 1); `/play/?tour=fresh` does the same as a bookmark. **Deployed
+  2026-10-29** after Stewart's go-ahead (Worker version 6b8e9497; the landing page unchanged); live-smoke,
+  live-game and live-tour pass, and the live bundle carries both.
 
 **M7, polish and ship: done 2026-10-27 (build sessions 5 and 6; checklist `docs/plans/M7.md`).** No notes from
 Stewart on the V1.0 draft yet, so M7 ran from the critics' lists. Build session 6 (2026-10-27):
