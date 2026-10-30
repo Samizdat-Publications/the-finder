@@ -32,6 +32,12 @@ reviewed each one's screenshots and merged:
   then Start over and the tour from step 1); `/play/?tour=fresh` does the same as a bookmark. **Deployed
   2026-10-29** after Stewart's go-ahead (Worker version 6b8e9497; the landing page unchanged); live-smoke,
   live-game and live-tour pass, and the live bundle carries both.
+- **Landing page refreshed (2026-10-29):** every clip re-filmed on the polished build (one main control per
+  instrument); new sections for The Player and The Voices, so all ten chapters are on the page; "Do it for me"
+  named in the premise; the clocks fact corrected to the four the game uses. README stills and GIF from the same
+  run; `showcase.json` updated date. Gemini critic on the clips: legible and smooth (about $0.14). Deployed to
+  Pages (https://the-finder.pages.dev), the clips and byte ranges checked live. Record:
+  `docs/making-of/showcase.md`.
 
 **M7, polish and ship: done 2026-10-27 (build sessions 5 and 6; checklist `docs/plans/M7.md`).** No notes from
 Stewart on the V1.0 draft yet, so M7 ran from the critics' lists. Build session 6 (2026-10-27):

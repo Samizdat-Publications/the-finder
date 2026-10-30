@@ -53,7 +53,7 @@
 </section>
 
 <section class="premise">
-  <p>The Voyager Golden Record was made in 1977 for whoever might find it. Its cover is a set of instructions written for a reader who shares nothing with us but physics. <em>The Finder</em> asks whether those instructions actually work: you play the reader, and a guide walks you through 44 deductions, one instrument at a time.</p>
+  <p>The Voyager Golden Record was made in 1977 for whoever might find it. Its cover is a set of instructions written for a reader who shares nothing with us but physics. <em>The Finder</em> asks whether those instructions actually work: you play the reader, and a guide walks you through 44 deductions, one instrument at a time. Work each one out by hand, or press <b>Do it for me</b> and watch the instrument do it, step by step.</p>
 </section>
 
 <div id="chapters">
@@ -88,6 +88,20 @@
 
 <section class="chapter">
   <figure class="screen">
+    <video data-inview muted loop playsinline preload="none" poster="media/player.jpg" aria-label="The record player built to the cover drawing, with the needle dropped into the groove">
+      <source src="media/player.mp4" type="video/mp4">
+    </video>
+  </figure>
+  <div class="copy">
+    <p class="kicker">The Player</p>
+    <h2>Playing the record</h2>
+    <p>The cover's drawing of the disc and its needle is a set of playing instructions. The number around it is the time of one turn, in hydrogen ticks: half the speed of a long-playing album. Set the turntable to it, turn it the way that carries the needle inward, drop the needle at the outer rim, and listen. The first sound is not music and not a voice: it is a buzz, one short shape repeating hundreds of times a second. A picture, sent as sound.</p>
+    <p class="data">Data: the cover's turn time; the record's sound from Ozma Records' 2017 transfer of the master.</p>
+  </div>
+</section>
+
+<section class="chapter flip">
+  <figure class="screen">
     <video data-inview muted loop playsinline preload="none" poster="media/pictures.jpg">
       <source src="media/pictures.mp4" type="video/mp4">
     </video>
@@ -95,8 +109,22 @@
   <div class="copy">
     <p class="kicker">The Pictures</p>
     <h2>Pictures out of sound</h2>
-    <p>One side of the record carries pictures as sound. Set the line time, the sync, the stagger and the shape from the cover's diagrams until the calibration circle comes out round, and every other picture develops with the same settings. Three frames in a row, stacked as red, green and blue, give Earth in colour. These are decoded live from the real 1977 image master tape, not shown from a clean copy: all 156 frames.</p>
+    <p>One side of the record carries pictures as sound. Set the line time, the sync, the stagger and the shape from the cover's diagrams until the calibration circle comes out round, and every other picture develops with the same settings. Three frames in a row, stacked as red, green and blue, give Earth in colour, and the teaching pictures give up their numerals, their units and their table of planets. These are decoded live from the real 1977 image master tape, not shown from a clean copy: all 156 frames.</p>
     <p class="data">Data: the Colorado Video image tape (1977), transferred by Ozma Records; a decoder in a Web Worker that matches the Python reference pixel for pixel.</p>
+  </div>
+</section>
+
+<section class="chapter">
+  <figure class="screen">
+    <video data-inview muted loop playsinline preload="none" poster="media/voices.jpg" aria-label="A sound picture of the greetings, with a stretch of whale calls marked">
+      <source src="media/voices.mp4" type="video/mp4">
+    </video>
+  </figure>
+  <div class="copy">
+    <p class="kicker">The Voices</p>
+    <h2>Their voices</h2>
+    <p>After the pictures the record keeps going, and this time it is real sound. The finder understands not a single word, but the shape of the sound still says a lot: dozens of speakers, one after another, not one creature; how high their voices reach above the hiss; long sliding calls near the end of one track that belong to another animal entirely; and music built on the octave, cut into twelve equal steps.</p>
+    <p class="data">Data: the record's greetings in 55 languages, whale song and music (Ozma Records); every measurement is made on the audio itself.</p>
   </div>
 </section>
 
@@ -179,7 +207,7 @@
     <li><b>156</b><span>pictures decoded from the 1977 tape in the browser, matching a separate Python decoder pixel for pixel</span></li>
     <li><b>14 of 14</b><span>map lines matched to the right pulsar, across 500 simulated playthroughs</span></li>
     <li><b>44</b><span>deductions, each with its own test; a bot plays every one from a fresh save</span></li>
-    <li><b>3</b><span>independent clocks (the fuel, the uranium spot, the pulsar map) that have to agree on one age</span></li>
+    <li><b>4</b><span>clocks that never saw each other (the fuel, the uranium spot, the pulsar map, the journey) that have to agree on one date</span></li>
   </ul>
   <p>The results page is generated from the test output, so it cannot drift from the code. It lists each deduction, the physics it rests on, the data, the test and the honest caveats.</p>
   <p class="buttons"><a class="button" href="https://the-finder.stewartgregerson.workers.dev/checked/">Read how it's checked</a></p>

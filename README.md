@@ -32,7 +32,8 @@ its own speed while the Cavatina plays. Best in desktop Chrome or Edge, with hea
 | | |
 |---|---|
 | ![Arrival: scanning the machine as it drifts past](docs/media/arrival.jpg) | ![The Key: the cover's binary and the hydrogen unit](docs/media/key.jpg) |
-| ![The Pictures: Earth in colour from three frames of the 1977 tape](docs/media/pictures.jpg) | ![The Spot: counting the uranium spot's alphas](docs/media/spot.jpg) |
+| ![The Player: the turntable set to the cover, and the first sound: a picture sent as sound](docs/media/player.jpg) | ![The Pictures: Earth in colour from three frames of the 1977 tape](docs/media/pictures.jpg) |
+| ![The Voices: long sliding calls marked in the sound picture, humpback whales](docs/media/voices.jpg) | ![The Spot: counting the uranium spot's alphas](docs/media/spot.jpg) |
 | ![The Map: matching the fourteen lines to their pulsars](docs/media/map.jpg) | ![The Trail: the only star the machine flies straight away from](docs/media/trail.jpg) |
 | ![Portrait: four clocks agree, and the senders' portrait on a gold plate](docs/media/portrait.jpg) | ![Our Frame: the one line etched by hand in the record's run-out groove](docs/media/finale.jpg) |
 

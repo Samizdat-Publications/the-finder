@@ -18,3 +18,15 @@ script, not by hand play.
   the showcase kit's `finish-site.mjs` (headers, byte ranges for the clips through `functions/media/`, so
   Safari can play and seek them) and deploys the Pages project `the-finder`. The game stays on its Worker.
 - **Social preview image (og.jpg, 2026-10-22):** a fresh capture of the current build (the Portrait plate after the clocks are confirmed, 1440 x 900, from `tests/browser/portrait.browser.mjs`), cropped to the plate and composed with the title "The Finder" in the page's own font stack on the plate's dark ground in headless Chrome, 1200 x 630 JPEG (about 99 KB); the same file is `public/og.jpg` and `site/media/og.jpg`.
+
+## Refresh after the V1.0 polish (2026-10-29)
+
+- **Film:** the same script on the polished build, 18 stops in one 13-minute run, no console errors.
+- **Cut:** every clip replaced, so the page shows one main control per instrument. Two new sections, The
+  Player (the turn time set on the slider, then the first sound: a buzz, a picture sent as sound) and The
+  Voices (the whale calls marked in the sound picture), so all ten chapters of the tour are on the page.
+  The Player and The Voices are trimmed around their waits (the needle's lead-in, the track loading). Portrait
+  now ends on the senders' sky; Our Frame joins the turn to our time, where the Voyagers are tonight and the
+  hand-etched line. Posters at 80% of each clip are also the README stills; the README GIF is the new hero.
+- **Review:** one contact sheet of all the posters and the Gemini critic on the clips joined (about $0.14),
+  `docs/reviews/2026-10-29-landing-clips-gemini-critic.md`.

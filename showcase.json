@@ -6,7 +6,7 @@
   "version": "0.5.0",
   "kind": "game",
   "started": "2026-10-15",
-  "updated": "2026-10-17",
+  "updated": "2026-10-29",
   "tech": ["TypeScript", "Vite", "three.js", "Preact", "Web Audio", "Web Workers", "Python", "Playwright", "Cloudflare Workers"],
   "links": {
     "landing": "https://the-finder.pages.dev",
